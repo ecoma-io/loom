@@ -69,5 +69,22 @@ export type { TooltipSide } from "./primitives/Tooltip/Tooltip.vue";
 export { default as WindowControls } from "./primitives/WindowControls/WindowControls.vue";
 export type { WindowControlsLabels } from "./primitives/WindowControls/WindowControls.vue";
 
+// Blocks, alphabetical. A block is an arrangement of primitives that every
+// Ecoma surface repeats — an application header, an empty state, a stack of
+// toasts — shipped so the arrangement is decided once rather than in each
+// product. They take composition where a primitive takes configuration: the
+// content arrives through slots, and the block owns only the layout, the
+// spacing and the behaviour that layout implies.
+export { default as AppHeader } from "./blocks/AppHeader/AppHeader.vue";
+export { default as DashboardGrid } from "./blocks/DashboardGrid/DashboardGrid.vue";
+export { default as EmptyState } from "./blocks/EmptyState/EmptyState.vue";
+export { default as PageHeader } from "./blocks/PageHeader/PageHeader.vue";
+export { default as RowActions } from "./blocks/RowActions/RowActions.vue";
+export { default as SidebarNav } from "./blocks/SidebarNav/SidebarNav.vue";
+export type { SidebarNavItem, SidebarNavSection } from "./blocks/SidebarNav/SidebarNav.vue";
+export { default as TitleBar } from "./blocks/TitleBar/TitleBar.vue";
+export { default as ToastStack } from "./blocks/ToastStack/ToastStack.vue";
+export type { ToastStackItem } from "./blocks/ToastStack/ToastStack.vue";
+
 // Icons — custom domain glyphs, taking the same props as any Lucide icon.
 export { default as BrandMark } from "./icons/BrandMark";
