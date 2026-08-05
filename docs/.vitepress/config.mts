@@ -31,12 +31,16 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
 
-  // Loom has one palette, not two. Leaving VitePress's appearance toggle on
-  // would offer a light mode that the components underneath do not have, and
-  // every demo on the page would keep its dark surface while the chrome around
-  // it turned white. `force-dark` removes the toggle rather than shipping a
-  // control that half-works.
-  appearance: "force-dark",
+  // Loom has one palette, not two, and it is the paper-light one: `theme.css`
+  // is light-first by design, and a symmetric dark theme is a reserved seam.
+  // Leaving VitePress's toggle on would offer a dark mode the components
+  // underneath do not have, so the chrome would go dark while every demo on the
+  // page stayed on paper. `false` removes the toggle rather than shipping a
+  // control that half-works — and it also keeps the `.dark` class off the
+  // document, which matters more than the switch does: VitePress's own `.dark`
+  // rules outrank the `:root` block that maps its variables onto Loom's tokens,
+  // so under a forced dark the site would quietly stop wearing them.
+  appearance: false,
 
   themeConfig: {
     nav: [
