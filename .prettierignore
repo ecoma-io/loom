@@ -9,3 +9,6 @@ pnpm-lock.yaml
 # Verbatim third-party legal text — reflowing it would alter a document that is
 # only valid unmodified.
 LICENSE
+
+docs/.vitepress/dist/
+docs/.vitepress/cache/

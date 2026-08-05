@@ -1,0 +1,26 @@
+// Declaration emit for the published package.
+//
+// Separate from `tsconfig.json` for two reasons that both come down to scope:
+// that file type-checks everything in the repository, including the docs site
+// and the tooling, none of which a consumer ever sees; and it sets
+// `noEmit`, because `pnpm typecheck` is a verdict, not a build step.
+//
+// Vite compiles the runtime output and erases types without checking them, so
+// `vue-tsc` is run against this config to produce the `.d.ts` files — it is
+// the only thing in the build that reads a single-file component's `<script>`
+// block as TypeScript.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*"],
+  // A demo and a test are documentation and proof respectively. Neither is
+  // part of the surface a consumer imports, so neither earns a declaration.
+  "exclude": ["src/**/*.test.ts", "src/**/*Demo.vue"]
+}

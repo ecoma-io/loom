@@ -22,8 +22,36 @@
     "exactOptionalPropertyTypes": true,
     "useUnknownInCatchVariables": true,
 
-    "types": ["node"]
+    // `vite/client` is what types the query-suffixed imports the docs rely on
+    // — `?raw` in particular, which is how a documentation page shows a demo's
+    // real source instead of a hand-copied snippet that can drift from it.
+    "types": ["node", "vite/client"],
+
+    // The documentation site imports Loom by its published name, so a snippet
+    // on the site is a snippet a consumer can paste. This is the type-checker's
+    // half of that; Vite's half is the matching alias in the VitePress config,
+    // and the two have to move together.
+    "paths": {
+      "@ecoma-io/loom": ["./src/index.ts"],
+      "@ecoma-io/loom/a11y": ["./src/a11y.ts"]
+    }
   },
-  "include": ["src/**/*", "e2e/**/*", "*.config.ts", "*.config.mts"],
-  "exclude": ["node_modules", "dist"]
+  // Everything that is type-checked, which is everything: components, tests,
+  // the documentation site and its build plugins, the repo's own tooling. A
+  // file outside this list is a file `pnpm typecheck` silently skips, so
+  // adding a top-level script means adding it here in the same commit.
+  "include": [
+    "src/**/*",
+    "e2e/**/*",
+    "docs/**/*",
+    // Listed separately because TypeScript's wildcards skip directories whose
+    // name starts with a dot — `docs/**/*` alone silently leaves the entire
+    // VitePress config, theme and build plugins unchecked.
+    "docs/.vitepress/**/*",
+    "tools/**/*",
+    "*.config.ts",
+    "*.config.mts",
+    "vitest.setup.ts"
+  ],
+  "exclude": ["node_modules", "dist", "docs/.vitepress/dist", "docs/.vitepress/cache"]
 }

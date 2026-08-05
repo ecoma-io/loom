@@ -8,9 +8,24 @@
 # pnpm fails the install while any decision is missing — so an unreviewed
 # postinstall cannot run in CI just because it shipped in a new release.
 #
+# esbuild: false — reached only through the Vite 5 that VitePress bundles. Its
+# postinstall swaps the JavaScript `bin/esbuild` shim for the native binary,
+# which saves a few milliseconds of Node startup and nothing else: the shim
+# resolves `@esbuild/<platform>` at run time either way, and that package
+# arrives as an ordinary optional dependency. Measured with the script blocked —
+# the documentation site still builds.
+#
 # lefthook: false — its postinstall only runs `lefthook install`, which this
 # package's `prepare` script already does, and which lefthook itself skips
 # whenever `CI` is set. The binary comes from optionalDependencies and needs no
 # build step, so nothing is lost by never running it.
+#
+# vue-demi: false — reached through `@floating-ui/vue`, under Reka UI. Its
+# postinstall rewrites `lib/index.*` to match the installed Vue major, and the
+# copy it ships is already the Vue 3 one (`isVue3 = true`). Loom's
+# `peerDependencies` admit Vue 3 alone, so the rewrite would produce the file
+# that is already on disk.
 allowBuilds:
+  esbuild: false
   lefthook: false
+  vue-demi: false

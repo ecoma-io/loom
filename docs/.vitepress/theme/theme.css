@@ -1,0 +1,70 @@
+/**
+ * The documentation site is a Loom consumer.
+ *
+ * It imports the same stylesheet an application would, from the same entry
+ * point, and then hands VitePress's own variables over to Loom's tokens. That
+ * is the point of dogfooding here: if a token is wrong, the site the reader is
+ * looking at is what shows it, before anyone reaches a component page.
+ */
+@import "../../../src/styles/global.css";
+
+/* Loom's `global.css` registers `src/` as a scan target, which covers the
+ * components. These are the site's own files — the markdown pages and the
+ * theme's components — where the demos' classes are actually written. */
+@source "../../";
+
+/* ---- VitePress, wearing Loom's tokens -------------------------------------
+ * VitePress's default theme is driven entirely by CSS variables, so re-pointing
+ * them is all that is needed for the chrome — nav, sidebar, code blocks, tables
+ * — to be rendered in Loom's palette rather than beside it. The alternative, a
+ * hand-written theme, would take on VitePress's whole surface (routing, search,
+ * the outline, mobile navigation) for no gain the reader can see.
+ */
+:root {
+  --vp-c-bg: var(--color-background);
+  --vp-c-bg-alt: var(--color-sunken);
+  --vp-c-bg-elv: var(--color-card);
+  --vp-c-bg-soft: var(--color-muted);
+
+  --vp-c-text-1: var(--color-foreground);
+  --vp-c-text-2: var(--color-muted-foreground);
+  --vp-c-text-3: var(--color-muted-foreground);
+
+  --vp-c-divider: var(--color-border);
+  --vp-c-gutter: var(--color-border);
+  --vp-c-border: var(--color-border);
+
+  --vp-c-brand-1: var(--color-primary);
+  --vp-c-brand-2: var(--color-primary);
+  --vp-c-brand-3: var(--color-primary);
+  --vp-c-brand-soft: color-mix(in oklab, var(--color-primary) 16%, transparent);
+
+  --vp-c-danger-1: var(--color-destructive);
+  --vp-c-danger-soft: color-mix(in oklab, var(--color-destructive) 16%, transparent);
+  --vp-c-warning-1: var(--color-warning);
+  --vp-c-warning-soft: color-mix(in oklab, var(--color-warning) 16%, transparent);
+  --vp-c-tip-1: var(--color-info);
+  --vp-c-tip-soft: color-mix(in oklab, var(--color-info) 16%, transparent);
+
+  --vp-font-family-base: var(--font-sans);
+  --vp-font-family-mono: var(--font-mono);
+
+  --vp-code-block-bg: var(--color-sunken);
+  --vp-code-copy-code-bg: var(--color-card);
+
+  --vp-button-brand-bg: var(--color-primary);
+  --vp-button-brand-text: var(--color-primary-foreground);
+  --vp-button-brand-hover-bg: color-mix(in oklab, var(--color-primary) 90%, transparent);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: var(--seam);
+}
+
+/* Tailwind's preflight strips the browser's default outline, and this site is
+ * documentation for a design system that treats the focus ring as a promise.
+ * VitePress's own focus styling is left alone where it sets one; this covers
+ * the elements it does not. */
+:where(a, button, input, summary):focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
