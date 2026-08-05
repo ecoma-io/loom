@@ -10,6 +10,14 @@
     "verbatimModuleSyntax": true,
     "jsx": "preserve",
 
+    // The repository's own scripts under `tools/` are run by `node` directly,
+    // on Node's type stripping rather than through a bundler — and there,
+    // relative imports resolve as plain ESM, which never guesses an extension.
+    // `./base.ts` is the filename Node opens; anything shorter fails at run
+    // time. Allowed rather than rewritten, because nothing in `src/` imports
+    // this way and the published declarations are emitted from `src/` alone.
+    "allowImportingTsExtensions": true,
+
     // The library is bundled by consumers; nothing here emits on its own.
     "noEmit": true,
     "skipLibCheck": true,

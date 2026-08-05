@@ -1,0 +1,123 @@
+name: Docs
+
+# The documentation site tracks `main`, not the released version, and that is a
+# decision rather than a default. This site is where the library is designed in
+# the open: it dogfoods the components it documents, so a component that changed
+# on `main` and a page that still shows the old one would be a site disagreeing
+# with itself. A consumer pinning a released version reads the CHANGELOG; a
+# contributor reads this.
+
+on:
+  push:
+    branches: [main]
+    # A push that touches none of these produces a byte-identical site. The
+    # build is cheap, but a deployment that changes nothing still writes a new
+    # version into the Cloudflare history, which makes the history useless for
+    # answering "when did the site last change?".
+    paths:
+      - "docs/**"
+      - "src/**"
+      - "tools/stage-docs.ts"
+      - "wrangler.jsonc"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# A newer `main` supersedes an in-flight deploy: the site has one live version
+# and the most recent commit is the one that should win the race.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Cloudflare offers no OIDC trusted publishing for Wrangler and no way to
+    # mint a scoped token from CI, so this one credential is a stored secret —
+    # the only one in the repository. The environment is what bounds it:
+    # restricted to `main` in repository settings, so no fork and no feature
+    # branch can reach the token, and every use is recorded against it.
+    environment:
+      name: cloudflare
+      url: ${{ steps.site.outputs.url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      # Where the site lives is decided in `docs/.vitepress/base.ts`, which is
+      # also what VitePress builds against and what the staging step checks the
+      # Cloudflare route against. Read here rather than written again, so this
+      # workflow cannot be the one place still naming the old path — both the
+      # environment link above and the reachability check below use it.
+      - name: Resolve the public URL
+        id: site
+        run: |
+          set -euo pipefail
+          node --input-type=module --eval \
+            'import { BASE, SITE_URL } from "./docs/.vitepress/base.ts";
+             console.log(`url=${SITE_URL}`);
+             console.log(`base=${BASE}`);' >> "$GITHUB_OUTPUT"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm docs:build
+
+      # Nests the build under the path it is served from, and fails if
+      # `wrangler.jsonc`'s route disagrees with the base the site was just built
+      # with — the one mismatch that deploys successfully and serves nothing.
+      - run: pnpm docs:stage
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        env:
+          # Off by default here rather than off by omission: Wrangler's telemetry
+          # is on unless told otherwise, and a CI job is not a place to send
+          # usage data nobody asked to send.
+          CLOUDFLARE_TELEMETRY_DISABLED: "1"
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+      # A deploy that reports success and a page a reader can open are not the
+      # same claim. Routes, DNS and the asset prefix each fail silently — the
+      # upload is green and the URL is a 404 or a wall of unstyled text — so the
+      # site is fetched from outside Cloudflare's API before this job goes green.
+      - name: Check the site actually serves
+        env:
+          SITE_URL: ${{ steps.site.outputs.url }}
+          SITE_BASE: ${{ steps.site.outputs.base }}
+        run: |
+          set -euo pipefail
+          # Propagation is usually immediate and occasionally is not; five tries
+          # at ten seconds is long enough to cover the difference and short
+          # enough that a real breakage is reported rather than waited out.
+          for attempt in 1 2 3 4 5; do
+            if body=$(curl --fail --silent --show-error --location "$SITE_URL"); then
+              # The asset prefix proves the staging step's nesting survived. A
+              # 200 alone would pass on the unstyled-wall-of-text failure, which
+              # is the one this whole path exists to prevent.
+              printf '%s' "$body" | grep -qF "${SITE_BASE}assets/" \
+                && { echo "Serving, with its assets rooted correctly."; exit 0; }
+              echo "Served HTML carries no asset under the expected prefix." >&2
+              exit 1
+            fi
+            echo "Attempt ${attempt} failed; retrying in 10s." >&2
+            sleep 10
+          done
+          echo "The site did not answer after five attempts." >&2
+          exit 1

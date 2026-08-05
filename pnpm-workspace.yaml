@@ -20,6 +20,15 @@
 # whenever `CI` is set. The binary comes from optionalDependencies and needs no
 # build step, so nothing is lost by never running it.
 #
+# workerd: false — reached through wrangler, and the same shape as esbuild
+# above: `install.js` swaps the JavaScript `bin/workerd` shim for the native
+# binary out of `@cloudflare/workerd-<platform>`, which arrives on its own as an
+# ordinary optional dependency. The shim resolves that package at run time
+# either way. Nothing this repository runs needs the local runtime at all —
+# `wrangler deploy` uploads a directory of static assets and never starts a
+# worker — so what the script saves here is a process spawn that never happens.
+# Measured with the script blocked: `wrangler deploy --dry-run` is green.
+#
 # vue-demi: false — reached through `@floating-ui/vue`, under Reka UI. Its
 # postinstall rewrites `lib/index.*` to match the installed Vue major, and the
 # copy it ships is already the Vue 3 one (`isVue3 = true`). Loom's
@@ -29,3 +38,4 @@ allowBuilds:
   esbuild: false
   lefthook: false
   vue-demi: false
+  workerd: false

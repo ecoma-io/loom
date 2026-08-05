@@ -1,0 +1,164 @@
+name: Release
+
+# Versioning and publishing, in one workflow, and the reason they cannot be two
+# is a GitHub rule rather than a preference: an event created with the default
+# `GITHUB_TOKEN` does not trigger another workflow run. Release Please writes
+# its tag and its GitHub Release with that token, so a `on: push: tags: v*`
+# publish workflow would sit there and never fire — the tag exists, nothing runs,
+# and the only symptom is a version nobody can install.
+#
+# So the publish is a job in this file, gated on Release Please's own output. It
+# runs on the same commit the release job just tagged, which is also what makes
+# the artifact traceable to a single run.
+# https://docs.github.com/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never cancel a release in flight. A cancelled publish can leave the tag and
+# the GitHub Release written with nothing on the registry, which is the one
+# state that needs a human to unpick.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      # `release_created` is true only on the run where the Release PR itself
+      # was merged — not on the run that opened or updated it. That is the whole
+      # gate for the publish job below.
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Publish to npm
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The environment is the audit trail, not a second approval step: it is
+    # restricted to `main` in repository settings, so this job cannot be made to
+    # run from a fork or a feature branch, and every publish is recorded against
+    # it. No reviewer is configured — a merged Release PR is the decision, and
+    # asking for a second click after it would only teach people to click.
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/${{ steps.identity.outputs.name }}
+    outputs:
+      # Read out of the manifest rather than written again in the job below,
+      # which has no checkout to read it from: a rename would otherwise leave
+      # the verification installing a package that no longer exists and
+      # reporting it as a failed publish.
+      name: ${{ steps.identity.outputs.name }}
+    permissions:
+      contents: read
+      # The whole of the credential. npm trusted publishing exchanges this
+      # short-lived OIDC token for publish rights, so no npm token exists in
+      # this repository to leak, rotate or forget — which is also why there is
+      # no `NODE_AUTH_TOKEN` anywhere below.
+      id-token: write
+    steps:
+      # The tag, not the branch: `main` may already have moved on by the time
+      # this job starts, and publishing a commit the release does not point at
+      # would put a version on the registry that matches no tag.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Resolve the package name
+        id: identity
+        run: printf 'name=%s\n' "$(node -p 'require("./package.json").name')" >> "$GITHUB_OUTPUT"
+
+      # Trusted publishing needs npm 11.5.1 or newer, and the npm bundled with a
+      # Node release is whatever shipped with it — a version this workflow does
+      # not control and cannot pin. Upgrading explicitly is what makes the
+      # requirement a stated fact instead of an assumption about Node 24.
+      # https://docs.npmjs.com/trusted-publishers
+      - name: Upgrade npm to a version that can publish over OIDC
+        run: npm install --global npm@latest
+
+      - run: pnpm install --frozen-lockfile
+
+      # The published tarball is built here rather than downloaded from the CI
+      # run: `files: ["dist"]` means the package is exactly this build's output,
+      # and a build that happens in the publishing job is the one that cannot
+      # have been substituted between the two.
+      - run: pnpm build
+
+      # Two flags this deliberately does not carry. `--provenance`, because a
+      # configured trusted publisher attaches the attestation on its own.
+      # `--access public`, because it lives in `publishConfig` in package.json,
+      # where a scoped package's visibility is a property of the package rather
+      # than of one workflow step that could disagree with it.
+      - name: Publish
+        run: npm publish
+
+  verify-artifact:
+    name: Verify the published artifact
+    needs: [release-please, publish]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          registry-url: https://registry.npmjs.org
+
+      # A publish that reports success and a package a consumer can actually
+      # install are not the same claim. This job makes the second one, from
+      # outside the repository, against the registry — the only place the
+      # answer is real.
+      #
+      # `npm audit signatures` is what checks the provenance attestation rather
+      # than merely finding the version, so a publish that lost its OIDC link
+      # and fell back to something else fails here instead of shipping quietly.
+      - name: Install the published version and check its provenance
+        env:
+          VERSION: ${{ needs.release-please.outputs.version }}
+          PACKAGE: ${{ needs.publish.outputs.name }}
+        run: |
+          set -euo pipefail
+          npm install --global npm@latest
+          mkdir -p /tmp/verify && cd /tmp/verify
+          npm init --yes > /dev/null
+          npm install "${PACKAGE}@${VERSION}"
+          npm audit signatures
+          node --input-type=module -e '
+            import { createRequire } from "node:module";
+            const require = createRequire("/tmp/verify/");
+            const name = process.env.PACKAGE;
+            const manifest = require(`${name}/package.json`);
+            if (manifest.version !== process.env.VERSION) {
+              throw new Error(`registry served ${manifest.version}, expected ${process.env.VERSION}`);
+            }
+            console.log(`${name}@${manifest.version} resolves and carries provenance.`);
+          '

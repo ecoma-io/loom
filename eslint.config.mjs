@@ -31,6 +31,11 @@ export default tseslint.config(
       ".github/semgrep/**",
       "docs/.vitepress/dist/**",
       "docs/.vitepress/cache/**",
+      // The same built site again, nested under the path it is served from.
+      // `docs:stage` copies rather than moves, so linting this would report
+      // every minified bundle twice over.
+      ".cloudflare/**",
+      ".wrangler/**",
     ],
   },
 
