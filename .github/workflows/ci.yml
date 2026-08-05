@@ -1,8 +1,14 @@
 name: CI
 
 on:
+  # Every pull request, whatever it targets — deliberately unfiltered. A
+  # `branches: [main]` filter here reads as "we only merge to main", which is
+  # true, but what it actually does is skip CI on a pull request stacked on
+  # another one: its base is a feature branch, so no run starts, and the change
+  # is reviewed with no evidence at all until the branch below it merges and
+  # GitHub retargets it. A pull request with no gate is the thing this file
+  # exists to prevent, and where it happens to point is not a reason to allow it.
   pull_request:
-    branches: [main]
   # The merge queue re-runs these checks against `main + every pull request
   # ahead in the queue + this one`, which is the only place a semantic conflict
   # between two independently-green pull requests can surface. GitHub reports
