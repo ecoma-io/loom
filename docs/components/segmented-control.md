@@ -1,0 +1,118 @@
+# SegmentedControl
+
+Pick one of a small set of mutually exclusive options, all visible at once,
+with one always active — a view switcher or a density setting. For a longer
+list, or options that need a description, reach for
+[RadioGroup](./radio-group) instead; for flipping a single boolean, reach for
+[Switch](./switch).
+
+<script setup lang="ts">
+import { SegmentedControl } from "@ecoma-io/loom";
+import SegmentedControlDemo from "../../src/primitives/SegmentedControl/SegmentedControlDemo.vue";
+import segmentedControlDemoSource from "../../src/primitives/SegmentedControl/SegmentedControlDemo.vue?raw";
+</script>
+
+## Usage
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SegmentedControl, type SegmentedControlOption } from "@ecoma-io/loom";
+
+const theme = ref("auto");
+const options: SegmentedControlOption[] = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+  { value: "auto", label: "Auto" },
+];
+</script>
+
+<template>
+  <SegmentedControl v-model="theme" :options="options" aria-label="Theme" />
+</template>
+```
+
+## RadioGroup vs SegmentedControl
+
+`SegmentedControl` is a compact, horizontal toggle with short labels, all
+visible at once — a view switch or a density setting, typically 2 to 5
+options. `RadioGroup` is a vertical list carrying full labels and an
+optional description per row. Short labels that need to sit compactly in a
+row: reach for `SegmentedControl`. Longer labels, a description per option,
+or a place inside a form: reach for `RadioGroup`.
+
+## Options
+
+Each entry in the `options` array is a `SegmentedControlOption`:
+
+| Field      | Type      | Required | Meaning                                                    |
+| ---------- | --------- | -------- | ---------------------------------------------------------- |
+| `value`    | `string`  | yes      | Matched against `modelValue`.                              |
+| `label`    | `string`  | yes      | Visible label, rendered inside the segment.                |
+| `disabled` | `boolean` | no       | Disables this segment alone, siblings stay pickable.       |
+| `testId`   | `string`  | no       | Forwarded to the segment's DOM node as a stable test hook. |
+
+## Size
+
+`size="sm"` is the compressed form for dense chrome — a status bar, a toolbar
+— where the default padding and text size would crowd the surrounding
+controls.
+
+<Demo title="Default and sm">
+  <SegmentedControl
+    model-value="cozy"
+    :options="[
+      { value: 'compact', label: 'Compact' },
+      { value: 'cozy', label: 'Cozy' },
+      { value: 'roomy', label: 'Roomy' },
+    ]"
+    aria-label="Density"
+  />
+  <SegmentedControl
+    model-value="cozy"
+    size="sm"
+    :options="[
+      { value: 'compact', label: 'Compact' },
+      { value: 'cozy', label: 'Cozy' },
+      { value: 'roomy', label: 'Roomy' },
+    ]"
+    aria-label="Density"
+  />
+</Demo>
+
+## Keyboard
+
+The group is a single Tab stop, not one per segment — this is roving
+tabindex: the currently-reachable segment carries `tabindex="0"`, every other
+segment carries `tabindex="-1"`. Arrow keys move both the reachable segment
+and the selection; because the group is horizontal, only the horizontal
+arrows act, the vertical ones are ignored.
+
+## Motion
+
+One shared indicator pill slides behind whichever segment is active, rather
+than each segment animating its own background. Its position is measured
+live off the DOM — the `offsetLeft`/`offsetWidth` of the checked segment —
+and re-measured through a `ResizeObserver`, so variable-width labels and the
+`sm` size stay correct with no per-size indicator logic. The slide runs on
+`--duration-fast` paired with `--ease-spring`, both on the `left` and the
+`width` transition; the segment's own text merely changes color and weight
+on `--ease-out`, since the indicator carries the motion. Loom's global
+`prefers-reduced-motion` rule collapses the slide to an instant jump; nothing
+here needs its own override.
+
+<Demo title="Every state" :source="segmentedControlDemoSource">
+  <SegmentedControlDemo />
+</Demo>
+
+## Do / Don't
+
+- Use `SegmentedControl` for 2 to 5 mutually exclusive, short-labeled
+  options where one is always active — a color mode or a density level.
+- Don't use `SegmentedControl` for more than a handful of options, or for
+  options with long labels — reach for a `Select` instead.
+- Don't use `SegmentedControl` to flip a single boolean — that's `Switch`.
+
+## API
+
+<!-- @api SegmentedControl -->
