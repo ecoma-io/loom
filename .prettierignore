@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+pnpm-lock.yaml
+
+# Verbatim third-party legal text — reflowing it would alter a document that is
+# only valid unmodified.
+LICENSE

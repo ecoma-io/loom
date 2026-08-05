@@ -1,0 +1,69 @@
+{
+  "name": "@ecoma-io/loom",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Design system & components for the Ecoma ecosystem.",
+  "keywords": [
+    "design-system",
+    "component-library",
+    "ui-components",
+    "ui-kit",
+    "design-tokens",
+    "vue",
+    "vue3",
+    "tailwindcss",
+    "accessibility",
+    "a11y",
+    "wcag",
+    "theming",
+    "dark-mode",
+    "ecoma"
+  ],
+  "homepage": "https://github.com/ecoma-io/loom#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ecoma-io/loom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ecoma-io/loom/issues"
+  },
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Mai Ngọc Hóa (John Martin)",
+    "email": "john.itvn@gmail.com"
+  },
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=11"
+  },
+  "scripts": {
+    "prepare": "lefthook install",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "e2e": "playwright test --pass-with-no-tests",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.1.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.9.0",
+    "lefthook": "^2.1.10",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.66.0",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
+  }
+}

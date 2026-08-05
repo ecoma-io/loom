@@ -1,0 +1,98 @@
+name: Bug report
+description: Something in the design system behaves differently from what it documents.
+title: "bug: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file this. A design system reproduces its
+        defects in every product that consumes it, so a precise report is worth
+        a great deal here.
+
+        **Do not report a security vulnerability through this form** — follow
+        [SECURITY.md](../blob/main/SECURITY.md) instead.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before filing
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I reproduced this on the latest `main`.
+          required: false
+
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+      description: The behaviour you observed, without interpretation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-should-happen
+    attributes:
+      label: What should happen instead
+      description: And where that expectation comes from — a document, a WCAG criterion, another component behaving differently.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: A minimal reproduction — a link to a runnable one is best. A report nobody can reproduce cannot be fixed.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: input
+    id: component
+    attributes:
+      label: Component or token
+      description: Which export this concerns, if it concerns one.
+      placeholder: e.g. Dialog, Button, --color-surface-raised
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: What kind of defect is this?
+      options:
+        - Behaviour or logic
+        - Visual / styling
+        - Accessibility
+        - TypeScript types
+        - Build or packaging
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Read these from commands rather than memory.
+      value: |
+        - `@ecoma-io/loom` version:
+        - Node (`node --version`):
+        - pnpm (`pnpm --version`):
+        - Browser and version:
+        - OS:
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Console output, screenshots, a recording. Paste text as text rather than as an image where you can.
+    validations:
+      required: false

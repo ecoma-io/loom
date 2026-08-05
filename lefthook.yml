@@ -1,0 +1,30 @@
+# Git hooks — installed by `pnpm install` (the `prepare` script runs
+# `lefthook install`). Rationale and the full contributor flow: CONTRIBUTING.md.
+
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      # Format only what is staged, then re-stage whatever Prettier rewrote, so
+      # the commit contains the formatted bytes rather than a follow-up fixup.
+      glob: "*.{ts,mts,cts,mjs,cjs,js,vue,json,jsonc,json5,md,yml,yaml,css,html}"
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+    lint:
+      glob: "*.{ts,mts,cts,mjs,cjs,js,vue}"
+      run: pnpm exec eslint --no-warn-ignored --max-warnings 0 {staged_files}
+
+pre-push:
+  parallel: false
+  commands:
+    typecheck:
+      # The Vite build strips types without checking them, so a type error is
+      # only ever caught here or in CI — never by `build`.
+      run: pnpm run typecheck
+    test:
+      run: pnpm run test
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}

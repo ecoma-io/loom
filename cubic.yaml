@@ -1,0 +1,125 @@
+# yaml-language-server: $schema=https://cubic.dev/schema/cubic-repository-config.schema.json
+#
+# cubic reviews every pull request here, and its scope is defined by what the
+# deterministic gates cannot see:
+#
+#   1. Prettier, ESLint, `tsc --noEmit`, Vitest and Playwright own everything
+#      mechanically decidable. They are the source of truth and the only thing
+#      that gates a merge.
+#   2. cubic owns what none of them reach: correctness defects in the changed
+#      code, and the accessibility and public-API regressions that a design
+#      system exports to every consumer at once.
+#
+# The reasoning lives in this file rather than in CONTRIBUTING.md because a
+# config file is read by whoever is editing it, and nothing else loads with it.
+#
+# A maintainer can steer a single review without touching this file by
+# commenting `@cubic-dev-ai rerun and focus on <…>` on the pull request.
+version: 1
+
+reviews:
+  enabled: true
+
+  # A draft is a work in progress; re-reviewing each push once it is open is
+  # where the feedback is worth reading.
+  incremental_commits: true
+  check_drafts: false
+
+  # `medium` because the value cubic adds is a defect no gate can find, and
+  # `low` risks trading exactly that away — while `high` on a repository this
+  # small has little left to spend but speculation.
+  sensitivity: medium
+
+  # A superseded finding must not read as an open one.
+  resolve_threads_when_addressed: true
+
+  # Advisory only. Nothing here may approve a pull request or stand in for a
+  # required check.
+  auto_approve: disabled
+
+  # The component inventory and its layering are documented in the tree itself
+  # and outlive any one pull request. A generated diagram is comment volume with
+  # no owner and no gate keeping it true.
+  architecture_diagrams: false
+
+  custom_instructions: |
+    You are the correctness reviewer on a design system — a library whose
+    defects are copied into every product that consumes it, so a wrong default
+    or a missing ARIA relationship ships everywhere at once.
+
+    Report defects in the changed code: wrong logic, unhandled null or
+    undefined, swallowed or misclassified errors, await and promise mistakes,
+    leaked event listeners, observers or timers that are never disposed, race
+    conditions, off-by-one and boundary errors, incorrect use of a library or
+    platform API, and untrusted input reaching a dangerous sink unvalidated.
+
+    Report accessibility defects with the same weight as logic defects: a
+    control with no accessible name, an ARIA attribute pointing at an id that is
+    not rendered, keyboard focus that cannot enter or cannot escape, focus lost
+    on close rather than restored to the trigger, state conveyed by colour
+    alone, and motion with no reduced-motion path.
+
+    Report a change to an exported component's props, events, slots or token
+    names that breaks a consumer without saying so.
+
+    Do NOT report formatting or style: Prettier and ESLint decide those and CI
+    fails on them, so such a comment is noise on an already-red build.
+
+  ignore:
+    files:
+      - "**/*.md"
+      - pnpm-lock.yaml
+      - "**/dist/**"
+      - "**/coverage/**"
+      - "**/playwright-report/**"
+      - cubic.yaml
+
+  # Each rule names a failure mode that is SILENT (it produces a green build),
+  # EXPENSIVE (it reaches every consumer), and unreachable by every gate in this
+  # repository.
+  custom_rules:
+    - name: A token is defined once and referenced everywhere
+      description: >
+        Flag a raw colour, spacing, radius, duration or easing literal in a
+        component when a design token already expresses it, and flag a token
+        added in one theme but not its counterpart. The build cannot tell a
+        deliberate one-off from a copy that will silently stop tracking the
+        theme it was cloned from, so the first dark-mode or rebrand pass is
+        where such a literal surfaces — in a consumer's product, not here.
+      include:
+        - src/**
+
+    - name: Focus and dismissal are restored, not just moved
+      description: >
+        In any component that traps focus or renders outside its parent — a
+        dialog, popover, tooltip, drawer, menu — flag focus that is not returned
+        to the element that opened it on close, a listener bound to `document`
+        or `window` that is not removed on unmount, and dismissal that responds
+        to a click but not to Escape. Each of these passes a rendering test and
+        fails only for someone navigating by keyboard.
+      include:
+        - src/**
+
+    - name: pull_request_target never executes head code
+      description: >
+        In any workflow triggered by `pull_request_target`, flag a `ref:` naming
+        the pull request head, a `run:` step consuming head-controlled input, an
+        install or build step after head files are restored, and any action
+        referenced by tag or branch rather than a full commit SHA. Such a
+        workflow runs against the base ref holding a write token, so head
+        content may be read through the API as DATA and never executed.
+      include:
+        - .github/workflows/**
+
+pr_descriptions:
+  # The description states the author's intent, which is the one thing a
+  # reviewer compares the diff against. Generating it would leave nothing to
+  # compare.
+  generate: false
+
+issues:
+  # Every commit here passes through commitlint and the pre-commit hooks. A fix
+  # pushed by an agent skips both and arrives with a message the gate rejects.
+  fix_with_cubic_buttons: false
+  pr_comment_fixes: false
+  fix_commits_to_pr: false

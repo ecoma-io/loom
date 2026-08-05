@@ -1,0 +1,35 @@
+# Template-side XSS rules, kept apart from `xss.yml` because they run against a
+# different language.
+#
+# `generic` rather than `vue` on purpose, and not by preference: Semgrep removed
+# its Vue parser in 1.93.0, so `languages: [vue]` fails at scan time with
+# "Vue support has been removed" even though `semgrep show supported-languages`
+# still lists it. Generic mode reads the file as text, which is enough for a
+# directive whose name is the finding.
+#
+# The consequence is worth stating plainly: the `<script>` block of a single-file
+# component is NOT covered by `xss.yml` or `memory-leaks.yml`, because Semgrep
+# can no longer reach it. Inside an SFC, ESLint is the analyser that sees the
+# code — which is why a rule that matters in both places belongs in both tools,
+# not in whichever one was easier to write.
+rules:
+  - id: loom-v-html-directive
+    languages: [generic]
+    severity: ERROR
+    paths:
+      include:
+        - "*.vue"
+        - "*.html"
+    message: >-
+      `v-html` renders its expression as markup and is the single largest XSS
+      surface a Vue component can have — Vue does no escaping here by design. In
+      a shared library the value almost always arrived as a prop, which means
+      the consuming product decides whether this is an injection. Render text,
+      use a slot so the consumer owns its own markup, or sanitise with
+      `DOMPurify.sanitize()` immediately before binding.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    pattern-regex: \sv-html\s*=

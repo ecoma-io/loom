@@ -1,0 +1,84 @@
+// Dependency updates run through Renovate, covering the two ecosystems that
+// live here: npm/pnpm (the single root package.json + pnpm-lock.yaml) and
+// github-actions (.github/workflows/*.yml) — both auto-detected by Renovate's
+// default managers.
+//
+// Activation: this file alone does nothing. Renovate only runs once the
+// official Renovate GitHub App (Mend) is installed on the repository by someone
+// with organisation admin rights — https://github.com/apps/renovate. Chosen
+// over self-hosting Renovate as a scheduled workflow because a self-hosted run
+// needs its own PAT or App token to let its pull requests trigger the required
+// checks (the default GITHUB_TOKEN cannot trigger other workflows, so every
+// single Renovate PR would need a manual "Approve workflows to run"). The App
+// has no such gap, and it avoids introducing a long-lived credential this
+// repository does not otherwise hold.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+  timezone: "UTC",
+  // Weekly, not continuous. This is a small, single-maintainer library; a drip
+  // of pull requests through the day would be noise rather than signal.
+  schedule: ["before 6am on monday"],
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["before 6am on monday"],
+  },
+  // Must satisfy the commitlint gate (CONTRIBUTING.md): Conventional Commits,
+  // with a scope drawn from commitlint.config.mjs's enum. Renovate's default
+  // templates render the rest as "update dependency <name> to <version>", so a
+  // full message reads "chore(deps): update dependency vite to v8.1.6".
+  semanticCommits: "enabled",
+  semanticCommitType: "chore",
+  semanticCommitScope: "deps",
+  packageRules: [
+    {
+      // Actions are pinned to a full commit SHA (OpenSSF Scorecard's
+      // Pinned-Dependencies check, and the reason a tag is not a fixed
+      // reference). Renovate keeps the `# vX.Y.Z` comment beside the SHA in
+      // step with what it bumps.
+      matchManagers: ["github-actions"],
+      semanticCommitScope: "ci",
+      pinDigests: true,
+    },
+    {
+      // The Semgrep analyser runs as a job container, written as
+      // `tag@sha256:...` so the tag stays readable while the digest is what
+      // actually resolves. Same reasoning as actions: a tag is not a fixed
+      // reference, and an analyser that changes silently makes a rerun mean
+      // something different from the run it repeats.
+      matchDatasources: ["docker"],
+      semanticCommitScope: "ci",
+      pinDigests: true,
+    },
+    {
+      // Playwright's npm package and the browser binaries it downloads are
+      // versioned together; splitting them across pull requests produces a
+      // window where `playwright test` runs against a browser build it was not
+      // released with.
+      matchPackageNames: ["@playwright/test", "playwright"],
+      groupName: "playwright",
+    },
+    {
+      // TypeScript stays on 5.x. TypeScript 7 is the native (tsgo) rewrite and
+      // typescript-eslint refuses to load against it outright — "typescript-eslint
+      // does not support TS 7.0" — which turns `pnpm lint` red on every file at
+      // once. Vue's `vue-tsc` has the same gap. Lift this rule when both have
+      // shipped support, not when the bump is offered.
+      matchPackageNames: ["typescript"],
+      allowedVersions: "<6",
+    },
+    {
+      // Formatter and linter bumps arrive together, because a Prettier release
+      // that reflows files and an ESLint release that re-reports them are one
+      // review, not two.
+      matchPackageNames: [
+        "prettier",
+        "eslint",
+        "eslint-config-prettier",
+        "typescript-eslint",
+        "@eslint/js",
+      ],
+      groupName: "lint and format toolchain",
+    },
+  ],
+}

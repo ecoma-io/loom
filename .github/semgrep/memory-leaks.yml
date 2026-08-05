@@ -1,0 +1,232 @@
+# Memory-leak rules for Loom.
+#
+# A leak in a component library is not a slow tab, it is a slow tab in every
+# product that mounts the component — and it appears where the component is used
+# most, which is usually a long-lived screen nobody reloads. Every rule here
+# targets the same shape: something with a lifetime longer than the component
+# that created it, where the handle needed to end that lifetime was never kept.
+#
+# Only teardown-shaped leaks are machine-checkable this way. Retention leaks —
+# a module-level cache that grows, a closure that captures a detached node — are
+# on review, and are why `WeakMap`/`WeakSet` are the default for anything keyed
+# by a DOM node.
+#
+# Run locally: `uvx semgrep scan --config .github/semgrep --exclude
+# .github/semgrep`. CI enforces the same rules, and `uvx semgrep --test --config
+# .github/semgrep .github/semgrep` runs the fixtures beside this file.
+rules:
+  - id: loom-inline-listener-cannot-be-removed
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      An inline function passed to `addEventListener` has no name anything else
+      can reach, so `removeEventListener` can never match it and the listener
+      outlives the component. Hoist the handler to a named binding and remove it
+      on unmount, or pass `{ signal }` from an `AbortController` you abort, or
+      `{ once: true }` when it genuinely fires once.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: MEDIUM
+    patterns:
+      - pattern-either:
+          - pattern: $TARGET.addEventListener($EVENT, (...) => { ... }, ...)
+          - pattern: $TARGET.addEventListener($EVENT, function (...) { ... }, ...)
+      - pattern-not: "$TARGET.addEventListener($EVENT, $HANDLER, { ..., once: true, ... })"
+      - pattern-not: "$TARGET.addEventListener($EVENT, $HANDLER, { ..., signal: $SIGNAL, ... })"
+
+  - id: loom-remove-listener-with-inline-handler
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      `removeEventListener` compares handlers by identity, so a freshly written
+      inline function never matches the one that was registered — this call
+      removes nothing and reads as if it did. Pass the same reference that was
+      added.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: HIGH
+    pattern-either:
+      - pattern: $TARGET.removeEventListener($EVENT, (...) => { ... }, ...)
+      - pattern: $TARGET.removeEventListener($EVENT, function (...) { ... }, ...)
+
+  - id: loom-global-listener-at-module-scope
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      A listener registered while the module is evaluating is never removed, is
+      installed even for consumers that import the module and render nothing,
+      and is duplicated on every hot reload. Register inside the component and
+      remove it on unmount.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: window.addEventListener(...)
+          - pattern: document.addEventListener(...)
+          - pattern: globalThis.addEventListener(...)
+      - pattern-not-inside: function $F(...) { ... }
+      - pattern-not-inside: (...) => { ... }
+      - pattern-not-inside: function (...) { ... }
+      - pattern-not-inside: class $C { ... }
+
+  - id: loom-discarded-timer-handle
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      The handle this returns is the only way to stop the timer. Discarded, the
+      callback keeps running — and keeps its whole closure, including any DOM
+      node it captured, alive — after the component is gone. Keep the handle and
+      clear it on unmount.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: MEDIUM
+    patterns:
+      - pattern-either:
+          - pattern: setInterval(...)
+          - pattern: window.setInterval(...)
+      - pattern-not-inside: $X = setInterval(...)
+      - pattern-not-inside: $X = window.setInterval(...)
+      - pattern-not-inside: return setInterval(...)
+      - pattern-not-inside: return window.setInterval(...)
+
+  - id: loom-discarded-observer
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      An observer holds a strong reference to every node it observes, and only
+      `disconnect()` releases them. Discarding the instance makes that call
+      impossible, so the observed subtree can never be collected. Keep the
+      instance and disconnect it on unmount.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: MEDIUM
+    patterns:
+      - pattern-either:
+          - pattern: new ResizeObserver(...)
+          - pattern: new MutationObserver(...)
+          - pattern: new IntersectionObserver(...)
+          - pattern: new PerformanceObserver(...)
+      # `new ResizeObserver(cb).observe(el)` is deliberately still a finding:
+      # chaining `observe` off the constructor is exactly the shape that leaves
+      # no reference to disconnect.
+      - pattern-not-inside: $X = new $OBSERVER(...)
+      - pattern-not-inside: return new $OBSERVER(...)
+
+  - id: loom-discarded-long-lived-connection
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      This opens something that stays open — a socket, a stream, a worker
+      thread — and the returned instance is the only handle that can close or
+      terminate it. Keep it and close it on unmount.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: new WebSocket(...)
+          - pattern: new EventSource(...)
+          - pattern: new Worker(...)
+          - pattern: new SharedWorker(...)
+          - pattern: new BroadcastChannel(...)
+      - pattern-not-inside: $X = new $CONNECTION(...)
+      - pattern-not-inside: return new $CONNECTION(...)
+
+  - id: loom-object-url-never-revoked
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >-
+      `createObjectURL` pins the whole Blob in memory until `revokeObjectURL` is
+      called for that exact URL — reloading the document does not release it.
+      Revoke it as soon as the consumer has loaded it.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: LOW
+    patterns:
+      - pattern: URL.createObjectURL(...)
+      - pattern-not-inside: |
+          function $F(...) {
+            ...
+            URL.revokeObjectURL(...)
+            ...
+          }
+      - pattern-not-inside: |
+          (...) => {
+            ...
+            URL.revokeObjectURL(...)
+            ...
+          }
+
+  - id: loom-body-append-without-removal
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >-
+      A node appended to `document.body` outlives the component that appended
+      it, together with everything its listeners close over. Prefer `<Teleport>`,
+      which unmounts with its owner; if the node has to be appended by hand,
+      remove it in the same scope's teardown.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: LOW
+    patterns:
+      - pattern-either:
+          - pattern: document.body.appendChild($NODE)
+          - pattern: document.body.append($NODE, ...)
+      # Silenced by any teardown registered in the same function — the rule
+      # points at scopes that append and then forget, not at every append.
+      - pattern-not-inside: |
+          function $F(...) {
+            ...
+            onUnmounted(...)
+            ...
+          }
+      - pattern-not-inside: |
+          function $F(...) {
+            ...
+            onBeforeUnmount(...)
+            ...
+          }
+      - pattern-not-inside: |
+          function $F(...) {
+            ...
+            $PARENT.removeChild(...)
+            ...
+          }
+      - pattern-not-inside: |
+          function $F(...) {
+            ...
+            $NODE.remove()
+            ...
+          }
+
+  - id: loom-reactive-effect-at-module-scope
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      A reactive effect created while the module is evaluating belongs to no
+      component scope, so nothing ever stops it — it holds its dependencies for
+      the lifetime of the page. Create it inside `setup` (where Vue disposes it
+      automatically) or inside an `effectScope` you stop yourself.
+    metadata:
+      category: correctness
+      cwe: "CWE-401: Missing Release of Memory after Effective Lifetime"
+      confidence: MEDIUM
+    patterns:
+      - pattern-either:
+          - pattern: watch(...)
+          - pattern: watchEffect(...)
+          - pattern: watchPostEffect(...)
+          - pattern: watchSyncEffect(...)
+      - pattern-not-inside: function $F(...) { ... }
+      - pattern-not-inside: (...) => { ... }
+      - pattern-not-inside: function (...) { ... }
+      - pattern-not-inside: class $C { ... }

@@ -1,0 +1,16 @@
+# pnpm's settings file. This repository is a single package, not a workspace —
+# the file exists because pnpm moved its settings out of `package.json` into
+# here, and pnpm 11 no longer reads the `pnpm` field there at all. There is
+# deliberately no `packages:` key: adding one would make this a workspace, which
+# is the shape extracting Loom out of a monorepo was meant to leave behind.
+
+# Every dependency install script is blocked until it is decided on here, and
+# pnpm fails the install while any decision is missing — so an unreviewed
+# postinstall cannot run in CI just because it shipped in a new release.
+#
+# lefthook: false — its postinstall only runs `lefthook install`, which this
+# package's `prepare` script already does, and which lefthook itself skips
+# whenever `CI` is set. The binary comes from optionalDependencies and needs no
+# build step, so nothing is lost by never running it.
+allowBuilds:
+  lefthook: false

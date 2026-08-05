@@ -1,0 +1,219 @@
+# Cross-site-scripting rules for Loom.
+#
+# Why a component library needs its own: a sink written here is not one bug, it
+# is one bug per consuming product, reachable through whatever data that product
+# passes as a prop. The rules below are deliberately strict about *sinks* rather
+# than clever about *sources* — a taint analysis over a library has no entry
+# point to start from, because every exported component is an entry point.
+#
+# Escape hatches, in order of preference: pass a value instead of markup; render
+# it through the template; and only if markup genuinely has to be injected, run
+# it through a sanitiser first — every rule below accepts a `DOMPurify.sanitize`
+# result, and nothing else.
+#
+# Run locally: `uvx semgrep scan --config .github/semgrep --exclude
+# .github/semgrep`. CI enforces the same rules, and `uvx semgrep --test --config
+# .github/semgrep .github/semgrep` runs the fixtures beside this file.
+rules:
+  - id: loom-unsafe-html-property-assignment
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Assigning a non-literal to `$PROP` parses it as HTML and executes any
+      script it carries. Set `textContent` for text, render through the
+      template, or sanitise with `DOMPurify.sanitize()` first.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    patterns:
+      - pattern: $EL.$PROP = $VALUE
+      - metavariable-regex:
+          metavariable: $PROP
+          regex: ^(innerHTML|outerHTML|srcdoc)$
+      - pattern-not: $EL.$PROP = "..."
+      - pattern-not: $EL.$PROP = DOMPurify.sanitize(...)
+
+  - id: loom-unsafe-insert-adjacent-html
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      `insertAdjacentHTML` parses its argument as HTML. Use
+      `insertAdjacentText`, build nodes with `document.createElement`, or
+      sanitise with `DOMPurify.sanitize()` first.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    patterns:
+      - pattern: $EL.insertAdjacentHTML($POS, $VALUE)
+      - pattern-not: $EL.insertAdjacentHTML($POS, "...")
+      - pattern-not: $EL.insertAdjacentHTML($POS, DOMPurify.sanitize(...))
+
+  - id: loom-document-write
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      `document.write` parses its argument as HTML into the live document, and
+      after load it silently replaces the whole page. There is no case for it
+      in a component library.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    pattern-either:
+      - pattern: document.write(...)
+      - pattern: document.writeln(...)
+
+  - id: loom-dynamic-code-execution
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      This evaluates a string as code. Any value that reaches it — a prop, a
+      theme token, a slot — becomes script. There is no sanitiser for this;
+      restructure so the behaviour is a function reference rather than source
+      text.
+    metadata:
+      category: security
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+      - pattern: Function(...)
+      - pattern: setTimeout("...", ...)
+      - pattern: setInterval("...", ...)
+
+  - id: loom-range-create-contextual-fragment
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      `createContextualFragment` is an HTML parser with a different name — the
+      fragment it returns runs inline scripts once inserted. Sanitise the markup
+      with `DOMPurify.sanitize()` or build the nodes explicitly.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    patterns:
+      - pattern: $RANGE.createContextualFragment($VALUE)
+      - pattern-not: $RANGE.createContextualFragment("...")
+      - pattern-not: $RANGE.createContextualFragment(DOMPurify.sanitize(...))
+
+  - id: loom-unsafe-attribute-assignment
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Setting `$ATTR` from a non-literal lets a `javascript:` or `data:` URL —
+      or, for an `on*` name, raw source text — become executable. Validate the
+      scheme against an allow-list, or set the property through the template
+      where Vue applies its own URL handling.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: MEDIUM
+    patterns:
+      - pattern: $EL.setAttribute($ATTR, $VALUE)
+      - metavariable-regex:
+          metavariable: $ATTR
+          regex: ^["'](on\w+|href|xlink:href|src|srcdoc|action|formaction|data|codebase|style)["']$
+      - pattern-not: $EL.setAttribute($ATTR, "...")
+
+  - id: loom-unvalidated-navigation
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >-
+      Navigating to a value the caller controls executes it when the scheme is
+      `javascript:`, and sends the user anywhere when it is not. Parse it with
+      `new URL()` and check `protocol` against an allow-list first.
+    metadata:
+      category: security
+      cwe: "CWE-601: URL Redirection to Untrusted Site (Open Redirect)"
+      owasp: "A01:2021 - Broken Access Control"
+      confidence: MEDIUM
+    # Two branches rather than one: `window.open` binds no `$LOC`, and an
+    # unbound metavariable makes the `metavariable-regex` below drop the match
+    # instead of ignoring it.
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern: $LOC.href = $VALUE
+              - pattern: $LOC.assign($VALUE)
+              - pattern: $LOC.replace($VALUE)
+          - metavariable-regex:
+              metavariable: $LOC
+              regex: ^(location|window\.location|document\.location|self\.location|top\.location)$
+          - pattern-not: $LOC.href = "..."
+          - pattern-not: $LOC.assign("...")
+          - pattern-not: $LOC.replace("...")
+      - patterns:
+          - pattern: window.open($VALUE, ...)
+          - pattern-not: window.open("...", ...)
+
+  - id: loom-javascript-url-literal
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      A `javascript:` or `data:text/html` URL executes in the page's origin the
+      moment it is followed. Use a handler, not a URL.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    pattern-regex: '["''](\s*(javascript|vbscript)\s*:|\s*data\s*:\s*text/html)'
+
+  - id: loom-postmessage-without-origin-check
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      A `message` listener that never reads `event.origin` accepts data from any
+      window that can reach this one, including an attacker's iframe. Compare
+      `origin` against an expected value before touching the payload.
+    metadata:
+      category: security
+      cwe: "CWE-346: Origin Validation Error"
+      owasp: "A08:2021 - Software and Data Integrity Failures"
+      confidence: MEDIUM
+    patterns:
+      - pattern: $TARGET.addEventListener("message", $HANDLER, ...)
+      # Only an inline handler can be judged here; a named one is reviewed where
+      # it is defined rather than guessed at from its identifier.
+      - metavariable-pattern:
+          metavariable: $HANDLER
+          patterns:
+            - pattern-either:
+                - pattern: (...) => { ... }
+                - pattern: function (...) { ... }
+      # `.origin` appearing anywhere in the handler is taken as the check. A
+      # structural pattern cannot tell a real comparison from a decorative one,
+      # so this deliberately errs towards silence once the property is read at
+      # all — the rule's job is to catch handlers that never look.
+      - metavariable-regex:
+          metavariable: $HANDLER
+          regex: (?s)^(?!.*\.origin).*$
+
+  - id: loom-render-function-inner-html
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      `innerHTML` passed through a render function is the same sink as
+      `v-html`, just further from review. Render children instead, or sanitise
+      with `DOMPurify.sanitize()`.
+    metadata:
+      category: security
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: "h($TAG, { ..., innerHTML: $VALUE, ... }, ...)"
+          - pattern: "{ ..., domProps: { ..., innerHTML: $VALUE, ... }, ... }"
+      - pattern-not: "h($TAG, { ..., innerHTML: DOMPurify.sanitize(...), ... }, ...)"
+      - pattern-not: "{ ..., domProps: { ..., innerHTML: DOMPurify.sanitize(...), ... }, ... }"

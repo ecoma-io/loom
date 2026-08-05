@@ -1,0 +1,77 @@
+name: Feature request
+description: Propose a component, block, token, or capability.
+title: "feat: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Loom holds what is **generic** — an affordance more than one product
+        reaches for the same way. Something only one product needs belongs in
+        that product, not here. The question below about a second consumer is
+        the one that decides it.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before filing
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I checked that no existing export already does this.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation you are in, not the solution you have in mind. What are you unable to build today, and what are you doing instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you are proposing
+      description: The API you would want — props, events, slots, tokens. A rough sketch is fine.
+    validations:
+      required: true
+
+  - type: textarea
+    id: generic
+    attributes:
+      label: Who else would use this?
+      description: Name a second consumer that would reach for it the same way. If there is only one, say so — that is a useful answer, and it usually means the code belongs in that consumer.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including doing nothing, and composing existing exports.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of addition is this?
+      options:
+        - Primitive (a single generic control)
+        - Block (a composition of primitives)
+        - Design token or theme
+        - Accessibility capability
+        - Tooling or build
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to open a pull request for this.
+          required: false
