@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, type UserConfig } from "vitepress";
 import tailwindcss from "@tailwindcss/vite";
 import { componentApi } from "./plugins/component-api";
+import { pagesIn } from "./sidebar";
 
 // VitePress 1.x pins its own Vite 5 and drives it directly, while the library
 // build runs on the repository's Vite 8 — two copies in the tree, each doing a
@@ -22,6 +23,12 @@ type VitePlugins = NonNullable<NonNullable<UserConfig["vite"]>["plugins"]>;
 // exists and why the deployment job runs a built preview rather than the dev
 // server.
 const BASE = "/docs/contribute/design-system/";
+
+// The component pages, read off the directory. The nav's "Components" entry
+// needs somewhere to land, and naming one component there would make that
+// component's page the one nobody may rename; the first alphabetically is
+// arbitrary in a way that costs nothing.
+const COMPONENTS = pagesIn("components");
 
 export default defineConfig({
   title: "Loom",
@@ -44,15 +51,12 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
-      { text: "Components", link: "/components/button" },
+      { text: "Components", link: COMPONENTS[0]?.link ?? "/" },
       { text: "GitHub", link: "https://github.com/ecoma-io/loom" },
     ],
     sidebar: [
       { text: "Overview", link: "/" },
-      {
-        text: "Primitives",
-        items: [{ text: "Button", link: "/components/button" }],
-      },
+      { text: "Primitives", items: COMPONENTS },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],
     editLink: {

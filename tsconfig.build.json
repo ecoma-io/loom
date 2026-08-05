@@ -22,5 +22,7 @@
   "include": ["src/**/*"],
   // A demo and a test are documentation and proof respectively. Neither is
   // part of the surface a consumer imports, so neither earns a declaration.
-  "exclude": ["src/**/*.test.ts", "src/**/*Demo.vue"]
+  // `src/testing/` is the same story a third way: fixtures the test suites
+  // import from each other, never from a consumer.
+  "exclude": ["src/**/*.test.ts", "src/**/*Demo.vue", "src/testing/**"]
 }

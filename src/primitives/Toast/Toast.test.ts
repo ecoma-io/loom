@@ -1,0 +1,60 @@
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
+import Toast from "./Toast.vue";
+
+// Unit tier: the internal collaborator is isolated. The stub keeps only the
+// seam this file's own behavior is defined against — that `Toast` bundles a
+// single provider/viewport pair and forwards its props to the card. What the
+// card itself renders from those props (description, accent, action, close,
+// auto-dismiss, region structure) is `ToastItem`'s own behavior, pinned
+// against a real `ToastItem` in `Toast.integration.test.ts`.
+vi.mock("./ToastItem.vue", () => ({
+  default: {
+    name: "ToastItem",
+    props: ["open", "title", "description", "variant", "duration", "closable", "actionLabel"],
+    emits: ["update:open", "action"],
+    template: "<div />",
+  },
+}));
+
+describe("Toast", () => {
+  it("bundles exactly one provider/viewport so a lone toast works standalone", () => {
+    const wrapper = mount(Toast, { props: { title: "Saved" } });
+    // ToastProvider/ToastViewport are real Reka UI, not mocked — only the
+    // card (ToastItem) is stubbed above.
+    expect(wrapper.findAll("ol")).toHaveLength(1);
+    expect(wrapper.findComponent({ name: "ToastItem" }).exists()).toBe(true);
+  });
+
+  it("forwards its props through to the item unchanged", () => {
+    const wrapper = mount(Toast, {
+      props: {
+        title: "Saved",
+        description: "Draft written to disk.",
+        variant: "ai",
+        duration: 2000,
+        closable: false,
+        actionLabel: "Undo",
+      },
+    });
+    expect(wrapper.findComponent({ name: "ToastItem" }).props()).toMatchObject({
+      title: "Saved",
+      description: "Draft written to disk.",
+      variant: "ai",
+      duration: 2000,
+      closable: false,
+      actionLabel: "Undo",
+    });
+  });
+
+  // The forwarding case above passes `open` implicitly by not passing it, and
+  // that is the whole point: an `open` of `false` reaching the card means "the
+  // host says closed", and Reka renders nothing at all. `<Toast title="…" />`
+  // — the simplest call there is — would show an empty page. The mocked item
+  // declares `open` as a prop, so an absent value arrives here as `undefined`
+  // and a coerced one would arrive as `false`; the two are distinguishable.
+  it("hands the item no open value when the host supplied none, leaving the card to manage its own visibility", () => {
+    const wrapper = mount(Toast, { props: { title: "Saved" } });
+    expect(wrapper.findComponent({ name: "ToastItem" }).props("open")).toBeUndefined();
+  });
+});
