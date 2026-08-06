@@ -7,25 +7,49 @@ import Tooltip from "../../primitives/Tooltip/Tooltip.vue";
 // Stubbed so the collapsed-mode test can pin the `content` prop SidebarNav
 // hands to Tooltip without exercising Reka UI's real popper/portal behaviour
 // (that belongs to Tooltip's own test) — a unit test isolates its collaborator.
-vi.mock("../../primitives/Tooltip/Tooltip.vue", () => ({
-  default: {
-    name: "Tooltip",
-    props: ["content", "side", "sideOffset", "delay", "open"],
-    template: '<div><slot name="trigger" /></div>',
-  },
-}));
+//
+// The stub's props are read from the real component at mock time, so a rename
+// of Tooltip's `content` prop changes the shape the stub declares and the test
+// that passes `content` to it breaks.
+vi.mock("../../primitives/Tooltip/Tooltip.vue", async () => {
+  const actual = await vi.importActual("../../primitives/Tooltip/Tooltip.vue");
+  const c = (actual as { default: { props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "Tooltip",
+      props: c.props ? Object.keys(c.props) : [],
+      template: '<div><slot name="trigger" /></div>',
+    },
+  };
+});
 
 // Badge and Separator render in SidebarNav's own template, which the isolation
 // convention cannot see without an explicit mock — stubbed so this stays a
 // unit test. The Badge stub keeps its default slot, which is the seam the
 // badge-text assertions below are defined against; Badge's own styling and
 // variants belong to Badge's test.
-vi.mock("../../primitives/Badge/Badge.vue", () => ({
-  default: { name: "Badge", props: ["variant"], template: "<span><slot /></span>" },
-}));
-vi.mock("../../primitives/Separator/Separator.vue", () => ({
-  default: { name: "Separator", template: "<hr />" },
-}));
+vi.mock("../../primitives/Badge/Badge.vue", async () => {
+  const actual = await vi.importActual("../../primitives/Badge/Badge.vue");
+  const c = (actual as { default: { props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "Badge",
+      props: c.props ? Object.keys(c.props) : [],
+      template: "<span><slot /></span>",
+    },
+  };
+});
+vi.mock("../../primitives/Separator/Separator.vue", async () => {
+  const actual = await vi.importActual("../../primitives/Separator/Separator.vue");
+  const c = (actual as { default: { props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "Separator",
+      props: c.props ? Object.keys(c.props) : [],
+      template: "<hr />",
+    },
+  };
+});
 
 // jsdom has no ResizeObserver — Reka's Tooltip/Popper measure with one even
 // while closed.
