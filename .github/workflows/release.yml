@@ -72,12 +72,22 @@ jobs:
       # reporting it as a failed publish.
       name: ${{ steps.identity.outputs.name }}
     permissions:
-      contents: read
+      # `contents: write` to attach the tarball and its attestation to the
+      # GitHub Release the job before this one created. Release Please writes
+      # that Release with no assets at all, and an OpenSSF Scorecard probe reads
+      # asset filenames off the Release rather than the registry — npm's own
+      # provenance, which this job already produces, is invisible to it.
+      contents: write
       # The whole of the credential. npm trusted publishing exchanges this
       # short-lived OIDC token for publish rights, so no npm token exists in
       # this repository to leak, rotate or forget — which is also why there is
-      # no `NODE_AUTH_TOKEN` anywhere below.
+      # no `NODE_AUTH_TOKEN` anywhere below. The attestation step mints its
+      # Sigstore signing certificate from the same token.
       id-token: write
+      # Persists the attestation to GitHub's attestations API, which is what
+      # makes `gh attestation verify` work against the tarball independently of
+      # the file attached to the Release.
+      attestations: write
     steps:
       # The tag, not the branch: `main` may already have moved on by the time
       # this job starts, and publishing a commit the release does not point at
@@ -99,13 +109,35 @@ jobs:
         id: identity
         run: printf 'name=%s\n' "$(node -p 'require("./package.json").name')" >> "$GITHUB_OUTPUT"
 
-      # Trusted publishing needs npm 11.5.1 or newer, and the npm bundled with a
-      # Node release is whatever shipped with it — a version this workflow does
-      # not control and cannot pin. Upgrading explicitly is what makes the
-      # requirement a stated fact instead of an assumption about Node 24.
+      # Trusted publishing needs npm 11.5.1 or newer. Asserted rather than
+      # installed: `npm install --global npm@latest` used to stand here, and it
+      # resolves whatever the registry serves at the moment of the run — an
+      # unpinned dependency pulled into the one job that holds OIDC publish
+      # rights, which is the last place to accept one. Node 24 has shipped an
+      # npm past this floor since 24.0.0 (11.3.0 then, 11.17.0 today), so the
+      # upgrade bought nothing the runner did not already provide.
+      #
+      # A check keeps what the upgrade was actually for. The requirement stays a
+      # stated fact rather than an assumption about Node 24, and if a future
+      # runner image ever regresses below it this fails here — before the
+      # publish — naming the version it found, instead of failing inside `npm
+      # publish` as an authentication error that reads like a broken trusted
+      # publisher.
       # https://docs.npmjs.com/trusted-publishers
-      - name: Upgrade npm to a version that can publish over OIDC
-        run: npm install --global npm@latest
+      - name: Require an npm that can publish over OIDC
+        run: |
+          set -euo pipefail
+          required=11.5.1
+          found=$(npm --version)
+          # `sort -V` is the version-aware comparison; the lower of the two
+          # sorts first, so the floor coming first means `found` is at or above
+          # it. `-C` reports the verdict as an exit status and prints nothing.
+          if printf '%s\n%s\n' "$required" "$found" | sort -VC; then
+            echo "npm ${found} can publish over OIDC (needs >= ${required})."
+          else
+            echo "npm ${found} is below the ${required} that trusted publishing needs." >&2
+            exit 1
+          fi
 
       - run: pnpm install --frozen-lockfile
 
@@ -122,6 +154,66 @@ jobs:
       # than of one workflow step that could disagree with it.
       - name: Publish
         run: npm publish
+
+      # Everything below attaches to the GitHub Release what the registry
+      # already has. It changes nothing about the publish above, and it is
+      # deliberately after it: a failure here must not be able to leave the tag
+      # written with nothing on the registry.
+      #
+      # The reason it is worth doing at all is that npm provenance and a GitHub
+      # Release are two different claims to two different audiences. `npm audit
+      # signatures` — which the next job runs — reads the registry. Tooling that
+      # reads the repository instead, OpenSSF Scorecard's `Signed-Releases`
+      # among it, looks at the assets on the Release and finds a Release Please
+      # Release carries none.
+      - name: Pack the published tarball
+        id: pack
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/release
+          # `npm pack` is byte-for-byte reproducible from the same `dist/`, so
+          # this is the same tarball `npm publish` just sent rather than a
+          # rebuild that merely resembles it — verified by packing twice and
+          # comparing digests. Packing again is still cheaper and less invasive
+          # than teaching `npm publish` to consume a prebuilt tarball, which
+          # would put the release path itself on an untested branch.
+          #
+          # `--ignore-scripts` because `prepare` runs `lefthook install`, which
+          # writes hooks and prints to stdout; nothing in it contributes to the
+          # tarball. `--json` is parsed with `node -p` on a single line: npm
+          # prints its config warnings to stdout too, so the filename is read
+          # out of the JSON rather than by taking the last line of the output.
+          npm pack --ignore-scripts --pack-destination /tmp/release --json > /tmp/pack.json
+          file=$(node -p 'const s=require("fs").readFileSync("/tmp/pack.json","utf8");JSON.parse(s.slice(s.indexOf("[")))[0].filename')
+          printf 'path=/tmp/release/%s\n' "$file" >> "$GITHUB_OUTPUT"
+          printf 'name=%s\n' "$file" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the tarball
+        id: attest
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: ${{ steps.pack.outputs.path }}
+
+      # The bundle the action writes is named `attestation.json`, and the name is
+      # load-bearing rather than cosmetic: Scorecard's provenance probe matches
+      # asset filenames by suffix and accepts `.intoto.jsonl` alone, so uploading
+      # the file under the name the action chose would attach a real attestation
+      # that no reader recognises. Renamed to what the format actually is — a
+      # one-line in-toto JSON bundle.
+      - name: Attach the tarball and its attestation to the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          TARBALL: ${{ steps.pack.outputs.path }}
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          ASSET: ${{ steps.pack.outputs.name }}
+        run: |
+          set -euo pipefail
+          cp "$BUNDLE" "/tmp/release/${ASSET}.intoto.jsonl"
+          gh release upload "$TAG" \
+            "$TARBALL" \
+            "/tmp/release/${ASSET}.intoto.jsonl" \
+            --clobber
 
   verify-artifact:
     name: Verify the published artifact
@@ -143,13 +235,19 @@ jobs:
       # `npm audit signatures` is what checks the provenance attestation rather
       # than merely finding the version, so a publish that lost its OIDC link
       # and fell back to something else fails here instead of shipping quietly.
+      #
+      # On the runner's own npm, for the reason the publish job states: an
+      # unpinned `npm install --global npm@latest` used to run here too, and a
+      # verification step is a poor place to introduce a dependency resolved at
+      # run time — the job exists to make the registry's answer trustworthy.
+      # `audit signatures` has been in npm since 8.x, so the bundled one is
+      # already past what this needs and no floor check is warranted.
       - name: Install the published version and check its provenance
         env:
           VERSION: ${{ needs.release-please.outputs.version }}
           PACKAGE: ${{ needs.publish.outputs.name }}
         run: |
           set -euo pipefail
-          npm install --global npm@latest
           mkdir -p /tmp/verify && cd /tmp/verify
           npm init --yes > /dev/null
           npm install "${PACKAGE}@${VERSION}"
