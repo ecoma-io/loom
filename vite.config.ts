@@ -95,7 +95,15 @@ export default defineConfig({
       // it and the end-to-end suite drives it, so it is covered where covering
       // it means something — not by a unit test asserting a gallery renders.
       exclude: ["src/**/*.test.ts", "src/**/*Demo.vue", "src/**/*.d.ts"],
-      thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
+      // Set just under what the suite actually reaches (measured: 96.65 lines /
+      // 94.94 functions / 91.83 branches / 95.27 statements), not at a round
+      // number well below it. A floor with fifteen points of headroom cannot go
+      // red: whole components could arrive untested and the gate would still
+      // pass, which makes it a report rather than a check. The small gap left
+      // here absorbs a legitimate refactor without demanding the numbers be
+      // edited in the same commit; a drop past it means coverage was lost, and
+      // the fix is a test, not a lower floor.
+      thresholds: { lines: 95, functions: 93, branches: 90, statements: 94 },
     },
   },
 });
