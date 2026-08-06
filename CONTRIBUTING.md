@@ -113,6 +113,15 @@ A breaking change is marked with `!` after the type or scope, and explained in a
 `BREAKING CHANGE:` footer. In a design system a breaking change reaches every
 consumer at once, so say plainly what they must edit.
 
+Which type you choose decides the version, and before `1.0.0` it does so on
+purpose rather than by the usual rules. A `feat` moves the minor digit, a
+breaking change moves the minor digit too rather than the major one, and
+everything else moves the patch digit. So `0.1.0` → `0.2.0` reads "the API
+moved — it grew, or it broke, and the CHANGELOG says which", and `0.1.0` →
+`0.1.1` reads "it did not". A pre-1.0 version has two digits to say anything
+with; spending one of them on "a release happened" would leave nothing to say
+the surface changed.
+
 ### If your commit was AI-assisted
 
 Add a trailer naming the tool: `Assisted-by: <tool>`, or `Generated-by: <tool>`
