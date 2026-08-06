@@ -3,6 +3,7 @@ import { defineConfig, type UserConfig } from "vitepress";
 import tailwindcss from "@tailwindcss/vite";
 import { componentApi } from "./plugins/component-api";
 import { pagesIn } from "./sidebar";
+import { BASE } from "./base";
 
 // VitePress 1.x pins its own Vite 5 and drives it directly, while the library
 // build runs on the repository's Vite 8 — two copies in the tree, each doing a
@@ -15,14 +16,6 @@ import { pagesIn } from "./sidebar";
 // which is not what a published site's build should stand on. So the mismatch
 // is confined to this one conversion, where it is visible.
 type VitePlugins = NonNullable<NonNullable<UserConfig["vite"]>["plugins"]>;
-
-// The site is served from a sub-path of ecoma.io, not from a domain root, so
-// every generated asset URL has to carry that prefix. Getting this wrong is
-// invisible in `docs:dev` — the dev server serves from `/` regardless — and
-// shows up only as a blank page in production, which is why `docs:preview`
-// exists and why the deployment job runs a built preview rather than the dev
-// server.
-const BASE = "/docs/contribute/design-system/";
 
 // The component pages, read off the directory. The nav's "Components" entry
 // needs somewhere to land, and naming one component there would make that

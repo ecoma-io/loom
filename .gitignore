@@ -27,3 +27,10 @@ pnpm-debug.log*
 # VitePress build output and its dependency cache.
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+# The staged copy of that build, nested under the path it is served from.
+# Derived from the two directories above by `tools/stage-docs.ts`.
+.cloudflare/
+
+# Wrangler's local state, written beside the config it reads.
+.wrangler/

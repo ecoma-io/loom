@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "loom-docs",
+  "compatibility_date": "2026-08-05",
+
+  // Static assets and no `main`: this Worker has no script at all. Cloudflare
+  // serves the directory directly, which is the entire deployment — there is no
+  // request handler to write, and therefore none to get wrong.
+  //
+  // The directory is `.cloudflare/`, not VitePress's own `dist/`, because the
+  // site is served from a sub-path. VitePress writes `dist/index.html` while the
+  // HTML inside it asks for `/docs/contribute/design-system/assets/…`; a static
+  // file server rooted at `dist/` answers every one of those with a 404.
+  // `tools/stage-docs.ts` nests the build under a directory tree matching the
+  // base so the two line up, and it is a build step rather than a route rewrite
+  // because a rewrite would be code that exists to undo a prefix we chose.
+  "assets": {
+    "directory": "./.cloudflare",
+    // `single-page-application` would answer every miss with index.html and
+    // turn a broken link into a page that looks fine, which is precisely the
+    // failure this site must not hide. VitePress emits real HTML per route.
+    "not_found_handling": "404-page",
+  },
+
+  // Must stay in agreement with `BASE` in `docs/.vitepress/base.ts` — asserted
+  // by `tools/stage-docs.ts`, which reads this file and fails the deploy rather
+  // than shipping a Worker bound to a path nothing is served at.
+  "routes": [
+    {
+      "pattern": "ecoma.io/docs/contribute/design-system/*",
+      "zone_name": "ecoma.io",
+    },
+  ],
+
+  "observability": {
+    "enabled": true,
+  },
+}
