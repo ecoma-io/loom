@@ -51,10 +51,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Cloudflare offers no OIDC trusted publishing for Wrangler and no way to
-    # mint a scoped token from CI, so this one credential is a stored secret —
-    # the only one in the repository. The environment is what bounds it:
-    # restricted to `main` in repository settings, so no fork and no feature
-    # branch can reach the token, and every use is recorded against it.
+    # mint a scoped token from CI, so this credential is a stored secret. The
+    # environment records every use of it.
+    #
+    # It carries no deployment branch policy today, so it does not yet bound
+    # which branch can reach the token — a fork cannot in any case, since a
+    # fork's workflows have no access to secrets at all, and this workflow has
+    # no trigger a fork could reach. Restricting the environment to `main` in
+    # repository settings would close the remaining gap; it cannot be done from
+    # this file.
     environment:
       name: cloudflare
       url: ${{ steps.site.outputs.url }}

@@ -57,11 +57,18 @@ jobs:
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # The environment is the audit trail, not a second approval step: it is
-    # restricted to `main` in repository settings, so this job cannot be made to
-    # run from a fork or a feature branch, and every publish is recorded against
-    # it. No reviewer is configured — a merged Release PR is the decision, and
-    # asking for a second click after it would only teach people to click.
+    # The environment is the audit trail, not a second approval step: every
+    # publish is recorded against it. No reviewer is configured — a merged
+    # Release PR is the decision, and asking for a second click after it would
+    # only teach people to click.
+    #
+    # It carries no deployment branch policy today, so it is a record rather
+    # than a restriction: the environment does not currently stop this job
+    # running from a branch other than `main`. What does is the `if` above —
+    # `release_created` is only ever true on a push to `main`. Restricting the
+    # environment to `main` in repository settings would make the bound
+    # structural instead of incidental, and is worth doing; it cannot be done
+    # from this file.
     environment:
       name: npm
       url: https://www.npmjs.com/package/${{ steps.identity.outputs.name }}
@@ -78,11 +85,14 @@ jobs:
       # asset filenames off the Release rather than the registry — npm's own
       # provenance, which this job already produces, is invisible to it.
       contents: write
-      # The whole of the credential. npm trusted publishing exchanges this
-      # short-lived OIDC token for publish rights, so no npm token exists in
-      # this repository to leak, rotate or forget — which is also why there is
-      # no `NODE_AUTH_TOKEN` anywhere below. The attestation step mints its
-      # Sigstore signing certificate from the same token.
+      # Signs, and — once the bootstrap below is over — authenticates. npm
+      # trusted publishing exchanges this short-lived OIDC token for publish
+      # rights, which is what removes the stored npm token the first release
+      # still needs. Until then the token does the authenticating and this does
+      # the signing: `npm publish --provenance` mints its attestation from the
+      # OIDC token regardless of what authorised the publish, as does the
+      # attestation step further down, which takes its Sigstore signing
+      # certificate from the same place.
       id-token: write
       # Persists the attestation to GitHub's attestations API, which is what
       # makes `gh attestation verify` work against the tarball independently of
@@ -147,13 +157,40 @@ jobs:
       # have been substituted between the two.
       - run: pnpm build
 
-      # Two flags this deliberately does not carry. `--provenance`, because a
-      # configured trusted publisher attaches the attestation on its own.
-      # `--access public`, because it lives in `publishConfig` in package.json,
-      # where a scoped package's visibility is a property of the package rather
-      # than of one workflow step that could disagree with it.
+      # One flag this still deliberately does not carry: `--access public`,
+      # because it lives in `publishConfig` in package.json, where a scoped
+      # package's visibility is a property of the package rather than of one
+      # workflow step that could disagree with it.
+      #
+      # Token auth, and it is a bootstrap rather than the intended end state.
+      # npm's trusted publishing cannot publish a package's *first* version: the
+      # trusted publisher is configured on the package's settings page, and that
+      # page does not exist until the package does. npm has confirmed this is
+      # deliberate scoping rather than a bug, and the issue is still open —
+      # https://github.com/npm/cli/issues/8544 — so the first release of
+      # `@ecoma-io/loom` has to authenticate with a token.
+      #
+      # What makes this worth writing down is how it fails if you assume
+      # otherwise: a trusted-publishing publish against a nonexistent package
+      # reports `E404 Not Found - PUT` or `ENEEDAUTH need auth`, and both read
+      # as a broken credential rather than a package that was never created.
+      # https://github.com/npm/cli/issues/9088
+      #
+      # `--provenance` is explicit here because the flag is only implied by a
+      # configured trusted publisher, which is exactly what does not exist yet.
+      # Token auth still mints provenance — the OIDC token minted by
+      # `id-token: write` signs the attestation, independently of what
+      # authenticated the publish — so this bootstrap does not ship a release
+      # weaker than the ones after it, and `verify-artifact` below holds it to
+      # that by running `npm audit signatures`.
+      #
+      # Once 0.1.0 exists, configure the trusted publisher on npmjs.com and
+      # revert this step to a bare `npm publish` with no `NODE_AUTH_TOKEN`:
+      # every line of the credential below is meant to be deleted.
       - name: Publish
-        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ECOMA_NPM_ACCESS_TOKEN }}
+        run: npm publish --provenance
 
       # Everything below attaches to the GitHub Release what the registry
       # already has. It changes nothing about the publish above, and it is
@@ -233,8 +270,12 @@ jobs:
       # answer is real.
       #
       # `npm audit signatures` is what checks the provenance attestation rather
-      # than merely finding the version, so a publish that lost its OIDC link
-      # and fell back to something else fails here instead of shipping quietly.
+      # than merely finding the version, so a publish that produced no
+      # attestation fails here instead of shipping quietly. That matters more
+      # while the publish above authenticates with a token than it will
+      # afterwards: provenance is implicit under a trusted publisher, but here
+      # it rests on an explicit `--provenance` that a future edit could drop
+      # without any other symptom.
       #
       # On the runner's own npm, for the reason the publish job states: an
       # unpinned `npm install --global npm@latest` used to run here too, and a
@@ -276,9 +317,18 @@ jobs:
     if: needs.release-please.outputs.release_created == 'true'
     permissions:
       contents: read
-    # Passed by name rather than `secrets: inherit`: this is the repository's
-    # only stored credential, and naming it here keeps the one workflow that
-    # hands it out from also being the one that would hand out the next one.
+    # Passed by name rather than `secrets: inherit`: naming it here keeps the one
+    # workflow that hands a credential out from also being the one that would
+    # hand out the next one.
+    #
+    # The `ECOMA_` prefix is the organisation's, and reading it here rather than
+    # renaming the input is deliberate: the secret is shared across `ecoma-io`
+    # repositories, so the prefix belongs to whoever owns it, while the name
+    # `docs.yml` receives describes what that workflow does with it. A missing
+    # secret interpolates to the empty string rather than failing — the
+    # `required: true` on the receiving end only asserts the caller passed
+    # something — so a prefix typo here surfaces as a Wrangler authentication
+    # error at deploy time, which is why the two names are written down together.
     secrets:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.ECOMA_CLOUDFLARE_API_TOKEN }}
     uses: ./.github/workflows/docs.yml
