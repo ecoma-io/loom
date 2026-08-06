@@ -82,12 +82,26 @@ decision to ship, and it is what tags, publishes, and — since the deploy is a 
 `release.yml` — deploys the documentation site. Nothing publishes or deploys from an
 ordinary push to `main`.
 
-Two credential facts bound what can be automated from here:
+Credentials live in the `ecoma-io` organisation, under an `ECOMA_` prefix, and are
+readable by every repository in it. A workflow reads them by that prefixed name and maps
+them to an unprefixed input where one is needed — a name that does not exist interpolates
+to the empty string rather than failing, so the mismatch surfaces as an authentication
+error at deploy time rather than as a missing-secret error at the start.
 
-- **Publishing is trusted publishing over OIDC.** No registry token exists in this
-  repository, and none may be added.
+Three credential facts bound what can be automated from here:
+
+- **The registry token is a bootstrap, and is meant to be deleted.** npm's trusted
+  publishing cannot publish a package's first version — the trusted publisher is
+  configured on a package settings page that does not exist until the package does
+  ([npm/cli#8544](https://github.com/npm/cli/issues/8544), still open). So the first
+  release authenticates with `ECOMA_NPM_ACCESS_TOKEN` and passes `--provenance`
+  explicitly, which the flag being implied by a trusted publisher would otherwise cover.
+  Once `0.1.0` exists on the registry, configure the trusted publisher and revert the
+  publish step to a bare `npm publish` with no `NODE_AUTH_TOKEN`.
+- **After that bootstrap, publishing is trusted publishing over OIDC.** Do not reintroduce
+  a registry token once it has been removed.
 - **The Cloudflare API token is operator-supplied.** Cloudflare offers no OIDC path for
-  Wrangler and no way to mint a scoped token from CI, so `CLOUDFLARE_API_TOKEN` is the one
+  Wrangler and no way to mint a scoped token from CI, so `ECOMA_CLOUDFLARE_API_TOKEN` is a
   stored secret and no agent or workflow can create it.
 
 ## Working here
