@@ -294,6 +294,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # `.node-version` and nothing else. This job deliberately holds no working
+      # copy — it is meant to see only what a consumer sees — and it failed
+      # outright without this: `setup-node` reads `node-version-file` from the
+      # workspace, found no file, and killed the job before a single check ran.
+      # The publish had already succeeded, so the release shipped with its
+      # verification never executed and the documentation deploy skipped behind
+      # it.
+      #
+      # A sparse checkout is the narrow fix rather than pinning the version here
+      # as a literal: the floor stays defined in one file. Nothing else enters
+      # the tree, and the check below still installs from the registry into
+      # `/tmp/verify`, so what it verifies is still the published package and not
+      # anything in this repository.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .node-version
+          sparse-checkout-cone-mode: false
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
@@ -318,6 +337,18 @@ jobs:
       # run time — the job exists to make the registry's answer trustworthy.
       # `audit signatures` has been in npm since 8.x, so the bundled one is
       # already past what this needs and no floor check is warranted.
+      #
+      # The install is retried, and the delay it waits out is not hypothetical:
+      # `+ @ecoma-io/loom@0.1.0` was in the publish log and
+      # `registry.npmjs.org/@ecoma-io%2floom/0.1.0` answered 200 while the
+      # aggregate packument the installer resolves against still 404'd, so `npm
+      # install` failed on a package that was demonstrably published. Without the
+      # wait this job reports a broken release for the first few minutes of every
+      # release, and the documentation deploy behind it skips.
+      #
+      # Only the install retries. `audit signatures` and the version check run
+      # once, after it succeeds — a provenance failure is a real failure and must
+      # not be waited out.
       - name: Install the published version and check its provenance
         env:
           VERSION: ${{ needs.release-please.outputs.version }}
@@ -326,7 +357,21 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/verify && cd /tmp/verify
           npm init --yes > /dev/null
-          npm install "${PACKAGE}@${VERSION}"
+          # Ten tries at fifteen seconds: propagation is usually seconds and has
+          # been minutes, and two and a half minutes is short enough that a real
+          # failure to publish is still reported rather than waited out.
+          for attempt in $(seq 1 10); do
+            if npm install "${PACKAGE}@${VERSION}"; then
+              installed=yes
+              break
+            fi
+            echo "Attempt ${attempt}: the registry has not served ${PACKAGE}@${VERSION} yet; retrying in 15s." >&2
+            sleep 15
+          done
+          if [ "${installed:-no}" != yes ]; then
+            echo "${PACKAGE}@${VERSION} was not installable after ten attempts." >&2
+            exit 1
+          fi
           npm audit signatures
           node --input-type=module -e '
             import { createRequire } from "node:module";
