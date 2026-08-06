@@ -99,13 +99,35 @@ jobs:
         id: identity
         run: printf 'name=%s\n' "$(node -p 'require("./package.json").name')" >> "$GITHUB_OUTPUT"
 
-      # Trusted publishing needs npm 11.5.1 or newer, and the npm bundled with a
-      # Node release is whatever shipped with it — a version this workflow does
-      # not control and cannot pin. Upgrading explicitly is what makes the
-      # requirement a stated fact instead of an assumption about Node 24.
+      # Trusted publishing needs npm 11.5.1 or newer. Asserted rather than
+      # installed: `npm install --global npm@latest` used to stand here, and it
+      # resolves whatever the registry serves at the moment of the run — an
+      # unpinned dependency pulled into the one job that holds OIDC publish
+      # rights, which is the last place to accept one. Node 24 has shipped an
+      # npm past this floor since 24.0.0 (11.3.0 then, 11.17.0 today), so the
+      # upgrade bought nothing the runner did not already provide.
+      #
+      # A check keeps what the upgrade was actually for. The requirement stays a
+      # stated fact rather than an assumption about Node 24, and if a future
+      # runner image ever regresses below it this fails here — before the
+      # publish — naming the version it found, instead of failing inside `npm
+      # publish` as an authentication error that reads like a broken trusted
+      # publisher.
       # https://docs.npmjs.com/trusted-publishers
-      - name: Upgrade npm to a version that can publish over OIDC
-        run: npm install --global npm@latest
+      - name: Require an npm that can publish over OIDC
+        run: |
+          set -euo pipefail
+          required=11.5.1
+          found=$(npm --version)
+          # `sort -V` is the version-aware comparison; the lower of the two
+          # sorts first, so the floor coming first means `found` is at or above
+          # it. `-C` reports the verdict as an exit status and prints nothing.
+          if printf '%s\n%s\n' "$required" "$found" | sort -VC; then
+            echo "npm ${found} can publish over OIDC (needs >= ${required})."
+          else
+            echo "npm ${found} is below the ${required} that trusted publishing needs." >&2
+            exit 1
+          fi
 
       - run: pnpm install --frozen-lockfile
 
@@ -143,13 +165,19 @@ jobs:
       # `npm audit signatures` is what checks the provenance attestation rather
       # than merely finding the version, so a publish that lost its OIDC link
       # and fell back to something else fails here instead of shipping quietly.
+      #
+      # On the runner's own npm, for the reason the publish job states: an
+      # unpinned `npm install --global npm@latest` used to run here too, and a
+      # verification step is a poor place to introduce a dependency resolved at
+      # run time — the job exists to make the registry's answer trustworthy.
+      # `audit signatures` has been in npm since 8.x, so the bundled one is
+      # already past what this needs and no floor check is warranted.
       - name: Install the published version and check its provenance
         env:
           VERSION: ${{ needs.release-please.outputs.version }}
           PACKAGE: ${{ needs.publish.outputs.name }}
         run: |
           set -euo pipefail
-          npm install --global npm@latest
           mkdir -p /tmp/verify && cd /tmp/verify
           npm init --yes > /dev/null
           npm install "${PACKAGE}@${VERSION}"
