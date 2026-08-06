@@ -7,9 +7,11 @@ name: Release
 # publish workflow would sit there and never fire — the tag exists, nothing runs,
 # and the only symptom is a version nobody can install.
 #
-# So the publish is a job in this file, gated on Release Please's own output. It
-# runs on the same commit the release job just tagged, which is also what makes
-# the artifact traceable to a single run.
+# So everything a release triggers is a job in this file, gated on Release
+# Please's own output — the publish below, and the documentation deploy that
+# `docs.yml` owns and this file calls. They run on the same commit the release
+# job just tagged, which is also what makes the artifact traceable to a single
+# run.
 # https://docs.github.com/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow
 
 on:
@@ -162,3 +164,23 @@ jobs:
             }
             console.log(`${name}@${manifest.version} resolves and carries provenance.`);
           '
+
+  docs:
+    name: Docs
+    # `verify-artifact`, not `release-please`, and the extra wait is the point.
+    # Every page on the documentation site is a live demonstration of the
+    # library, so deploying it is a claim that this version behaves as shown.
+    # `verify-artifact` is the job that proves a consumer can actually install
+    # that version — until it is green, the claim has nothing behind it, and a
+    # site describing a release that failed to publish is worse than a site one
+    # release behind.
+    needs: [release-please, verify-artifact]
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: read
+    # Passed by name rather than `secrets: inherit`: this is the repository's
+    # only stored credential, and naming it here keeps the one workflow that
+    # hands it out from also being the one that would hand out the next one.
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    uses: ./.github/workflows/docs.yml
