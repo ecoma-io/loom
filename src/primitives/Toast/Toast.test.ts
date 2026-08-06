@@ -8,14 +8,22 @@ import Toast from "./Toast.vue";
 // card itself renders from those props (description, accent, action, close,
 // auto-dismiss, region structure) is `ToastItem`'s own behavior, pinned
 // against a real `ToastItem` in `Toast.integration.test.ts`.
-vi.mock("./ToastItem.vue", () => ({
-  default: {
-    name: "ToastItem",
-    props: ["open", "title", "description", "variant", "duration", "closable", "actionLabel"],
-    emits: ["update:open", "action"],
-    template: "<div />",
-  },
-}));
+//
+// The stub's props and emits are read from the real component at mock time, so
+// a rename of ToastItem's `description` prop or `action` emit changes the
+// shape the stub declares.
+vi.mock("./ToastItem.vue", async () => {
+  const actual = await vi.importActual("./ToastItem.vue");
+  const c = (actual as { default: { emits?: string[]; props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "ToastItem",
+      props: c.props ? Object.keys(c.props) : [],
+      emits: c.emits ?? [],
+      template: "<div />",
+    },
+  };
+});
 
 describe("Toast", () => {
   it("bundles exactly one provider/viewport so a lone toast works standalone", () => {

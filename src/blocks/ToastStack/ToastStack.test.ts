@@ -11,14 +11,22 @@ import ToastStack, { type ToastStackItem } from "./ToastStack.vue";
 // behavior, and the shared-viewport composition is pinned against a real
 // ToastItem in ToastStack.integration.test.ts — rendering the real item
 // again here would test ToastItem a second time rather than ToastStack.
-vi.mock("../../primitives/Toast/ToastItem.vue", () => ({
-  default: {
-    name: "ToastItem",
-    props: ["open", "title", "description", "variant", "duration"],
-    emits: ["update:open"],
-    template: "<div />",
-  },
-}));
+//
+// The stub's props and emits are read from the real component at mock time, so
+// a rename of ToastItem's `description` prop or `update:open` emit changes the
+// shape the stub declares.
+vi.mock("../../primitives/Toast/ToastItem.vue", async () => {
+  const actual = await vi.importActual("../../primitives/Toast/ToastItem.vue");
+  const c = (actual as { default: { emits?: string[]; props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "ToastItem",
+      props: c.props ? Object.keys(c.props) : [],
+      emits: c.emits ?? [],
+      template: "<div />",
+    },
+  };
+});
 
 // The mock above carries no TS-declared props/emits, and `ToastItem`'s own
 // type does not resolve cleanly through this package's `.vue` imports from a
