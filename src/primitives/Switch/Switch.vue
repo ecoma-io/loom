@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { SwitchRoot, SwitchThumb } from "reka-ui";
 import { cn } from "../../lib/cn";
-import { optional } from "../../lib/props";
 
 /**
  * Switch — toggles a boolean setting that takes effect immediately, with no
@@ -30,7 +29,7 @@ defineEmits<{ "update:modelValue": [value: boolean] }>();
 
 <template>
   <SwitchRoot
-    v-bind="optional({ modelValue })"
+    v-bind="{ modelValue }"
     :disabled="disabled"
     :class="
       cn(
