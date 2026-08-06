@@ -8,9 +8,21 @@ import Field from "./Field.vue";
 // at all and what it hands it, not what InlineError does with that message
 // (that's `role="alert"`, pinned against the real component in
 // `Field.integration.test.ts`).
-vi.mock("../InlineError/InlineError.vue", () => ({
-  default: { name: "InlineError", props: ["message"], template: "<div />" },
-}));
+//
+// The stub's props are read from the real component at mock time, so a rename
+// of InlineError's `message` prop changes the shape the stub declares and the
+// test that passes `message` to it breaks.
+vi.mock("../InlineError/InlineError.vue", async () => {
+  const actual = await vi.importActual("../InlineError/InlineError.vue");
+  const c = (actual as { default: { props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "InlineError",
+      props: c.props ? Object.keys(c.props) : [],
+      template: "<div />",
+    },
+  };
+});
 
 describe("Field", () => {
   it("renders InlineError with the error message and hides the hint when an error is present", () => {

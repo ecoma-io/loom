@@ -24,17 +24,34 @@ function emitFrom(target: { vm: unknown }, event: string, ...args: unknown[]): v
 // TitleBar re-emits. The imports above resolve to these same mocks (Vitest
 // intercepts every import of the path, this file's included), which is what
 // lets `findComponent` below match by reference instead of by name string.
-vi.mock("../../primitives/Menubar/Menubar.vue", () => ({
-  default: { name: "Menubar", props: ["menus"], emits: ["select"], template: "<div />" },
-}));
-vi.mock("../../primitives/WindowControls/WindowControls.vue", () => ({
-  default: {
-    name: "WindowControls",
-    props: ["isMaximized", "labels"],
-    emits: ["minimize", "maximize", "close"],
-    template: "<div />",
-  },
-}));
+//
+// Each stub's props and emits are read from the real component at mock time,
+// so a rename in the source changes the shape the stub declares and the test
+// that drives the old name breaks.
+vi.mock("../../primitives/Menubar/Menubar.vue", async () => {
+  const actual = await vi.importActual("../../primitives/Menubar/Menubar.vue");
+  const c = (actual as { default: { emits?: string[]; props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "Menubar",
+      props: c.props ? Object.keys(c.props) : [],
+      emits: c.emits ?? [],
+      template: "<div />",
+    },
+  };
+});
+vi.mock("../../primitives/WindowControls/WindowControls.vue", async () => {
+  const actual = await vi.importActual("../../primitives/WindowControls/WindowControls.vue");
+  const c = (actual as { default: { emits?: string[]; props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "WindowControls",
+      props: c.props ? Object.keys(c.props) : [],
+      emits: c.emits ?? [],
+      template: "<div />",
+    },
+  };
+});
 vi.mock("../../icons/BrandMark", () => ({ default: { name: "BrandMark", template: "<svg />" } }));
 
 /**
