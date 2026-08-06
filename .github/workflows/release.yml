@@ -72,12 +72,22 @@ jobs:
       # reporting it as a failed publish.
       name: ${{ steps.identity.outputs.name }}
     permissions:
-      contents: read
+      # `contents: write` to attach the tarball and its attestation to the
+      # GitHub Release the job before this one created. Release Please writes
+      # that Release with no assets at all, and an OpenSSF Scorecard probe reads
+      # asset filenames off the Release rather than the registry — npm's own
+      # provenance, which this job already produces, is invisible to it.
+      contents: write
       # The whole of the credential. npm trusted publishing exchanges this
       # short-lived OIDC token for publish rights, so no npm token exists in
       # this repository to leak, rotate or forget — which is also why there is
-      # no `NODE_AUTH_TOKEN` anywhere below.
+      # no `NODE_AUTH_TOKEN` anywhere below. The attestation step mints its
+      # Sigstore signing certificate from the same token.
       id-token: write
+      # Persists the attestation to GitHub's attestations API, which is what
+      # makes `gh attestation verify` work against the tarball independently of
+      # the file attached to the Release.
+      attestations: write
     steps:
       # The tag, not the branch: `main` may already have moved on by the time
       # this job starts, and publishing a commit the release does not point at
@@ -144,6 +154,66 @@ jobs:
       # than of one workflow step that could disagree with it.
       - name: Publish
         run: npm publish
+
+      # Everything below attaches to the GitHub Release what the registry
+      # already has. It changes nothing about the publish above, and it is
+      # deliberately after it: a failure here must not be able to leave the tag
+      # written with nothing on the registry.
+      #
+      # The reason it is worth doing at all is that npm provenance and a GitHub
+      # Release are two different claims to two different audiences. `npm audit
+      # signatures` — which the next job runs — reads the registry. Tooling that
+      # reads the repository instead, OpenSSF Scorecard's `Signed-Releases`
+      # among it, looks at the assets on the Release and finds a Release Please
+      # Release carries none.
+      - name: Pack the published tarball
+        id: pack
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/release
+          # `npm pack` is byte-for-byte reproducible from the same `dist/`, so
+          # this is the same tarball `npm publish` just sent rather than a
+          # rebuild that merely resembles it — verified by packing twice and
+          # comparing digests. Packing again is still cheaper and less invasive
+          # than teaching `npm publish` to consume a prebuilt tarball, which
+          # would put the release path itself on an untested branch.
+          #
+          # `--ignore-scripts` because `prepare` runs `lefthook install`, which
+          # writes hooks and prints to stdout; nothing in it contributes to the
+          # tarball. `--json` is parsed with `node -p` on a single line: npm
+          # prints its config warnings to stdout too, so the filename is read
+          # out of the JSON rather than by taking the last line of the output.
+          npm pack --ignore-scripts --pack-destination /tmp/release --json > /tmp/pack.json
+          file=$(node -p 'const s=require("fs").readFileSync("/tmp/pack.json","utf8");JSON.parse(s.slice(s.indexOf("[")))[0].filename')
+          printf 'path=/tmp/release/%s\n' "$file" >> "$GITHUB_OUTPUT"
+          printf 'name=%s\n' "$file" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the tarball
+        id: attest
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: ${{ steps.pack.outputs.path }}
+
+      # The bundle the action writes is named `attestation.json`, and the name is
+      # load-bearing rather than cosmetic: Scorecard's provenance probe matches
+      # asset filenames by suffix and accepts `.intoto.jsonl` alone, so uploading
+      # the file under the name the action chose would attach a real attestation
+      # that no reader recognises. Renamed to what the format actually is — a
+      # one-line in-toto JSON bundle.
+      - name: Attach the tarball and its attestation to the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          TARBALL: ${{ steps.pack.outputs.path }}
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          ASSET: ${{ steps.pack.outputs.name }}
+        run: |
+          set -euo pipefail
+          cp "$BUNDLE" "/tmp/release/${ASSET}.intoto.jsonl"
+          gh release upload "$TAG" \
+            "$TARBALL" \
+            "/tmp/release/${ASSET}.intoto.jsonl" \
+            --clobber
 
   verify-artifact:
     name: Verify the published artifact
