@@ -1,0 +1,71 @@
+# Colour
+
+`src/styles/theme.css` is the only place a colour is declared. Nothing in a
+component is a literal hex or `hsl()` — every fill, border and text colour a
+component renders is one of the custom properties below, reached through a
+Tailwind utility (`bg-primary`, `text-muted-foreground`, `border-border`).
+That single source is what the table below reads at build time, so it can
+never say something `theme.css` does not.
+
+<!-- @tokens color -->
+
+## The neutrals
+
+The ground is a cooled, technical paper rather than a pure white — `background`
+is tilted toward the same hue family as the brand colours so nothing on top of
+it fights for temperature. `card` is true white,
+which is what makes a card read as lifted off the page without needing a
+shadow to say so. `sunken`, one step darker than `background`, is reserved for
+workspace chrome — a sidebar, a rail — so navigation recedes and the content
+above it reads as the raised surface. `muted` and `subtle` are both neutral
+fills below that: `muted` for a quietly de-emphasized block (a disabled
+field's own background, a secondary badge), `subtle` specifically for a
+hover/press state — a hover is not an action colour, so it never borrows from
+`primary`.
+
+Two border weights exist for the same reason two neutrals do: `border` is a
+hairline that recedes everywhere by default, and `border-strong` is reserved
+for the few places that must assert an edge — an active panel, a keyboard
+target zone — rather than for every border that "feels like it should stand
+out."
+
+## Two forces
+
+Ecoma's form language is dual-force, and the two action colours encode it
+rather than decorate it:
+
+- **Human — warp** (`--color-primary`) — what a person
+  authors and decides. It is also the default action colour: `primary`
+  doubles as both because a person drives the interface. `--color-ring`, the
+  focus ring, is the same hue for the same reason — keyboard focus is a person
+  acting.
+- **Agent — weft** (`--color-agent`) — work an agent is
+  running or has produced. It never appears as a default action colour; a
+  surface only carries it when the thing happening on it genuinely is agent
+  work.
+
+Each force gets a "wash" — `primary-muted` and `agent-muted` — a pale tint of
+its own hue for a selected or agent-driven surface fill, distinct from a hover
+state's neutral `subtle`.
+
+## Functional hues
+
+`destructive`, `success`, `warning` and `info` are deliberately outside both
+force hues, so a status colour can never be misread as "a person did this" or
+"an agent did this." None of the four is reused as an action colour outside
+its own meaning.
+
+## The seam
+
+The one place the two forces are allowed to touch visually is a gradient
+between them, interpolated in OKLCH so the midpoint never turns muddy grey:
+
+<!-- @tokens seam -->
+
+Reach it through the `bg-seam` utility (`background-image: var(--seam)`), and
+only where the two forces are actually meeting — a handoff, a co-authored
+asset, a brand moment. `theme.css` states the restriction directly: never
+under body text, never on anything smaller than 20px, and never as an
+interaction state. The seam marks a moment where human and agent work meet,
+not a decoration to reach for because it looks good — a hover state or a
+selected row still uses the ordinary force colours above.

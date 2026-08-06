@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, type UserConfig } from "vitepress";
 import tailwindcss from "@tailwindcss/vite";
 import { componentApi } from "./plugins/component-api";
+import { designTokens } from "./plugins/design-tokens";
 import { pagesIn } from "./sidebar";
 import { BASE } from "./base";
 
@@ -31,6 +32,21 @@ const COMPONENTS = pagesIn("components");
 // first reader's twenty-seven.
 const BLOCKS = pagesIn("blocks");
 
+// Foundations have a genuine reading order — colour and type before the
+// layout and behaviour that compose them — that alphabetical destroys, so
+// this is the one directory `pagesIn` is given a curated order for.
+const FOUNDATIONS = pagesIn("foundations", [
+  "colour",
+  "typography",
+  "shape",
+  "elevation",
+  "motion",
+  "layout",
+  "iconography",
+  "accessibility",
+  "theming",
+]);
+
 export default defineConfig({
   title: "Loom",
   description: "The design system behind Ecoma — primitives, tokens and motion for Vue.",
@@ -57,6 +73,7 @@ export default defineConfig({
     ],
     sidebar: [
       { text: "Overview", link: "/" },
+      { text: "Foundations", items: FOUNDATIONS },
       { text: "Primitives", items: COMPONENTS },
       { text: "Blocks", items: BLOCKS },
     ],
@@ -70,7 +87,7 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [componentApi(), ...(tailwindcss() as unknown as VitePlugins)],
+    plugins: [componentApi(), designTokens(), ...(tailwindcss() as unknown as VitePlugins)],
     resolve: {
       alias: {
         // The documentation imports Loom the way a consumer does. A relative
