@@ -1,5 +1,16 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "extraKnownMarketplaces": {
+    "litmus": {
+      "source": {
+        "source": "github",
+        "repo": "ecoma-io/litmus"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "litmus@litmus": true
+  },
   "hooks": {
     "PostToolUse": [
       {
