@@ -62,7 +62,7 @@
     "prepare": "lefthook install",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --max-warnings 0 && node tools/check-primitive-artifacts.ts",
+    "lint": "eslint . --max-warnings 0 && node tools/check-component-artifacts.ts",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",

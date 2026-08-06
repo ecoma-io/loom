@@ -30,6 +30,14 @@ const BASE = "/docs/contribute/design-system/";
 // arbitrary in a way that costs nothing.
 const COMPONENTS = pagesIn("components");
 
+// Blocks are a separate directory and a separate sidebar group because they
+// answer a different question. A reader looking for a primitive knows the name
+// of the control they want; a reader looking for a block knows the shape of the
+// screen they are building and not what it is called here. Folding the two into
+// one alphabetical list would bury the second reader's eight pages among the
+// first reader's twenty-seven.
+const BLOCKS = pagesIn("blocks");
+
 export default defineConfig({
   title: "Loom",
   description: "The design system behind Ecoma — primitives, tokens and motion for Vue.",
@@ -57,6 +65,7 @@ export default defineConfig({
     sidebar: [
       { text: "Overview", link: "/" },
       { text: "Primitives", items: COMPONENTS },
+      { text: "Blocks", items: BLOCKS },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],
     editLink: {
