@@ -104,6 +104,20 @@ describe("Checkbox", () => {
     expect(wrapper.get('[role="checkbox"]').attributes("aria-label")).toBe("Select row");
   });
 
+  // The by-reference half of the same contract, and the half nothing checked —
+  // measured: deleting the `aria-labelledby` binding left this file green.
+  // It is the documented answer for a checkbox named by a table header cell,
+  // where the id is the only thing that can carry the name; unforwarded, the
+  // consumer sets the prop and ships an unnamed checkbox with no warning.
+  it("names the control by reference when the visible label lives in another element", () => {
+    const wrapper = mount(Checkbox, {
+      props: { modelValue: false, ariaLabelledby: "column-heading" },
+    });
+    const control = wrapper.get('[role="checkbox"]');
+    expect(control.attributes("aria-labelledby")).toBe("column-heading");
+    expect(control.attributes("aria-label")).toBeUndefined();
+  });
+
   it("renders the box as a native button with nothing here blocking Space, so the platform's own keyboard handling toggles it", () => {
     const wrapper = mount(Checkbox, { props: { modelValue: false, label: "Remember me" } });
     const control = wrapper.get('[role="checkbox"]').element as HTMLButtonElement;

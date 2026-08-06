@@ -57,6 +57,17 @@ describe("TitleBar", () => {
     expect(brand.textContent).toContain("MyApp");
   });
 
+  // Measured: deleting `aria-hidden` from the brand tile left this file green.
+  // The tile is a coloured square holding a logo mark, sitting beside the app
+  // name that already says the same thing — announced, it prefixes every
+  // screen-reader pass over the title bar with a second reading of the brand.
+  it("keeps the brand tile out of the accessibility tree, so the app name is announced once", () => {
+    const wrapper = mount(TitleBar, { props: { appName: "MyApp" } });
+    const brand = wrapper.get("header").element.firstElementChild!;
+    expect(brand.querySelector("[aria-hidden='true'] svg")).not.toBeNull();
+    expect(brand.textContent).toContain("MyApp");
+  });
+
   it("renders the menu bar only when the host supplies menus, so a menu-less app gets no empty cluster", () => {
     const without = mount(TitleBar, { props: { appName: "MyApp" } });
     expect(without.findComponent(Menubar).exists()).toBe(false);

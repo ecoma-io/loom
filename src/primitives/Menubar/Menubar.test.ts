@@ -30,6 +30,37 @@ function fileItemButtons(wrapper: ReturnType<typeof mountMenubar>) {
   return wrapper.get('[role="menu"]').findAll('button[role="menuitem"]');
 }
 
+// Unlike every other primitive here, Menubar's ARIA is hand-written rather
+// than supplied by Reka UI, so nothing underneath it would restore a role that
+// went missing. Measured: deleting `role="menubar"`, `role="separator"` or
+// `:aria-haspopup` from the template left this whole file green — the other
+// cases reach their elements through `[role="menu"]` and `[role="menuitem"]`,
+// which are the two roles that happen to be pinned. A menubar that loses its
+// container role is announced as a row of loose buttons.
+describe("Menubar ARIA structure", () => {
+  it("declares the container, the menu-opening triggers and the group dividers by role", () => {
+    const wrapper = mountMenubar();
+
+    expect(wrapper.find('[role="menubar"]').exists()).toBe(true);
+    const trigger = wrapper.get("#menubar-trigger-file");
+    expect(trigger.attributes("role")).toBe("menuitem");
+    expect(trigger.attributes("aria-haspopup")).toBe("true");
+    expect(trigger.attributes("aria-expanded")).toBe("false");
+    wrapper.unmount();
+  });
+
+  it("marks the divider between item groups as a separator rather than an unannounced rule", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("click");
+
+    const menu = wrapper.get('[role="menu"]');
+    expect(menu.findAll('[role="separator"]')).toHaveLength(1);
+    // The separator carries no name and must never be reachable as an item.
+    expect(menu.findAll('[role="menuitem"]')).toHaveLength(3);
+    wrapper.unmount();
+  });
+});
+
 describe("Menubar open/close", () => {
   it("clicking a trigger opens its menu; clicking it again closes it", async () => {
     const wrapper = mountMenubar();

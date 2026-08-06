@@ -155,4 +155,29 @@ describe("SidebarNav", () => {
     expect(overview.attributes("aria-label")).toBeUndefined();
     expect(wrapper.text()).toContain("System");
   });
+
+  // The per-item names are pinned above; the nav's OWN name was not —
+  // measured: deleting `:aria-label="ariaLabel"` from the `<nav>` left this
+  // file green. A page with more than one navigation landmark needs each of
+  // them named to be told apart, and this prop is a host's only way to do it.
+  it("names the navigation landmark itself from ariaLabel, so a page with several navs stays distinguishable", () => {
+    const named = mount(SidebarNav, { props: { sections: SECTIONS, ariaLabel: "Workspace" } });
+    expect(named.get("nav").attributes("aria-label")).toBe("Workspace");
+
+    const unnamed = mount(SidebarNav, { props: { sections: SECTIONS } });
+    expect(unnamed.get("nav").attributes("aria-label")).toBeUndefined();
+  });
+
+  // Icons and the active rail marker are decoration beside text that already
+  // says the same thing — measured: deleting every `aria-hidden` here left the
+  // file green, which is how a rail starts announcing "Home Overview, Bell
+  // Notifications" and every row reads twice.
+  it("hides the decorative icon and the active-row marker from assistive tech while the label text stays announced", () => {
+    const wrapper = mount(SidebarNav, { props: { sections: SECTIONS } });
+    const overview = wrapper.get('a[href="#overview"]');
+
+    expect(overview.get("svg").attributes("aria-hidden")).toBe("true");
+    expect(overview.get("span.bg-primary").attributes("aria-hidden")).toBe("true");
+    expect(overview.get("span.truncate").attributes("aria-hidden")).toBeUndefined();
+  });
 });

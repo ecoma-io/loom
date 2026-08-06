@@ -31,19 +31,31 @@ const props = withDefaults(
   },
 );
 
-/** Percentage 0–100, clamped to [0, max]; null while indeterminate. */
-const pct = computed<number | null>(() => {
-  if (props.modelValue === null || props.modelValue === undefined) return null;
-  const clamped = Math.min(Math.max(props.modelValue, 0), props.max);
-  return (clamped / props.max) * 100;
-});
+/**
+ * The value the bar itself is given, clamped into [0, max]; null while
+ * indeterminate. The clamp has to happen here rather than only on the way to
+ * the transform below: `aria-valuenow` is generated from whatever ProgressRoot
+ * receives, so handing it the raw prop announces a number outside the range
+ * `aria-valuemin`/`aria-valuemax` declare — "150 percent" read out over a bar
+ * painted at 100.
+ */
+const value = computed<number | null>(() =>
+  props.modelValue === null || props.modelValue === undefined
+    ? null
+    : Math.min(Math.max(props.modelValue, 0), props.max),
+);
+
+/** Percentage 0–100, derived from the clamped value; null while indeterminate. */
+const pct = computed<number | null>(() =>
+  value.value === null ? null : (value.value / props.max) * 100,
+);
 
 defineExpose({ pct });
 </script>
 
 <template>
   <ProgressRoot
-    :model-value="modelValue ?? null"
+    :model-value="value"
     :max="max"
     :aria-label="ariaLabel"
     :aria-labelledby="ariaLabelledby"

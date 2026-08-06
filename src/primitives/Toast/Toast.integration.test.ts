@@ -49,7 +49,15 @@ describe("Toast", () => {
   it("hosts the card inside the labelled notifications region so assistive tech can reach it, instead of dropping loose text into the page", async () => {
     await mountToast();
     const region = document.querySelector<HTMLElement>('[role="region"]')!;
-    expect(region.getAttribute("aria-label")).toBeTruthy();
+    // The name itself, not merely that one is present: `toBeTruthy()` here
+    // passed for any string at all, a literal "undefined" included. The hotkey
+    // is the only way a keyboard user reaches a toast that has already been
+    // announced, and it is announced with the region — a name that lost it is
+    // a region nobody can get back to. The string is Reka's default, which
+    // this component deliberately does not override; pinning it therefore
+    // reports both halves — an override introduced here, or the announced name
+    // changing under an upgrade. Either is news, so neither should land quiet.
+    expect(region.getAttribute("aria-label")).toBe("Notifications (F8)");
     expect(region.contains(viewport())).toBe(true);
     expect(viewport().querySelector("li")!.getAttribute("data-state")).toBe("open");
   });
@@ -73,6 +81,18 @@ describe("Toast", () => {
 
     await mountToast({ variant: "ai" });
     expect(viewport().querySelector(".animate-conduct")).not.toBeNull();
+  });
+
+  // The case above pins that the accent renders, not that it stays silent —
+  // measured: deleting both `aria-hidden`s from ToastItem left this file green.
+  // A toast is announced through a live region the moment it appears, so a
+  // glyph or a pulse overlay that reaches the accessibility tree is read out
+  // ahead of the message, on every toast the app shows.
+  it("keeps the accent glyph and the conduct pulse out of the announcement, so only the message is read", async () => {
+    await mountToast({ variant: "ai" });
+    const card = viewport().querySelector("li")!;
+    expect(card.querySelector("svg")!.getAttribute("aria-hidden")).toBe("true");
+    expect(card.querySelector(".animate-conduct")!.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("renders the inline action only when a label is supplied and reports the press instead of acting", async () => {

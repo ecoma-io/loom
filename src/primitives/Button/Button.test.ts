@@ -57,6 +57,18 @@ describe("Button", () => {
     expect(wrapper.text()).toBe("Save");
   });
 
+  // The case above pins that the arc renders, not that it stays silent —
+  // measured: deleting both `aria-hidden`s from the template left this file
+  // green. `aria-busy` is what announces the state; a spinner or a shimmer
+  // that also reaches the accessibility tree announces it a second time,
+  // inside a control whose entire label is one word.
+  it("keeps the spinner and the shimmer out of the accessibility tree, so aria-busy stays the only announcement", () => {
+    const wrapper = mount(Button, { props: { loading: true }, slots: { default: "Save" } });
+    expect(wrapper.get("button").attributes("aria-busy")).toBe("true");
+    expect(wrapper.get("svg").attributes("aria-hidden")).toBe("true");
+    expect(wrapper.get("span.animate-shimmer").attributes("aria-hidden")).toBe("true");
+  });
+
   it("dims only a genuinely disabled button — a loading button stays at full opacity so it reads as working, not unavailable", async () => {
     const wrapper = mount(Button, { props: { loading: true }, slots: { default: "Save" } });
     expect(wrapper.get("button").classes()).not.toContain("opacity-50");

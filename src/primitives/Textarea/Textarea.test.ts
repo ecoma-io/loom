@@ -38,4 +38,18 @@ describe("Textarea", () => {
     });
     expect(wrapper.get("textarea").attributes("aria-describedby")).toBe("notes-description");
   });
+
+  // Every case in this file supplies `ariaLabel` and none of them looks at
+  // where it lands — measured: deleting both bindings from the template left
+  // the file green. A Textarea used outside a Field carries no visible label,
+  // so the name a host passes is the only one the control will ever have.
+  it("carries the name a host supplies onto the native textarea, by value or by reference", () => {
+    const named = mount(Textarea, { props: { ariaLabel: "Notes" } });
+    expect(named.get("textarea").attributes("aria-label")).toBe("Notes");
+
+    const referenced = mount(Textarea, { props: { ariaLabelledby: "notes-heading" } });
+    const textarea = referenced.get("textarea");
+    expect(textarea.attributes("aria-labelledby")).toBe("notes-heading");
+    expect(textarea.attributes("aria-label")).toBeUndefined();
+  });
 });
