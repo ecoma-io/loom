@@ -8,7 +8,7 @@
 # pnpm fails the install while any decision is missing — so an unreviewed
 # postinstall cannot run in CI just because it shipped in a new release.
 #
-# esbuild: false — reached only through the Vite 5 that VitePress bundles. Its
+# esbuild: false — reached only through the Vite that VitePress bundles. Its
 # postinstall swaps the JavaScript `bin/esbuild` shim for the native binary,
 # which saves a few milliseconds of Node startup and nothing else: the shim
 # resolves `@esbuild/<platform>` at run time either way, and that package
@@ -39,3 +39,43 @@ allowBuilds:
   lefthook: false
   vue-demi: false
   workerd: false
+
+# Advisories in transitive devDependencies, held forward until the packages that
+# own them ship a release that does it for us. Nine of them, in two chains:
+# `vitepress > vite` (with esbuild under it) and `wrangler > miniflare > undici`.
+# Neither chain reaches the published package — `files: ["dist"]` ships build
+# output, and both arrive under devDependencies — so what these fix is the
+# documentation build and the deploy, not a consumer's install.
+#
+# Written as dependency PATHS rather than version ranges, and that is the whole
+# care in this block. A bare `vite@<6.4.3: ">=6.4.3"` selector reads as the
+# obvious spelling and is wrong twice over:
+#
+#   - It rewrites the peer ranges too, so `@vitejs/plugin-vue`, `@tailwindcss/vite`
+#     and Vitest end up asking for a Vite they were not resolved against, and
+#     `pnpm peers check` goes red.
+#   - It moves VitePress 1.6.4 onto the Vite 8 this package already uses for its
+#     own build — two majors ahead of the Vite 5 it was released against. That
+#     build still EXITS ZERO while Rolldown silently discards VitePress's
+#     `generateBundle` hook: measured at 115 files against 160, every per-page
+#     chunk gone. A green build serving a broken site is the one failure
+#     `docs.yml` exists to keep out of a release.
+#
+# A path-scoped override moves the one copy in the one chain that is vulnerable
+# and leaves every other resolution alone. Verified with the full command list:
+# `pnpm audit` clean, `pnpm peers check` clean, and `docs:build` back to the same
+# 160 files as before.
+#
+# Renovate will offer the real fix as it lands upstream — a VitePress on a
+# patched Vite, a wrangler on a patched undici. When it does, drop the entry
+# rather than widening it; an override outliving its advisory is a pin nobody
+# meant to keep.
+overrides:
+  # GHSA-fx2h-pf6j-xcff (high), GHSA-v6wh-96g9-6wx3, GHSA-4w7w-66w2-5vf9,
+  # and GHSA-67mh-4wv8-2f99 under esbuild. 6.4.3 is the fix on the 6.x line,
+  # which is the line VitePress 1.6.4 resolves — see above for why not 8.x.
+  vitepress>vite: "^6.4.3"
+  # GHSA-4cwx-7wf7-3272 (high), GHSA-8xcm-r25x-g524, GHSA-m8rv-5g2x-5cg5,
+  # GHSA-jr45-8vmc-qm54, GHSA-v3r7-h72x-cjcm. All fixed in 7.29.0, and the 7.x
+  # line is what miniflare asks for.
+  miniflare>undici: "^7.29.0"
