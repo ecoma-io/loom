@@ -10,5 +10,14 @@ pnpm-lock.yaml
 # only valid unmodified.
 LICENSE
 
+# Written by Release Please, never by hand, and it does not consult Prettier:
+# `*` bullets and a blank line after each heading, where Prettier wants `-` and
+# none. Formatting it is not a one-time cleanup — Release Please rewrites the
+# whole file from the commit history on every run, so a formatted CHANGELOG
+# comes back unformatted on the next release and fails `format:check` inside
+# the one pull request whose merge ships the release. The generator owns the
+# format of what it generates, the same reason `pnpm-lock.yaml` is above.
+CHANGELOG.md
+
 docs/.vitepress/dist/
 docs/.vitepress/cache/
