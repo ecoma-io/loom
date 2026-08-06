@@ -14,11 +14,14 @@ name: Docs
 # one. A contributor who needs to see `main` rendered runs `pnpm docs:dev`; a
 # reader of this site gets the version the CHANGELOG describes.
 #
-# `workflow_call` rather than an `on: release` trigger, for the same GitHub rule
-# `release.yml`'s own header explains: Release Please writes its tag and Release
-# with the default `GITHUB_TOKEN`, and an event created with that token triggers
-# no further workflow. An `on: release: published` deploy would sit here and
-# never fire.
+# `workflow_call` rather than an `on: release` trigger, and now a choice rather
+# than a workaround. It began as the latter: Release Please wrote its Release
+# with `GITHUB_TOKEN`, and an event created with that token triggers no further
+# workflow, so an `on: release: published` deploy would have sat here and never
+# fired. Release Please runs under the organisation's App token today, whose
+# Release *would* fire one — but being called by `release.yml` is what keeps this
+# deploy behind `verify-artifact`, and a `release: published` trigger would race
+# it and publish the site before anything had checked the release installs.
 
 on:
   workflow_call:

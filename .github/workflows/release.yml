@@ -12,6 +12,13 @@ name: Release
 # `docs.yml` owns and this file calls. They run on the same commit the release
 # job just tagged, which is also what makes the artifact traceable to a single
 # run.
+#
+# The App token the release job now uses does technically lift that rule — an
+# App's tag *can* trigger a workflow — but this file is not being split on the
+# strength of it. Keeping the publish a job here keeps it gated on
+# `release_created` and pinned to the commit this run tagged, which is what
+# makes the artifact traceable to a single run; a tag-triggered workflow would
+# be a second entry point reached by anything that writes a matching tag.
 # https://docs.github.com/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow
 
 on:
@@ -45,9 +52,37 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
     steps:
+      # An App token, not `GITHUB_TOKEN`, and the Release PR is unmergeable
+      # without it. The same GitHub rule this file's header opens with — an
+      # event created with `GITHUB_TOKEN` triggers no workflow — applies to the
+      # pull request Release Please *opens*, not only to the tag it writes
+      # later. So `ci-gate` and `Semgrep` never ran on it, and they are exactly
+      # the two checks the branch ruleset requires: the one pull request whose
+      # merge ships a release was the one pull request that could never go
+      # green.
+      #
+      # Dispatching the workflows by hand does not fix it, which is worth
+      # recording because it looks like it should. `workflow_dispatch` attaches
+      # its check runs to the commit, and they are visible on the commit — but
+      # the pull request's own status rollup does not list them, so the required
+      # checks stay unsatisfied and the merge button stays blocked with every
+      # check passing. The check has to be created by the pull-request event
+      # itself, which means the pull request has to be opened by something other
+      # than `GITHUB_TOKEN`.
+      #
+      # `ECOMA_APP_ID`/`ECOMA_APP_KEY` are the organisation's own App, installed
+      # across `ecoma-io`. Its token also signs Release Please's commits, which
+      # the `required_signatures` rule needs and which a raw PAT would not give.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          app-id: ${{ secrets.ECOMA_APP_ID }}
+          private-key: ${{ secrets.ECOMA_APP_KEY }}
+
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
+          token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
