@@ -28,6 +28,10 @@ on:
     secrets:
       CLOUDFLARE_API_TOKEN:
         description: Wrangler's deploy credential; see the `cloudflare` environment below.
+        # Binds the caller only. It asserts `release.yml` passed something, not
+        # that the something is non-empty, and the manual lane below has no
+        # caller to bind at all — which is why the deploy step names a fallback
+        # rather than trusting this.
         required: true
   # The manual lane, for redeploying the current release when the deploy failed
   # for a reason outside this repository — an expired token, a Cloudflare
@@ -113,7 +117,16 @@ jobs:
           # usage data nobody asked to send.
           CLOUDFLARE_TELEMETRY_DISABLED: "1"
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Two names for one credential, because the two triggers reach it
+          # differently. Called from `release.yml`, it arrives as the
+          # `CLOUDFLARE_API_TOKEN` input declared above; dispatched manually there
+          # is no caller to pass one, and only the organisation's own
+          # `ECOMA_CLOUDFLARE_API_TOKEN` is in scope. Reading just the input would
+          # make the manual lane authenticate with the empty string — GitHub does
+          # not fail on a missing secret — and the symptom would be a Wrangler
+          # auth error in the one path used when a release-time deploy has
+          # already failed.
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.ECOMA_CLOUDFLARE_API_TOKEN }}
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
 
