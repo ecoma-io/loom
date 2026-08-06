@@ -17,24 +17,23 @@ for (const page of documentationPages()) {
 
     const { violations } = await new AxeBuilder({ page: browserPage })
       .withTags([...WCAG_TAGS])
-      // One exclude, scoped to `.vp-doc` — the theme's own prose wrapper — so a
-      // Loom primitive rendered outside that wrapper still gets checked.
+      // No excludes, and keeping it that way is the point.
       //
-      // `scrollable-region-focusable` on markdown tables: VitePress's default
-      // theme makes `.vp-doc table` horizontally scrollable via CSS without
-      // giving the table itself a tabindex, so axe flags it as a scrollable
-      // region a keyboard user cannot focus. This is the theme's own table
-      // styling, not a Loom `Table` primitive — Loom has none.
+      // There were two, both blaming the vendor, and both wrong. Code blocks
+      // were excluded for `color-contrast` — but the colours that failed were
+      // failing against `--vp-code-block-bg`, which is a line we wrote, and
+      // pointing it at the content surface instead cleared the floor. Tables
+      // were excluded for `scrollable-region-focusable`, blamed on VitePress
+      // styling tables as scrollable without a `tabindex` — and VitePress in
+      // fact writes that `tabindex` itself, on every table it renders from
+      // markdown. The tables that failed were the ones *we* generate as raw
+      // HTML in `design-tokens.ts`, which markdown-it passes through untouched.
       //
-      // Code blocks were excluded here too, for `color-contrast`. They are not
-      // any more, and the reason is worth keeping: the failing colours were
-      // Shiki's, but what pushed them under 4.5:1 was our own
-      // `--vp-code-block-bg` mapping. Measuring the palette against the
-      // background rather than assuming the vendor owned both turned a
-      // permanent exclusion into a two-line fix in `theme.css` and
-      // `config.mts`. An exclusion whose cause is a line we wrote is not a
-      // vendor defect, it is a defect with a note attached.
-      .exclude(".vp-doc table")
+      // What both exclusions had in common is a note that sounded like a
+      // reason. An exclusion is not justified by naming a cause; it is
+      // justified by that cause being outside our reach — and neither of these
+      // was, one of them not even being the real cause. Before adding one
+      // here, find which code actually emits the failing element.
       .analyze();
 
     // A bare `toEqual([])` tells a reader a run failed and nothing about why.

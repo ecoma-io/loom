@@ -1,5 +1,7 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 
+import { documentationPages } from "./docs-pages";
+
 // What follows pins interaction guarantees a jsdom unit test cannot: jsdom
 // runs no default Tab-key behaviour of its own (see the comment on Dialog's
 // own focus-trap unit test), so nothing in this repository's `vitest` suite
@@ -168,4 +170,72 @@ test("the focus ring appears on keyboard entry and stays hidden after a mouse cl
   await page.keyboard.press("Tab");
   await expect(secondary).toBeFocused();
   expect(await secondary.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+});
+
+// A phone-width sweep, and the width is the reason it exists. Every table on
+// this site is a scroll container — VitePress styles `.vp-doc table` as
+// `display: block; overflow-x: auto` — and whether one actually scrolls is a
+// property of the viewport, not of the table: measured across the built site,
+// 2 of 92 scroll at 1280px and 62 of 92 scroll at 375px. A desktop-only check
+// therefore reports a site-wide keyboard defect as one stray page, which is
+// exactly what it did before this test existed.
+//
+// Focusability is asserted rather than a full Tab walk. Tabbing to every table
+// on 45 pages would spend minutes proving what the browser decides in one
+// question — whether the element is in the tab order at all — and that
+// question is the whole of WCAG 2.1.1 here. The failure this guards against is
+// an element that no key press can reach, not one that is reached late.
+//
+// WebKit is the browser this test speaks for, and running it on Chromium alone
+// would be worse than not running it: Chromium now makes a scroll container
+// keyboard-focusable on its own, so `focus()` lands on an unfocusable table
+// there and the check passes with the defect fully present. Verified by
+// removing the `tabindex` and rerunning — green on Chromium, and eight named
+// token tables on WebKit. `axe` says as much in its own rule text ("accessible
+// by keyboard in Safari"). Keep this test on every project in
+// `playwright.config.ts`; narrowing the suite to Chromium would silently
+// retire it.
+test("every table stays reachable by keyboard at the width where every table scrolls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+
+  const unreachable: string[] = [];
+  let scrolling = 0;
+
+  for (const path of documentationPages()) {
+    await page.goto(path);
+
+    // One browser-side pass per page: find the tables that actually scroll,
+    // try to focus each, and report whether focus landed. Done here rather
+    // than as a loop of `locator.focus()` calls because the decision "does
+    // this one scroll" would otherwise be a conditional in the test body,
+    // which `playwright/no-conditional-in-test` rejects — and rightly, since
+    // a skipped iteration and a passing one look identical from the outside.
+    const results = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>(".vp-doc table")]
+        .map((table, index) => ({ table, index }))
+        .filter(({ table }) => table.scrollWidth > table.clientWidth)
+        .map(({ table, index }) => {
+          table.focus();
+          return { index, focused: document.activeElement === table };
+        }),
+    );
+
+    scrolling += results.length;
+    unreachable.push(
+      ...results
+        .filter((result) => !result.focused)
+        .map((result) => `${path} table[${String(result.index)}]`),
+    );
+  }
+
+  // Guards the guard: if a future stylesheet stops tables scrolling
+  // altogether, the loop above would find nothing to check and pass while
+  // proving nothing. This is the assertion that would fail first.
+  expect(
+    scrolling,
+    "no table scrolled at 375px — this test can no longer see what it checks",
+  ).toBeGreaterThan(0);
+  expect(unreachable, `scrollable but not focusable:\n${unreachable.join("\n")}`).toEqual([]);
 });

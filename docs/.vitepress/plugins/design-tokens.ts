@@ -160,10 +160,24 @@ function groupOf(tokenName: string): string {
   return hyphen === -1 ? base : base.slice(0, hyphen);
 }
 
+// `tabindex="0"` because a table on this site is a scroll container: VitePress
+// styles `.vp-doc table` as `display: block; overflow-x: auto`, so a table
+// wider than its column is content a keyboard user can see the left edge of
+// and never reach the rest of — WCAG 2.1.1, which `axe` reports as
+// `scrollable-region-focusable`. Whether a given table is "wide" is a property
+// of the viewport rather than of the table: measured on the built site, 2 of
+// 92 scroll at 1280px and 62 of 92 at 375px. There is no subset to fix.
+//
+// VitePress already writes this attribute onto every table it renders from
+// markdown, which is why only this one function needs it. These tables are
+// emitted as raw HTML and go into the page as an `html_block` — markdown-it
+// passes that through verbatim and its `table_open` renderer never runs, so
+// the framework's own fix cannot reach them. This is the single gap in a
+// guarantee the framework otherwise keeps, not a second implementation of it.
 function table(head: string[], rows: string[][]): string {
   const th = head.map((h) => `<th>${h}</th>`).join("");
   const body = rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("\n");
-  return `<table>\n<thead><tr>${th}</tr></thead>\n<tbody>\n${body}\n</tbody>\n</table>`;
+  return `<table tabindex="0">\n<thead><tr>${th}</tr></thead>\n<tbody>\n${body}\n</tbody>\n</table>`;
 }
 
 const SWATCH_STYLE =
