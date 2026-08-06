@@ -1,34 +1,46 @@
 name: Docs
 
-# The documentation site tracks `main`, not the released version, and that is a
-# decision rather than a default. This site is where the library is designed in
-# the open: it dogfoods the components it documents, so a component that changed
-# on `main` and a page that still shows the old one would be a site disagreeing
-# with itself. A consumer pinning a released version reads the CHANGELOG; a
-# contributor reads this.
+# The documentation site tracks the released version, not `main`, and that is a
+# decision rather than a default. This site dogfoods the components it
+# documents, so every page on it is a live demonstration of one particular build
+# of the library — which makes the deployed site a claim about what the library
+# does. A merge to `main` is not yet that claim: it is a change that has passed
+# CI and is waiting for the release that decides whether it ships. Deploying it
+# anyway would publish behaviour under a version number nobody can install.
+#
+# So there is no `push` trigger here. `release.yml` calls this workflow as a job
+# gated on Release Please's `release_created`, which is true only on the run
+# where a Release PR was merged, and never on the runs that opened or updated
+# one. A contributor who needs to see `main` rendered runs `pnpm docs:dev`; a
+# reader of this site gets the version the CHANGELOG describes.
+#
+# `workflow_call` rather than an `on: release` trigger, for the same GitHub rule
+# `release.yml`'s own header explains: Release Please writes its tag and Release
+# with the default `GITHUB_TOKEN`, and an event created with that token triggers
+# no further workflow. An `on: release: published` deploy would sit here and
+# never fire.
 
 on:
-  push:
-    branches: [main]
-    # A push that touches none of these produces a byte-identical site. The
-    # build is cheap, but a deployment that changes nothing still writes a new
-    # version into the Cloudflare history, which makes the history useless for
-    # answering "when did the site last change?".
-    paths:
-      - "docs/**"
-      - "src/**"
-      - "tools/stage-docs.ts"
-      - "wrangler.jsonc"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/docs.yml"
+  workflow_call:
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        description: Wrangler's deploy credential; see the `cloudflare` environment below.
+        required: true
+  # The manual lane, for redeploying the current release when the deploy failed
+  # for a reason outside this repository — an expired token, a Cloudflare
+  # outage — rather than for previewing unreleased work.
   workflow_dispatch:
 
-# A newer `main` supersedes an in-flight deploy: the site has one live version
-# and the most recent commit is the one that should win the race.
+# Never cancel a deploy in flight, and never share a group with the caller. The
+# group is a literal rather than `${{ github.workflow }}` because a called
+# workflow inherits the *caller's* name there: it would resolve to `Release`,
+# the group `release.yml` is already holding, and this job would wait on a
+# workflow that is waiting on it. Cancellation is off for the same reason the
+# publish job's is — a half-uploaded site needs a human, and releases are rare
+# enough that queueing costs nothing.
 concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
+  group: docs-deploy
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -47,6 +59,10 @@ jobs:
       name: cloudflare
       url: ${{ steps.site.outputs.url }}
     steps:
+      # No `ref`, and that is already the released commit rather than a moving
+      # branch tip: a called workflow reads the *caller's* event, so `github.sha`
+      # here is the push Release Please tagged, not whatever `main` has become
+      # since.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
