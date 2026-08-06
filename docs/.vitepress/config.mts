@@ -66,6 +66,20 @@ export default defineConfig({
   // so under a forced dark the site would quietly stop wearing them.
   appearance: false,
 
+  markdown: {
+    // Named because the default was never chosen. Unconfigured, Shiki uses
+    // `github-light`, an older GitHub palette drawn for a white editor — and
+    // this site does not have one, so four of its ten syntax colours land under
+    // the 4.5:1 AA floor on our code-block background. `github-light-high-
+    // contrast` is GitHub's own answer to exactly that, and all ten of its
+    // colours clear the floor here. Measured across every light theme Shiki
+    // bundles, not picked by name.
+    //
+    // A single theme rather than a `{ light, dark }` pair, because
+    // `appearance: false` above means there is no dark side to render.
+    theme: "github-light-high-contrast",
+  },
+
   themeConfig: {
     nav: [
       { text: "Components", link: COMPONENTS[0]?.link ?? "/" },
