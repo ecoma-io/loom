@@ -59,6 +59,18 @@ jobs:
       # The title arrives through the environment, never through `${{ }}`
       # interpolation into the script: interpolation pastes it into the shell
       # source, where a title containing `$(...)` or a backtick would run.
+      #
+      # Release Please's pull requests are held to this too, which took a
+      # configuration change to make possible rather than an exemption here.
+      # Its default title pattern is `chore${scope}: release${version}`, and it
+      # fills `${scope}` with the *target branch* — so a Release PR arrived
+      # titled `chore(main): release 0.1.0`, and `main` is not one of the areas
+      # `scope-enum` names because it is not an area of the code at all. The
+      # pattern is pinned scopeless in `release-please-config.json`. Worth
+      # knowing because the failure is structural: it is not one bad title but
+      # every Release PR this repository will ever open, and the tempting fix —
+      # adding `main` to `scope-enum` — buys the merge by making the scope list
+      # mean something other than what it means.
       - name: Check the pull request title
         if: github.event_name == 'pull_request'
         env:
