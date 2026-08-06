@@ -69,7 +69,12 @@ export default defineConfig({
     // project-internal collaborator stubbed) and `*.integration.test.ts` (real
     // collaborators, where the composition itself is the behaviour under
     // test). An integration file IS a `.test.ts`, so one glob covers both.
-    include: ["src/**/*.test.ts"],
+    // `docs/` is here because the documentation site is not only markdown: the
+    // sidebar is derived from the page tree and the token tables are parsed out
+    // of `theme.css`, and both are ordinary code that can be ordinarily wrong.
+    // A defect there fails the same way a missing page does — the site builds,
+    // nothing errors, and the only symptom is a reader seeing the wrong thing.
+    include: ["src/**/*.test.ts", "docs/**/*.test.ts"],
     setupFiles: ["./vitest.setup.ts"],
     // One worker, deliberately. Creating a jsdom per isolated file dominates
     // the run, so several at once oversubscribe the machine and turn

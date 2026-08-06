@@ -24,20 +24,38 @@ function title(markdown: string, fallback: string): string {
 }
 
 /**
- * Every page in a documentation directory, as sidebar links, ordered by title.
+ * Every page in a documentation directory, as sidebar links.
  *
- * Alphabetical rather than authored: a curated order would be a judgement to
- * maintain, and the reader arriving at a component list is looking a name up
- * rather than reading it through.
+ * Alphabetical by default: a curated order is a judgement to maintain, and the
+ * reader arriving at a component list is looking a name up rather than
+ * reading it through. Pass `order` — the slugs, in the order they should read
+ * — for the directories where that default is wrong: a set of pages with a
+ * genuine reading order (foundations building on one another) rather than a
+ * flat list of names. A slug missing from `order` sorts after the ones named,
+ * alphabetically, so an added page is never dropped silently for lack of an
+ * update here.
  */
-export function pagesIn(directory: string): SidebarLink[] {
+export function pagesIn(directory: string, order?: readonly string[]): SidebarLink[] {
   const root = new URL(`${directory}/`, DOCS);
+  const rank = new Map(order?.map((slug, i) => [slug, i]));
   return readdirSync(fileURLToPath(root))
     .filter((file) => file.endsWith(".md"))
     .map((file) => {
       const slug = file.slice(0, -".md".length);
       const source = readFileSync(fileURLToPath(new URL(file, root)), "utf8");
-      return { text: title(source, slug), link: `/${directory}/${slug}` };
+      return { slug, text: title(source, slug), link: `/${directory}/${slug}` };
     })
-    .sort((a, b) => a.text.localeCompare(b.text, "en"));
+    .sort((a, b) => {
+      // Compared before subtracting, and that is the whole point: two unranked
+      // pages are both `Infinity`, and `Infinity - Infinity` is `NaN`. A
+      // comparator that returns `NaN` does not sort — the engine reads it as
+      // "these two are equal" and leaves them in the order the directory
+      // happened to be read in. The alphabetical fallback below would never
+      // run, and the failure is invisible, because a list in filesystem order
+      // usually looks sorted until the one entry that is not.
+      const ra = rank.get(a.slug) ?? Infinity;
+      const rb = rank.get(b.slug) ?? Infinity;
+      return ra !== rb ? ra - rb : a.text.localeCompare(b.text, "en");
+    })
+    .map(({ text, link }) => ({ text, link }));
 }

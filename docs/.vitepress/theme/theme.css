@@ -49,8 +49,18 @@
   --vp-font-family-base: var(--font-sans);
   --vp-font-family-mono: var(--font-mono);
 
-  --vp-code-block-bg: var(--color-sunken);
-  --vp-code-copy-code-bg: var(--color-card);
+  /* A code block is content, so it wears the content surface. `--color-sunken`
+   * is defined in `theme.css` as workspace chrome — sidebars and rails — which
+   * is what `--vp-c-bg-alt` above correctly uses it for; a listing of code is
+   * not chrome, and putting it on that layer was borrowing the wrong token.
+   *
+   * It is also the readable choice, and that was measured rather than assumed:
+   * against `--color-sunken` four of Shiki's syntax colours fall below the 4.5:1
+   * AA floor, and against `--color-card` none of them do. The copy button moves
+   * to the sunken layer for the same reason it had to move at all — it was the
+   * card colour, and a card-coloured control on a card is invisible. */
+  --vp-code-block-bg: var(--color-card);
+  --vp-code-copy-code-bg: var(--color-sunken);
 
   --vp-button-brand-bg: var(--color-primary);
   --vp-button-brand-text: var(--color-primary-foreground);
@@ -67,4 +77,16 @@
 :where(a, button, input, summary):focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
+}
+
+/* The hairline the card surface comes with.
+ *
+ * VitePress separates a code block from the page by making it dark, and the
+ * block above is no longer dark — so on the paper-light ground it needs the
+ * boundary Loom's own `Surface` gives a card: `bg-card ... border
+ * border-border`, under the principle the primitive states as hairline over
+ * shadow. Without this the block still reads as a block, but only just, and
+ * "only just" is not a boundary. */
+.vp-doc div[class*="language-"] {
+  border: 1px solid var(--color-border);
 }

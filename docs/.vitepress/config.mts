@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, type UserConfig } from "vitepress";
 import tailwindcss from "@tailwindcss/vite";
 import { componentApi } from "./plugins/component-api";
+import { designTokens } from "./plugins/design-tokens";
 import { pagesIn } from "./sidebar";
 import { BASE } from "./base";
 
@@ -31,6 +32,21 @@ const COMPONENTS = pagesIn("components");
 // first reader's twenty-seven.
 const BLOCKS = pagesIn("blocks");
 
+// Foundations have a genuine reading order — colour and type before the
+// layout and behaviour that compose them — that alphabetical destroys, so
+// this is the one directory `pagesIn` is given a curated order for.
+const FOUNDATIONS = pagesIn("foundations", [
+  "colour",
+  "typography",
+  "shape",
+  "elevation",
+  "motion",
+  "layout",
+  "iconography",
+  "accessibility",
+  "theming",
+]);
+
 export default defineConfig({
   title: "Loom",
   description: "The design system behind Ecoma — primitives, tokens and motion for Vue.",
@@ -50,6 +66,20 @@ export default defineConfig({
   // so under a forced dark the site would quietly stop wearing them.
   appearance: false,
 
+  markdown: {
+    // Named because the default was never chosen. Unconfigured, Shiki uses
+    // `github-light`, an older GitHub palette drawn for a white editor — and
+    // this site does not have one, so four of its ten syntax colours land under
+    // the 4.5:1 AA floor on our code-block background. `github-light-high-
+    // contrast` is GitHub's own answer to exactly that, and all ten of its
+    // colours clear the floor here. Measured across every light theme Shiki
+    // bundles, not picked by name.
+    //
+    // A single theme rather than a `{ light, dark }` pair, because
+    // `appearance: false` above means there is no dark side to render.
+    theme: "github-light-high-contrast",
+  },
+
   themeConfig: {
     nav: [
       { text: "Components", link: COMPONENTS[0]?.link ?? "/" },
@@ -57,6 +87,7 @@ export default defineConfig({
     ],
     sidebar: [
       { text: "Overview", link: "/" },
+      { text: "Foundations", items: FOUNDATIONS },
       { text: "Primitives", items: COMPONENTS },
       { text: "Blocks", items: BLOCKS },
     ],
@@ -70,7 +101,7 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [componentApi(), ...(tailwindcss() as unknown as VitePlugins)],
+    plugins: [componentApi(), designTokens(), ...(tailwindcss() as unknown as VitePlugins)],
     resolve: {
       alias: {
         // The documentation imports Loom the way a consumer does. A relative
