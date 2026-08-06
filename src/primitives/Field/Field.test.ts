@@ -42,6 +42,16 @@ describe("Field", () => {
     expect(wrapper.get("label").attributes("for")).toBe("email-input");
   });
 
+  // The fallback half of that association, and the half nothing checked —
+  // measured: relaxing the guard to `v-if="label"` left this file green.
+  // A `<label>` with no `for` is a label pointing at nothing: it names no
+  // control, and clicking it focuses none, while looking correct in the DOM.
+  it("falls back to plain text when there is no control id to point at, rather than a label naming nothing", () => {
+    const wrapper = mount(Field, { props: { label: "Email" } });
+    expect(wrapper.find("label").exists()).toBe(false);
+    expect(wrapper.get("span").text()).toContain("Email");
+  });
+
   it("shows a required asterisk only when required is set", () => {
     const required = mount(Field, {
       props: { label: "Email", for: "email-input", required: true },

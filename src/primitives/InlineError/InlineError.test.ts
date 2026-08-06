@@ -41,4 +41,12 @@ describe("InlineError", () => {
     });
     expect(wrapper.get('[role="alert"]').attributes("id")).toBe("email-description");
   });
+
+  // Measured: deleting `aria-hidden` from the glyph left this file green. The
+  // root is a live region, so whatever leaks in is announced the moment the
+  // error appears — a glyph read out ahead of the message the user needs.
+  it("keeps the warning glyph out of the announcement, since the live region reads its whole subtree", () => {
+    const wrapper = mount(InlineError, { props: { message: "Could not open the project." } });
+    expect(wrapper.get('[role="alert"] svg').attributes("aria-hidden")).toBe("true");
+  });
 });

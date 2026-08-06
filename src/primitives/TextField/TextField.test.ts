@@ -44,6 +44,20 @@ describe("TextField", () => {
     expect(wrapper.get("input").attributes("aria-describedby")).toBe("email-description");
   });
 
+  // Every case in this file supplies `ariaLabel` and none of them looks at
+  // where it lands — measured: deleting both bindings from the template left
+  // the file green. A TextField used outside a Field carries no visible label,
+  // so the name a host passes is the only one the input will ever have.
+  it("carries the name a host supplies onto the native input, by value or by reference", () => {
+    const named = mount(TextField, { props: { ariaLabel: "Email" } });
+    expect(named.get("input").attributes("aria-label")).toBe("Email");
+
+    const referenced = mount(TextField, { props: { ariaLabelledby: "email-heading" } });
+    const input = referenced.get("input");
+    expect(input.attributes("aria-labelledby")).toBe("email-heading");
+    expect(input.attributes("aria-label")).toBeUndefined();
+  });
+
   it("routes the fallthrough class onto the wrapper so a caller can size the whole field, not just the input", () => {
     const wrapper = mount(TextField, {
       props: { ariaLabel: "Name" },
