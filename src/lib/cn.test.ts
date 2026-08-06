@@ -46,4 +46,23 @@ describe("cn class merging", () => {
     expect(cn()).toBe("");
     expect(cn(null, undefined, false, 0, "")).toBe("");
   });
+
+  // Everything above holds for plain `clsx`, so none of it notices `twMerge`
+  // going away — measured: replacing the body with `clsx(inputs)` left this
+  // file green. Conflict resolution is the only reason the wrapper exists:
+  // without it both utilities land, the cascade picks by stylesheet order
+  // rather than by call order, and every consumer override silently stops
+  // winning. That regression is visual-only and reaches every component.
+  it("resolves a Tailwind conflict in favour of the last utility, which is what makes a consumer override win", () => {
+    expect(cn("px-2", "px-8")).toBe("px-8");
+    expect(cn("text-sm text-muted-foreground", "text-lg")).toBe("text-muted-foreground text-lg");
+  });
+
+  it("keeps utilities from different conflict groups side by side rather than collapsing them", () => {
+    expect(cn("px-2", "py-8")).toBe("px-2 py-8");
+  });
+
+  it("lets a caller's class beat the component's own, in the order a component composes them", () => {
+    expect(cn("rounded-md bg-primary", "bg-destructive")).toBe("rounded-md bg-destructive");
+  });
 });
