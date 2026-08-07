@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/ecoma-io/loom/compare/v0.1.0...v0.1.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* **ci:** give the manual deploy a credential it can actually read ([#24](https://github.com/ecoma-io/loom/issues/24)) ([ad434b6](https://github.com/ecoma-io/loom/commit/ad434b64820066c1be4067cc01b048ec3575e9e1))
+* **ci:** give the verification a Node version and time to see the publish ([#22](https://github.com/ecoma-io/loom/issues/22)) ([a758880](https://github.com/ecoma-io/loom/commit/a7588802cc2f50fda865d8f5622e513609e467eb))
+
 ## 0.1.0 (2026-08-06)
 
 
