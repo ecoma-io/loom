@@ -1,6 +1,39 @@
-import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { enableAutoUnmount, mount } from "@vue/test-utils";
+import { afterEach, describe, expect, it } from "vitest";
+import { defineComponent, h } from "vue";
 import Textarea from "./Textarea.vue";
+import { provideFieldContext } from "../../lib/field-context";
+
+// The focus assertions below need the textarea in the real document, so the
+// mounted tree has to come back off it afterwards.
+enableAutoUnmount(afterEach);
+
+// A stand-in for the Field wrapping this control — Field is a project-internal
+// collaborator, and what it publishes is pinned in `Field.test.ts`. This file
+// pins the other half: that Textarea reads the row it is inside.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
 
 describe("Textarea", () => {
   it("emits the raw string on input so v-model tracks each keystroke", async () => {
@@ -51,5 +84,99 @@ describe("Textarea", () => {
     const textarea = referenced.get("textarea");
     expect(textarea.attributes("aria-labelledby")).toBe("notes-heading");
     expect(textarea.attributes("aria-label")).toBeUndefined();
+  });
+
+  it("marks the textarea aria-required only while required, so the asterisk is not a promise made to sighted readers alone", () => {
+    const optional = mount(Textarea, { props: { ariaLabel: "Notes" } });
+    expect(optional.get("textarea").attributes("aria-required")).toBeUndefined();
+
+    const mandatory = mount(Textarea, { props: { ariaLabel: "Notes", required: true } });
+    expect(mandatory.get("textarea").attributes("aria-required")).toBe("true");
+  });
+
+  it("submits under the name it is given", () => {
+    const wrapper = mount(Textarea, { props: { ariaLabel: "Notes", name: "notes" } });
+    expect((wrapper.get("textarea").element as HTMLTextAreaElement).name).toBe("notes");
+  });
+
+  it("keeps a readonly textarea focusable and submitted where a disabled one is neither", () => {
+    const readOnly = mount(Textarea, {
+      props: { ariaLabel: "Notes", name: "notes", readonly: true },
+      attachTo: document.body,
+    });
+    const readOnlyEl = readOnly.get("textarea").element as HTMLTextAreaElement;
+    readOnlyEl.focus();
+    expect(document.activeElement).toBe(readOnlyEl);
+    expect(readOnlyEl.readOnly).toBe(true);
+    expect(readOnlyEl.disabled).toBe(false);
+
+    const disabled = mount(Textarea, {
+      props: { ariaLabel: "Notes", name: "notes", disabled: true },
+      attachTo: document.body,
+    });
+    const disabledEl = disabled.get("textarea").element as HTMLTextAreaElement;
+    disabledEl.focus();
+    expect(document.activeElement).not.toBe(disabledEl);
+  });
+
+  it("shows a readonly textarea as filled rather than dimmed, so it does not read as unavailable", () => {
+    const readOnly = mount(Textarea, { props: { ariaLabel: "Notes", readonly: true } });
+    expect(readOnly.get("textarea").attributes("data-readonly")).toBe("true");
+    expect(readOnly.get("textarea").classes()).toContain("bg-muted");
+  });
+
+  it("takes its id, description, name, required and invalid state from the row it sits in", () => {
+    const row = mount(ProbeRow, {
+      props: {
+        controlId: "bio",
+        describedBy: "bio-description",
+        name: "bio",
+        required: true,
+        invalid: true,
+      },
+      slots: { default: h(Textarea, { ariaLabel: "Bio" }) },
+    });
+    const textarea = row.get("textarea");
+
+    expect(textarea.attributes("id")).toBe("bio");
+    expect(textarea.attributes("aria-describedby")).toBe("bio-description");
+    expect(textarea.attributes("name")).toBe("bio");
+    expect(textarea.attributes("aria-required")).toBe("true");
+    expect(textarea.attributes("aria-invalid")).toBe("true");
+    expect(textarea.classes()).toContain("border-destructive");
+  });
+
+  it("lets an explicit prop overrule the row in both directions", () => {
+    const optedOut = mount(ProbeRow, {
+      props: { invalid: true, required: true, disabled: true, readonly: true },
+      slots: {
+        default: h(Textarea, {
+          ariaLabel: "Bio",
+          invalid: false,
+          required: false,
+          disabled: false,
+          readonly: false,
+        }),
+      },
+    });
+    const optedOutEl = optedOut.get("textarea").element as HTMLTextAreaElement;
+    expect(optedOut.get("textarea").attributes("aria-invalid")).toBeUndefined();
+    expect(optedOut.get("textarea").attributes("aria-required")).toBeUndefined();
+    expect(optedOutEl.disabled).toBe(false);
+    expect(optedOutEl.readOnly).toBe(false);
+
+    const optedIn = mount(ProbeRow, {
+      slots: { default: h(Textarea, { ariaLabel: "Bio", invalid: true, required: true }) },
+    });
+    expect(optedIn.get("textarea").attributes("aria-invalid")).toBe("true");
+    expect(optedIn.get("textarea").attributes("aria-required")).toBe("true");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mount(ProbeRow, {
+      props: { describedBy: "bio-description" },
+      slots: { default: h(Textarea, { ariaLabel: "Bio", "aria-describedby": "bio-format" }) },
+    });
+    expect(row.get("textarea").attributes("aria-describedby")).toBe("bio-format bio-description");
   });
 });

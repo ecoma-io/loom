@@ -19,27 +19,45 @@ const mentions = ref(false);
       hint="We only use this for delivery"
       required
     >
-      <Field label="Street" for="fieldset-demo-street">
-        <TextField id="fieldset-demo-street" v-model="street" placeholder="12 Warp Lane" />
+      <Field label="Street" name="street">
+        <TextField v-model="street" placeholder="12 Warp Lane" />
       </Field>
-      <Field label="City" for="fieldset-demo-city">
-        <TextField id="fieldset-demo-city" v-model="city" placeholder="Hanoi" />
+      <Field label="City" name="city">
+        <TextField v-model="city" placeholder="Hanoi" />
       </Field>
     </Fieldset>
 
     <!-- The group's error, not any one row's: the pair is incomplete, and no
-         single control is the one at fault. -->
+         single control is the one at fault. It stays the group's — no control
+         inside is marked invalid, because none of them individually is. -->
     <Fieldset
       id="fieldset-demo-billing"
       legend="Billing address"
       error="Enter both a street and a city, or copy the shipping address"
       required
     >
-      <Field label="Street" for="fieldset-demo-billing-street">
-        <TextField id="fieldset-demo-billing-street" placeholder="12 Warp Lane" />
+      <Field label="Street" name="billing-street">
+        <TextField placeholder="12 Warp Lane" />
       </Field>
-      <Field label="City" for="fieldset-demo-billing-city">
-        <TextField id="fieldset-demo-billing-city" placeholder="Hanoi" />
+      <Field label="City" name="billing-city">
+        <TextField placeholder="Hanoi" />
+      </Field>
+    </Fieldset>
+
+    <!-- Read-only, not disabled: every value is on show, every field is still a
+         Tab stop and still submitted. This is the one state the native
+         `<fieldset>` cannot carry, so the group hands it down. -->
+    <Fieldset
+      id="fieldset-demo-filed"
+      legend="Filed return"
+      hint="Locked once the return was submitted"
+      readonly
+    >
+      <Field label="Reference" name="filed-reference">
+        <TextField model-value="LM-2024-0117" />
+      </Field>
+      <Field label="Filed by" name="filed-by">
+        <TextField model-value="Ada Lovelace" />
       </Field>
     </Fieldset>
 
@@ -53,8 +71,8 @@ const mentions = ref(false);
     >
       <Checkbox v-model="digest" label="Weekly digest" />
       <Checkbox v-model="mentions" label="When someone mentions me" />
-      <Field label="Send to" for="fieldset-demo-notify-to">
-        <TextField id="fieldset-demo-notify-to" type="email" placeholder="you@example.com" />
+      <Field label="Send to" name="notify-to">
+        <TextField type="email" placeholder="you@example.com" />
       </Field>
     </Fieldset>
   </div>

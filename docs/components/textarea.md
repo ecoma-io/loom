@@ -29,6 +29,23 @@ Textarea is a bare primitive, named only by its host: pass `aria-label` or
 `aria-labelledby`, or wrap it in [Field](./field) and let Field handle the
 association.
 
+## Inside a Field
+
+Wrapped in a [Field](./field), Textarea wires itself: the row's id, the id of
+its hint or error line, and `required`, `invalid`, `disabled`, `readonly` and
+`name` all arrive from the row, so nothing is written at the call site.
+
+```vue
+<Field label="Bio" name="bio" hint="Up to 200 characters">
+  <Textarea v-model="bio" />
+</Field>
+```
+
+Every one of those props still wins when you set it, in both directions — which
+is why `invalid`, `required`, `disabled` and `readonly` are `boolean | undefined`
+and default to `undefined` rather than `false`. Setting one to `false` inside a
+row that says otherwise is a decision, and it is obeyed.
+
 ## Error state
 
 `invalid` paints the destructive border and ring and sets `aria-invalid` —
@@ -38,6 +55,24 @@ the same contract as TextField. The message itself belongs to
 
 <Demo title="Invalid">
   <Textarea aria-label="Feedback" invalid placeholder="Enter feedback…" />
+</Demo>
+
+## Required, read-only and disabled
+
+`required` sets `aria-required` and deliberately not the native `required`
+attribute, for the reason [TextField](./text-field) sets out: marking the field
+mandatory to assistive technology is the accessibility fix, and enforcing it
+stays your form's decision.
+
+`readonly` and `disabled` are different states. A read-only textarea is a value
+on show — still focusable, still scrollable, still submitted, filled rather than
+dimmed. A disabled one is unavailable: no Tab stop, not submitted, dimmed.
+
+<Demo title="Read-only against disabled">
+  <div class="flex w-full flex-col gap-3" style="max-width: 20rem">
+    <Textarea aria-label="Filed summary (read-only)" name="summary" readonly :rows="2" model-value="Submitted 17 January. Locked once the return was filed." />
+    <Textarea aria-label="Notes (disabled)" disabled :rows="2" placeholder="Cannot be edited" />
+  </div>
 </Demo>
 
 ## Rows and resize

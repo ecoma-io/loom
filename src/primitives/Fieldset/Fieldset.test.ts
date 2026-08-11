@@ -1,6 +1,8 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
+import { defineComponent, h, useAttrs } from "vue";
 import Fieldset from "./Fieldset.vue";
+import { useFieldControl } from "../../lib/field-context";
 
 // Unit tier: the internal collaborator is isolated
 // (local/no-unmocked-internal-imports). The stub keeps only the seam this
@@ -20,6 +22,27 @@ vi.mock("../InlineError/InlineError.vue", async () => {
       template: "<div />",
     },
   };
+});
+
+// A stand-in for any Loom form control, opting into the group through the same
+// composable every real control uses. A real TextField here would make this an
+// integration test; what is pinned is what the group publishes.
+const ProbeControl = defineComponent({
+  inheritAttrs: false,
+  setup() {
+    const attrs = useAttrs();
+    const field = useFieldControl(() => ({
+      id: attrs.id as string | undefined,
+      describedBy: attrs["aria-describedby"] as string | undefined,
+    }));
+    return () =>
+      h("input", {
+        ...attrs,
+        ...field.attrs,
+        disabled: field.disabled,
+        readonly: field.readonly,
+      });
+  },
 });
 
 describe("Fieldset", () => {
@@ -124,5 +147,53 @@ describe("Fieldset", () => {
     expect(wrapper.classes()).toContain("min-w-full");
     expect(wrapper.classes()).not.toContain("min-w-0");
     expect(wrapper.attributes("data-testid")).toBe("shipping-group");
+  });
+
+  it("renders every control in the group read-only, which no native fieldset attribute can do", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Shipping address", readonly: true },
+      slots: { default: h(ProbeControl) },
+    });
+    const input = wrapper.get("input").element as HTMLInputElement;
+
+    expect(input.readOnly).toBe(true);
+    expect(input.disabled).toBe(false);
+  });
+
+  it("keeps its required, error and description to itself rather than restating them on every control", () => {
+    // A mandatory group is not fifteen mandatory controls, and a group-level
+    // error does not make each control in it individually wrong — both would be
+    // false statements to the only audience that hears them. The group's own
+    // `aria-describedby` already carries the message once.
+    const wrapper = mount(Fieldset, {
+      props: {
+        legend: "Shipping address",
+        id: "shipping",
+        error: "Enter a street and a city",
+        required: true,
+      },
+      slots: { default: h(ProbeControl) },
+    });
+    const input = wrapper.get("input");
+
+    expect(input.attributes("aria-required")).toBeUndefined();
+    expect(input.attributes("aria-invalid")).toBeUndefined();
+    expect(input.attributes("aria-describedby")).toBeUndefined();
+    expect(input.attributes("id")).toBeUndefined();
+  });
+
+  it("disables the group through the element alone, never a second time through a prop", () => {
+    // One fact carried two ways is one fact that can disagree with itself: a
+    // control written `:disabled="false"` would beat a context and still be
+    // disabled by the element, leaving a live-looking control that refuses
+    // input. The `<fieldset>` reaches further anyway.
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Notifications", disabled: true },
+      slots: { default: h(ProbeControl) },
+    });
+    const input = wrapper.get("input");
+
+    expect(input.attributes("disabled")).toBeUndefined();
+    expect(input.element.matches(":disabled")).toBe(true);
   });
 });

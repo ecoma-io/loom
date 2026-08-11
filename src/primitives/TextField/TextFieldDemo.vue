@@ -44,6 +44,16 @@ const email = ref("not-an-email");
       <TextField aria-label="Large" size="lg" placeholder="lg" />
     </div>
 
+    <!-- Read-only and disabled are different states, and they look different:
+         the first is a value on show — still a Tab stop, still submitted — and
+         the second is unavailable. -->
+    <TextField
+      aria-label="Workspace (read-only)"
+      name="workspace"
+      readonly
+      model-value="Loom Studio"
+    />
+
     <TextField aria-label="Disabled" disabled placeholder="Cannot be edited" />
   </div>
 </template>

@@ -3,6 +3,7 @@ import { computed } from "vue";
 import InlineError from "../InlineError/InlineError.vue";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { provideFieldContext } from "../../lib/field-context";
 
 /**
  * Fieldset — several related controls under one name and one shared
@@ -30,10 +31,36 @@ import { useSplitAttrs } from "../../lib/attrs";
  *
  * ```vue
  * <Fieldset legend="Shipping address" id="shipping" hint="Where the order goes" required>
- *   <Field label="Street" for="street"><TextField id="street" /></Field>
- *   <Field label="City" for="city"><TextField id="city" /></Field>
+ *   <Field label="Street"><TextField /></Field>
+ *   <Field label="City"><TextField /></Field>
  * </Fieldset>
  * ```
+ *
+ * **The group hands down exactly one thing: `readonly`.** Everything else it
+ * knows either travels natively or is a claim about the group that is not
+ * automatically a claim about each control in it, and the reasoning is worth
+ * stating because the next person will ask:
+ *
+ * - `disabled` travels through the real `<fieldset>`, and a second mechanism
+ *   alongside it would be actively harmful rather than merely redundant. One
+ *   fact carried two ways lets the two disagree: a control written
+ *   `:disabled="false"` beats a context by the precedence rule, while the
+ *   native attribute disables it anyway — leaving a control that renders
+ *   enabled and silently refuses input. The element also reaches strictly
+ *   further, which is the argument for rendering a `<fieldset>` at all.
+ * - `required` and `invalid` stop here. "This group is mandatory" is not
+ *   "every control in it is mandatory" — an address block needs a street and
+ *   not an apartment number — and a group-level error does not make each
+ *   control in it individually wrong. `aria-required` or `aria-invalid` on a
+ *   control that is fine is a false statement to the only audience that hears
+ *   it.
+ * - The description stops here too, because unlike Field this component owns a
+ *   real element and already points its own `aria-describedby` at the message.
+ * - `controlId` would collide with the id on the `<fieldset>` itself, and one
+ *   shared `name` is right for a set of radios and wrong for everything else.
+ *
+ * `readonly` is left because nothing else can carry it: there is no native
+ * `<fieldset readonly>`, and a group shown in view mode is a real state.
  */
 const props = withDefaults(
   defineProps<{
@@ -47,11 +74,30 @@ const props = withDefaults(
     required?: boolean;
     /** Disables every control inside, slotted ones included, and dims the group. */
     disabled?: boolean;
+    /** Renders every Loom control inside read-only: still focusable, still submitted, not editable. */
+    readonly?: boolean | undefined;
     /** Set on the `<fieldset>`, and what the hint/error id is derived from (`${id}-description`). */
     id?: string;
   }>(),
-  { required: false, disabled: false },
+  {
+    required: false,
+    disabled: false,
+    // Explicitly `undefined`, not `false`: a Fieldset that says nothing about
+    // `readonly` must not overrule a Field or a control that set it, and Vue
+    // casts an absent Boolean prop with no declared default to `false`.
+    readonly: undefined,
+  },
 );
+
+provideFieldContext({
+  controlId: () => undefined,
+  describedBy: () => undefined,
+  name: () => undefined,
+  required: () => undefined,
+  invalid: () => undefined,
+  disabled: () => undefined,
+  readonly: () => props.readonly,
+});
 
 // The hint and the error are mutually exclusive, so one id covers whichever
 // is showing. Undefined without `id`, exactly as in Field: an id nothing can

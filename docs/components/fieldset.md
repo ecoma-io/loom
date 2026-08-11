@@ -32,11 +32,11 @@ import { Field, Fieldset, TextField } from "@ecoma-io/loom";
 
 <template>
   <Fieldset id="shipping" legend="Shipping address" hint="We only use this for delivery" required>
-    <Field label="Street" for="street">
-      <TextField id="street" v-model="street" />
+    <Field label="Street" name="street">
+      <TextField v-model="street" />
     </Field>
-    <Field label="City" for="city">
-      <TextField id="city" v-model="city" />
+    <Field label="City" name="city">
+      <TextField v-model="city" />
     </Field>
   </Fieldset>
 </template>
@@ -47,11 +47,11 @@ import { Field, Fieldset, TextField } from "@ecoma-io/loom";
 <Demo title="Legend, hint and required">
   <div class="w-full max-w-sm">
     <Fieldset id="docs-shipping" legend="Shipping address" hint="We only use this for delivery" required>
-      <Field label="Street" for="docs-shipping-street">
-        <TextField id="docs-shipping-street" placeholder="12 Warp Lane" />
+      <Field label="Street" name="docs-shipping-street">
+        <TextField placeholder="12 Warp Lane" />
       </Field>
-      <Field label="City" for="docs-shipping-city">
-        <TextField id="docs-shipping-city" placeholder="Hanoi" />
+      <Field label="City" name="docs-shipping-city">
+        <TextField placeholder="Hanoi" />
       </Field>
     </Fieldset>
   </div>
@@ -80,8 +80,8 @@ anything a caller put in the default slot, however deeply nested.
     <Fieldset id="docs-notify" legend="Email notifications" hint="Available once a workspace owner enables email delivery" disabled>
       <Checkbox label="Weekly digest" />
       <Checkbox label="When someone mentions me" />
-      <Field label="Send to" for="docs-notify-to">
-        <TextField id="docs-notify-to" type="email" placeholder="you@example.com" />
+      <Field label="Send to" name="docs-notify-to">
+        <TextField type="email" placeholder="you@example.com" />
       </Field>
     </Fieldset>
   </div>
@@ -91,6 +91,13 @@ Nothing in that group is disabled in its own right. A `div` with an ARIA role
 cannot do this: a wrapper cannot pass a `disabled` prop to a control it never
 rendered, so the alternative is asking every caller to thread the same flag
 through every child by hand and to keep doing it as the group grows.
+
+It is also the _only_ mechanism. Fieldset deliberately does not also hand
+`disabled` down through the [Field](./field) context, because one fact carried
+two ways is one fact that can disagree with itself: a control written
+`:disabled="false"` would beat the context by the usual precedence rule and
+still be disabled by the element, leaving a live-looking control that silently
+refuses input. The element reaches further anyway.
 
 The group also dims as a unit, because a set of controls that silently stops
 accepting input reads as a broken form rather than an unavailable one. A
@@ -104,11 +111,11 @@ to assistive technology, so the state is never colour alone.
 <Demo title="A message that belongs to the group">
   <div class="w-full max-w-sm">
     <Fieldset id="docs-billing" legend="Billing address" error="Enter both a street and a city, or copy the shipping address" required>
-      <Field label="Street" for="docs-billing-street">
-        <TextField id="docs-billing-street" placeholder="12 Warp Lane" />
+      <Field label="Street" name="docs-billing-street">
+        <TextField placeholder="12 Warp Lane" />
       </Field>
-      <Field label="City" for="docs-billing-city">
-        <TextField id="docs-billing-city" placeholder="Hanoi" />
+      <Field label="City" name="docs-billing-city">
+        <TextField placeholder="Hanoi" />
       </Field>
     </Fieldset>
   </div>
@@ -129,6 +136,44 @@ message announced a second time on that control.
 Without an `id`, the hint and the error still render and still read visually,
 but nothing is associated with them programmatically — so pass one whenever the
 group carries a message.
+
+## Read-only groups
+
+`readonly` is the one thing the group hands down through the
+[Field](./field) context, because it is the one state no native `<fieldset>`
+attribute can carry. Every Loom control inside renders read-only: focusable,
+still in the tab order, still submitted, and filled rather than dimmed.
+
+<Demo title="A group of values on show">
+  <div class="w-full max-w-sm">
+    <Fieldset id="docs-filed" legend="Filed return" hint="Locked once the return was submitted" readonly>
+      <Field label="Reference" name="docs-filed-reference">
+        <TextField model-value="LM-2024-0117" />
+      </Field>
+      <Field label="Filed by" name="docs-filed-by">
+        <TextField model-value="Ada Lovelace" />
+      </Field>
+    </Fieldset>
+  </div>
+</Demo>
+
+The ladder is control, then Field, then Fieldset: a `Field` that sets its own
+`readonly` overrules the group, and a control that sets its own overrules both.
+`undefined` is the only value that yields.
+
+## What stops at the group
+
+Everything else a Fieldset knows is deliberately not pushed onto the controls
+inside it, and each one is a decision rather than an omission:
+
+| Fact          | Where it goes                                                                                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disabled`    | The native `<fieldset>`, and nowhere else — one mechanism, so the two can never disagree.                                                                                                                     |
+| `required`    | The legend's asterisk. A mandatory group is not a mandatory control: an address block needs a street and not an apartment number, and `aria-required` on a field a reader need not fill is a false statement. |
+| `error`       | The group's own message and its own `aria-describedby`. A group-level error does not make each control in it individually wrong.                                                                              |
+| The hint's id | The group's own `aria-describedby`. Repeating it on every control inside means announcing it once per control.                                                                                                |
+| `id`          | The `<fieldset>` element itself — a control adopting it would duplicate the id.                                                                                                                               |
+| `name`        | Nowhere. One shared name is right for a set of radios and wrong for everything else.                                                                                                                          |
 
 ## Fitting into a form grid
 

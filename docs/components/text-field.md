@@ -55,6 +55,24 @@ border and the invalid color apply once, to everything inside.
   </TextField>
 </Demo>
 
+## Inside a Field
+
+Wrapped in a [Field](./field), TextField wires itself: the row's id, the id of
+its hint or error line, and `required`, `invalid`, `disabled`, `readonly` and
+`name` all arrive from the row, so nothing is written at the call site.
+
+```vue
+<Field label="Email" name="email" error="Invalid address" required>
+  <TextField v-model="email" type="email" />
+</Field>
+```
+
+Every one of those props still wins when you set it, in both directions — which
+is why `invalid`, `required`, `disabled` and `readonly` are `boolean | undefined`
+and default to `undefined` rather than `false`. `<TextField />` says nothing and
+inherits the row; `<TextField :invalid="false" />` says this one field is fine
+even though its row is not, and it is obeyed.
+
 ## Error state
 
 `invalid` paints the destructive border and ring and sets `aria-invalid` on
@@ -65,6 +83,29 @@ never color alone. The message itself belongs to
 
 <Demo title="Invalid">
   <TextField aria-label="Email" type="email" invalid placeholder="you@example.com" />
+</Demo>
+
+## Required, read-only and disabled
+
+`required` sets `aria-required` on the input and nothing else. It deliberately
+does not set the native `required` attribute: that would begin blocking form
+submissions in applications that upgrade without changing a line, and it opens a
+browser-styled validation bubble no design system controls. Telling assistive
+technology the field is mandatory is the accessibility fix; enforcing it stays
+your form's decision.
+
+`readonly` and `disabled` are different states, not two dials on one. A
+read-only field is a value on show: it stays a Tab stop, stays in the form's
+submitted data, and is filled rather than dimmed. A disabled field is
+unavailable: no Tab stop, not submitted, dimmed. Reaching for `disabled` to
+render a value nobody may edit tells a screen reader the field is unavailable
+when it is simply not editable.
+
+<Demo title="Read-only against disabled">
+  <div class="flex w-full flex-col gap-3" style="max-width: 20rem">
+    <TextField aria-label="Workspace (read-only)" name="workspace" readonly model-value="Loom Studio" />
+    <TextField aria-label="Invite code (disabled)" disabled placeholder="Not available yet" />
+  </div>
 </Demo>
 
 ## Sizes

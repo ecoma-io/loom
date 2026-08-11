@@ -37,6 +37,16 @@ const feedback = ref("missing punctuation");
       />
     </div>
 
+    <!-- Read-only and disabled are different states, and they look different:
+         the first is a value on show — still a Tab stop, still submitted — and
+         the second is unavailable. -->
+    <Textarea
+      aria-label="Filed summary (read-only)"
+      name="summary"
+      readonly
+      model-value="Submitted 17 January. Locked once the return was filed."
+    />
+
     <Textarea aria-label="Disabled" disabled placeholder="Cannot be edited" />
   </div>
 </template>
