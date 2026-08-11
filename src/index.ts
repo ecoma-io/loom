@@ -21,6 +21,7 @@ export { LIST_STAGGER_CAP, LIST_STAGGER_STEP_MS, listStaggerDelay } from "./lib/
 // props are written in, so a host can name a variant without reaching into a
 // deep path. `ToastItem` is absent on purpose: it is the card `Toast` bundles
 // with its provider and viewport, and it renders nothing usable on its own.
+export { default as AlertDialog } from "./primitives/AlertDialog/AlertDialog.vue";
 export { default as Avatar, avatarVariants } from "./primitives/Avatar/Avatar.vue";
 export type { AvatarForce, AvatarShape, AvatarSize } from "./primitives/Avatar/Avatar.vue";
 export { default as AvatarGroup } from "./primitives/AvatarGroup/AvatarGroup.vue";
