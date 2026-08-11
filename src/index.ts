@@ -39,6 +39,8 @@ export { default as InlineError } from "./primitives/InlineError/InlineError.vue
 export { default as Menubar } from "./primitives/Menubar/Menubar.vue";
 export type { MenubarItem, MenubarMenu } from "./primitives/Menubar/Menubar.vue";
 export { default as NumberField } from "./primitives/NumberField/NumberField.vue";
+export { default as OtpInput } from "./primitives/OtpInput/OtpInput.vue";
+export type { OtpInputType } from "./primitives/OtpInput/OtpInput.vue";
 export { default as Popover } from "./primitives/Popover/Popover.vue";
 export type { PopoverAlign, PopoverSide } from "./primitives/Popover/Popover.vue";
 export { default as Progress } from "./primitives/Progress/Progress.vue";
