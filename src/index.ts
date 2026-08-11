@@ -21,8 +21,10 @@ export { LIST_STAGGER_CAP, LIST_STAGGER_STEP_MS, listStaggerDelay } from "./lib/
 // props are written in, so a host can name a variant without reaching into a
 // deep path. `ToastItem` is absent on purpose: it is the card `Toast` bundles
 // with its provider and viewport, and it renders nothing usable on its own.
-export { default as Avatar } from "./primitives/Avatar/Avatar.vue";
-export type { AvatarSize } from "./primitives/Avatar/Avatar.vue";
+export { default as Avatar, avatarVariants } from "./primitives/Avatar/Avatar.vue";
+export type { AvatarForce, AvatarShape, AvatarSize } from "./primitives/Avatar/Avatar.vue";
+export { default as AvatarGroup } from "./primitives/AvatarGroup/AvatarGroup.vue";
+export type { AvatarGroupItem, AvatarGroupSurface } from "./primitives/AvatarGroup/AvatarGroup.vue";
 export { default as Badge, badgeVariants } from "./primitives/Badge/Badge.vue";
 export type { BadgeVariant } from "./primitives/Badge/Badge.vue";
 export { default as Button, buttonVariants } from "./primitives/Button/Button.vue";
@@ -30,22 +32,50 @@ export type { ButtonSize, ButtonVariant } from "./primitives/Button/Button.vue";
 export { default as Checkbox } from "./primitives/Checkbox/Checkbox.vue";
 export { default as Chip, chipVariants } from "./primitives/Chip/Chip.vue";
 export type { ChipSize, ChipVariant } from "./primitives/Chip/Chip.vue";
+export { default as Combobox, comboboxVariants } from "./primitives/Combobox/Combobox.vue";
+export type { ComboboxOption, ComboboxSize } from "./primitives/Combobox/Combobox.vue";
 export { default as Dialog } from "./primitives/Dialog/Dialog.vue";
 export type { DialogSize } from "./primitives/Dialog/Dialog.vue";
 export { default as DropdownMenu } from "./primitives/DropdownMenu/DropdownMenu.vue";
 export type { DropdownMenuEntry } from "./primitives/DropdownMenu/DropdownMenu.vue";
 export { default as Field } from "./primitives/Field/Field.vue";
+export { default as Fieldset } from "./primitives/Fieldset/Fieldset.vue";
+export {
+  default as Indicator,
+  indicatorToneVariants,
+  indicatorVariants,
+} from "./primitives/Indicator/Indicator.vue";
+export type {
+  IndicatorPlacement,
+  IndicatorStatus,
+  IndicatorSurface,
+  IndicatorTone,
+  IndicatorVariant,
+} from "./primitives/Indicator/Indicator.vue";
 export { default as InlineError } from "./primitives/InlineError/InlineError.vue";
 export { default as Menubar } from "./primitives/Menubar/Menubar.vue";
 export type { MenubarItem, MenubarMenu } from "./primitives/Menubar/Menubar.vue";
 export { default as NumberField } from "./primitives/NumberField/NumberField.vue";
 export { default as OtpInput } from "./primitives/OtpInput/OtpInput.vue";
 export type { OtpInputType } from "./primitives/OtpInput/OtpInput.vue";
+export { default as Pagination, paginationVariants } from "./primitives/Pagination/Pagination.vue";
+export type { PaginationVariant } from "./primitives/Pagination/Pagination.vue";
 export { default as Popover } from "./primitives/Popover/Popover.vue";
 export type { PopoverAlign, PopoverSide } from "./primitives/Popover/Popover.vue";
-export { default as Progress } from "./primitives/Progress/Progress.vue";
+export { default as Progress, progressVariants } from "./primitives/Progress/Progress.vue";
+export type { ProgressSize } from "./primitives/Progress/Progress.vue";
+export {
+  default as RadialProgress,
+  radialProgressVariants,
+} from "./primitives/RadialProgress/RadialProgress.vue";
+export type {
+  RadialProgressSize,
+  RadialProgressThickness,
+} from "./primitives/RadialProgress/RadialProgress.vue";
 export { default as RadioGroup } from "./primitives/RadioGroup/RadioGroup.vue";
 export type { RadioOption } from "./primitives/RadioGroup/RadioGroup.vue";
+export { default as Rating } from "./primitives/Rating/Rating.vue";
+export type { RatingSize } from "./primitives/Rating/Rating.vue";
 export { default as SegmentedControl } from "./primitives/SegmentedControl/SegmentedControl.vue";
 export type { SegmentedControlOption } from "./primitives/SegmentedControl/SegmentedControl.vue";
 export { default as Select, selectVariants } from "./primitives/Select/Select.vue";
@@ -55,8 +85,12 @@ export type { SeparatorOrientation } from "./primitives/Separator/Separator.vue"
 export { default as Skeleton, skeletonVariants } from "./primitives/Skeleton/Skeleton.vue";
 export type { SkeletonVariant } from "./primitives/Skeleton/Skeleton.vue";
 export { default as Slider } from "./primitives/Slider/Slider.vue";
+export { default as SpeedDial } from "./primitives/SpeedDial/SpeedDial.vue";
+export type { SpeedDialAction, SpeedDialDirection } from "./primitives/SpeedDial/SpeedDial.vue";
 export { default as Spinner, spinnerVariants } from "./primitives/Spinner/Spinner.vue";
 export type { SpinnerSize } from "./primitives/Spinner/Spinner.vue";
+export { default as Stepper } from "./primitives/Stepper/Stepper.vue";
+export type { StepperOrientation, StepperStep } from "./primitives/Stepper/Stepper.vue";
 export { default as Surface, surfaceVariants } from "./primitives/Surface/Surface.vue";
 export type { SurfaceElevation, SurfacePad } from "./primitives/Surface/Surface.vue";
 export { default as Switch } from "./primitives/Switch/Switch.vue";
