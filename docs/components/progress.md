@@ -31,6 +31,9 @@ import { Progress } from "@ecoma-io/loom";
   predictable size) — use `Spinner` instead of guessing a `modelValue`.
 - Know the **layout shape** about to appear but have no data yet — use
   `Skeleton`.
+- Want the same number as a **ring** rather than a bar — a dashboard tile, a
+  quota, a score where the circle is the visual — use `RadialProgress`, which
+  answers `modelValue`, `max`, clamping and the completion beat identically.
 
 <Demo title="Determinate and indeterminate" :source="progressDemoSource">
   <ProgressDemo />
@@ -54,6 +57,56 @@ Crossing `100%` is a moment, not a silent state: the fill turns from the
 warp colour to `success`, eased in over the same `--duration-slow` lane as
 the fill's own motion. Work that has finished reads as done at a glance.
 The colour changes once and then holds with the bar — nothing loops.
+
+## Thickness
+
+`size` sets how heavy the track is — `sm` (4px), `md` (8px, the default) and
+`lg` (12px). It is deliberately **not** the shared control-height scale a
+`Select` or a `TextField` uses: a bar is a stroke laid under a heading or
+inside a table row, never a control someone clicks into, so lining one up
+with a 36px input would only turn it into a slab.
+
+A bar under a page heading and a bar inside a table row are not the same
+weight, and `size` is the only sanctioned way to say so — reaching past it
+for an `h-*` class fights the component's own rounding and its indeterminate
+segment.
+
+<Demo title="Track thickness">
+  <div class="flex w-full max-w-sm flex-col gap-4">
+    <Progress :model-value="70" size="sm" aria-label="Reindexing, small track" />
+    <Progress :model-value="70" size="md" aria-label="Reindexing, default track" />
+    <Progress :model-value="70" size="lg" aria-label="Reindexing, large track" />
+  </div>
+</Demo>
+
+## Showing the value
+
+`show-value` prints the rounded percentage as text beside the track. It is
+**off** by default, so nothing about an existing `Progress` moves: without
+it the track is the whole component and stays the element your `class`
+lands on. Turn it on and the track becomes one half of a flex row, the
+readout the other — your `class` then describes that row, which is the box
+you actually see, and every other attribute you pass (`aria-describedby`, a
+`data-*` hook) still lands on the bar itself.
+
+The readout is hidden from assistive technology. The bar already announces
+the same number through `aria-valuenow`; left visible to a screen reader,
+the percentage is met a second time as loose text and read out twice for
+every bar on the page.
+
+**While indeterminate the readout is an em dash, never `0%`.** "We don't
+know yet" and "none of it is done" are different facts and only one of them
+is true — printing a zero for the first is the component lying about the one
+number it exists to report. The dash holds the row's width so the track does
+not resize itself the moment a real percentage arrives.
+
+<Demo title="The percentage as text">
+  <div class="flex w-full max-w-sm flex-col gap-4">
+    <Progress :model-value="62" show-value aria-label="Uploading video.mp4" />
+    <Progress :model-value="100" show-value aria-label="Uploading notes.pdf" />
+    <Progress show-value aria-label="Waiting on the total size" />
+  </div>
+</Demo>
 
 ## Clamping
 
@@ -80,6 +133,9 @@ percentage-only label.
   `null`/omitted.
 - Don't use `Progress` for a content block that hasn't loaded yet — that's
   `Skeleton`.
+- Don't reach past `size` for an `h-*` class to thicken the track.
+- Don't print your own percentage beside the bar as visible text — that is
+  what `show-value` is for, and a hand-rolled one is announced twice.
 
 ## API
 
