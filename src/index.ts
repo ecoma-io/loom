@@ -32,14 +32,21 @@ export type { ButtonSize, ButtonVariant } from "./primitives/Button/Button.vue";
 export { default as Checkbox } from "./primitives/Checkbox/Checkbox.vue";
 export { default as Chip, chipVariants } from "./primitives/Chip/Chip.vue";
 export type { ChipSize, ChipVariant } from "./primitives/Chip/Chip.vue";
+export { default as ColorPicker } from "./primitives/ColorPicker/ColorPicker.vue";
 export { default as Combobox, comboboxVariants } from "./primitives/Combobox/Combobox.vue";
 export type { ComboboxOption, ComboboxSize } from "./primitives/Combobox/Combobox.vue";
+export { default as DatePicker } from "./primitives/DatePicker/DatePicker.vue";
 export { default as Dialog } from "./primitives/Dialog/Dialog.vue";
 export type { DialogSize } from "./primitives/Dialog/Dialog.vue";
 export { default as DropdownMenu } from "./primitives/DropdownMenu/DropdownMenu.vue";
 export type { DropdownMenuEntry } from "./primitives/DropdownMenu/DropdownMenu.vue";
 export { default as Field } from "./primitives/Field/Field.vue";
 export { default as Fieldset } from "./primitives/Fieldset/Fieldset.vue";
+export { default as FileUpload } from "./primitives/FileUpload/FileUpload.vue";
+export type {
+  FileUploadRejectReason,
+  FileUploadRejection,
+} from "./primitives/FileUpload/FileUpload.vue";
 export {
   default as Indicator,
   indicatorToneVariants,
