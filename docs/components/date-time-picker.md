@@ -1,0 +1,284 @@
+# DateTimePicker
+
+One instant — a day and a time of day together — entered by typing across a
+single segmented field or by picking the day out of a calendar popover. Reach
+for it when both halves are the same decision: a scheduled send, a deadline, an
+appointment.
+
+It is [DatePicker](./date-picker) with the clock left on, and it behaves like
+one on purpose. The field is one Tab stop whose segments follow the `locale` you
+give it; arrow keys change the segment under the cursor and digits fill it and
+move on; the calendar is a second path to the day and never the only one. What
+is new is that the two halves are one value, and that keeping them one value —
+picking a day without losing the time, typing a time without losing the day — is
+the whole of the component.
+
+Reach for [DatePicker](./date-picker) when the time of day is not part of the
+decision; a date of birth has no half past nine. Reach for
+[TimePicker](./time-picker) when the day is not. Two controls side by side are
+two values and two validations, which is a fine answer when the two really are
+separate and the wrong one when they are not.
+
+<script setup lang="ts">
+import { ref } from "vue";
+import { DateTimePicker } from "@ecoma-io/loom";
+import DateTimePickerDemo from "../../src/primitives/DateTimePicker/DateTimePickerDemo.vue";
+import dateTimePickerDemoSource from "../../src/primitives/DateTimePicker/DateTimePickerDemo.vue?raw";
+
+const send = ref("2026-03-14T09:30");
+const empty = ref<string>();
+const deadline = ref("2026-03-20T00:00");
+const booking = ref("2026-03-16T13:00");
+const late = ref("2026-03-16T18:30");
+const lapse = ref("2026-03-16T13:00:45");
+const shown = ref("2026-03-16T13:00");
+const created = ref("2026-01-01T08:00");
+</script>
+
+## Usage
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { DateTimePicker } from "@ecoma-io/loom";
+
+const sendAt = ref("2026-03-14T09:30");
+</script>
+
+<template>
+  <DateTimePicker v-model="sendAt" aria-label="Send at" />
+</template>
+```
+
+## The value is a local ISO string
+
+`modelValue`, `min` and `max` are all plain `"YYYY-MM-DDTHH:mm"` strings —
+`"YYYY-MM-DDTHH:mm:ss"` when `granularity` asks for seconds — and the emitted
+value is one too. A bare `"YYYY-MM-DD"` is accepted on the way in and read as
+midnight that day.
+
+**It is a _local_ instant, and turning it into an absolute one is your job.**
+There is no timezone here, no offset and no `Date` anywhere near this
+component's surface. `"2026-03-14T09:30"` is half past nine on the fourteenth
+wherever it is read; which half past nine that turns out to be is a question only
+you can answer, because only you know whose clock is meant — the reader's, the
+organisation's, or the one the event is happening in. A component that guessed
+would guess the browser's, and guessing the browser's is exactly how a meeting
+ends up an hour out. A value carrying an offset or a trailing `Z` is refused
+rather than quietly stripped, for the same reason.
+
+Clearing the field emits `undefined`, which is the same thing as never having set
+it. A value that cannot be parsed is read as _nothing chosen_ rather than thrown
+on, because a component library refusing to render is a worse answer than a field
+that is simply empty.
+
+<Demo title="A local ISO string in, a local ISO string out">
+  <div class="flex w-full max-w-sm flex-col gap-3">
+    <DateTimePicker v-model="send" :hour-cycle="12" aria-label="Send at" />
+    <p class="text-xs text-muted-foreground">
+      v-model: <span class="tabular">{{ send || "—" }}</span>
+    </p>
+  </div>
+</Demo>
+
+A field with nothing bound to it shows its segment placeholders, which is what
+tells a reader the shape of what is wanted before they have typed anything.
+
+<Demo title="Nothing chosen yet">
+  <div class="w-full max-w-sm">
+    <DateTimePicker v-model="empty" aria-label="Remind me at" />
+  </div>
+</Demo>
+
+## Picking a day keeps the time, and no time means midnight
+
+The calendar sets the day and leaves the time exactly as it is, in both
+directions: choose 20 March under a value of `09:30` and you get
+`2026-03-20T09:30`, and nudge the hour afterwards and the day stays where you put
+it. That round trip is the reason this control exists rather than a DatePicker
+and a TimePicker sitting next to each other.
+
+With nothing chosen yet there is no time to keep, so choosing a day invents one,
+and **the invented time is midnight**. That is worth saying out loud rather than
+leaving a reader to discover it: a deadline set to "Friday" means Friday at
+`00:00`, which is the beginning of Friday and not the end of it. The field shows
+it, so nobody has to guess — but if what you meant was end-of-day, the time
+segments are right there and the arrow keys reach them.
+
+One practical consequence: fill the day before the time when you are using the
+calendar. A time typed into an otherwise-empty field is not part of a value yet
+— the value only exists once every segment is filled — so a day picked after it
+starts from midnight. Typing left to right, which is the order the segments are
+already in, never runs into this.
+
+<Demo title="Midnight, spelled out">
+  <div class="flex w-full max-w-sm flex-col gap-3">
+    <DateTimePicker v-model="deadline" :hour-cycle="24" aria-label="Deadline" />
+    <p class="text-xs text-muted-foreground">
+      v-model: <span class="tabular">{{ deadline }}</span> — the beginning of that day.
+    </p>
+  </div>
+</Demo>
+
+## Bounds are instants, and the calendar rounds them out to days
+
+`min` and `max` fence an instant rather than a day, which makes the day at each
+end only partly available: under a window of `09:00` to `17:00` on 16 March, the
+sixteenth is a choosable day and `18:30` on it is not a choosable time.
+
+**The calendar bounds by whole days.** A day holding any choosable instant can be
+chosen, so the boundary day is never disabled and never unreachable. The
+alternative — comparing each calendar cell against the instant — sounds stricter
+and behaves worse: a cell carries whatever time the field is currently holding,
+so a "not before now" deadline would grey out today at nine in the morning
+because today's cell reads midnight, and nothing on screen would say why.
+
+**The field bounds by the instant.** What the calendar rounds out is caught
+where the time is actually entered: an instant outside `min` or `max` takes the
+destructive border and `aria-invalid` on its own, without the host having to say
+so, and carries a `data-out-of-range` marker distinct from the `data-invalid` the
+`invalid` prop sets. So the right day at the wrong hour reads as an error rather
+than as a value that is merely unsaveable later.
+
+Days that lie wholly outside the window are announced with `aria-disabled`,
+dimmed, unclickable, and — the part that is easy to leave out — skipped by the
+arrow keys.
+
+<Demo title="Bounds">
+  <div class="flex w-full max-w-sm flex-col gap-3">
+    <DateTimePicker
+      v-model="booking"
+      min="2026-03-16T09:00"
+      max="2026-03-16T17:00"
+      :hour-cycle="24"
+      aria-label="Booking, inside the window"
+    />
+    <DateTimePicker
+      v-model="late"
+      min="2026-03-16T09:00"
+      max="2026-03-16T17:00"
+      :hour-cycle="24"
+      aria-label="Booking, the right day an hour late"
+    />
+    <p class="text-xs text-muted-foreground">
+      Both are on 16 March. The second is an hour past the window and says so.
+    </p>
+  </div>
+</Demo>
+
+## Granularity and hour cycle
+
+`granularity` decides how far down the field goes. `"minute"` is the default and
+nearly always right; `"second"` adds a seconds segment and changes the reported
+string to `"YYYY-MM-DDTHH:mm:ss"`. What comes back is what the segments show — a
+value carrying seconds bound to a minute-granularity field reports without them,
+never a hidden second the reader could not see.
+
+`hourCycle` is `12` or `24`, and unset it follows the locale, which is what a
+reader of that locale expects. It is display only: the value stays 24-hour either
+way, because conflating the two is how a twelve-hour locale ends up storing
+`"…T01:30"` for half past one in the afternoon.
+
+<Demo title="Granularity and hour cycle">
+  <div class="flex w-full max-w-sm flex-col gap-3">
+    <DateTimePicker v-model="lapse" granularity="second" :hour-cycle="24" aria-label="To the second" />
+    <DateTimePicker v-model="shown" :hour-cycle="12" aria-label="Twelve-hour display" />
+    <DateTimePicker v-model="shown" :hour-cycle="24" aria-label="Twenty-four-hour display" />
+    <p class="text-xs text-muted-foreground">
+      The last two are bound to <span class="tabular">{{ shown }}</span>.
+    </p>
+  </div>
+</Demo>
+
+## Locale
+
+`locale` decides the order of the segments, the separator between them, the month
+and weekday names, which day the week starts on, and the twelve-or-twenty-four
+hour default. It is a presentation choice and it never reaches the value: the
+model stays a Gregorian ISO string whatever calendar the locale reads by, so a
+Thai locale renders the year 2569 in the field and still hands back `2026-…`.
+
+<Demo title="Locale">
+  <div class="flex w-full max-w-sm flex-col gap-3">
+    <DateTimePicker v-model="shown" locale="en-GB" aria-label="Booked for, British English" />
+    <DateTimePicker v-model="shown" locale="vi-VN" aria-label="Booked for, Vietnamese" />
+    <DateTimePicker v-model="shown" locale="ja-JP" aria-label="Booked for, Japanese" />
+  </div>
+</Demo>
+
+## Disabled and invalid
+
+A disabled DateTimePicker dims, refuses the calendar, and leaves nothing of
+itself in the tab order. An invalid one still works: it takes the destructive
+border and focus ring and sets `aria-invalid`, the same error language every
+other form control here speaks, so a field reporting an error looks the same
+whichever control it holds. An instant outside `min` or `max` paints the same
+way without the prop, as above.
+
+<Demo title="Disabled and invalid">
+  <div class="flex w-full max-w-sm flex-col gap-3">
+    <DateTimePicker v-model="created" disabled aria-label="Created at" />
+    <DateTimePicker v-model="late" invalid :hour-cycle="24" aria-label="Overrunning finish" />
+  </div>
+</Demo>
+
+## Keyboard and screen readers
+
+The field is **one Tab stop** across the date and the time alike — five segments
+at the default settings, seven with AM/PM and seconds, and one Tab press to cross
+all of them. Left and right arrows move between segments; up and down change the
+segment under the cursor; typing digits fills it and advances when it cannot hold
+another. Backspace empties a segment, and emptying one clears the instant. On the
+AM/PM segment, up and down toggle it and `A` and `P` set it outright.
+
+Each segment is a `role="spinbutton"` carrying its own name and its own current
+value, so a screen reader announces "month, 3" and "hour, 9" rather than reading
+an instant back as one opaque string. The hour announces itself the way the
+reader sees it rather than the way the value stores it: on a twelve-hour field,
+half past one in the afternoon is "1 PM" and not "13 PM". The separators between
+segments are punctuation rather than controls, and are outside the tab order.
+
+Tab from the field reaches the calendar button. Enter or Space opens the
+calendar, and **focus lands on the day the calendar is already sitting on** — the
+chosen day, or today when there is none — rather than on the previous-month
+button. Inside the grid the arrow keys walk day by day and week by week and page
+into the neighbouring month at its edges; Enter chooses, and choosing closes the
+calendar and returns focus to the button that opened it. Escape closes it without
+choosing, and returns focus the same way.
+
+The calendar is a real `role="grid"` named by its month-and-year heading, and
+that heading is a polite live region — paging moves nothing else a reader can
+see, so without it the month would silently become a different month. Every day
+carries its full date as its accessible name, which is what makes the
+single-letter weekday headers safe to keep as single letters.
+
+Three states, three cues, none of them colour: the chosen day is `aria-selected`,
+today is `aria-current="date"` and carries a dot under its number, and a day
+outside the bounds is `aria-disabled` and unreachable by keyboard.
+
+The field has no visible label of its own, so name it: `aria-label` or
+`aria-labelledby` lands on the `role="group"` holding the segments, which is
+where a screen reader announces it once on entering the field rather than once
+per segment.
+
+## Motion
+
+The calendar rises in on the shared `fade-rise` lane — the entrance every overlay
+in this library uses, scoped to the open state so a closed panel cannot be left
+mounted and invisible over the page.
+
+The day cells deliberately do **not** stagger. `listStaggerDelay` is the
+vocabulary for a list of rows arriving in reading order; a grid rippling in cell
+by cell reads as a rendering fault rather than as an entrance, so the panel is the
+only thing that animates and the cells arrive with it. Everything smaller — a
+segment taking focus, a day highlighting under the pointer — is a colour change
+at `instant` or `fast`, well inside the `normal` feedback ceiling, which is the
+slowest a direct answer to a keystroke may be.
+
+<Demo title="Every state" :source="dateTimePickerDemoSource">
+  <DateTimePickerDemo />
+</Demo>
+
+## API
+
+<!-- @api DateTimePicker -->

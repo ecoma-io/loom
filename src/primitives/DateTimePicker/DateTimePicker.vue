@@ -1,0 +1,440 @@
+<script setup lang="ts">
+import { computed, ref, useId } from "vue";
+import {
+  DatePickerRoot,
+  DatePickerAnchor,
+  DatePickerField,
+  DatePickerInput,
+  DatePickerTrigger,
+  DatePickerContent,
+  DatePickerCalendar,
+  DatePickerHeader,
+  DatePickerPrev,
+  DatePickerHeading,
+  DatePickerNext,
+  DatePickerGrid,
+  DatePickerGridHead,
+  DatePickerGridRow,
+  DatePickerHeadCell,
+  DatePickerGridBody,
+  DatePickerCell,
+  DatePickerCellTrigger,
+} from "reka-ui";
+import { CalendarClock, ChevronLeft, ChevronRight } from "@lucide/vue";
+import {
+  getLocalTimeZone,
+  isToday,
+  parseDateTime,
+  toCalendarDate,
+  toCalendarDateTime,
+  type CalendarDateTime,
+  type DateValue,
+} from "@internationalized/date";
+import { cn } from "../../lib/cn";
+import { useSplitAttrs } from "../../lib/attrs";
+import { optional } from "../../lib/props";
+
+/**
+ * DateTimePicker — one instant: a day and a time of day together, entered by
+ * typing across a single segmented field or by picking the day out of a
+ * calendar popover. Reach for it when both halves are the same decision — a
+ * scheduled send, a deadline, an appointment.
+ *
+ * It is DatePicker with the clock left on. Everything that control decides,
+ * this one inherits and does not restate: the segmented field rather than a
+ * native input, the roving tabindex that makes the field one Tab stop, the
+ * popover owning its own open state, the calendar laid out by a real table.
+ * Read `DatePicker.vue` for the reasoning behind each; the comments below are
+ * only for where this one has to differ.
+ *
+ * **The model value is a plain ISO *local* date-time string,
+ * `"YYYY-MM-DDTHH:mm"`** — or `"YYYY-MM-DDTHH:mm:ss"` when `granularity` asks
+ * for seconds, because a segment the reader can type is a segment the value has
+ * to carry. There is no timezone, no offset and no `Date` anywhere on this
+ * surface. `"2026-03-14T09:30"` is half past nine on the fourteenth *wherever it
+ * is read*, and turning that into an absolute instant is the host's job, because
+ * the host is the one that knows whose clock is meant. Guessing on its behalf is
+ * exactly how a meeting ends up an hour out.
+ *
+ * Reach for DatePicker when the time of day is not part of the decision — a date
+ * of birth has no half past nine — and for TimePicker when the day is not. Two
+ * controls side by side are two values and two validations; this is one value
+ * that happens to be written in two halves.
+ */
+const props = withDefaults(
+  defineProps<{
+    /**
+     * The chosen instant as ISO `"YYYY-MM-DDTHH:mm"`, local, with no timezone or
+     * offset. A bare `"YYYY-MM-DD"` is accepted and read as midnight that day.
+     * Unset, empty or unparseable means nothing is chosen. The explicit
+     * `| undefined` is what lets `v-model` bind a ref that clears — the emitted
+     * value drops to `undefined` when the field is emptied, and a plain optional
+     * prop refuses to take it back.
+     */
+    modelValue?: string | undefined;
+    /** The earliest choosable instant, same format. The calendar disables every day that lies wholly before it; a time before it on the boundary day is announced invalid rather than refused. */
+    min?: string;
+    /** The latest choosable instant, same format. The calendar disables every day that lies wholly after it; a time after it on the boundary day is announced invalid rather than refused. */
+    max?: string;
+    /** How far down the field goes. `"minute"` reports `"YYYY-MM-DDTHH:mm"`; `"second"` adds a seconds segment and reports `"YYYY-MM-DDTHH:mm:ss"`. */
+    granularity?: "minute" | "second";
+    /** Whether the time reads as 12-hour with an AM/PM segment or as 24-hour. Display only: the value stays 24-hour. Unset follows `locale`. */
+    hourCycle?: 12 | 24;
+    /** BCP 47 tag driving the order of the segments, the month and weekday names, which day a week starts on, and the 12-or-24-hour default. */
+    locale?: string;
+    /** Unavailable: dims the control, refuses the calendar, and takes the field out of the tab order. */
+    disabled?: boolean;
+    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. An instant outside `min`/`max` does the same on its own. */
+    invalid?: boolean;
+  }>(),
+  { granularity: "minute", locale: "en", disabled: false, invalid: false },
+);
+
+const emit = defineEmits<{
+  /** The chosen instant as ISO `"YYYY-MM-DDTHH:mm"` (or `…:ss`), or `undefined` once the field has been cleared. */
+  "update:modelValue": [value: string | undefined];
+}>();
+
+// Routed exactly as DatePicker routes it, and for the same reasons: `class`
+// sizes the whole control so it lands on the anchor, and everything else names
+// or describes the value so it lands on the `role="group"` field.
+defineOptions({ inheritAttrs: false });
+const { attrs, rest: fieldAttrs } = useSplitAttrs();
+
+function fromIso(value: string | undefined): CalendarDateTime | undefined {
+  if (!value) return undefined;
+  try {
+    // `parseDateTime` reads a bare `"YYYY-MM-DD"` as midnight on that day, which
+    // is the same default a day picked out of the calendar before any time gets.
+    // It refuses an offset or a `Z`, and that refusal is wanted: an absolute
+    // instant is not this component's value, and silently dropping the offset
+    // would shift the time by hours without saying so.
+    return parseDateTime(value);
+  } catch {
+    return undefined;
+  }
+}
+
+function pad(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+// Written out rather than taken from `toString()`, which always prints seconds
+// and appends a fractional part when the value carries one — a
+// minute-granularity field would report `"2026-03-14T09:30:00"` for a value its
+// segments never showed a second of. `toCalendarDate` is what normalises the day
+// half to the Gregorian ISO form whatever calendar the locale reads by, exactly
+// as it does in DatePicker; `toCalendarDateTime` drops a time zone before it can
+// reach the string and fills midnight for a value carrying no time of its own.
+function toIso(date: DateValue): string {
+  const instant = toCalendarDateTime(date);
+  const stamp = `${toCalendarDate(instant).toString()}T${pad(instant.hour)}:${pad(instant.minute)}`;
+  return props.granularity === "second" ? `${stamp}:${pad(instant.second)}` : stamp;
+}
+
+// `min` and `max` bound an *instant*, and the calendar chooses a *day*, so the
+// boundary day is only partly available. Reka compares each grid cell against
+// these bounds at full precision, and a cell carries whatever time the field is
+// currently holding — so with the exact bounds forwarded, a "not before now"
+// deadline disables today outright at 09:00 because today's cell reads
+// midnight, and the one day the reader most wants is unreachable for a reason
+// nothing on screen explains.
+//
+// So the calendar is bounded by whole days: a day holding any choosable instant
+// can be chosen. What that gives up is caught below — `outOfRange` re-applies
+// the bound at instant precision where the instant is actually entered, so a
+// reachable day with an unreachable time reads as an error instead of as fine.
+function startOfDay(date: CalendarDateTime | undefined) {
+  return date?.set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+}
+
+function endOfDay(date: CalendarDateTime | undefined) {
+  return date?.set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+}
+
+// `optional()` rather than plain bindings, for the reason written out in
+// DatePicker — and `hourCycle` joins them here, because `undefined` is how Reka
+// is told to follow the locale rather than a cycle nobody asked for.
+const rootValue = computed(() =>
+  optional({
+    modelValue: fromIso(props.modelValue),
+    minValue: startOfDay(fromIso(props.min)),
+    maxValue: endOfDay(fromIso(props.max)),
+    hourCycle: props.hourCycle,
+  }),
+);
+
+// The half of the bound the calendar gave up. Reka's own `data-invalid` on the
+// field group now only fires for a whole day out of range, and a value like
+// "today at 00:00" under a `min` of "today at 14:30" would otherwise look
+// perfectly well-formed while being unschedulable. This is why the error state
+// is derived here rather than left entirely to the host, which is where
+// DatePicker leaves it: there, a day is the whole value and Reka's comparison is
+// already exact.
+const outOfRange = computed(() => {
+  const value = fromIso(props.modelValue);
+  if (!value) return false;
+  const lower = fromIso(props.min);
+  const upper = fromIso(props.max);
+  return (!!lower && value.compare(lower) < 0) || (!!upper && value.compare(upper) > 0);
+});
+
+const errored = computed(() => props.invalid || outOfRange.value);
+
+// The panel's open state is owned here, not left to Reka's `closeOnSelect` —
+// see DatePicker for why a host that validates before accepting would otherwise
+// watch the calendar refuse to close.
+const open = ref(false);
+
+// The date handed back already carries the time the field is holding: Reka
+// builds each grid cell as `placeholder.set({ day })`, and the placeholder
+// follows the model value. That is the whole round trip, and it is load-bearing
+// enough to be pinned in both directions in the tests — picking a day keeps the
+// time, typing a time keeps the day. With nothing chosen yet the placeholder is
+// today at midnight, so a day chosen before any time means midnight, and
+// `toCalendarDateTime` above says the same thing a second time for a value that
+// somehow arrives without a clock at all.
+function onDateChange(date: DateValue | undefined) {
+  open.value = false;
+  emit("update:modelValue", date ? toIso(date) : undefined);
+}
+
+function isDateToday(date: DateValue): boolean {
+  return isToday(date, getLocalTimeZone());
+}
+
+// One Tab stop across all of it — five segments here, or seven with an AM/PM
+// and a seconds segment, which is the difference between one Tab press and
+// seven to cross one control. The mechanism and the reason Reka's own
+// ArrowLeft/ArrowRight survives it are in DatePicker.
+const focusedPart = ref<string>();
+
+function segmentTabIndex(part: string, segments: readonly { part: string }[]): number | undefined {
+  if (props.disabled || part === "literal") return undefined;
+  const editable = segments.filter((segment) => segment.part !== "literal");
+  // The remembered segment is dropped when a granularity, locale or hour-cycle
+  // change takes it away — a field whose only tab stop is a seconds segment that
+  // no longer exists is a field nothing can reach.
+  const active =
+    focusedPart.value !== undefined &&
+    editable.some((segment) => segment.part === focusedPart.value)
+      ? focusedPart.value
+      : editable[0]?.part;
+  return part === active ? 0 : -1;
+}
+
+// Reka seeds the field's segment values from the granularity and builds its
+// formatter from the hour cycle once, at setup, and watches neither. TimePicker
+// carries the observed symptoms — a 13:30 field relabelling itself "1:30 AM",
+// and a widened granularity rendering a segment with no role. Both are
+// structural, so the field is keyed on them and rebuilt rather than patched.
+// `locale` is deliberately not in the key: Reka does watch that, and rebuilding
+// would throw away focus mid-edit for a change it already handles.
+const shape = computed(() => `${props.granularity}-${props.hourCycle}`);
+
+/**
+ * The same "13 PM" defect TimePicker documents, in the same shared Reka segment
+ * code: the hour publishes `aria-valuenow` off the internal 24-hour value while
+ * declaring its range as 1–12. The announcement is rebuilt from what the segment
+ * is actually showing, and only under an explicit 12-hour cycle — left to the
+ * locale, Reka defers to the formatter and the pair already agrees.
+ */
+function hourAnnouncement(
+  segments: readonly { part: string; value: string }[],
+): Record<string, string | number> | undefined {
+  if (props.hourCycle !== 12) return undefined;
+  const shown = Number(segments.find((segment) => segment.part === "hour")?.value);
+  if (!Number.isInteger(shown)) return undefined;
+  const period = segments.find((segment) => segment.part === "dayPeriod")?.value;
+  return { "aria-valuenow": shown, "aria-valuetext": period ? `${shown} ${period}` : `${shown}` };
+}
+
+const headingId = useId();
+
+const panel = ref<HTMLElement | null>(null);
+
+// Focus lands on the day the calendar is already sitting on rather than on the
+// previous-month button; DatePicker carries the reasoning.
+function onOpenAutoFocus(event: Event) {
+  const day = panel.value?.querySelector<HTMLElement>(
+    '[data-reka-calendar-cell-trigger][tabindex="0"]',
+  );
+  if (!day) return;
+  event.preventDefault();
+  day.focus();
+}
+</script>
+
+<template>
+  <DatePickerRoot
+    v-model:open="open"
+    v-bind="rootValue"
+    :locale="locale"
+    :disabled="disabled"
+    :granularity="granularity"
+    prevent-deselect
+    @update:model-value="onDateChange"
+  >
+    <!-- Two markers rather than one spelled twice: `data-invalid` is the host
+         saying so, `data-out-of-range` is the instant falling outside `min` and
+         `max`. Reka already spells a third meaning `data-invalid` on the field
+         group below, which is why neither of these lives there. -->
+    <DatePickerAnchor
+      :data-invalid="invalid || undefined"
+      :data-out-of-range="outOfRange || undefined"
+      :class="cn('block w-full', attrs.class as string)"
+    >
+      <DatePickerField
+        :key="shape"
+        v-slot="{ segments }"
+        v-bind="fieldAttrs"
+        :aria-invalid="errored || undefined"
+        :class="
+          cn(
+            // The text input's own height scale, so an instant sitting in a form
+            // row beside a text field lines up rather than nearly lining up. No
+            // gap: every separator between two segments — the slashes, the
+            // comma, the colon — is itself a segment, so spacing them apart
+            // writes the value as `3 / 14 / 2026 , 09 : 30`.
+            'flex h-9 w-full items-center rounded-md border border-input bg-background px-3 text-sm text-foreground',
+            'transition-[color,background-color,border-color,box-shadow] duration-fast ease-out',
+            'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
+            !errored && 'focus-within:shadow-halo',
+            errored && 'border-destructive focus-within:outline-destructive',
+            disabled && 'cursor-not-allowed opacity-50',
+          )
+        "
+      >
+        <DatePickerInput
+          v-for="(item, index) in segments"
+          :key="index"
+          :part="item.part"
+          :tabindex="segmentTabIndex(item.part, segments)"
+          v-bind="item.part === 'hour' ? hourAnnouncement(segments) : undefined"
+          :class="
+            cn(
+              'tabular rounded-sm px-0.5 outline-none',
+              'transition-colors duration-instant ease-out',
+              'focus:bg-primary-muted focus:text-primary',
+              'data-[placeholder]:text-muted-foreground',
+              item.part === 'literal' && 'text-muted-foreground',
+            )
+          "
+          @focusin="focusedPart = item.part"
+        >
+          {{ item.value }}
+        </DatePickerInput>
+
+        <!-- Named for what it opens, which is a calendar and not a clock: the
+             time is entered in the segments to its left and has no panel. -->
+        <DatePickerTrigger
+          aria-label="Open calendar"
+          class="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed"
+        >
+          <CalendarClock class="h-4 w-4" />
+        </DatePickerTrigger>
+      </DatePickerField>
+    </DatePickerAnchor>
+
+    <DatePickerContent
+      align="start"
+      :side-offset="6"
+      :class="
+        cn(
+          'z-50 rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-md outline-none',
+          // Scoped to the open state, never unconditional — an unconditional
+          // entrance never re-fires, Reka never unmounts the closed content, and
+          // an invisible panel is left over the page eating clicks.
+          'data-[state=open]:animate-fade-rise',
+        )
+      "
+      @open-auto-focus="onOpenAutoFocus"
+    >
+      <!-- The whole panel rises as one piece; the cells carry no stagger of
+           their own, for the reason DatePicker writes out. -->
+      <div ref="panel" class="flex flex-col gap-3">
+        <DatePickerCalendar v-slot="{ grid, weekDays }">
+          <DatePickerHeader class="flex items-center justify-between gap-2">
+            <DatePickerPrev
+              aria-label="Previous month"
+              class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+            >
+              <ChevronLeft class="h-4 w-4" />
+            </DatePickerPrev>
+
+            <!-- Paging changes nothing a reader is looking at except this line,
+                 and nothing moves focus, so without the live region the month
+                 silently becomes a different month. -->
+            <DatePickerHeading
+              :id="headingId"
+              aria-live="polite"
+              class="text-sm font-medium text-foreground"
+            />
+
+            <DatePickerNext
+              aria-label="Next month"
+              class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+            >
+              <ChevronRight class="h-4 w-4" />
+            </DatePickerNext>
+          </DatePickerHeader>
+
+          <DatePickerGrid
+            v-for="month in grid"
+            :key="month.value.toString()"
+            role="grid"
+            :aria-labelledby="headingId"
+            class="border-collapse select-none"
+          >
+            <!-- `role="grid"` over Reka's `role="application"`, and rows laid
+                 out by the table rather than by flex — `display: flex` on a `tr`
+                 drops its implicit `row` mapping and leaves `role="gridcell"`
+                 inside a grid with no row between them. Both are DatePicker's
+                 findings, kept identical here on purpose. -->
+            <DatePickerGridHead>
+              <DatePickerGridRow>
+                <DatePickerHeadCell
+                  v-for="(day, index) in weekDays"
+                  :key="index"
+                  class="w-9 text-xs font-normal text-muted-foreground"
+                >
+                  {{ day }}
+                </DatePickerHeadCell>
+              </DatePickerGridRow>
+            </DatePickerGridHead>
+
+            <DatePickerGridBody>
+              <DatePickerGridRow v-for="(week, weekIndex) in month.rows" :key="weekIndex">
+                <DatePickerCell
+                  v-for="day in week"
+                  :key="day.toString()"
+                  :date="day"
+                  class="p-0 text-center"
+                >
+                  <DatePickerCellTrigger
+                    v-slot="{ dayValue, today }"
+                    :day="day"
+                    :month="month.value"
+                    :aria-current="isDateToday(day) ? 'date' : undefined"
+                    class="group relative inline-flex h-9 w-9 items-center justify-center rounded-sm text-sm text-foreground transition-colors duration-fast ease-out hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[outside-view]:text-muted-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  >
+                    {{ dayValue }}
+                    <!-- Today's second cue: a shape rather than a hue, so it
+                         survives a colour deficiency and forced-colors both.
+                         `aria-current` on the cell is what a screen reader
+                         reads. -->
+                    <span
+                      v-if="today"
+                      aria-hidden="true"
+                      class="absolute bottom-1 h-1 w-1 rounded-full bg-primary group-data-[selected]:bg-primary-foreground"
+                    />
+                  </DatePickerCellTrigger>
+                </DatePickerCell>
+              </DatePickerGridRow>
+            </DatePickerGridBody>
+          </DatePickerGrid>
+        </DatePickerCalendar>
+      </div>
+    </DatePickerContent>
+  </DatePickerRoot>
+</template>
