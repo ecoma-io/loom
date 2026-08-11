@@ -28,6 +28,8 @@ export type { BadgeVariant } from "./primitives/Badge/Badge.vue";
 export { default as Button, buttonVariants } from "./primitives/Button/Button.vue";
 export type { ButtonSize, ButtonVariant } from "./primitives/Button/Button.vue";
 export { default as Checkbox } from "./primitives/Checkbox/Checkbox.vue";
+export { default as Chip, chipVariants } from "./primitives/Chip/Chip.vue";
+export type { ChipSize, ChipVariant } from "./primitives/Chip/Chip.vue";
 export { default as Dialog } from "./primitives/Dialog/Dialog.vue";
 export type { DialogSize } from "./primitives/Dialog/Dialog.vue";
 export { default as DropdownMenu } from "./primitives/DropdownMenu/DropdownMenu.vue";
