@@ -66,3 +66,37 @@ describe("cn class merging", () => {
     expect(cn("rounded-md bg-primary", "bg-destructive")).toBe("rounded-md bg-destructive");
   });
 });
+
+// Loom's own type scale lives under Tailwind's `--text-*` namespace, so every
+// name here is a font-size. tailwind-merge resolves from a table of Tailwind's
+// built-in value names and read all six as colours instead, which meant a size
+// and a colour in one call collapsed to the colour alone. These pin the
+// registration in `cn.ts` — without it the first assertion in each pair drops
+// its size, silently and library-wide.
+describe("cn and Loom's named type scale", () => {
+  it.each(["display", "heading", "title", "body", "small", "micro"])(
+    "keeps text-%s alongside a text colour, which sets a different property entirely",
+    (step) => {
+      expect(cn(`text-${step}`, "text-muted-foreground")).toBe(
+        `text-${step} text-muted-foreground`,
+      );
+    },
+  );
+
+  it("treats two steps of the scale as one conflict, so the later step wins", () => {
+    expect(cn("text-display", "text-micro")).toBe("text-micro");
+  });
+
+  // One group with Tailwind's own sizes, not a parallel one: a component
+  // styling with the named scale has to be overridable by a consumer reaching
+  // for `text-xs`, and the reverse has to hold too or the registration would
+  // only have moved the bug.
+  it("merges against Tailwind's built-in sizes in both directions", () => {
+    expect(cn("text-xs", "text-body")).toBe("text-body");
+    expect(cn("text-body", "text-xs")).toBe("text-xs");
+  });
+
+  it("still merges two text colours, which the registration must not have broken", () => {
+    expect(cn("text-primary", "text-destructive")).toBe("text-destructive");
+  });
+});
