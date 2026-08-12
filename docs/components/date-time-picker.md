@@ -206,7 +206,7 @@ Thai locale renders the year 2569 in the field and still hands back `2026-…`.
   </div>
 </Demo>
 
-## Disabled and invalid
+## Disabled, read-only and invalid
 
 A disabled DateTimePicker dims, refuses the calendar, and leaves nothing of
 itself in the tab order. An invalid one still works: it takes the destructive
@@ -215,12 +215,48 @@ other form control here speaks, so a field reporting an error looks the same
 whichever control it holds. An instant outside `min` or `max` paints the same
 way without the prop, as above.
 
-<Demo title="Disabled and invalid">
+`readonly` is a third state and not a dial on either. A read-only instant is a
+value on show: the field stays a Tab stop, its segments stay readable and
+copyable, it stays in the form's submitted data, and it is filled rather than
+dimmed. The calendar button is dropped outright — Reka's `readonly` makes every
+cell's click a no-op, so the button would open a panel in which nothing can be
+chosen.
+
+<Demo title="Disabled, read-only and invalid">
   <div class="flex w-full max-w-sm flex-col gap-3">
-    <DateTimePicker v-model="created" disabled aria-label="Created at" />
+    <DateTimePicker v-model="created" disabled aria-label="Created at, disabled" />
+    <DateTimePicker v-model="booking" readonly aria-label="Booked slot, read-only" />
     <DateTimePicker v-model="late" invalid :hour-cycle="24" aria-label="Overrunning finish" />
   </div>
 </Demo>
+
+## Inside a Field
+
+Wrapped in a [Field](./field), DateTimePicker wires itself: the row's id, the id
+of its hint or error line, and `required`, `invalid`, `disabled`, `readonly` and
+`name` all arrive from the row, so nothing is written at the call site.
+
+```vue
+<Field label="Send at" name="sendAt" error="Pick an instant inside the window" required>
+  <DateTimePicker v-model="sendAt" min="2026-03-14T09:00" max="2026-03-14T17:00" />
+</Field>
+```
+
+Every one of those props still wins when you set it, in both directions — which
+is why `invalid`, `required`, `disabled` and `readonly` are `boolean | undefined`
+and default to `undefined` rather than `false`. `<DateTimePicker />` says nothing
+and inherits the row; `<DateTimePicker :invalid="false" />` says this one field
+is fine even though its row is not, and it is obeyed.
+
+An instant outside `min` or `max` is the one thing a row cannot overrule: the
+field is `aria-invalid` for the row's error **or** for being out of range, so
+`:invalid="false"` clears the row's claim and leaves the control's own standing.
+`id` and `name` reach the hidden input described above, which is also the
+element the row's `<label for>` names; the row's description, `aria-required`
+and `aria-invalid` land on the group holding the segments, where a screen reader
+announces them once on entering the field rather than once per segment. A
+description you set yourself is kept and the row's is added to it, never
+replaced.
 
 ## Keyboard and screen readers
 

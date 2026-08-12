@@ -154,7 +154,7 @@ has them. A time of day has no ordering that survives midnight: a night shift is
 fence, and a min/max pair would quietly call 01:00 out of range for the exact
 case it was reached for.
 
-## Disabled and invalid
+## Disabled, read-only and invalid
 
 A disabled TimePicker dims, refuses the keyboard, and leaves nothing of itself
 in the tab order. An invalid one still works: it takes the destructive border
@@ -162,12 +162,46 @@ and focus ring and sets `aria-invalid`, the same error language every other form
 control here speaks, so a field reporting an error looks the same whichever
 control it holds.
 
-<Demo title="Disabled and invalid">
+`readonly` is a third state and not a dial on either. A read-only time is a
+value on show: the field stays a Tab stop, its segments stay readable and
+copyable, it stays in the form's submitted data, and it is filled rather than
+dimmed — Reka marks it `data-readonly`, so the state never rests on the fill
+alone. Reaching for `disabled` to show a time nobody may change tells a screen
+reader the field is unavailable when it is simply not editable.
+
+<Demo title="Disabled, read-only and invalid">
   <div class="flex w-full max-w-xs flex-col gap-3">
-    <TimePicker v-model="closed" disabled aria-label="Closes at" />
+    <TimePicker v-model="closed" disabled aria-label="Closes at, disabled" />
+    <TimePicker v-model="doors" readonly aria-label="Doors open, read-only" />
     <TimePicker v-model="overrun" invalid aria-label="Overrunning finish time" />
   </div>
 </Demo>
+
+## Inside a Field
+
+Wrapped in a [Field](./field), TimePicker wires itself: the row's id, the id of
+its hint or error line, and `required`, `invalid`, `disabled`, `readonly` and
+`name` all arrive from the row, so nothing is written at the call site.
+
+```vue
+<Field label="Doors open" name="doors" error="Pick a time before the show" required>
+  <TimePicker v-model="doors" />
+</Field>
+```
+
+Every one of those props still wins when you set it, in both directions — which
+is why `invalid`, `required`, `disabled` and `readonly` are `boolean | undefined`
+and default to `undefined` rather than `false`. `<TimePicker />` says nothing and
+inherits the row; `<TimePicker :readonly="false" />` says this one field is
+editable even though its row is not, and it is obeyed.
+
+Where the row's answers land is worth knowing, because a segmented field is not
+one element. `id` and `name` reach the hidden input described above — which is
+also the element the row's `<label for>` names, a `role="group"` being
+unlabelable. The row's description, `aria-required` and `aria-invalid` land on
+the group holding the segments, where a screen reader announces them once on
+entering the field rather than once per segment. A description you set yourself
+is kept and the row's is added to it, never replaced.
 
 ## Keyboard and screen readers
 

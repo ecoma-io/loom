@@ -40,6 +40,8 @@ export { default as DatePicker } from "./primitives/DatePicker/DatePicker.vue";
 export { default as DateRangePicker } from "./primitives/DateRangePicker/DateRangePicker.vue";
 export type { DateRange } from "./primitives/DateRangePicker/DateRangePicker.vue";
 export { default as DateTimePicker } from "./primitives/DateTimePicker/DateTimePicker.vue";
+export { default as DateTimeRangePicker } from "./primitives/DateTimeRangePicker/DateTimeRangePicker.vue";
+export type { DateTimeRange } from "./primitives/DateTimeRangePicker/DateTimeRangePicker.vue";
 export { default as Dialog } from "./primitives/Dialog/Dialog.vue";
 export type { DialogSize } from "./primitives/Dialog/Dialog.vue";
 export { default as Drawer } from "./primitives/Drawer/Drawer.vue";
