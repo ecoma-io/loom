@@ -97,14 +97,20 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
-      # The site is built here and not only in the deploy workflow, because the
-      # deploy runs after the merge: a page that fails to build would otherwise
-      # be discovered on `main`, where the only way out is another pull request.
-      # `docs:stage` comes with it — it is what asserts that the Cloudflare route
-      # still matches the base the site was just built with, and that mismatch
-      # deploys successfully and serves nothing.
-      - run: pnpm docs:build
-      - run: pnpm docs:stage
+      # The route, and not the build. A page that fails to build is still
+      # caught before the merge — every `e2e` leg builds the site through
+      # Playwright's `webServer`, so the build already runs once per leg in
+      # this same run, and building it again here re-proved what those had
+      # proved. What no leg does is run `docs:stage`: nothing else before a
+      # merge compares the Cloudflare route against the base the site is built
+      # with, and that mismatch deploys successfully and serves nothing.
+      #
+      # `--check` is the half of that script that needs no build — it reads
+      # `wrangler.jsonc` and `docs/.vitepress/base.ts` and compares them. The
+      # copy half stays in `docs.yml`, which builds the site itself before
+      # deploying it. Dropping the build without that seam would leave a check
+      # that passes and then fails copying a directory nobody made.
+      - run: pnpm docs:check-route
 
   e2e:
     name: End-to-end (${{ matrix.project }})
