@@ -43,7 +43,11 @@ jobs:
       # runner uses the same pnpm a contributor's Corepack fetches.
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
+      # `id` because the ESLint cache key below reads the version this
+      # resolved to. `.node-version` pins the major only, so what that is
+      # varies between runners.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        id: node
         with:
           node-version-file: .node-version
           cache: pnpm
@@ -87,10 +91,60 @@ jobs:
         if: github.event_name != 'merge_group'
         run: pnpm format:check
 
+      # ESLint's own cache, and the key is the whole of the thinking. ESLint
+      # stores a hash beside each cached file, but what that hash covers is
+      # narrower than it looks: its own version, Node's, and the parts of that
+      # file's resolved configuration that survive JSON serialisation. Rule
+      # names, severities and options do — a rule tightened in
+      # `eslint.config.mjs` invalidates the entries it applies to. Rule
+      # *implementations* do not, because functions do not serialise. Measured
+      # against this repository's ESLint: with a plugin rule swapped for one
+      # that reports where the old one did not, and nothing else changed, the
+      # cached verdict replays and the run exits 0 on code the new rule
+      # forbids — silently, since a cache hit prints nothing.
+      #
+      # So the key names, in order, everything an entry's own hash reacts to:
+      #
+      # - The resolved Node version, because ESLint hashes `process.version`
+      #   into every entry. `.node-version` pins the major only, so the patch
+      #   is whatever the runner resolved — two runs of *this* workflow, eight
+      #   minutes apart, got 24.19.0 and 24.18.0. Without this the second run
+      #   downloads a cache it then rejects entry by entry and re-lints
+      #   everything anyway; with it, the miss is honest and the fresh cache
+      #   is saved under a key that says which Node produced it.
+      # - `pnpm-lock.yaml`, because every rule implementation arrives through
+      #   it and a plugin bump is exactly the silent case above.
+      # - `eslint.config.mjs`, because the parser and plugin objects it wires
+      #   up are the other half that does not serialise, and because a reader
+      #   editing rules should not have to know which parts of this file the
+      #   per-entry hash happens to cover.
+      #
+      # `github.sha` on the end, with everything before it as `restore-keys`:
+      # a key that hits exactly is never written back, so a fixed key would
+      # freeze the cache at the first commit that built it and cover fewer
+      # files with every merge after. Restoring by prefix cannot cross any of
+      # the three above, because the prefix holds all of them.
+      #
+      # After `pnpm install`, because the cache lives under `node_modules/` —
+      # where Git, Prettier and ESLint already ignore it, which is what keeps
+      # it out of a commit.
+      - name: Cache ESLint results
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: node_modules/.cache/eslint
+          key: eslint-${{ runner.os }}-node${{ steps.node.outputs.node-version }}-${{ hashFiles('eslint.config.mjs', 'pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            eslint-${{ runner.os }}-node${{ steps.node.outputs.node-version }}-${{ hashFiles('eslint.config.mjs', 'pnpm-lock.yaml') }}-
+
       # Type-aware, so a verdict here depends on files this branch never
       # touched: a signature another queued pull request changed can turn a call
       # site in this one into an unsafe-argument error that neither branch shows
       # alone. That interference is exactly what the queue re-runs to catch.
+      #
+      # `--cache-strategy content` inside the script, and it is what makes the
+      # cache above worth restoring at all: the default keys each entry on size
+      # and mtime, and a fresh checkout writes a new mtime on every file — a
+      # perfectly restored metadata cache would then miss on all of it.
       - run: pnpm lint
 
       - run: pnpm typecheck
