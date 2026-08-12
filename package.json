@@ -64,7 +64,7 @@
     "prepare": "lefthook install",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --max-warnings 0 && node tools/check-component-artifacts.ts",
+    "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0 && node tools/check-component-artifacts.ts",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -73,6 +73,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:stage": "node tools/stage-docs.ts",
+    "docs:check-route": "node tools/stage-docs.ts --check",
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
