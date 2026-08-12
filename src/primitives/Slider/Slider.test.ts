@@ -1,8 +1,36 @@
 import { mount } from "@vue/test-utils";
 import { SliderRoot } from "reka-ui";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import Slider from "./Slider.vue";
+import { provideFieldContext } from "../../lib/field-context";
+
+// A stand-in for the Field wrapping this control. Field's own behaviour is
+// pinned in `Field.test.ts`; what matters here is that the slider reads a row
+// it is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("form", slots.default?.());
+  },
+});
 
 // jsdom has no ResizeObserver, and Reka's thumb measures itself with one on
 // mount. Reka is the real thing under test here, so the gap is stubbed rather
@@ -211,6 +239,19 @@ describe("Slider accessibility contract", () => {
     expect(thumb.attributes("data-disabled")).toBeDefined();
     expect(thumb.attributes("tabindex")).not.toBe("0");
   });
+
+  it("keeps the dim on a track, a range and a thumb, none of which hold text", () => {
+    // The library-wide rule is that an `opacity` may drain a border, a fill or
+    // a glyph and may never drain text, because compositing at 50% more than
+    // halves the contrast of whatever is underneath. The root's dim is correct
+    // and stays: everything under it is geometry, and the value the control
+    // stands for is announced through `aria-valuenow` rather than drawn. This
+    // test is what stops a later value bubble or tick label from being added
+    // under a dim that would take it to roughly 2:1.
+    const wrapper = mountSlider({ disabled: true });
+    expect(wrapper.classes()).toContain("data-[disabled]:opacity-50");
+    expect(wrapper.text().trim()).toBe("");
+  });
 });
 
 describe("Slider attribute routing", () => {
@@ -231,6 +272,83 @@ describe("Slider attribute routing", () => {
     const thumb = wrapper.get('[role="slider"]');
     expect(thumb.attributes("aria-labelledby")).toBe("volume-label");
     expect(thumb.attributes("data-testid")).toBe("volume");
+  });
+});
+
+describe("Slider inside a Field", () => {
+  it("takes its id, description, name, required and invalid state from the row it sits in", () => {
+    const row = mount(ProbeRow, {
+      props: {
+        controlId: "volume",
+        describedBy: "volume-description",
+        name: "volume",
+        required: true,
+        invalid: true,
+      },
+      slots: { default: h(Slider, { modelValue: 0.5 }) },
+    });
+    // The thumb is the `role="slider"` element, so it is what the row's id,
+    // description and state have to land on — not the box around it.
+    const thumb = row.get('[role="slider"]');
+    expect(thumb.attributes("id")).toBe("volume");
+    expect(thumb.attributes("aria-describedby")).toBe("volume-description");
+    expect(thumb.attributes("aria-required")).toBe("true");
+    expect(thumb.attributes("aria-invalid")).toBe("true");
+
+    // The name posts the scalar this control exposes, under the row's own
+    // name — not the `volume[0]` Reka's array-shaped hidden input would.
+    const hidden = row.get('input[type="hidden"]');
+    expect((hidden.element as HTMLInputElement).name).toBe("volume");
+    expect((hidden.element as HTMLInputElement).value).toBe("0.5");
+    expect(thumb.attributes("name")).toBeUndefined();
+  });
+
+  it("lets an explicit disabled overrule the row in both directions", () => {
+    const optedOut = mount(ProbeRow, {
+      props: { disabled: true },
+      slots: { default: h(Slider, { modelValue: 0.5, disabled: false }) },
+    });
+    expect(optedOut.get('[role="slider"]').attributes("data-disabled")).toBeUndefined();
+
+    const optedIn = mount(ProbeRow, {
+      slots: { default: h(Slider, { modelValue: 0.5, disabled: true }) },
+    });
+    expect(optedIn.get('[role="slider"]').attributes("data-disabled")).toBeDefined();
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mount(ProbeRow, {
+      props: { describedBy: "volume-description" },
+      slots: { default: h(Slider, { modelValue: 0.5, "aria-describedby": "volume-caveat" }) },
+    });
+    expect(row.get('[role="slider"]').attributes("aria-describedby")).toBe(
+      "volume-caveat volume-description",
+    );
+  });
+
+  // A track that shows a value and refuses to move is a Progress bar wearing a
+  // thumb, so a row's `readonly` must arrive as nothing at all — and above all
+  // must not quietly become `disabled`.
+  it("ignores a row's readonly rather than approximating it", () => {
+    const row = mount(ProbeRow, {
+      props: { readonly: true },
+      slots: { default: h(Slider, { modelValue: 0.5 }) },
+    });
+    const thumb = row.get('[role="slider"]');
+    expect(thumb.attributes("data-disabled")).toBeUndefined();
+    expect(thumb.attributes("aria-readonly")).toBeUndefined();
+  });
+
+  // Every key that resolved to nothing is dropped from the bag, so a slider
+  // with no row above it renders exactly what it rendered before the context
+  // existed.
+  it("outside any Field adds nothing of its own", () => {
+    const wrapper = mountSlider({ modelValue: 0.5 });
+    const thumb = wrapper.get('[role="slider"]');
+    for (const attribute of ["id", "name", "aria-describedby", "aria-required", "aria-invalid"]) {
+      expect(thumb.attributes(attribute)).toBeUndefined();
+    }
+    expect(wrapper.find('input[type="hidden"]').exists()).toBe(false);
   });
 });
 

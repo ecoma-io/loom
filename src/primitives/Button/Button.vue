@@ -22,17 +22,18 @@ export type ButtonSize = "sm" | "md" | "lg" | "icon" | "icon-sm";
  *     and out, a progress arc springs in, the loading text rises last — and
  *     both layers share one grid cell, so the width never jumps mid-film
  *
- * The 50% dim belongs to a *disabled* button only. It is applied off the
- * `disabled` prop rather than off the DOM disabled state, because a loading
- * button is also DOM-disabled yet has to read as "working", not
- * "unavailable".
+ * Unavailable is painted in colours rather than dimmed, and it is keyed off the
+ * `disabled` prop rather than off the DOM disabled state — a loading button is
+ * also DOM-disabled yet has to read as "working", not "unavailable". See the
+ * drained treatment on the root element for the measurements that removed the
+ * dim.
  */
 export const buttonVariants = cva(
   [
     "relative inline-flex items-center justify-center gap-2 whitespace-nowrap select-none",
     "rounded-md text-sm font-medium",
     "[transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out),box-shadow_var(--duration-fast)_var(--ease-out)]",
-    "active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
+    "active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
     "disabled:pointer-events-none",
   ],
   {
@@ -82,7 +83,7 @@ withDefaults(
     loading?: boolean;
     /** Text shown beside the progress arc while loading, e.g. "Saving…". */
     loadingText?: string;
-    /** Unavailable rather than busy — dims to 50% and blocks pointer events. */
+    /** Unavailable rather than busy — drains the button to the neutral well and blocks pointer events. */
     disabled?: boolean;
     /** The native button type. Defaults to `button`, never an accidental submit. */
     type?: "button" | "submit" | "reset";
@@ -97,7 +98,37 @@ withDefaults(
     :disabled="disabled || loading"
     :data-loading="loading || undefined"
     :aria-busy="loading || undefined"
-    :class="cn(buttonVariants({ variant, size }), 'group', disabled && 'opacity-50')"
+    :class="
+      cn(
+        buttonVariants({ variant, size }),
+        'group',
+        // Drained, not dimmed. `opacity-50` here was the library's most visible
+        // instance of the mistake, because a button is nothing but a label on a
+        // fill and the dim took both together: measured on the built site, a
+        // disabled `primary` label came out at 1.62:1 against its own faded fill
+        // and a disabled `outline` at 3.14:1 on the page ground. Neither is
+        // reachable by recolouring the label, since the fade multiplied whatever
+        // colour it was given.
+        //
+        // One neutral treatment for all six variants rather than six drained
+        // pairs: the fill is what carries a variant's emphasis, and an
+        // unavailable button has no emphasis to carry. It is the same well Chip
+        // and Stepper drain to, so an unavailable control looks the same
+        // wherever it appears. Every variant still changes visibly on the way
+        // in — the two filled ones give up their hue, the three transparent ones
+        // gain a fill — and the native `disabled` attribute carries the fact to
+        // assistive tech, so none of it rests on colour alone.
+        //
+        // `border-border` and not the strong weight, which is what `outline`
+        // used to take here. `theme.css` reserves the strong hairline for a
+        // block that must *assert* its edge, and an unavailable control is the
+        // one thing that must not; slackening from `input` to the lighter
+        // `border` is also the same step every other unavailable control in the
+        // library now makes, so a disabled Button beside a disabled TextField
+        // wears the same rim rather than a heavier one.
+        disabled && 'border-border bg-muted text-muted-foreground shadow-none',
+      )
+    "
   >
     <!-- The shimmer sweep, while loading. -->
     <span

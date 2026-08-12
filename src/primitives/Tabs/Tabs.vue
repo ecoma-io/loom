@@ -38,12 +38,23 @@ defineEmits<{ "update:modelValue": [value: string] }>();
     @update:model-value="$emit('update:modelValue', String($event))"
   >
     <TabsList class="relative inline-flex items-center gap-1 border-b border-border">
+      <!-- A drained plate rather than a dim, and the trigger is the awkward
+           case that makes the reason clear. Its whole content is the tab's
+           label, so `disabled:opacity-50` took that label from 5.25:1 to
+           2.05:1 — but the label is *already* `text-muted-foreground` when the
+           tab is merely unselected, so simply dropping the alpha would leave an
+           unavailable tab painted exactly like an available one. The fill is
+           what carries "unavailable" instead: `bg-muted` under the same
+           measured text holds 4.67:1, and the plate is visible where a second
+           grey would not have been. `rounded-t-sm` is the control radius less
+           the list's own padding, and it shapes the focus outline too — the
+           plate stops at the list's bottom rule rather than crossing it. -->
       <TabsTrigger
         v-for="tab in tabs"
         :key="tab.value"
         :value="tab.value"
         v-bind="optional({ disabled: tab.disabled })"
-        class="relative px-3 py-2 text-sm text-muted-foreground transition-colors duration-fast ease-out data-[state=active]:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
+        class="relative rounded-t-sm px-3 py-2 text-sm text-muted-foreground transition-colors duration-fast ease-out data-[state=active]:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:bg-muted disabled:text-muted-foreground"
       >
         {{ tab.label }}
       </TabsTrigger>

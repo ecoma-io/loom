@@ -89,10 +89,55 @@
   --color-info: hsl(202 65% 35%);
   --color-info-foreground: hsl(0 0% 100%);
 
+  /* Each functional hue's wash, completing the pattern the two forces above
+   * already set. These are opaque rather than an alpha of the base hue, and
+   * that is the whole reason they exist: a `bg-destructive/12` fill composites
+   * against whatever is behind it, so the same badge renders as one colour on
+   * `bg-card` and another on `bg-sunken`. A status tint that shifts with its
+   * container is a status tint a reader cannot learn. Each is mixed to hold at
+   * least 4.5:1 against its own base hue, which is what sits on top of it as
+   * text or as a hairline. */
+  --color-destructive-muted: hsl(356 55% 94%); /* error wash: a failed or blocking surface */
+  --color-success-muted: hsl(152 40% 93%); /* success wash: a settled, completed surface */
+  --color-warning-muted: hsl(38 70% 92%); /* warning wash: a surface needing attention */
+  --color-info-muted: hsl(202 55% 93%); /* info wash: a neutral advisory surface */
+
   /* ---- The seam: the two forces meeting. Interpolated in OKLCH so the
    * midpoint never turns muddy. Reach for it through the `bg-seam` utility
    * below, at handoff points and brand moments only. ---------------------- */
   --seam: linear-gradient(90deg in oklch, hsl(211 37% 32%), hsl(18 56% 39%));
+
+  /* ---- Scrim weight, as modifiers on `foreground`: `bg-foreground/scrim`.
+   * Two weights, because how much of the page a surface hides is a statement
+   * about what that surface is. A dialog interrupts, so the page behind it
+   * drops to context. A drawer is worked alongside its page — you tune a
+   * filter and watch the rows change — so the page stays legible and stays
+   * the subject. That rule lived in a comment inside `Drawer.vue`, which is
+   * the one place a person building a third overlay would never look. ------ */
+  --opacity-scrim: 70%; /* a surface that interrupts: the page behind is context */
+  --opacity-scrim-light: 40%; /* a surface worked alongside: the page behind is still the subject */
+
+  /* One weight for "unavailable", because two menu rows ten points apart is
+   * not a decision anyone made — `opacity-40` had appeared twice against
+   * `opacity-50` forty-five times, and nothing in any check can see a
+   * difference that small. */
+  --opacity-disabled: 50%;
+
+  /* ---- Stacking. Five rungs, named, because the ladder was real before it
+   * was written down: seventeen overlays at `z-50` and two toasts at
+   * `z-[100]`, an arbitrary value of exactly the kind this file exists to
+   * prevent. Ordering *within* a rung is the portal's job — Reka appends in
+   * open order, so the last dialog opened is the one on top without anyone
+   * numbering them. --------------------------------------------------------- */
+  --z-index-raised: 10; /* lifted above its own siblings: an Indicator's marker, a SegmentedControl thumb */
+  --z-index-sticky: 20; /* page furniture that pins while content scrolls under it */
+  --z-index-chrome: 30; /* application chrome: the header and rails that outlive the page */
+  --z-index-overlay: 50; /* anything portalled over the page — dialogs, popovers, menus, drawers */
+  --z-index-toast: 100; /* above every overlay, because a toast reports on the thing the overlay is doing */
+
+  /* The press. One value, reached through `active:scale-press`, replacing six
+   * `scale-[0.97]` and three `scale-95` that meant the same thing. */
+  --scale-press: 0.97;
 
   /* ---- Shape: small, even fillets — milled, never blobby.
    * Nesting law: inner radius = outer radius − padding, floor 2px. Pick the
@@ -186,6 +231,45 @@
   --animate-seam-flow: seam-flow 3.2s linear infinite;
   --animate-progress-indeterminate: progress-indeterminate 1.3s var(--ease-in-out) infinite;
   --animate-toast-in: toast-in var(--duration-normal) var(--ease-spring) both;
+
+  /* ---- Motion that leaves. Every animation above is an entrance, so until
+   * these existed an overlay that faded in over 200ms was simply gone between
+   * two frames, and the page behind it appeared to jump rather than to be
+   * revealed. `--ease-in` was declared with the rest of the easings and used by
+   * nothing at all, which is the tell: the accelerate curve has one job and it
+   * is this one.
+   *
+   * Exits run shorter than the entrance they mirror and on `--ease-in`, because
+   * the two directions are not the same event. A surface arriving is
+   * decelerating into place and is worth watching; a surface leaving has
+   * already done its job and should clear the eye rather than hold it.
+   *
+   * These are load-bearing beyond taste. Reka's `Presence` keeps closed content
+   * mounted until an `animationend` arrives — that is why every entrance here
+   * is scoped `data-[state=open]:` — and a closed element with no animation at
+   * all unmounts on the spot. A `data-[state=closed]:` animation is what turns
+   * that all-or-nothing into an ordinary timed exit, and it stays safe under
+   * `prefers-reduced-motion`: `global.css` collapses the duration to 0.01ms,
+   * which still fires `animationend`, so the overlay still unmounts. --------- */
+  --animate-fade-out: fade-out var(--duration-fast) var(--ease-in) both; /* the exit answering `fade` */
+  --animate-fade-fall: fade-fall var(--duration-fast) var(--ease-in) both; /* the exit answering `fade-rise` */
+  --animate-scale-out: scale-out var(--duration-instant) var(--ease-in) both; /* the exit answering `scale-in` */
+
+  /* An edge-anchored panel leaving the way it came. `--duration-normal` against
+   * the `slow` entrance a drawer uses: 320ms is what stops a full-height panel
+   * arriving like a flinch, and none of that reasoning applies to a panel on
+   * its way out.
+   *
+   * There is no matching `slide-in` family, and that is a decision rather than
+   * an omission — see `Drawer.vue`, which enters on `@starting-style` because a
+   * transition composes with a live swipe gesture where a keyframe would fight
+   * it. The exit has no such conflict and cannot be a transition at all:
+   * `Presence` observes `animationend` and never `transitionend`, so a
+   * transition-based exit is unmounted before it can run. --------------------- */
+  --animate-slide-out-to-left: slide-out-to-left var(--duration-normal) var(--ease-in) both; /* a panel leaving past the left edge */
+  --animate-slide-out-to-right: slide-out-to-right var(--duration-normal) var(--ease-in) both; /* a panel leaving past the right edge */
+  --animate-slide-out-to-top: slide-out-to-top var(--duration-normal) var(--ease-in) both; /* a panel leaving past the top edge */
+  --animate-slide-out-to-bottom: slide-out-to-bottom var(--duration-normal) var(--ease-in) both; /* a panel leaving past the bottom edge */
 }
 
 /* Tailwind has no `--duration-*` theme namespace — `duration-*` takes a bare

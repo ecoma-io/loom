@@ -19,6 +19,12 @@ vi.mock("../../primitives/Toast/ToastItem.vue", async () => {
   const actual = await vi.importActual("../../primitives/Toast/ToastItem.vue");
   const c = (actual as { default: { emits?: string[]; props?: Record<string, unknown> } }).default;
   return {
+    // The real module's other exports are kept and only the component is
+    // stubbed: `TOAST_LABELS` lives in this module too, and `ToastStack` reads
+    // it to name the shared provider and viewport. Stubbing the whole module
+    // would take Loom's English away from the thing under test rather than
+    // taking the child component away.
+    ...(actual as object),
     default: {
       name: "ToastItem",
       props: c.props ? Object.keys(c.props) : [],

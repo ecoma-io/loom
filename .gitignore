@@ -24,6 +24,14 @@ pnpm-debug.log*
 # Claude Code local overrides — the shared settings.json IS tracked.
 .claude/settings.local.json
 
+# Git worktrees an agent checks out to work in isolation. They live inside the
+# repository, they are a full checkout each, and nothing else ignores them — so
+# a single `git add -A` while one exists stages hundreds of megabytes of a
+# second copy of this repository into a commit. Measured at 591 MB with two
+# open, which is the kind of mistake that is obvious in hindsight and invisible
+# at the moment it is made.
+.claude/worktrees/
+
 # VitePress build output and its dependency cache.
 docs/.vitepress/dist/
 docs/.vitepress/cache/

@@ -80,6 +80,47 @@ neither be dragged nor focused.
   </div>
 </Demo>
 
+The same treatment answers a [Fieldset](./fieldset) that disables its group, and
+here it takes a little help. `<fieldset disabled>` reaches `<input>`,
+`<button>`, `<select>` and `<textarea>` and stops there, and this control is
+built around a `<span role="slider">` — so the platform left it looking
+available, keeping its tab stop and still moving its value on Home and End. It
+now reads the enclosing fieldset's own `disabled` attribute and resolves it into
+the same state its own prop feeds: the same appearance, the same lost tab stop,
+the same refused gesture. That is a _read_ of the attribute rather than a second
+copy of it, which is why Fieldset still publishes nothing through the
+[Field](./field) context — see [Fieldset](./fieldset#disabling-the-group).
+
+## Inside a Field
+
+A [Field](./field) publishes what the row knows, and the slider takes it: the
+row's id, the id of its hint or error line, `required` and `invalid` all land on
+the **thumb**, because the thumb is the `role="slider"` element and the row is
+describing the control, not the box around it. The row's `name` drives a hidden
+input, so the value posts under that name in a real `<form>` — as the scalar
+this control exposes, not as the `name[0]` an array-shaped slider would submit.
+
+```vue
+<Field label="Volume" hint="Applies to every alert" name="volume">
+  <Slider v-model="volume" aria-label="Volume" @commit="checkpoint" />
+</Field>
+```
+
+**A row's label does not name the slider.** `<label for>` names a labelable
+element and the thumb is a `span[role="slider"]`, so the row's label resolves to
+it and announces nobody. Keep the `aria-label` — or point `aria-labelledby` at
+your own visible text — exactly as you would outside a row.
+
+`disabled` still wins wherever you set it, in both directions, which is why it
+is `boolean | undefined` and defaults to `undefined` rather than `false`.
+`<Slider />` says nothing and takes the row's answer; `<Slider :disabled="false" />`
+says this one control is live even though its row is not, and is obeyed.
+
+There is no `readonly`, and a row's is ignored rather than approximated. The
+whole control is the drag: a track that shows a value and refuses to move is a
+[Progress](./progress) bar wearing a thumb, and one that looks live while
+swallowing every gesture is worse than either.
+
 ## API
 
 <!-- @api Slider -->

@@ -1,7 +1,8 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, type VNode } from "vue";
 import Select, { type SelectOption } from "./Select.vue";
+import { provideFieldContext } from "../../lib/field-context";
 import { LIST_STAGGER_STEP_MS, listStaggerDelay } from "../../lib/motion";
 import { attachToBody } from "../../testing/attach-to-body";
 
@@ -287,6 +288,21 @@ describe("Select choice", () => {
   });
 });
 
+// Every element that wraps text, anywhere under `root`. The rule these tests
+// pin is one line — **an `opacity` may dim a border, a fill or a glyph, and may
+// never dim text** — and it is a property of the tree rather than of any one
+// class name, so it is asserted by walking the tree rather than by naming the
+// class that happened to break it. A variant-prefixed utility sits in
+// `classList` whatever the element's current state is, so this catches
+// `disabled:opacity-50` on a node holding a label without the label's control
+// having to be disabled first.
+function textNodesCarryingOpacity(root: ParentNode): string[] {
+  return [...root.querySelectorAll<HTMLElement>("*")]
+    .filter((el) => el.textContent.trim() !== "")
+    .filter((el) => [...el.classList].some((name) => /(^|:)opacity-/.test(name)))
+    .map((el) => el.className);
+}
+
 describe("Select unavailable state", () => {
   it("refuses to open while disabled", async () => {
     mountSelect({ disabled: true });
@@ -312,6 +328,79 @@ describe("Select unavailable state", () => {
     expect(trigger.getAttribute("aria-invalid")).toBeNull();
     expect(trigger.hasAttribute("data-invalid")).toBe(false);
   });
+
+  it("drains the disabled trigger in measured colours instead of dimming the label it carries", async () => {
+    const wrapper = mountSelect({ modelValue: "vi", disabled: true });
+    await settle();
+    const trigger = getTrigger();
+
+    // The chosen value is the one thing a reader still needs from a control
+    // they cannot change, so it has to survive the unavailable state legibly.
+    expect(trigger.textContent).toContain("Tiếng Việt");
+    // Three channels rather than one: the fill drains, the label goes to the
+    // muted colour, and the rim slackens from `input` to the lighter `border`.
+    // Two of the three are `disabled:` variants so they outrank the resting
+    // colours on specificity; the border is plain so `cn()` can order it under
+    // the destructive rim, which the invalid case below pins.
+    expect(trigger.className).toContain("disabled:bg-muted");
+    expect(trigger.className).toContain("disabled:text-muted-foreground");
+    expect(trigger.classList.contains("border-border")).toBe(true);
+    expect(trigger.classList.contains("border-input")).toBe(false);
+
+    // The whole tree, not just the trigger: the fix is worthless if the dim
+    // simply moved to an ancestor of the same words.
+    expect(textNodesCarryingOpacity(document.body)).toEqual([]);
+    wrapper.unmount();
+  });
+
+  it("keeps the destructive rim on a trigger that is both invalid and unavailable", () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order: an error that
+    // stops being visible the moment the control goes unavailable is an error
+    // nobody can act on.
+    mountSelect({ modelValue: "vi", disabled: true, invalid: true });
+    const trigger = getTrigger();
+    expect(trigger.classList.contains("border-destructive")).toBe(true);
+    expect(trigger.classList.contains("border-border")).toBe(false);
+    expect(trigger.className).toContain("disabled:bg-muted");
+  });
+
+  it("never lifts the trigger to the fill that marks a value on show", () => {
+    // The documented decision, pinned: a row's `readonly` is ignored here,
+    // because a closed list has nothing to show that the trigger is not already
+    // showing. So the library's three resting appearances collapse to two, and
+    // the middle fill must never reach this control from any direction.
+    mountSelect({ modelValue: "vi" });
+    const trigger = getTrigger();
+    expect(trigger.classList.contains("bg-background")).toBe(true);
+    // `hover:bg-subtle` is a pointer state and is expected; a resting or a
+    // read-only-driven `bg-subtle` is not.
+    expect(trigger.classList.contains("bg-subtle")).toBe(false);
+  });
+
+  it("dims no text on any row of the open list, including the one nobody can choose", async () => {
+    // The rows are portalled, so they only exist to be walked once the list is
+    // open — and the unchoosable row is where the defect used to live.
+    mountSelect({ modelValue: "en" });
+    await openList();
+    expect(getOptions()).toHaveLength(3);
+    expect(textNodesCarryingOpacity(document.body)).toEqual([]);
+  });
+
+  it("mutes an unchoosable row on its own text node, where a checked row's colour cannot outrank it", async () => {
+    mountSelect({ modelValue: "ja" });
+    await openList();
+
+    // The third row is both disabled and the chosen one — the case that made
+    // the container the wrong home for the colour, since `data-[disabled]:`
+    // sorts ahead of `data-[state=checked]:` and would have lost.
+    const row = getOptions()[2];
+    if (!row) throw new Error("no third row");
+    expect(row.getAttribute("data-state")).toBe("checked");
+
+    const label = [...row.querySelectorAll("*")].find((el) => el.textContent === "日本語");
+    expect(label?.className).toContain("text-muted-foreground");
+  });
 });
 
 describe("Select size", () => {
@@ -327,6 +416,163 @@ describe("Select size", () => {
   it("falls back to the middle of the scale when no size is asked for", () => {
     mountSelect();
     expect(getTrigger().className).toContain("h-9");
+  });
+});
+
+// A stand-in for the Field wrapping this control. Field itself is a
+// project-internal collaborator, and its own behaviour — which id it mints,
+// when it publishes a description — is pinned in `Field.test.ts`. What matters
+// here is the other half: that this control reads a row it is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+// The trigger is the only part of this control that is not portalled, so every
+// assertion below is scoped to the mounted row rather than to `document` —
+// which is what lets one test mount two rows and compare them.
+function mountRow(
+  rowProps: Partial<InstanceType<typeof ProbeRow>["$props"]> = {},
+  control: VNode = h(Select, { options }),
+  into: Element = document.body,
+) {
+  return mount(ProbeRow, {
+    props: rowProps,
+    slots: { default: control },
+    attachTo: into,
+  });
+}
+
+describe("Select inside a Field", () => {
+  it("takes its id, description, required and invalid state from the row it sits in", () => {
+    const row = mountRow({
+      controlId: "language",
+      describedBy: "language-description",
+      required: true,
+      invalid: true,
+    });
+    const trigger = row.get(TRIGGER);
+
+    expect(trigger.attributes("id")).toBe("language");
+    expect(trigger.attributes("aria-describedby")).toBe("language-description");
+    expect(trigger.attributes("aria-required")).toBe("true");
+    expect(trigger.attributes("aria-invalid")).toBe("true");
+    expect(trigger.attributes("data-invalid")).toBeDefined();
+  });
+
+  it("refuses to open inside a disabled row, the same as it does for its own prop", async () => {
+    const row = mountRow({ disabled: true });
+    expect(row.get(TRIGGER).attributes("disabled")).toBeDefined();
+
+    await openList();
+    expect(getListbox()).toBeNull();
+  });
+
+  it("ignores the row's read-only, leaving the trigger open-able and unlifted", async () => {
+    // The documented decision, pinned from both sides: a read-only Select would
+    // be a disabled Select that lies about being reachable, so a row's
+    // `readonly` changes neither the behaviour nor the fill. Rows holding a
+    // value nobody may edit want `disabled`, or no control at all.
+    const row = mountRow({ readonly: true });
+    const trigger = row.get(TRIGGER);
+    expect(trigger.classes()).toContain("bg-background");
+    expect(trigger.classes()).not.toContain("bg-subtle");
+
+    await openList();
+    expect(getListbox()).not.toBeNull();
+  });
+
+  it("lets an explicit prop overrule the row in both directions", () => {
+    const optedOut = mountRow(
+      { invalid: true, disabled: true },
+      h(Select, { options, invalid: false, disabled: false }),
+    );
+    const optedOutTrigger = optedOut.get(TRIGGER);
+    expect(optedOutTrigger.attributes("aria-invalid")).toBeUndefined();
+    expect(optedOutTrigger.attributes("data-invalid")).toBeUndefined();
+    expect(optedOutTrigger.attributes("disabled")).toBeUndefined();
+
+    const optedIn = mountRow({}, h(Select, { options, invalid: true }));
+    expect(optedIn.get(TRIGGER).attributes("aria-invalid")).toBe("true");
+  });
+
+  it("keeps a caller's own id, so the row never moves a label or a selector they published", () => {
+    const row = mountRow(
+      { controlId: "language" },
+      h(Select, { options, id: "chosen-by-the-host" }),
+    );
+    expect(row.get(TRIGGER).attributes("id")).toBe("chosen-by-the-host");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mountRow(
+      { describedBy: "language-description" },
+      h(Select, { options, "aria-describedby": "shortcut-hint" }),
+    );
+    expect(row.get(TRIGGER).attributes("aria-describedby")).toBe(
+      "shortcut-hint language-description",
+    );
+  });
+
+  it("posts the chosen value under the row's name, and nothing under it while nothing is chosen", async () => {
+    const form = attachToBody(document.createElement("form"));
+    const row = mountRow({ name: "language" }, h(Select, { options, modelValue: "vi" }), form);
+    await settle();
+
+    // A trigger is a `<button type="button">`, whose `name` no submission has
+    // ever included, so the value travels in a hidden input instead.
+    const submitted = form.querySelector<HTMLInputElement>('input[name="language"]');
+    expect(submitted?.value).toBe("vi");
+    expect(row.get(TRIGGER).attributes("name")).toBeUndefined();
+
+    // The empty case is the one a native `<select>` gets wrong: it always
+    // resolves to one of its options, so it would post "en" here.
+    row.unmount();
+    mountRow({ name: "language" }, h(Select, { options, placeholder: "Choose" }), form);
+    await settle();
+    expect(form.querySelector<HTMLInputElement>('input[name="language"]')?.value).toBe("");
+  });
+
+  it("publishes the row's required state on the trigger, which is the node a reader lands on", () => {
+    // Reka pins `aria-required` to the root's own prop and its as-child merge
+    // lets that declaration beat any attribute passed in, so this is the one
+    // resolved value that has to travel as a prop rather than in the bag —
+    // spread onto the trigger it would be dropped without a word.
+    const required = mountRow({ required: true });
+    expect(required.get(TRIGGER).attributes("aria-required")).toBe("true");
+
+    const optional = mountRow({});
+    expect(optional.get(TRIGGER).attributes("aria-required")).toBe("false");
+  });
+
+  it("adds nothing at all when there is no row above it", () => {
+    const bare = mount(Select, { props: { options }, attachTo: document.body });
+    const trigger = bare.get(TRIGGER);
+
+    expect(trigger.attributes("id")).toBeUndefined();
+    expect(trigger.attributes("name")).toBeUndefined();
+    expect(trigger.attributes("aria-describedby")).toBeUndefined();
+    expect(trigger.attributes("aria-invalid")).toBeUndefined();
+    expect(trigger.attributes("data-invalid")).toBeUndefined();
   });
 });
 

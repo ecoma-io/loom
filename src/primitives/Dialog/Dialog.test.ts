@@ -1,8 +1,19 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { attachToBody } from "../../testing/attach-to-body";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import Dialog from "./Dialog.vue";
+
+/** A host declaring an application-wide vocabulary above the dialog. */
+function hostWith(vocabulary: () => LoomLabelOverrides) {
+  return defineComponent({
+    setup(_props, { slots }) {
+      provideLoomLabels(vocabulary);
+      return () => h("div", slots.default?.());
+    },
+  });
+}
 
 let mounted: VueWrapper | undefined;
 
@@ -178,5 +189,61 @@ describe("Dialog", () => {
   it("renders no trigger when the host drives the dialog entirely through v-model", async () => {
     await mountDialog({ open: false });
     expect(document.querySelectorAll("button")).toHaveLength(0);
+  });
+});
+
+describe("Dialog labels", () => {
+  it("names the close control in English when no host vocabulary is above it", async () => {
+    await mountDialog();
+    expect(document.querySelector("[aria-label='Close']")).not.toBeNull();
+  });
+
+  it("lets one instance correct the close control's name through its own prop", async () => {
+    await mountDialog({ labels: { close: "Stop importing" } });
+    expect(document.querySelector("[aria-label='Stop importing']")).not.toBeNull();
+    expect(document.querySelector("[aria-label='Close']")).toBeNull();
+  });
+
+  it("takes the name from a host's vocabulary, and lets the instance's own prop beat it", async () => {
+    const locale = ref("vi");
+    mounted = mount(
+      hostWith(() => (locale.value === "vi" ? { dialog: { close: "Đóng" } } : {})),
+      {
+        attachTo: document.body,
+        slots: {
+          default: () => [
+            h(Dialog, { open: true, title: "Scene 12" }),
+            h(Dialog, { open: true, title: "Import", labels: { close: "Dừng nhập" } }),
+          ],
+        },
+      },
+    );
+    await settle();
+
+    const names = [...document.querySelectorAll("[role='dialog'] [aria-label]")].map((el) =>
+      el.getAttribute("aria-label"),
+    );
+    expect(names).toEqual(["Đóng", "Dừng nhập"]);
+  });
+
+  it("repaints the name when the host switches language under an already-open dialog", async () => {
+    const locale = ref("en");
+    mounted = mount(
+      hostWith(() => (locale.value === "en" ? {} : { dialog: { close: "Đóng" } })),
+      {
+        attachTo: document.body,
+        slots: { default: () => h(Dialog, { open: true, title: "Scene 12" }) },
+      },
+    );
+    await settle();
+    expect(document.querySelector("[aria-label='Close']")).not.toBeNull();
+
+    // The assertion that fails the moment a label is resolved once in `setup`
+    // rather than inside the render effect: every other test here still passes
+    // and every language switch silently stops working.
+    locale.value = "vi";
+    await settle();
+    expect(document.querySelector("[aria-label='Đóng']")).not.toBeNull();
+    expect(document.querySelector("[aria-label='Close']")).toBeNull();
   });
 });

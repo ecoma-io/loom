@@ -105,6 +105,21 @@ describe("Menubar open/close", () => {
     wrapper.unmount();
   });
 
+  // The defect this pins. `disabled:opacity-40` composited the row's label to
+  // 2.40:1 on the popover and its shortcut to 1.79:1 — a row that says what is
+  // unavailable, in a colour that says nothing. It is the measured muted colour
+  // now, 5.76:1, and the row still reads as unavailable because an available
+  // one sits at 15.46:1.
+  it("mutes a disabled row's label instead of fading it", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("click");
+    const open = fileItemButtons(wrapper)[1]!;
+
+    expect(open.classes().some((c) => c.includes("opacity"))).toBe(false);
+    expect(open.classes()).toContain("disabled:text-muted-foreground");
+    wrapper.unmount();
+  });
+
   it("Escape on the trigger closes the menu", async () => {
     const wrapper = mountMenubar();
     const trigger = wrapper.get("#menubar-trigger-file");

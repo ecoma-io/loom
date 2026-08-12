@@ -6,6 +6,56 @@
  * is the point of dogfooding here: if a token is wrong, the site the reader is
  * looking at is what shows it, before anyone reaches a component page.
  */
+
+/* ---- Claim the utilities emission point, unlayered -------------------------
+ * This line has to come *before* the `global.css` import below, and the order
+ * is the whole mechanism. Do not sort these two.
+ *
+ * VitePress's default theme ships an unlayered reset (its
+ * `theme-default/styles/base.css`):
+ *
+ *   button,input,optgroup,select,textarea{border:0;padding:0;line-height:inherit;color:inherit}
+ *   button{padding:0;font-family:inherit;background-color:transparent;background-image:none}
+ *
+ * Unlayered CSS beats layered CSS unconditionally — not on specificity, not on
+ * source order, but because the cascade compares layers before it reaches
+ * either. `global.css` puts Tailwind's utilities in `@layer utilities`, so on
+ * this site every `bg-*`, `text-<colour>`, `border` and padding utility landing
+ * on a `<button>`, `<input>`, `<select>` or `<textarea>` lost to that reset —
+ * silently, because nothing in CSS reports a rule that was outranked. Measured
+ * against the built stylesheet before this line existed: the Button page's
+ * `bg-primary` button computed to `background-color: rgba(0, 0, 0, 0)` with
+ * `0px` padding and `0px` border, Select's trigger the same, and Stepper's
+ * indicator discs painted nothing. All of those components are correct in an
+ * application; only this site was wrong.
+ *
+ * `@layer utilities` must stay in `global.css` — it is right for a consumer,
+ * whose own CSS should be able to sit above Loom's utilities, and moving it
+ * would be a breaking change to every application that installs Loom. So the
+ * override belongs here instead: Tailwind emits its utilities exactly once, at
+ * the first emission point it encounters, and this import claims that point
+ * with no `layer()` on it. `global.css`'s own
+ * `@import "tailwindcss/utilities.css" layer(utilities)` then finds the work
+ * already done and contributes nothing. The utilities are emitted once, not
+ * twice — the built stylesheet did not grow by a byte, and the only difference
+ * in it is the missing `@layer utilities{…}` wrapper.
+ *
+ * What it costs is honesty about the premise above: the site no longer imports
+ * only what a consumer imports. It imports the same stylesheet, with one line
+ * ahead of it that moves the utilities out of their layer. Everything a reader
+ * is looking at — tokens, components, variants — is still the library's; what
+ * differs is a cascade position that exists to cancel VitePress, which no
+ * consumer has. Nothing in `src/` changes, so the package is unaffected.
+ *
+ * The one thing to watch on a Tailwind upgrade is that emit-once behaviour. If
+ * a future version emits at every point instead, the layered copy comes back
+ * and the site simply grows by the size of the utilities — unlayered still
+ * wins, so the fix holds; and if it errors on two, the build fails loudly.
+ * Neither failure mode is silent, which is what makes this safe to rely on.
+ *
+ * Delete this line and the site still compiles, every test that does not read a
+ * computed colour still passes, and every button on the site goes transparent. */
+@import "tailwindcss/utilities.css";
 @import "../../../src/styles/global.css";
 
 /* Loom's `global.css` registers `src/` as a scan target, which covers the

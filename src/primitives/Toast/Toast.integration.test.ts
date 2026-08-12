@@ -1,7 +1,18 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import Toast from "./Toast.vue";
+
+/** A host declaring an application-wide vocabulary above the toast. */
+function hostWith(vocabulary: () => LoomLabelOverrides) {
+  return defineComponent({
+    setup(_props, { slots }) {
+      provideLoomLabels(vocabulary);
+      return () => h("div", slots.default?.());
+    },
+  });
+}
 
 // Integration tier, deliberately: every case here proves the rendered card —
 // its description line, variant accent, action button, close button,
@@ -53,10 +64,9 @@ describe("Toast", () => {
     // passed for any string at all, a literal "undefined" included. The hotkey
     // is the only way a keyboard user reaches a toast that has already been
     // announced, and it is announced with the region — a name that lost it is
-    // a region nobody can get back to. The string is Reka's default, which
-    // this component deliberately does not override; pinning it therefore
-    // reports both halves — an override introduced here, or the announced name
-    // changing under an upgrade. Either is news, so neither should land quiet.
+    // a region nobody can get back to. Loom's own English is deliberately the
+    // same words as Reka's default here; what makes it Loom's is that it is
+    // replaceable, which `Toast labels` below is what proves.
     expect(region.getAttribute("aria-label")).toBe("Notifications (F8)");
     expect(region.contains(viewport())).toBe(true);
     expect(viewport().querySelector("li")!.getAttribute("data-state")).toBe("open");
@@ -148,5 +158,102 @@ describe("Toast", () => {
     await nextTick();
     await nextTick();
     expect(viewport().textContent).toContain("Saved");
+  });
+});
+
+describe("Toast labels", () => {
+  /**
+   * The hidden region Reka reads out ahead of the card's own text. It renders
+   * two animation frames after the toast, deliberately, so that a screen
+   * reader is handed the whole message at once rather than mid-assembly.
+   */
+  async function announcement(): Promise<string> {
+    for (let i = 0; i < 4; i++) {
+      await nextTick();
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          resolve(null);
+        });
+      });
+    }
+    return document.querySelector('[role="alert"]')!.textContent;
+  }
+
+  it("names the close control, the region and the announcement in English by default", async () => {
+    await mountToast();
+    expect(document.querySelector("[aria-label='Close']")).not.toBeNull();
+    expect(document.querySelector('[role="region"]')!.getAttribute("aria-label")).toBe(
+      "Notifications (F8)",
+    );
+  });
+
+  it("replaces the word Reka reads out ahead of every toast, which no attribute on the card can reach", async () => {
+    // `ToastProvider`'s `label` is prefixed to the announcement of every toast
+    // in the application. Left unset it is "Notification", in English, spoken
+    // from a hidden live region nothing else on the page can reach.
+    await mountToast({ labels: { announce: "Thông báo" } });
+    expect(await announcement()).toBe("Thông báo Saved");
+  });
+
+  it("hands the region label the hotkey raw, so a language decides where the key sits in the phrase", async () => {
+    await mountToast({
+      labels: { region: ({ hotkey }: { hotkey: string }) => `Thông báo — ${hotkey}` },
+    });
+    expect(document.querySelector('[role="region"]')!.getAttribute("aria-label")).toBe(
+      "Thông báo — F8",
+    );
+  });
+
+  it("takes its names from a host's vocabulary, and lets the instance's own prop beat it", async () => {
+    mounted = mount(
+      hostWith(() => ({ toast: { close: "Đóng", announce: "Thông báo" } })),
+      {
+        attachTo: document.body,
+        slots: {
+          default: () => h(Toast, { open: true, title: "Saved", labels: { close: "Bỏ qua" } }),
+        },
+      },
+    );
+    await nextTick();
+    await nextTick();
+
+    expect(document.querySelector("[aria-label='Bỏ qua']")).not.toBeNull();
+    expect(document.querySelector("[aria-label='Close']")).toBeNull();
+  });
+
+  it("repaints its names when the host switches language under an open toast", async () => {
+    const locale = ref("en");
+    mounted = mount(
+      hostWith(() =>
+        locale.value === "en"
+          ? {}
+          : {
+              toast: {
+                close: "Đóng",
+                region: ({ hotkey }: { hotkey: string }) => `Thông báo (${hotkey})`,
+              },
+            },
+      ),
+      {
+        attachTo: document.body,
+        slots: { default: () => h(Toast, { open: true, title: "Saved" }) },
+      },
+    );
+    await nextTick();
+    await nextTick();
+    expect(document.querySelector("[aria-label='Close']")).not.toBeNull();
+
+    // The assertion that fails the moment a label is resolved once in `setup`
+    // rather than inside the render effect: every other test here still passes
+    // and every language switch silently stops working. The region's name goes
+    // through Reka's own `label` prop, so this pins the function handed to it
+    // being re-read as well as the card's own binding.
+    locale.value = "vi";
+    await nextTick();
+    await nextTick();
+    expect(document.querySelector("[aria-label='Đóng']")).not.toBeNull();
+    expect(document.querySelector('[role="region"]')!.getAttribute("aria-label")).toBe(
+      "Thông báo (F8)",
+    );
   });
 });

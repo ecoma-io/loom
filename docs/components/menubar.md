@@ -39,6 +39,11 @@ const menus: MenubarMenu[] = [
   <MenubarDemo />
 </Demo>
 
+A disabled row is muted rather than faded. A row is nothing but its label, and
+what a disabled row exists to say is _which_ command is unavailable — the one
+thing an unreadable label withholds. The accelerator beside it is already on the
+muted colour and stays there, so the pair reads as one drop rather than two.
+
 ## Keyboard
 
 | Key                                  | Behaviour                                                                        |

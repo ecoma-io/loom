@@ -142,7 +142,20 @@ function choose(item: DropdownMenuEntry): void {
                 // highlighted mid-reveal still responds at once.
                 'animate-fade-rise',
                 'data-[highlighted]:bg-subtle',
-                'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
+                // The row's colour, not its alpha. A menu row is nothing but
+                // its label, and `data-[disabled]:opacity-40` composited that
+                // label to 2.40:1 on the popover and its shortcut to 1.79:1 —
+                // a disabled row a reader cannot make out tells them nothing
+                // about what is unavailable, which is the only thing it is
+                // there to say. Muted instead: 5.76:1, and a clear drop from
+                // the 15.46:1 an available row wears.
+                //
+                // It takes the danger colour with it, deliberately. An
+                // attribute selector outranks the plain `text-destructive`
+                // below whatever order Tailwind emits them in, and that is the
+                // right way round: red is a warning about an action, and there
+                // is no action here to warn about.
+                'data-[disabled]:pointer-events-none data-[disabled]:text-muted-foreground',
                 item.danger &&
                   'text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive',
               )

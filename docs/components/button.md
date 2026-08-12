@@ -69,14 +69,42 @@ other is `aria-hidden`, because opacity hides nothing from a screen reader.
 
 ## Disabled
 
-The 50% dim belongs to a disabled button only. It is applied from the
-`disabled` prop rather than from the DOM disabled state, because a loading
-button is also DOM-disabled yet has to read as _working_, not _unavailable_.
+A disabled button **drains** rather than dims, and it drains on three channels
+at once: the fill falls to the neutral well, the label to
+`--color-muted-foreground` — 4.67:1 over it — and the border slackens from
+`--color-input` to the lighter `--color-border`. A state told in hue alone is a
+state a reader with a colour deficiency does not receive, so the fill and the
+weight say it as well.
 
-<Demo title="Disabled">
+There is no `opacity` in any of that, and the reason is that a button is nothing
+but a label on a fill: half alpha took a disabled `primary` label to 1.62:1
+against its own faded fill and a disabled `outline` to 3.14:1 on the page
+ground, and no amount of recolouring the label reaches either number, because
+the fade multiplies whatever colour it is given.
+
+One neutral treatment covers all six variants rather than six drained pairs. The
+fill is what carries a variant's emphasis, and an unavailable button has no
+emphasis to carry — the two filled variants give up their hue and the three
+transparent ones gain a fill, so every one of them changes visibly on the way
+in. It is the same well [Chip](./chip) and [Stepper](./stepper) drain to, so an
+unavailable control looks the same wherever it appears.
+
+It is applied from the `disabled` prop rather than from the DOM disabled state,
+because a loading button is also DOM-disabled yet has to read as _working_, not
+_unavailable_.
+
+<Demo title="Available against disabled">
+  <Button>Available</Button>
   <Button disabled>Disabled</Button>
+  <Button variant="outline">Available</Button>
   <Button variant="outline" disabled>Disabled</Button>
 </Demo>
+
+A button has no read-only state, and nothing here approximates one. Read-only is
+a value a reader may see but not change, and a button holds no value — a button
+nobody may press is a disabled button, and the lifted fill that marks a value on
+show never appears on it. Buttons rest in two appearances, not the three a
+[TextField](./text-field) has.
 
 ## API
 

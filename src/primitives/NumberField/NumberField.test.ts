@@ -1,7 +1,11 @@
 import { mount } from "@vue/test-utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
+import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import NumberField from "./NumberField.vue";
+import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
+import { attachToBody } from "../../testing/attach-to-body";
 
 function mountField(props: Partial<InstanceType<typeof NumberField>["$props"]> = {}) {
   return mount(NumberField, { props: { modelValue: 10, ...props } });
@@ -391,6 +395,241 @@ describe("NumberField unmount cleanliness", () => {
   });
 });
 
+describe("NumberField read-only", () => {
+  it("stays a Tab stop and stays enabled, where a disabled field is neither", () => {
+    // The two are different states, not two dials on one: a read-only value is
+    // on show and reachable by keyboard, a disabled one is unavailable.
+    const readOnly = mount(NumberField, {
+      props: { modelValue: 10, readonly: true },
+      attachTo: document.body,
+    });
+    const input = readOnly.get(SPINBUTTON).element as HTMLInputElement;
+    input.focus();
+    expect(document.activeElement).toBe(input);
+    expect(input.readOnly).toBe(true);
+    expect(input.disabled).toBe(false);
+
+    // The disabled half is asserted on the property rather than by focusing:
+    // Reka writes an explicit `tabindex` on the spinbutton, and jsdom's
+    // focusable-area rule answers `true` for anything carrying one before it
+    // ever looks at `disabled`. A browser refuses the focus; jsdom would grant
+    // it, so a focus assertion here would pin the stub rather than the rule.
+    const disabled = mount(NumberField, { props: { modelValue: 10, disabled: true } });
+    expect((disabled.get(SPINBUTTON).element as HTMLInputElement).disabled).toBe(true);
+  });
+
+  it("lifts its fill where an editable field's rests, and keeps the number and the rim", () => {
+    // The middle of three resting appearances. Read-only used to share the
+    // disabled fill and part from it on the text colour alone, which is a
+    // distinction in hue and nothing else.
+    const readOnly = mountField({ readonly: true });
+    expect(readOnly.get(ROOT).classes()).toEqual(
+      expect.arrayContaining(["bg-subtle", "border-input"]),
+    );
+    expect(readOnly.get(ROOT).classes()).not.toContain("bg-muted");
+    expect(readOnly.get(ROOT).classes()).not.toContain("opacity-50");
+    // A read-only value is on show: its text stays where an editable one is.
+    expect(readOnly.get(SPINBUTTON).classes()).toContain("text-foreground");
+    expect(readOnly.get(ROOT).attributes("data-readonly")).toBeDefined();
+
+    const editable = mountField();
+    expect(editable.get(ROOT).classes()).toEqual(
+      expect.arrayContaining(["bg-background", "border-input"]),
+    );
+    expect(editable.get(ROOT).classes()).not.toContain("bg-subtle");
+    expect(editable.get(ROOT).attributes("data-readonly")).toBeUndefined();
+  });
+
+  // The defect this pins: `opacity-50` on the box faded the value inside it —
+  // `--color-foreground` is 14.09:1 on the resting fill and 2.99:1 once
+  // composited at half alpha, with the unit suffix beside it down at 2.02:1.
+  // The state is a drained fill now, and the number keeps a measured 4.68:1.
+  it("drains an unavailable field in colour and weight rather than fading its value", () => {
+    const disabled = mountField({ disabled: true, unit: "px" });
+    expect(disabled.get(ROOT).classes()).not.toContain("opacity-50");
+    // All three channels move together, and the fill lands a step past the one
+    // read-only takes rather than on it.
+    expect(disabled.get(ROOT).classes()).toEqual(
+      expect.arrayContaining(["bg-muted", "border-border"]),
+    );
+    expect(disabled.get(ROOT).classes()).not.toContain("bg-subtle");
+    expect(disabled.get(ROOT).classes()).not.toContain("border-input");
+
+    // On the input rather than inherited from the box: the input names
+    // `text-foreground` itself, and a colour set on an ancestor is only
+    // inherited — it would lose to that declaration every time. `cn()` is what
+    // keeps the pair to one class rather than two for the stylesheet to order.
+    const input = disabled.get(SPINBUTTON);
+    expect(input.classes()).toContain("text-muted-foreground");
+    expect(input.classes()).not.toContain("text-foreground");
+    expect(input.classes()).toContain("cursor-not-allowed");
+    expect(input.classes().some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+  });
+
+  it("keeps the destructive rim on a field that is both invalid and unavailable", () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order: an error that
+    // stops being visible the moment the row goes unavailable is an error
+    // nobody can act on.
+    const wrapper = mountField({ disabled: true, invalid: true });
+    expect(wrapper.get(ROOT).classes()).toContain("border-destructive");
+    expect(wrapper.get(ROOT).classes()).not.toContain("border-border");
+    expect(wrapper.get(ROOT).classes()).toContain("bg-muted");
+  });
+
+  it("takes no scrub: the pointer places a caret instead of running the value", () => {
+    const wrapper = mountField({ readonly: true, step: 1 });
+    const root = wrapper.get(ROOT).element;
+    firePointer(root, "pointerdown", { clientX: 100, clientY: 0 });
+    fireWindow("pointermove", { clientX: 140, clientY: 0 });
+    fireWindow("pointerup", { clientX: 140, clientY: 0 });
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+    expect(wrapper.emitted("commit")).toBeUndefined();
+    expect(wrapper.get(SPINBUTTON).classes()).not.toContain("cursor-ew-resize");
+  });
+
+  it("takes no Shift+Arrow either, so the keyboard cannot edit what the pointer cannot", async () => {
+    const wrapper = mountField({ readonly: true, step: 1 });
+    await wrapper.get(ROOT).trigger("keydown", { key: "ArrowUp", shiftKey: true });
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+  });
+
+  it("renders no stepper, rather than two buttons that answer by doing nothing", () => {
+    expect(mountField({ readonly: true }).findAll("button")).toHaveLength(0);
+    expect(mountField().findAll("button")).toHaveLength(2);
+  });
+});
+
+// A stand-in for the Field wrapping this control. Field itself is a
+// project-internal collaborator, and its own behaviour — which id it mints,
+// when it publishes a description — is pinned in `Field.test.ts`. What matters
+// here is the other half: that this control reads a row it is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountRow(
+  rowProps: Partial<InstanceType<typeof ProbeRow>["$props"]> = {},
+  control: VNode = h(NumberField, { modelValue: 10 }),
+  into: Element = document.body,
+) {
+  return mount(ProbeRow, { props: rowProps, slots: { default: control }, attachTo: into });
+}
+
+describe("NumberField inside a Field", () => {
+  it("takes its id, description, required and invalid state from the row it sits in", () => {
+    const row = mountRow({
+      controlId: "rotation",
+      describedBy: "rotation-description",
+      required: true,
+      invalid: true,
+    });
+    const input = row.get(SPINBUTTON);
+
+    expect(input.attributes("id")).toBe("rotation");
+    expect(input.attributes("aria-describedby")).toBe("rotation-description");
+    expect(input.attributes("aria-required")).toBe("true");
+    expect(input.attributes("aria-invalid")).toBe("true");
+    // The destructive border is painted on the group, so the row's error has
+    // to reach that node too rather than only the spinbutton inside it.
+    expect(row.get(ROOT).classes()).toContain("border-destructive");
+  });
+
+  it("takes the row's disabled and read-only states, which stay different states", () => {
+    const disabled = mountRow({ disabled: true });
+    expect(disabled.get(SPINBUTTON).attributes("disabled")).toBeDefined();
+
+    const readOnly = mountRow({ readonly: true });
+    const input = readOnly.get(SPINBUTTON).element as HTMLInputElement;
+    expect(input.readOnly).toBe(true);
+    expect(input.disabled).toBe(false);
+    // The row's read-only reaches the fill as the field's own prop would: the
+    // lifted one, not the drained one a disabled row takes.
+    expect(readOnly.get(ROOT).classes()).toContain("bg-subtle");
+    expect(readOnly.get(ROOT).classes()).not.toContain("bg-muted");
+  });
+
+  it("lets an explicit prop overrule the row in both directions", () => {
+    const optedOut = mountRow(
+      { invalid: true, disabled: true, readonly: true },
+      h(NumberField, { modelValue: 10, invalid: false, disabled: false, readonly: false }),
+    );
+    const optedOutInput = optedOut.get(SPINBUTTON).element as HTMLInputElement;
+    expect(optedOut.get(SPINBUTTON).attributes("aria-invalid")).toBeUndefined();
+    expect(optedOutInput.disabled).toBe(false);
+    expect(optedOutInput.readOnly).toBe(false);
+    expect(optedOut.get(ROOT).classes()).not.toContain("border-destructive");
+
+    const optedIn = mountRow({}, h(NumberField, { modelValue: 10, invalid: true, readonly: true }));
+    expect(optedIn.get(SPINBUTTON).attributes("aria-invalid")).toBe("true");
+    expect((optedIn.get(SPINBUTTON).element as HTMLInputElement).readOnly).toBe(true);
+  });
+
+  it("keeps a caller's own id, so the row never moves a label or a selector they published", () => {
+    const row = mountRow(
+      { controlId: "rotation" },
+      h(NumberField, { modelValue: 10, id: "chosen-by-the-host" }),
+    );
+    expect(row.get(SPINBUTTON).attributes("id")).toBe("chosen-by-the-host");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mountRow(
+      { describedBy: "rotation-description" },
+      h(NumberField, { modelValue: 10, "aria-describedby": "scrub-hint" }),
+    );
+    expect(row.get(SPINBUTTON).attributes("aria-describedby")).toBe(
+      "scrub-hint rotation-description",
+    );
+  });
+
+  it("posts the raw number under the row's name, never the formatted text on screen", async () => {
+    const form = attachToBody(document.createElement("form"));
+    const row = mountRow({ name: "width" }, h(NumberField, { modelValue: 1234 }), form);
+    await nextTick();
+
+    // The whole reason the row's name is given to the root rather than spread
+    // onto the spinbutton with the rest of the resolved bag: the spinbutton
+    // holds the *formatted* number, so a `name` on it would post `1,234`.
+    expect(row.get(SPINBUTTON).attributes("name")).toBeUndefined();
+    expect((row.get(SPINBUTTON).element as HTMLInputElement).value).toBe("1,234");
+    const submitted = form.querySelector<HTMLInputElement>('input[name="width"]');
+    expect(submitted?.value).toBe("1234");
+  });
+
+  it("adds nothing at all when there is no row above it", () => {
+    const bare = mountField();
+    const input = bare.get(SPINBUTTON);
+
+    expect(input.attributes("id")).toBeUndefined();
+    expect(input.attributes("name")).toBeUndefined();
+    expect(input.attributes("aria-describedby")).toBeUndefined();
+    expect(input.attributes("aria-required")).toBeUndefined();
+    expect(input.attributes("aria-invalid")).toBeUndefined();
+    expect(bare.get(ROOT).attributes("data-readonly")).toBeUndefined();
+  });
+});
+
 describe("NumberField clamping under arbitrary props", () => {
   // Finite inputs only: a NaN model value is not a valid host input, and what
   // the component does with one is a separate question.
@@ -428,5 +667,103 @@ describe("NumberField clamping under arbitrary props", () => {
       // would only re-sample the same clamp arithmetic.
       { numRuns: 100 },
     );
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the control. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: { type: Function as PropType<() => LoomLabelOverrides>, required: true },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+/** The stepper's two buttons, in document order. */
+function stepperNames(wrapper: {
+  findAll: (s: string) => { attributes: (n: string) => string | undefined }[];
+}) {
+  return wrapper.findAll("button").map((b) => b.attributes("aria-label"));
+}
+
+describe("NumberField labels", () => {
+  it("names both spinners and the field itself from its own English", () => {
+    const wrapper = mountField();
+    expect(stepperNames(wrapper)).toEqual(["Increase value", "Decrease value"]);
+    // Reka's own are the bare verbs, written inside its render function with no
+    // prop to reach them by. A dropped binding falls back to those rather than
+    // to an unnamed button, which is why the wording differs deliberately.
+    for (const name of stepperNames(wrapper)) {
+      expect(name).not.toMatch(/^(Increase|Decrease)$/);
+    }
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Number field");
+  });
+
+  it("replaces every one of them when a caller hands it a bag", () => {
+    const wrapper = mountField({
+      labels: { increment: "Tăng", decrement: "Giảm", roleDescription: "Ô số" },
+    });
+    expect(stepperNames(wrapper)).toEqual(["Tăng", "Giảm"]);
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Ô số");
+    // Replacing the name leaves everything else Reka publishes about the
+    // spinbutton intact — the override is not a whole-props takeover.
+    expect(wrapper.get(SPINBUTTON).attributes("aria-valuenow")).toBe("10");
+  });
+
+  it("keeps the keys a caller left out in English instead of blanking them", () => {
+    const wrapper = mountField({ labels: { increment: "Tăng" } });
+    expect(stepperNames(wrapper)).toEqual(["Tăng", "Decrease value"]);
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Number field");
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct one key", () => {
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => ({ numberField: { increment: "Tăng", roleDescription: "Ô số" } }),
+      },
+      slots: {
+        default: () => [
+          h(NumberField, { modelValue: 10 }),
+          // The per-instance case: a field whose number is a rotation, which no
+          // application-wide vocabulary can know.
+          h(NumberField, { modelValue: 10, labels: { roleDescription: "Góc xoay" } }),
+        ],
+      },
+    });
+    const fields = wrapper.findAll('[role="spinbutton"]');
+    expect(fields[0]!.attributes("aria-roledescription")).toBe("Ô số");
+    expect(fields[1]!.attributes("aria-roledescription")).toBe("Góc xoay");
+    // The vocabulary still reaches the key neither instance touched.
+    expect(stepperNames(wrapper)).toEqual(["Tăng", "Decrease value", "Tăng", "Decrease value"]);
+  });
+
+  it("repaints its names when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => (locale.value === "en" ? {} : { numberField: { increment: "Tăng" } }),
+      },
+      slots: { default: () => h(NumberField, { modelValue: 10 }) },
+    });
+    expect(stepperNames(wrapper)[0]).toBe("Increase value");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(stepperNames(wrapper)[0]).toBe("Tăng");
+  });
+
+  it("lets a caller's own aria-roledescription attribute still beat the resolved label", () => {
+    // The binding sits before the fallthrough spread precisely so this works:
+    // it is there to defeat Reka's literal, not the caller's.
+    const wrapper = mount(NumberField, {
+      props: { modelValue: 10 },
+      attrs: { "aria-roledescription": "Rotation" },
+    });
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Rotation");
   });
 });

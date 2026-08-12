@@ -41,6 +41,29 @@ This keeps the label's layout — inline, above, with a description underneath
   </div>
 </Demo>
 
+## Inside a Field
+
+The setting row is usually your own layout, but where it is a [Field](./field)
+the wiring stops being your job: the row's id lands on the button — labelable,
+so the row's `<label for>` names the one control here that carries no label of
+its own — and the row's description, `name`, `required` and `invalid` come with
+it.
+
+```vue
+<Field label="Autosave" hint="Saves every change as you make it">
+  <Switch v-model="autosave" name="autosave" />
+</Field>
+```
+
+`disabled` still wins wherever you set it, in both directions, which is why it
+is `boolean | undefined` and defaults to `undefined` rather than `false`.
+`<Switch />` says nothing and takes the row's answer; `<Switch :disabled="false" />`
+says this one setting is live even though its row is not, and is obeyed.
+
+There is no `readonly` here, and a row's is ignored rather than approximated. A
+setting that cannot be flipped is disabled; one that looks live and refuses the
+flip is the only state worse than either.
+
 ## Immediate effect
 
 There is no pending state: clicking (or pressing Space or Enter on) the
