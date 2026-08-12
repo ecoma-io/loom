@@ -107,9 +107,39 @@ jobs:
       - run: pnpm docs:stage
 
   e2e:
-    name: End-to-end
+    name: End-to-end (${{ matrix.project }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # This now bounds one engine rather than three run back to back, so the old
+    # 20 was measuring a job that no longer exists. Not cut proportionally: the
+    # suite grows with every component added, and `retries` is 2 in CI, so a leg
+    # that ends up red spends roughly three times its green duration getting
+    # there. 15 leaves that room against the slowest leg observed so far.
+    timeout-minutes: 15
+    strategy:
+      # The three engines are the point. Cancelling Firefox and WebKit because
+      # Chromium went red would answer "something broke" and hide whether the
+      # break is engine-specific — which is the first thing anyone asks, and the
+      # only question three separate legs are here to answer.
+      fail-fast: false
+      matrix:
+        # Chromium alone in the merge queue. A rendering or engine difference
+        # that only shows in Firefox or WebKit is a property of the change
+        # itself, and the pull-request run already exercised all three against
+        # it; what the queue is testing is whether the changes still agree with
+        # each other, which one engine answers. The push to main re-runs all
+        # three.
+        #
+        # Written as the matrix rather than as `exclude` because `ci-gate`
+        # treats a skipped dependency as a failure: the reduction has to leave
+        # a leg that actually runs, and a one-element matrix does, where a job
+        # made conditional would not.
+        #
+        # These strings are Playwright's own browser names as well as the
+        # project names in `playwright.config.ts` — `--project` and
+        # `playwright install` below are both fed from here, and both would
+        # break if a project were ever renamed to something Playwright does not
+        # recognise as a browser.
+        project: ${{ github.event_name == 'merge_group' && fromJSON('["chromium"]') || fromJSON('["chromium", "firefox", "webkit"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -127,28 +157,32 @@ jobs:
       # Browser binaries are the slowest thing in this workflow and they change
       # only when Playwright does — which, in a lockfile-pinned repository,
       # means only when the lockfile does.
+      #
+      # Keyed per browser because a leg now installs only its own. Under one
+      # shared key the legs race to save a cache holding a single browser, and
+      # whichever wins is a hit for the other two and a miss for what they
+      # actually need — so they re-download every run and the shared entry never
+      # becomes complete. Three keys each describe exactly what they hold.
       - name: Cache Playwright browsers
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: playwright-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('pnpm-lock.yaml') }}
 
-      # Chromium alone in the merge queue. A rendering or engine difference that
-      # only shows in Firefox or WebKit is a property of the change itself, and
-      # the pull-request run already exercised all three against it; what the
-      # queue is testing is whether the changes still agree with each other,
-      # which one engine answers. The push to main re-runs all three.
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps ${{ github.event_name == 'merge_group' && 'chromium' || '' }}
+        run: pnpm exec playwright install --with-deps ${{ matrix.project }}
 
       - name: Run Playwright
-        run: pnpm e2e ${{ github.event_name == 'merge_group' && '--project=chromium' || '' }}
+        run: pnpm e2e --project=${{ matrix.project }}
 
+      # Named per leg because `upload-artifact` refuses a name another job in
+      # the same run has already claimed — three legs failing together under one
+      # name is an upload error on top of the test failures anyone came to read.
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report-${{ github.run_id }}
+          name: playwright-report-${{ matrix.project }}-${{ github.run_id }}
           path: playwright-report/
           retention-days: 7
 
@@ -159,6 +193,11 @@ jobs:
     # while the job list is not: add a job to `needs` and the gate tightens
     # without anyone editing repository settings — and forgetting to add it is
     # the only way to widen what green means, which is visible in this file.
+    #
+    # `e2e` is one entry despite running as a matrix: `needs` sees the job, not
+    # its legs, and reports the worst result among them. That is what keeps the
+    # browser split invisible from here — legs can be added or dropped without
+    # the gate, or the branch ruleset naming it, having to know.
     needs: [verify, e2e]
     if: always()
     runs-on: ubuntu-latest
