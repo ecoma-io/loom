@@ -135,10 +135,10 @@ already visited, or one step on, and nothing beyond that. The locked steps stay
 visible and stay numbered — they are simply not selectable, by pointer or by
 keyboard.
 
-They are deliberately not dimmed. A step that is merely ahead already says so by
-being inactive, and fading every step past the next one makes a four-step flow
-look broken on its first screen. Dimming is reserved for a step that is
-genuinely `disabled`.
+They are deliberately not greyed. A step that is merely ahead already says so by
+being inactive, and marking every step past the next one unavailable makes a
+four-step flow look broken on its first screen. The greyed indicator is reserved
+for a step that is genuinely `disabled`.
 
 Leave `linear` off — the default — when the Stepper is reporting progress rather
 than enforcing it, which is the more common case for a spine sitting above
@@ -152,10 +152,18 @@ content the reader can already see.
 
 ## Disabled steps
 
-A `disabled` step still renders. It is present but unreachable — dimmed, skipped
-by the arrow keys, and unresponsive to a click — which is the honest way to show
-that a stage exists and is currently out of reach. Dropping it from the array
-instead renumbers everything after it and tells a reader nothing.
+A `disabled` step still renders. It is present but unreachable — its indicator
+greys, its title mutes, and it is skipped by the arrow keys and unresponsive to a
+click — which is the honest way to show that a stage exists and is currently out
+of reach. Dropping it from the array instead renumbers everything after it and
+tells a reader nothing.
+
+The state is a **colour**, never an opacity. Fading the whole step is the obvious
+way to draw it and it takes the title and the description down with it: the
+description's `--color-muted-foreground` measures 5.76:1 against the surface it
+sits on and 2.11:1 once composited at half alpha, which is a WCAG 1.4.3 failure
+on the one line explaining why the step cannot be reached. Both strings stay at a
+measured colour here, and the indicator's grey fill is what carries the state.
 
 <Demo title="A disabled step">
   <div class="w-full max-w-lg">

@@ -135,6 +135,14 @@ unlike ones.
 A disabled chip disables both of its controls, so neither takes focus and
 neither responds to a press.
 
+It is drawn in a **colour** rather than behind an opacity: the pill drains to the
+neutral well and gains the hairline its coloured variants hide, and the label
+moves to `--color-muted-foreground` — 4.67:1 against that fill. Fading the pill
+instead would fade the label with it, and a half-alpha label measures 2.78:1
+against its own chip, which is a WCAG 1.4.3 failure on the token's only name. A
+chip that is switched on keeps its selected wash while disabled: being on is
+information, and the muted label clears the bar over that fill too.
+
 ## Motion
 
 The press rides `--ease-spring` at `--duration-fast`, exactly as Button's does:

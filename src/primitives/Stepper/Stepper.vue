@@ -5,7 +5,7 @@ export interface StepperStep {
   title: string;
   /** A line under the title saying what the step asks for. Omit it for a bare spine. */
   description?: string;
-  /** Present but unreachable: the indicator dims, and neither pointer nor keyboard can select it. */
+  /** Present but unreachable: the indicator greys and the title mutes, and neither pointer nor keyboard can select it. */
   disabled?: boolean;
 }
 
@@ -192,7 +192,7 @@ function onUpdate(value: number | undefined): void {
       :step="index + 1"
       :disabled="step.disabled ?? false"
       :aria-current="undefined"
-      :class="cn(layout.item, step.disabled && 'opacity-50')"
+      :class="layout.item"
     >
       <div :class="layout.rail">
         <!-- Declared before the trigger so the trigger paints over it: the
@@ -221,14 +221,30 @@ function onUpdate(value: number | undefined): void {
               'relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-medium',
               'transition-colors ease-out',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',
-              'data-[state=inactive]:border-input data-[state=inactive]:bg-background data-[state=inactive]:text-muted-foreground',
-              'data-[state=inactive]:enabled:hover:bg-subtle',
+              // Unavailable is a *colour*, and the whole distinction lives on
+              // the indicator. It used to be `opacity-50` on the item, which
+              // took the title and the description down with it:
+              // `--color-muted-foreground` is 5.76:1 on white and 2.11:1 once
+              // composited at half alpha, so the one thing that had to stay
+              // readable was the one thing the fade broke. A grey-filled disc
+              // against the inactive step's white one says the same thing and
+              // costs nothing, and every string below is a measured pair.
+              //
+              // Keyed off the prop and NOT off `data-[disabled]:`, because in
+              // a linear flow Reka marks every step past the next one disabled
+              // — painting all of them unavailable reads as broken rather than
+              // as later, and a step that is merely ahead already says so by
+              // being inactive. The branch also keeps the two apart in the
+              // cascade: the inactive rules carry an attribute selector, so a
+              // plain `bg-muted` alongside them would lose.
+              step.disabled
+                ? 'border-border-strong bg-muted text-muted-foreground'
+                : [
+                    'data-[state=inactive]:border-input data-[state=inactive]:bg-background data-[state=inactive]:text-muted-foreground',
+                    'data-[state=inactive]:enabled:hover:bg-subtle',
+                  ],
               'data-[state=active]:border-primary data-[state=active]:bg-primary-muted data-[state=active]:text-primary',
               'data-[state=completed]:border-primary data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground',
-              // The dimming is deliberately NOT `data-[disabled]:`. In a linear
-              // flow Reka marks every step past the next one disabled, and
-              // fading all of them reads as broken rather than as later — a
-              // step that is merely ahead already says so by being inactive.
               'disabled:cursor-not-allowed',
             )
           "
@@ -250,7 +266,18 @@ function onUpdate(value: number | undefined): void {
         <!-- `as="span"`, not Reka's default `h4`: a step label is not a
              section heading, and a component cannot know what heading level
              the page it lands in has room for. -->
-        <StepperTitle as="span" class="text-sm font-medium text-foreground">
+        <!-- The title mutes rather than fades: `--color-muted-foreground` is a
+             measured 5.76:1 on the card it sits on, two steps back from
+             `--color-foreground` and still comfortably readable. The
+             description below is already that colour and stays there — an
+             unreachable step's description is the one line a reader most needs
+             in order to find out why it is unreachable. -->
+        <StepperTitle
+          as="span"
+          :class="
+            cn('text-sm font-medium', step.disabled ? 'text-muted-foreground' : 'text-foreground')
+          "
+        >
           {{ step.title }}
           <!-- ARIA has a value for "you are here" and none for "done", and the
                check glyph is invisible to a screen reader. The title is what

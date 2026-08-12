@@ -60,7 +60,7 @@ const stage = ref(2);
 
     <div class="flex flex-col gap-3">
       <span id="stepper-demo-disabled" class="text-xs text-muted-foreground">
-        a disabled step — present, dimmed, and skipped by the arrow keys
+        a disabled step — present, greyed, still readable, and skipped by the arrow keys
       </span>
       <Stepper v-model="stage" :steps="publishing" aria-labelledby="stepper-demo-disabled" />
     </div>

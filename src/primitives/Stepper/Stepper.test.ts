@@ -220,6 +220,40 @@ describe("Stepper selection", () => {
     expect(blocked!.attributes("disabled")).toBeDefined();
   });
 
+  // The defect this pins: `opacity-50` on the item faded the indicator, the
+  // title and the description together, and the description is the one part
+  // that cannot afford it — `--color-muted-foreground` is 5.76:1 on the card
+  // and 2.11:1 once composited at half alpha, which the axe gate caught as a
+  // WCAG 1.4.3 failure. Unavailability is a colour on the indicator now, and
+  // the text either stays where it was or moves to another measured value.
+  it("says a step is unavailable with colour rather than opacity, leaving its title and description readable", () => {
+    const steps: StepperStep[] = [
+      { title: "Cart", description: "Two items" },
+      { title: "Approval", description: "Owner permission required", disabled: true },
+    ];
+    const wrapper = mountStepper({ steps, modelValue: 1 });
+
+    expect(wrapper.html()).not.toContain("opacity-50");
+
+    // The indicator carries the state: a grey-filled disc where an available
+    // upcoming step has a white one.
+    const [open, blocked] = triggers(wrapper);
+    expect(blocked!.classes()).toEqual(
+      expect.arrayContaining(["bg-muted", "border-border-strong"]),
+    );
+    expect(open!.classes()).not.toContain("bg-muted");
+
+    type Trigger = ReturnType<typeof triggers>[number];
+    const labelled = (trigger: Trigger | undefined) =>
+      document.getElementById(trigger!.attributes("aria-labelledby") ?? "")!;
+    const described = (trigger: Trigger | undefined) =>
+      document.getElementById(trigger!.attributes("aria-describedby") ?? "")!;
+
+    expect(labelled(open).className).toContain("text-foreground");
+    expect(labelled(blocked).className).toContain("text-muted-foreground");
+    expect(described(blocked).className).toContain("text-muted-foreground");
+  });
+
   it("refuses a jump past the next step while linear, and allows the next one", async () => {
     const wrapper = mountStepper({ modelValue: 1, linear: true });
 

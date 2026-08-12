@@ -31,7 +31,13 @@ export const chipVariants = cva(
   [
     "group inline-flex max-w-full items-center rounded-full border align-middle font-medium",
     "transition-[background-color,border-color,color] duration-fast ease-out",
-    "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+    // No `opacity` here, and that is the point. `data-[disabled]:opacity-50`
+    // dimmed the pill *and* its label together, taking a 5.01:1 label down to
+    // 2.78:1 against its own fill — halving the alpha more than halves the
+    // contrast. Unavailability is painted in measured colours instead: the
+    // fill and border below, and `disabledText` on the label and the glyph
+    // beside it.
+    "data-[disabled]:cursor-not-allowed",
   ],
   {
     // `satisfies` keeps the two halves honest: the union above is the name a
@@ -110,7 +116,7 @@ const props = withDefaults(
     removable?: boolean;
     /** The accessible name of the dismiss control. Localise it, or qualify it — "Remove Ana Duarte" reads far better in a list of recipients. */
     removeLabel?: string;
-    /** Unavailable: dims the whole chip and makes both of its controls inert to pointer and keyboard. */
+    /** Unavailable: drains the pill to a neutral fill, mutes the label, and makes both controls inert to pointer and keyboard. */
     disabled?: boolean;
     /** Which status or meta the token carries. The names and colours are Badge's, so a chip and a badge never disagree. */
     variant?: ChipVariant;
@@ -153,6 +159,15 @@ const labelPad = computed(() =>
 const pressStyle =
   "transition: transform var(--duration-fast) var(--ease-spring), background-color var(--duration-fast) var(--ease-out);";
 
+// The unavailable label colour, and it belongs on the label rather than on the
+// pill around it. A colour set on the container is only *inherited* here, and
+// the container already carries `data-[selected]:text-primary` — an attribute
+// selector no plain class on the same element outranks. On the label itself it
+// is a declaration rather than an inheritance, so it wins whatever the pill
+// resolved to: 4.67:1 over the drained `--color-muted` fill, 4.77:1 over the
+// warp wash a selected chip keeps.
+const disabledText = "group-data-[disabled]:text-muted-foreground";
+
 // Both inner controls are surfaces *inside* a 32px pill, so the standard
 // outward `outline-offset-2` would draw the toggle's ring straight through the
 // dismiss control sitting 4px to its right, and vice versa. Inset instead —
@@ -176,7 +191,19 @@ const { attrs, rest: containerAttrs } = useSplitAttrs();
     v-bind="containerAttrs"
     :data-selected="selected || undefined"
     :data-disabled="disabled || undefined"
-    :class="cn(chipVariants({ variant, size }), removable && 'pr-1', attrs.class as string)"
+    :class="
+      cn(
+        chipVariants({ variant, size }),
+        // Drained to the neutral well, with the hairline the coloured variants
+        // hide: an unavailable chip gives up its hue rather than its legibility.
+        // A *selected* one keeps the warp wash — `data-[selected]:bg-primary-muted`
+        // outranks a plain class — which is right: switched-on is information,
+        // and the label is muted over either fill.
+        disabled && 'border-border-strong bg-muted',
+        removable && 'pr-1',
+        attrs.class as string,
+      )
+    "
   >
     <button
       v-if="toggleable"
@@ -208,13 +235,13 @@ const { attrs, rest: containerAttrs } = useSplitAttrs();
       >
         <Check class="h-3.5 w-3.5 shrink-0" />
       </span>
-      <span class="truncate">
+      <span :class="cn('truncate', disabledText)">
         <!-- @slot The chip's label. Keep it to a word or two — a token that needs a sentence is a row, not a chip. -->
         <slot />
       </span>
     </button>
     <span v-else :class="cn('inline-flex min-w-0 items-center', labelPad)">
-      <span class="truncate"><slot /></span>
+      <span :class="cn('truncate', disabledText)"><slot /></span>
     </span>
 
     <!-- A sibling of the toggle, never a child of it. 24px square is the floor
@@ -234,6 +261,7 @@ const { attrs, rest: containerAttrs } = useSplitAttrs();
           // instead of darkening it.
           'hover:bg-foreground/10 active:scale-90',
           focusRing,
+          disabledText,
           'disabled:pointer-events-none',
         )
       "

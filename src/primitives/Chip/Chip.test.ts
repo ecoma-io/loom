@@ -126,6 +126,32 @@ describe("Chip", () => {
     expect(wrapper.attributes("data-disabled")).toBe("true");
   });
 
+  // The defect this pins. `data-[disabled]:opacity-50` faded the pill and its
+  // label as one, and the label is what cannot afford it: 5.01:1 became
+  // 2.78:1 against the chip's own fill, which the axe gate caught as a WCAG
+  // 1.4.3 failure. Halving the alpha more than halves the contrast, so the
+  // state is painted in measured colours instead — a drained fill, a visible
+  // hairline, and a label colour each control declares for itself rather than
+  // inheriting from a pill that may still be carrying a selected wash.
+  it("says a chip is unavailable with colour rather than opacity, leaving its label readable", () => {
+    const wrapper = mount(Chip, {
+      props: { removable: true, disabled: true },
+      slots: { default: "Overdue" },
+    });
+
+    expect(wrapper.html()).not.toContain("opacity-50");
+    expect(wrapper.classes()).toEqual(expect.arrayContaining(["bg-muted", "border-border-strong"]));
+
+    // On the label itself, never on the pill: a colour on the container is only
+    // inherited here, and a selected chip's container outranks it.
+    expect(wrapper.get(".truncate").classes()).toContain(
+      "group-data-[disabled]:text-muted-foreground",
+    );
+
+    const available = mount(Chip, { props: { removable: true }, slots: { default: "Overdue" } });
+    expect(available.classes()).not.toContain("bg-muted");
+  });
+
   it("paints each variant in the same semantic token Badge uses, so a chip and a badge never disagree", () => {
     const tokens: readonly (readonly [ChipVariant, string])[] = [
       ["neutral", "bg-subtle"],
