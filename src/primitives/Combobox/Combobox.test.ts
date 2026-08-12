@@ -458,6 +458,21 @@ describe("Combobox motion", () => {
   });
 });
 
+// Every element that wraps text, anywhere under `root`. The rule these tests
+// pin is one line — **an `opacity` may dim a border, a fill or a glyph, and may
+// never dim text** — and it is a property of the tree rather than of any one
+// class name, so it is asserted by walking the tree rather than by naming the
+// class that happened to break it. A variant-prefixed utility sits in
+// `classList` whatever the element's current state is, so this catches
+// `data-[disabled]:opacity-50` on a node holding a label without that row
+// having to be the disabled one.
+function textNodesCarryingOpacity(root: ParentNode): string[] {
+  return [...root.querySelectorAll<HTMLElement>("*")]
+    .filter((el) => el.textContent.trim() !== "")
+    .filter((el) => [...el.classList].some((name) => /(^|:)opacity-/.test(name)))
+    .map((el) => el.className);
+}
+
 describe("Combobox unavailable state", () => {
   it("refuses to open while disabled", async () => {
     mountCombobox({ disabled: true });
@@ -487,6 +502,41 @@ describe("Combobox unavailable state", () => {
     expect(getAnchor().className).not.toContain("border-destructive");
     expect(getAnchor().hasAttribute("data-invalid")).toBe(false);
     expect(getInput().getAttribute("aria-invalid")).toBeNull();
+  });
+
+  it("drains the disabled box in measured colours instead of dimming the value inside it", async () => {
+    mountCombobox({ modelValue: "vi", disabled: true });
+    await settle();
+
+    // The chosen value is the one thing a reader still needs from a control
+    // they cannot change, so it has to survive the unavailable state legibly.
+    expect(getInput().value).toBe("Tiếng Việt");
+    expect(getAnchor().className).toContain("bg-muted");
+    expect(getAnchor().className).not.toContain("opacity-50");
+    expect(getInput().className).toContain("disabled:text-muted-foreground");
+  });
+
+  it("dims no text anywhere, including on the row nobody can choose", async () => {
+    mountCombobox({ modelValue: "en" });
+    await openList();
+
+    expect(getRows()).toHaveLength(3);
+    expect(textNodesCarryingOpacity(document.body)).toEqual([]);
+  });
+
+  it("mutes an unchoosable row on its own text node, where a checked row's colour cannot outrank it", async () => {
+    // The third row is both disabled and the chosen one — the case that made
+    // the row itself the wrong home for the colour, since `data-[disabled]:`
+    // sorts ahead of `data-[state=checked]:` and would have lost.
+    mountCombobox({ modelValue: "ja" });
+    await openList();
+
+    const row = getRows()[2];
+    if (!row) throw new Error("no third row");
+    expect(row.getAttribute("data-state")).toBe("checked");
+
+    const label = [...row.querySelectorAll("*")].find((el) => el.textContent === "日本語");
+    expect(label?.className).toContain("text-muted-foreground");
   });
 });
 

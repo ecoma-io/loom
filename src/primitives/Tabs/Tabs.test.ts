@@ -77,6 +77,23 @@ describe("Tabs trigger activation", () => {
 
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
   });
+
+  // The defect this pins, and the reason the fix is a fill rather than only the
+  // removal of the dim. `disabled:opacity-50` composited the label to 2.05:1;
+  // but the label is already `text-muted-foreground` whenever the tab is merely
+  // unselected, so dropping the alpha and stopping there would have left an
+  // unavailable tab painted exactly like an available one. The plate is what
+  // carries the state, and the text is left at the colour it can be read in.
+  it("marks a disabled tab with a drained plate rather than fading its label", () => {
+    const wrapper = mountTabs("overview");
+    const disabled = wrapper.findAll('[role="tab"]')[2]!;
+
+    expect(disabled.attributes("disabled")).toBeDefined();
+    expect(disabled.classes().some((c) => c.includes("opacity"))).toBe(false);
+    // 4.67:1 — `--color-muted-foreground` over `--color-muted`.
+    expect(disabled.classes()).toContain("disabled:bg-muted");
+    expect(disabled.classes()).toContain("disabled:text-muted-foreground");
+  });
 });
 
 describe("Tabs roving tabindex", () => {

@@ -65,8 +65,18 @@ mandatory to assistive technology is the accessibility fix, and enforcing it
 stays your form's decision.
 
 `readonly` and `disabled` are different states. A read-only textarea is a value
-on show — still focusable, still scrollable, still submitted, filled rather than
-dimmed. A disabled one is unavailable: no Tab stop, not submitted, dimmed.
+on show — still focusable, still scrollable, still submitted. A disabled one is
+unavailable: no Tab stop, not submitted.
+
+Neither is dimmed. The element _is_ the text, and an opacity on it takes the
+words with the paint — a disabled textarea holding a filed answer is still there
+to be read, and dimming took that answer to 3.06:1, and its placeholder to
+2.05:1, against a 4.5:1 bar. Both
+states take the same filled surface and part on the text: a read-only value
+stays at full strength and keeps its focus ring, where a disabled one moves to
+the muted colour and takes the not-allowed cursor. It is the same treatment
+[Select](./select) wears, so a disabled form row is one colour rather than
+three.
 
 <Demo title="Read-only against disabled">
   <div class="flex w-full flex-col gap-3" style="max-width: 20rem">

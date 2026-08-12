@@ -308,7 +308,16 @@ function onUpdate(next: (string | number)[]) {
           // and a weight rather than a hue, so it survives both a colour
           // deficiency and forced-colors.
           'data-[filled]:border-border-strong',
-          'disabled:cursor-not-allowed disabled:opacity-50',
+          // Unavailable is a *colour*, never an opacity. A cell holds one
+          // character — or one mask dot — and that is the entire content of the
+          // control, so `opacity-50` here did not dim a code so much as erase
+          // it: `--color-foreground` measures 14.09:1 on the resting fill and
+          // 2.99:1 once composited at half alpha. The drained fill carries the
+          // state instead, and the character stays at a measured 4.67:1. Both
+          // are `disabled:` variants rather than plain classes, so each
+          // outranks the resting `bg-background text-foreground` above on
+          // specificity rather than on where Tailwind happened to emit it.
+          'disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
         )
       "
     />

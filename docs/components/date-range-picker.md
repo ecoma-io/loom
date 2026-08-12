@@ -116,9 +116,15 @@ for a single month outright.
 ## Bounds
 
 `min` and `max` fence both ends of the range at once. A day outside them is
-announced with `aria-disabled`, dimmed, unclickable and skipped by the arrow
-keys, so a keyboard user cannot land on a day they are not allowed to choose
-and then wonder why Enter did nothing.
+announced with `aria-disabled`, greyed and struck through, unclickable and
+skipped by the arrow keys, so a keyboard user cannot land on a day they are not
+allowed to choose and then wonder why Enter did nothing.
+
+Greyed rather than faded: the number is the cell's whole content, and half
+opacity took it from 14.09:1 against the panel to 3.13:1, where the muted colour
+measures 5.76:1. The strike is the hueless second cue, and it is what keeps an
+unavailable day apart from an adjacent month's — muted too, and still
+selectable.
 
 They fence the typed field too, though more gently: a date typed outside the
 window marks the field invalid rather than refusing the keystroke, because
@@ -149,15 +155,21 @@ reads by.
 
 ## Disabled, read-only and invalid
 
-A disabled DateRangePicker dims, refuses the calendar, and leaves nothing of
-itself in the tab order. An invalid one still works: it takes the destructive
+A disabled DateRangePicker drains to a grey fill with muted segments, refuses
+the calendar, and leaves nothing of itself in the tab order. Colour rather than
+opacity, deliberately: fading the field fades the span inside it, and the span
+is the whole content of the control — 14.09:1 becomes 2.99:1 at half alpha, and
+the dash between the two halves 2.02:1. Drained, every segment measures 4.67:1
+and the field still plainly reads as unavailable. An invalid one still works: it takes the destructive
 border and focus ring and sets `aria-invalid`, which is the same error language
 every other form control here speaks.
 
 `readonly` is a third state and not a dial on either. A read-only span is a
 value on show: the field stays a Tab stop, both halves stay readable and
-copyable, it stays in the form's submitted data, and it is filled rather than
-dimmed. The calendar button is dropped outright — Reka's `readonly` reaches the
+copyable, it stays in the form's submitted data, and it keeps its text at full
+strength. Both states take the same grey fill and the text colour is what
+separates them, which is the right way round — a read-only value is there to be
+read. The calendar button is dropped outright — Reka's `readonly` reaches the
 calendar and makes every cell's click a no-op, so the button would open a panel
 in which nothing can be chosen.
 

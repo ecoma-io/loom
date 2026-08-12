@@ -24,7 +24,21 @@ export const selectVariants = cva(
     "transition-[color,background-color,box-shadow] duration-fast ease-out hover:bg-subtle",
     // Rim-lit at rest; the ring blooms on focus.
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-    "disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground",
+    // No `opacity` here, and that is the point. The trigger is the node that
+    // carries the chosen label, and what a reader needs from an unavailable
+    // Select is exactly that: what it is set to. `disabled:opacity-50`
+    // composited `text-foreground` down to 3.06:1 on this fill — halving the
+    // alpha more than halves the contrast. Unavailability is painted in
+    // measured colours instead: the fill drains to the neutral well and the
+    // label lands on `--color-muted-foreground`, 4.67:1 over it.
+    //
+    // Both survive their neighbours on this element. `hover:` sorts *before*
+    // `disabled:` in Tailwind's variant order, so the disabled fill wins over
+    // `hover:bg-subtle` rather than flickering under a pointer; and
+    // `data-[placeholder]:text-muted-foreground` names the same colour, so the
+    // two colour rules agree whatever the sort puts last.
+    "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
+    "data-[placeholder]:text-muted-foreground",
   ],
   {
     // `satisfies` keeps the two halves honest: the union above is the name a
@@ -233,11 +247,25 @@ const triggerFieldAttrs = computed(() => {
                 'animate-fade-rise',
                 'data-[highlighted]:bg-subtle',
                 'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary',
-                'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                // Inert, but still readable: a row a reader cannot pick is
+                // still a row they have to read to understand why the list is
+                // shaped the way it is. `data-[disabled]:opacity-50` took the
+                // label to 3.13:1 on the popover; the colour on the text node
+                // below leaves it at 5.76:1 and still visibly lighter than the
+                // rows around it.
+                'data-[disabled]:pointer-events-none',
               )
             "
           >
-            <SelectItemText>{{ option.label }}</SelectItemText>
+            <!-- The mute lives here rather than on the row, and it has to.
+                 `data-[disabled]:` sorts *before* `data-[state=checked]:` in
+                 Tailwind's variant order, so a disabled row that is also the
+                 chosen one would take `text-primary` from the container and a
+                 container colour is only inherited. Declared on the text node
+                 it wins whatever the row resolved to. -->
+            <SelectItemText :class="option.disabled && 'text-muted-foreground'">{{
+              option.label
+            }}</SelectItemText>
             <SelectItemIndicator class="absolute right-2 inline-flex items-center">
               <Check class="h-4 w-4" />
             </SelectItemIndicator>

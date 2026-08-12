@@ -266,7 +266,16 @@ function mirrorArrows(event: KeyboardEvent): void {
                 'inline-flex h-9 shrink-0 cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-full border border-border bg-popover px-3 text-sm text-popover-foreground shadow-md outline-none',
                 PRESS,
                 'data-[highlighted]:bg-subtle',
-                'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                // The pill drains rather than fades. Each action is a floating
+                // label — it has no panel behind it and no tooltip beside it,
+                // so the words *are* the control, and `data-[disabled]:opacity-50`
+                // composited them to 3.21:1 against the page showing through.
+                // Drained, the fill goes to the neutral well and the label to
+                // the measured muted colour: 4.67:1 over it, and a pill that
+                // has plainly given up its card-white surface. The elevation
+                // goes with it, because a shadow is depth and an unavailable
+                // action is not lifted off the page.
+                'data-[disabled]:pointer-events-none data-[disabled]:border-border-strong data-[disabled]:bg-muted data-[disabled]:text-muted-foreground data-[disabled]:shadow-none',
                 // The actions fan out one after another, which is what makes
                 // this read as a fan opening rather than a block appearing. The
                 // delay is the shared stagger vocabulary, capped there so a

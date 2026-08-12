@@ -189,8 +189,12 @@ is caught where the times are actually entered: either instant outside `min` or
 `max` takes the destructive border and `aria-invalid` on its own, without the
 host saying so, and carries a `data-out-of-range` marker distinct from the
 `data-invalid` the `invalid` prop sets. Days lying wholly outside the window are
-announced with `aria-disabled`, dimmed, unclickable and — the part that is easy
-to leave out — skipped by the arrow keys.
+announced with `aria-disabled`, greyed and struck through, unclickable and — the
+part that is easy to leave out — skipped by the arrow keys. Greyed rather than
+faded: the number is the cell's whole content, and half opacity took it from
+14.09:1 against the panel to 3.13:1, where the muted colour measures 5.76:1. The
+strike is the hueless second cue that keeps an unavailable day apart from an
+adjacent month's.
 
 <Demo title="Bounds">
   <div class="flex w-full max-w-xl flex-col gap-3">
@@ -264,15 +268,21 @@ for a single month outright.
 
 ## Disabled and invalid
 
-A disabled DateTimeRangePicker dims, refuses the calendar, and leaves nothing of
-itself in the tab order. An invalid one still works: it takes the destructive
+A disabled DateTimeRangePicker drains to a grey fill with muted segments,
+refuses the calendar, and leaves nothing of itself in the tab order. Colour
+rather than opacity, deliberately: fading the field fades the span inside it,
+and the span is the whole content of the control — 14.09:1 becomes 2.99:1 at
+half alpha, and the dash between the two halves 2.02:1. Drained, all ten
+segments measure 4.67:1 and the field still plainly reads as unavailable. An invalid one still works: it takes the destructive
 border and focus ring and sets `aria-invalid`, the same error language every
 other form control here speaks. An instant outside the bounds, or a span running
 backwards, paints the same way without the prop.
 
 `readonly` is a third state and not a dial on either. A read-only span is a
 value on show: the field stays a Tab stop, its segments stay readable and
-copyable, it is filled rather than dimmed, and the calendar button is dropped
+copyable, it keeps its text at full strength — both states take the same grey
+fill and the text colour is what separates them, which is the right way round,
+a read-only value being there to be read — and the calendar button is dropped
 outright — Reka's read-only reaches the calendar and makes every cell's click a
 no-op, so the button would open a panel in which nothing can be chosen.
 

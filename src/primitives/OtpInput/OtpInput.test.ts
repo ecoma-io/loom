@@ -326,6 +326,31 @@ describe("OtpInput states", () => {
     }
   });
 
+  // The defect this pins: `disabled:opacity-50` faded the characters, and a
+  // cell holds one character or one mask dot and nothing else — so a disabled
+  // code did not dim so much as vanish. `--color-foreground` is 14.09:1 on the
+  // resting fill and 2.99:1 once composited at half alpha; the drained fill
+  // carries the state now and the character stays at a measured 4.67:1.
+  it("drains an unavailable row in colour rather than fading the code out of it", () => {
+    const wrapper = mountOtp({ disabled: true, modelValue: "4839" });
+    for (const cell of cellsOf(wrapper)) {
+      expect(cell.classes()).not.toContain("opacity-50");
+      expect(cell.classes()).toEqual(
+        expect.arrayContaining([
+          "disabled:bg-muted",
+          "disabled:text-muted-foreground",
+          "disabled:cursor-not-allowed",
+        ]),
+      );
+    }
+    // Both are `disabled:` variants rather than plain classes: each has to
+    // outrank the resting `bg-background text-foreground` on specificity rather
+    // than on where Tailwind happened to emit it.
+    expect(cellsOf(wrapper)[0]!.classes()).toEqual(
+      expect.arrayContaining(["bg-background", "text-foreground"]),
+    );
+  });
+
   it("sets aria-invalid on every cell and paints the destructive border", () => {
     const wrapper = mountOtp({ invalid: true });
     expect(wrapper.get('[role="group"]').attributes("data-invalid")).toBe("true");

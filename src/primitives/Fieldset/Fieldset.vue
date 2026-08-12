@@ -133,14 +133,24 @@ const { attrs, rest: fieldsetAttrs } = useSplitAttrs();
         // width and blows out the column of any consumer who drops one into a
         // form grid. Overriding the minimum itself is the only fix.
         'min-w-0',
-        // The whole group dims as one unit — it is the group that is
-        // unavailable, not each control's own idea of it. A control that also
-        // dims itself from `:disabled` (Switch, RadioGroup, Select) ends up
-        // fainter still inside a disabled group; that reads as a coherently
-        // inactive block, where the alternative reads as a live control
-        // silently refusing input. The native `disabled` attribute carries the
-        // same state to assistive tech, so nothing here rests on colour alone.
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        // `group`, and no `opacity`. Dimming the group was the worst instance
+        // of that mistake in the library, because opacity *composites* and
+        // therefore multiplies: this element's 50% ran over a Switch's or a
+        // Select's own 50%, so a control inside a disabled group rendered at
+        // 25% effective alpha and its label measured 1.65:1 — and the group's
+        // own hint, one dim rather than two, still came out at 2.05:1. Neither
+        // was reachable by fixing the controls, because neither was the
+        // controls' doing.
+        //
+        // Removing it here is what un-multiplies them: a nested control now
+        // computes only its own drained treatment (Select and OtpInput land
+        // their labels on 4.67:1 that way), and nothing this element does
+        // reduces it further. The group still reads as unavailable — the
+        // legend below mutes, and every control in it wears its own disabled
+        // state — and the native `disabled` attribute carries the fact to
+        // assistive tech, so none of it rests on colour alone.
+        'disabled:cursor-not-allowed',
+        'group',
         attrs.class as string,
       )
     "
@@ -151,7 +161,16 @@ const { attrs, rest: fieldsetAttrs } = useSplitAttrs();
          either — a rendered legend sits outside the anonymous box that holds
          a fieldset's content, so it is never a flex item and no `gap` reaches
          it. -->
-    <legend v-if="legend" class="mb-2 text-sm font-medium text-foreground">
+    <!-- The legend is where "this whole group is unavailable" is now painted:
+         it is the group's accessible name and the only text the group owns
+         rather than borrows. `group-disabled:` reads the real `:disabled` on
+         the `<fieldset>` above, so there is no second copy of the state to fall
+         out of step with the attribute. 14.09:1 available, 5.25:1 not — a drop
+         a reader can see, at a colour they can still read. -->
+    <legend
+      v-if="legend"
+      class="mb-2 text-sm font-medium text-foreground group-disabled:text-muted-foreground"
+    >
       {{ legend }} <span v-if="required" class="text-destructive">*</span>
     </legend>
     <!-- @slot The controls in the group — Fields, most often. -->

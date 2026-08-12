@@ -104,6 +104,19 @@ describe("DropdownMenu", () => {
     expect(wrapper.emitted("select")).toBeUndefined();
   });
 
+  // The defect this pins. `data-[disabled]:opacity-40` composited the row's
+  // label to 2.40:1 on the popover and its shortcut to 1.79:1 — a row whose
+  // only job is to say what is unavailable, in a colour that says nothing. It
+  // is the measured muted colour now, 5.76:1, against the 15.46:1 an available
+  // row wears.
+  it("mutes a disabled entry's label instead of fading it", async () => {
+    await mountMenu();
+    const disabled = items()[1]!;
+
+    expect(disabled.className).not.toContain("opacity");
+    expect(disabled.className).toContain("data-[disabled]:text-muted-foreground");
+  });
+
   it("emits nothing for an entry that declares no command id, so a decorative row cannot fire an action", async () => {
     const wrapper = await mountMenu({ items: [{ label: "No command of its own" }] });
     items()[0]!.click();

@@ -397,6 +397,40 @@ describe("FileUpload", () => {
     expect(wrapper.emitted("reject")).toBeUndefined();
   });
 
+  // The defect this pins. The zone is a large blank region whose whole point is
+  // the two lines of copy in the middle of it, and `opacity-50` took the
+  // headline to 3.06:1 and the hint to 2.05:1. Drained instead: the fill falls
+  // to the neutral well, the headline names its own muted colour there (an
+  // inherited one would have lost to its own `text-foreground`), and both land
+  // at 4.67:1.
+  it("drains the zone instead of fading the copy a reader needs from it", () => {
+    const wrapper = mount(FileUpload, { props: { disabled: true, hint: "PDF up to 10 MB" } });
+    const zone = wrapper.get("label");
+
+    expect(zone.classes().some((c) => c.includes("opacity"))).toBe(false);
+    expect(zone.classes()).toContain("bg-muted");
+    expect(zone.classes()).toContain("group");
+    expect(wrapper.findAll("label span").some((s) => s.text() === "PDF up to 10 MB")).toBe(true);
+    expect(
+      wrapper
+        .findAll("label span")
+        .some((s) => s.classes().includes("group-data-[disabled]:text-muted-foreground")),
+    ).toBe(true);
+  });
+
+  // The counterpart verdict. A remove button's whole content is an `aria-hidden`
+  // glyph, named by an `aria-label` no paint can reach — nothing there for an
+  // alpha to make illegible, so the dim stays.
+  it("leaves a disabled remove button dimming, because it holds a glyph and no text", () => {
+    const wrapper = mount(FileUpload, {
+      props: { modelValue: [makeFile("a.txt")], disabled: true },
+    });
+    const remove = wrapper.get('button[aria-label="Remove a.txt"]');
+
+    expect(remove.classes()).toContain("disabled:opacity-50");
+    expect(remove.text()).toBe("");
+  });
+
   it("does not light the zone up for a drag it is going to refuse", async () => {
     const wrapper = mount(FileUpload, { props: { disabled: true } });
     wrapper.get("label").element.dispatchEvent(dragEvent("dragenter"));

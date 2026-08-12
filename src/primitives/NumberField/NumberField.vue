@@ -392,12 +392,23 @@ function onPointerDown(event: PointerEvent) {
         'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
         !field.invalid && 'focus-within:shadow-halo',
         field.invalid && 'border-destructive focus-within:outline-destructive',
-        // Filled rather than dimmed, and it keeps its focus ring: a read-only
-        // value is on show, not an unavailable control, and the two must not
-        // look alike. Reka's native `readonly` on the input carries the same
-        // state to assistive tech, so nothing here rests on colour.
+        // Read-only keeps its focus ring and its full-strength number: a
+        // read-only value is on show, not an unavailable control, and the two
+        // must not look alike. They share this fill and the text colour below is
+        // what tells them apart, which is the right way round — the state that
+        // exists to be read is the one that keeps its contrast. Reka's native
+        // `readonly` on the input carries the state to assistive tech, so
+        // nothing here rests on colour.
         field.readonly && 'bg-muted',
-        'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
+        // Unavailable is a *colour*, never an opacity. `opacity-50` on this box
+        // faded the value inside it: `--color-foreground` measures 14.09:1 on
+        // the resting fill and 2.99:1 once composited at half alpha, and the
+        // unit suffix beside it — muted, and smaller — fell to 2.02:1. The
+        // drained fill is the state; the input below takes the matching text
+        // colour, which has to be declared there rather than inherited from
+        // here because the input names `text-foreground` itself.
+        field.disabled && 'bg-muted',
+        'data-[disabled]:cursor-not-allowed',
         attrs.class as string,
       )
     "
@@ -422,7 +433,12 @@ function onPointerDown(event: PointerEvent) {
         cn(
           'tabular h-full w-full flex-1 rounded-md bg-transparent px-3 text-sm text-foreground outline-none',
           unit ? 'pr-9' : 'pr-3',
-          field.disabled && 'cursor-not-allowed',
+          // 4.67:1 against the drained fill the root takes, and two steps back
+          // from the black an editable value keeps — the state stays plain to
+          // see and the number stays plain to read. `cn()` is what makes the
+          // pair work: it drops the `text-foreground` above rather than leaving
+          // two colours for the stylesheet to order.
+          field.disabled && 'cursor-not-allowed text-muted-foreground',
           // The scrub cursor is a promise the field makes about the gesture it
           // takes. Read-only takes no gesture, so it must not make the promise
           // — the caret cursor is the honest one for a value you may select
@@ -457,7 +473,12 @@ function onPointerDown(event: PointerEvent) {
            render function — "Increase" and "Decrease". They reach the DOM node
            as fallthrough attributes, which Vue merges last, so each is a
            replacement rather than a second name. Removing one does not fall
-           back to nothing; it falls back to Reka's English. -->
+           back to nothing; it falls back to Reka's English.
+
+           The two keep `data-[disabled]:opacity-50` where the box around them
+           gave it up, and the difference is that each holds a chevron and
+           nothing else. Fading a glyph costs a reader nothing; their names are
+           in `aria-label`, not in dimmed text. -->
       <NumberFieldIncrement
         :aria-label="text.increment"
         class="flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out)] hover:bg-subtle hover:text-foreground active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"

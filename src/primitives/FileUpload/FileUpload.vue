@@ -461,7 +461,11 @@ const inputId = computed(() => field.id ?? generatedId);
       :data-disabled="field.disabled || undefined"
       :class="
         cn(
-          'flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-6 py-8 text-center',
+          // `group` so the two lines of copy below can name their own disabled
+          // colour off this element's state. A colour set here would only be
+          // *inherited* by them, and both declare a colour of their own — an
+          // inherited value loses to any declaration, however weak.
+          'group flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-6 py-8 text-center',
           // Border and fill are the drag feedback, so they carry the transition
           // — fast, because a zone that lights up after the pointer has already
           // crossed it is answering a question the reader stopped asking.
@@ -474,7 +478,16 @@ const inputId = computed(() => field.id ?? generatedId);
           // The dash going solid is what keeps the drag state off colour alone.
           'data-[dragging]:border-solid data-[dragging]:border-primary data-[dragging]:bg-primary-muted',
           field.invalid && 'border-destructive focus-within:outline-destructive',
-          field.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-subtle',
+          // Drained, not dimmed. The zone is a large blank region whose whole
+          // purpose is the two lines of text in the middle of it, and
+          // `opacity-50` took the headline to 3.06:1 and the hint below it to
+          // 2.05:1 — the reader least able to guess what a drop zone wants is
+          // the one it stopped telling. The fill falls to the neutral well
+          // instead, which is where every other unavailable surface in the
+          // library goes, and both lines land at 4.67:1 over it. The dashed
+          // border stays, because the dash is what marks this out as a drop
+          // target even while nothing may be dropped on it.
+          field.disabled ? 'cursor-not-allowed bg-muted' : 'cursor-pointer hover:bg-subtle',
         )
       "
       @dragenter="onDragEnter"
@@ -513,7 +526,14 @@ const inputId = computed(() => field.id ?? generatedId);
       >
         <CloudUpload class="h-5 w-5" />
       </span>
-      <span class="text-sm text-foreground">{{ zoneLabel }}</span>
+      <!-- The disabled colour is declared here rather than inherited from the
+           zone, for the reason the `group` on it records: this span sets
+           `text-foreground` itself, and an inherited value never beats a
+           declared one. The hint below needs no such rule — it is already on
+           the muted colour, which holds 4.67:1 over the drained fill. -->
+      <span class="text-sm text-foreground group-data-[disabled]:text-muted-foreground">{{
+        zoneLabel
+      }}</span>
       <span v-if="zoneHint" class="text-small text-muted-foreground">{{ zoneHint }}</span>
     </label>
 

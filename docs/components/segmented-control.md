@@ -52,6 +52,17 @@ Each entry in the `options` array is a `SegmentedControlOption`:
 | `disabled` | `boolean` | no       | Disables this segment alone, siblings stay pickable.       |
 | `testId`   | `string`  | no       | Forwarded to the segment's DOM node as a stable test hook. |
 
+A disabled segment drains rather than dims. Its cell lifts a rung of the
+elevation rhythm — from the track's fill up to the page ground — so it reads as
+a hole punched in the track, and its label moves to the muted foreground
+colour. A segment is nothing but its label, so there was never anything for
+`opacity` to act on except the text: at half opacity an unchecked segment
+measured 1.96:1 and a chosen one 3.13:1. Drained, both measure 5.25:1.
+
+When it is the chosen segment that is disabled, the drained cell covers the
+raised white thumb, which is the whole signal in one move — the value is still
+shown, and it is visibly no longer settable.
+
 ## Size
 
 `size="sm"` is the compressed form for dense chrome — a status bar, a toolbar

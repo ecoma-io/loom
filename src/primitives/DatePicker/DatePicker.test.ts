@@ -418,6 +418,30 @@ describe("DatePicker calendar", () => {
     expect(getCellOf(before).getAttribute("aria-selected")).toBeNull();
   });
 
+  // The defect this pins: `data-[disabled]:opacity-50` faded the day number,
+  // which is the cell's whole content — `--color-foreground` is 14.09:1 on the
+  // popover and 3.13:1 at half alpha. Muted is 5.76:1, and the strike is the
+  // hueless cue that keeps an out-of-bounds day apart from an adjacent month's,
+  // which is muted too and still selectable.
+  it("draws an out-of-bounds day in colour and a strike rather than fading its number", async () => {
+    const now = today(getLocalTimeZone());
+    mountPicker({ modelValue: now.toString(), min: now.toString() });
+    await openCalendar();
+
+    const before = getDay(now.subtract({ days: 1 }).toString());
+    expect(before.className).not.toContain("opacity-50");
+    expect(before.classList.contains("data-[disabled]:line-through")).toBe(true);
+    expect(
+      before.classList.contains("[&[data-disabled]:not([data-selected])]:text-muted-foreground"),
+    ).toBe(true);
+    // Guarded off the selection so the two colours can never end up ordering
+    // against each other: the chosen day keeps its own text colour whatever
+    // else is true of it.
+    expect(
+      getDay(now.toString()).classList.contains("data-[selected]:text-primary-foreground"),
+    ).toBe(true);
+  });
+
   it("keeps a day outside the bounds unreachable by keyboard", async () => {
     const now = today(getLocalTimeZone());
     mountPicker({ min: now.toString() });
@@ -604,20 +628,35 @@ describe("DatePicker read-only", () => {
     expect(document.querySelector('[aria-label="Open calendar"]')).toBeNull();
   });
 
-  it("shows a read-only field as filled rather than dimmed, so it does not read as unavailable", async () => {
+  it("keeps a read-only date at full strength and drains a disabled one in colour rather than fading it", async () => {
     const readOnly = mountPicker({ modelValue: ISO, readonly: true });
     await settle();
-    expect(getField().className).toContain("bg-muted");
+    expect(getField().classList.contains("bg-muted")).toBe(true);
+    expect(getField().classList.contains("text-foreground")).toBe(true);
     expect(getField().className).not.toContain("opacity-50");
     // Off the document before the next mount: `getField()` reads the first
     // group in it, and two pickers at once would answer for each other.
     readOnly.unmount();
 
+    // The defect this pins: `opacity-50` on the group faded the segments along
+    // with the box, and the segments are the whole content of the control —
+    // `--color-foreground` is 14.09:1 on the field's fill and 2.99:1 once
+    // composited at half alpha, with the separators down at 2.02:1. The state
+    // is a measured pair of colours now, 4.67:1, and the two states stay apart:
+    // read-only keeps black text, disabled goes grey.
     mountPicker({ modelValue: ISO, disabled: true });
     await settle();
-    expect(getField().className).toContain("opacity-50");
-    expect(getField().className).not.toContain("bg-muted");
+    expect(getField().className).not.toContain("opacity-50");
+    expect(getField().classList.contains("bg-muted")).toBe(true);
+    expect(getField().classList.contains("text-muted-foreground")).toBe(true);
+    expect(getField().classList.contains("text-foreground")).toBe(false);
     expect(getField().hasAttribute("data-readonly")).toBe(false);
+    // Inheritance is what carries that colour down to the segments, so a
+    // segment declaring `text-foreground` of its own would quietly take the
+    // whole fix back.
+    expect(getSegments().some((segment) => segment.classList.contains("text-foreground"))).toBe(
+      false,
+    );
   });
 });
 

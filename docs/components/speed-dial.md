@@ -73,6 +73,11 @@ keyboard, and selects nothing on either the pointer path or the keyboard one,
 which is the honest way to show that an action exists and is currently out of
 reach.
 
+Its pill drains to the neutral well and gives up its elevation, rather than
+fading. Each action floats over the page with nothing behind it, so an opacity
+composites the label against whatever happens to be underneath — the words that
+name the unavailable action are the last thing that can afford to go.
+
 `select` carries the action itself and its index in `actions`. The index is the
 stable identity — a label is display text and gets translated, so matching on one
 is a bug waiting for the first locale.

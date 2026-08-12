@@ -239,6 +239,19 @@ describe("Slider accessibility contract", () => {
     expect(thumb.attributes("data-disabled")).toBeDefined();
     expect(thumb.attributes("tabindex")).not.toBe("0");
   });
+
+  it("keeps the dim on a track, a range and a thumb, none of which hold text", () => {
+    // The library-wide rule is that an `opacity` may drain a border, a fill or
+    // a glyph and may never drain text, because compositing at 50% more than
+    // halves the contrast of whatever is underneath. The root's dim is correct
+    // and stays: everything under it is geometry, and the value the control
+    // stands for is announced through `aria-valuenow` rather than drawn. This
+    // test is what stops a later value bubble or tick label from being added
+    // under a dim that would take it to roughly 2:1.
+    const wrapper = mountSlider({ disabled: true });
+    expect(wrapper.classes()).toContain("data-[disabled]:opacity-50");
+    expect(wrapper.text().trim()).toBe("");
+  });
 });
 
 describe("Slider attribute routing", () => {

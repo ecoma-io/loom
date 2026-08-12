@@ -128,6 +128,34 @@ describe("SegmentedControl", () => {
     ).toBe(true);
   });
 
+  it("drains an unavailable segment to a fill instead of dimming the label it is made of", () => {
+    const wrapper = mount(SegmentedControl, {
+      props: { options: OPTIONS, modelValue: "roomy" },
+      attrs: { "aria-label": "Density" },
+    });
+
+    // The third option is disabled *and* chosen, which is the case that made
+    // the segment itself the wrong home for the colour: `data-[disabled]:`
+    // sorts ahead of `data-[state=checked]:` in Tailwind's variant order, so a
+    // mute written on the button would have lost to `text-foreground`. The
+    // label carries its own, and it beats an inherited colour outright.
+    const segment = wrapper.findAll('[role="radio"]')[2]!;
+    expect(segment.attributes("data-state")).toBe("checked");
+    expect(segment.attributes("data-disabled")).toBe("");
+    expect(segment.classes()).toContain("data-[disabled]:bg-background");
+    expect(segment.get("span").classes()).toContain(
+      "group-data-[disabled]/segment:text-muted-foreground",
+    );
+
+    // A segment is nothing but its label, so an `opacity` anywhere on this
+    // tree has nothing to act on except text. There is nowhere it may sit.
+    const dimmed = wrapper
+      .findAll("*")
+      .filter((el) => el.text().trim() !== "")
+      .filter((el) => el.classes().some((name) => /(^|:)opacity-/.test(name)));
+    expect(dimmed.map((el) => el.classes().join(" "))).toEqual([]);
+  });
+
   it("compresses padding and type in the sm form for dense chrome, and uses the roomier default otherwise", () => {
     const dense = mount(SegmentedControl, {
       props: { options: OPTIONS, modelValue: "compact", size: "sm" },

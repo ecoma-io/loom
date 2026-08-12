@@ -177,17 +177,39 @@ watch(
       "
       :class="
         cn(
-          'relative z-10 inline-flex items-center justify-center rounded-sm text-muted-foreground',
+          // Named, not the bare `group`: a segmented control is dropped into
+          // application chrome, and a bare `group-*` would also answer to any
+          // ancestor a host happened to mark up as one.
+          'group/segment relative z-10 inline-flex items-center justify-center rounded-sm text-muted-foreground',
           size === 'sm' ? 'px-1.5 py-px text-[11px]' : 'px-3 py-1 text-sm',
           'data-[state=checked]:font-medium data-[state=checked]:text-foreground',
           'data-[state=unchecked]:hover:bg-subtle',
           'active:scale-press',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',
-          'disabled:pointer-events-none disabled:opacity-50',
+          // No `opacity` here. A segment *is* its label — there is no glyph and
+          // no fill of its own to dim — so `disabled:opacity-50` had nothing to
+          // act on but the text, taking an unchecked segment to 1.96:1 and a
+          // chosen one to 3.13:1 on its thumb.
+          //
+          // Unavailability is a fill instead, and it is the one step this
+          // system already treats as meaningful: the cell drains up a rung of
+          // the elevation rhythm, from the track's `bg-muted` to the page's own
+          // `bg-background`, so it reads as a hole in the track rather than as
+          // part of it. On a *chosen* segment that same fill covers the raised
+          // white thumb, which is the whole signal — the value is still shown
+          // and it is visibly no longer settable.
+          'disabled:pointer-events-none data-[disabled]:bg-background',
         )
       "
     >
-      {{ opt.label }}
+      <!-- The mute lives on this span rather than on the segment, and it has
+           to. `data-[disabled]:` sorts *before* `data-[state=checked]:` in
+           Tailwind's variant order, so a disabled segment that is also the
+           chosen one would take `text-foreground` from the button — and a
+           colour set on the button is only inherited here. Declared on the span
+           it wins whatever the segment resolved to: 5.25:1 over the drained
+           fill, against the 1.96:1 the dim used to leave. -->
+      <span class="group-data-[disabled]/segment:text-muted-foreground">{{ opt.label }}</span>
     </RadioGroupItem>
   </RadioGroupRoot>
 </template>

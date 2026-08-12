@@ -114,12 +114,23 @@ const field = useFieldControl(() => ({
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
         !field.invalid && 'focus-visible:shadow-halo',
         'placeholder:text-muted-foreground',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        // No `opacity`, for the reason Select's trigger carries the same rule:
+        // this element *is* the text. A disabled textarea holding a filed
+        // answer is still there to be read, and `disabled:opacity-50` took that
+        // answer from 14.09:1 to 3.06:1 and its placeholder from 5.25:1 to
+        // 2.05:1 — halving the alpha more than halves the contrast. Drained to
+        // the neutral well with the label on the measured muted colour instead:
+        // 4.67:1, and the same treatment Select and OtpInput already wear, so a
+        // disabled form row is one colour rather than three.
+        'disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
         field.invalid && 'border-destructive focus-visible:outline-destructive',
         // Filled rather than dimmed, and it keeps its focus ring: a read-only
         // field is a value on show, not an unavailable control, and the two
-        // must not look alike. The native `readonly` attribute carries the same
-        // state to assistive tech, so nothing here rests on colour.
+        // must not look alike. They share this fill and part on the text: a
+        // read-only value stays on `text-foreground` and stays focusable, where
+        // the disabled rule above mutes the text and takes the cursor with it.
+        // The native `readonly` attribute carries the same state to assistive
+        // tech, so nothing here rests on colour.
         field.readonly && 'bg-muted',
         resize === 'none' ? 'resize-none' : 'resize-y',
         attrs.class as string,

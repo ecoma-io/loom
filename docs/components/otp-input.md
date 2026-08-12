@@ -93,10 +93,18 @@ colour.
 
 ## Disabled and invalid
 
-A disabled row dims and refuses every cell. An invalid one still works: every
-cell takes the destructive border and focus ring and sets `aria-invalid`, and
-whatever was typed stays put so it can be corrected rather than retyped. That is
-the same error language every other form control here speaks.
+A disabled row drains to a grey fill with muted characters, and refuses every
+cell. It is a colour rather than an opacity, and the reason is sharper here than
+anywhere else in the library: a cell holds one character and nothing else, so
+fading the row does not dim a code so much as erase it. `--color-foreground`
+measures 14.09:1 on the resting fill and 2.99:1 once composited at half alpha;
+drained, each character keeps a measured 4.67:1 and the row still plainly reads
+as unavailable.
+
+An invalid row still works: every cell takes the destructive border and focus
+ring and sets `aria-invalid`, and whatever was typed stays put so it can be
+corrected rather than retyped. That is the same error language every other form
+control here speaks.
 
 <Demo title="Disabled and invalid">
   <div class="flex flex-col gap-4">

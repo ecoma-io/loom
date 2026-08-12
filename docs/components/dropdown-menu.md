@@ -71,6 +71,12 @@ destructive command is not one indistinguishable row among the rest. `disabled`
 leaves it visible but inert: announced as disabled, and selecting it emits
 nothing on the pointer path or the keyboard one.
 
+A disabled row is muted rather than faded. A row is nothing but its label, so an
+opacity takes the words down with the paint — and what a disabled row exists to
+say is _which_ command is unavailable, which is exactly what an unreadable label
+withholds. `danger` gives way to it: red warns about an action, and a row that
+cannot be selected has no action to warn about.
+
 An entry with no `value` selects nothing either — a decorative row cannot fire an
 action by accident.
 

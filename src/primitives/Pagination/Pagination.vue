@@ -194,6 +194,15 @@ const text = useLabels("pagination", PAGINATION_LABELS, () => props.labels);
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: navAttrs } = useSplitAttrs();
 
+// The edge controls keep the dim, and they are the one place in this component
+// where it is still the right answer: their whole content is a chevron marked
+// `aria-hidden`, so there is no text for the alpha to take down with it and the
+// name a screen reader announces is an `aria-label` no paint can reach. WCAG
+// exempts an inactive control from 1.4.11 besides. Prev and First sit disabled
+// on page 1 for as long as a reader is on it, which is the other half of the
+// argument: a faded chevron is the conventional reading of "no further this
+// way", where a drained plate would draw the eye to the control that cannot be
+// used.
 const edgeClass = cn(
   buttonVariants({ variant: "ghost", size: "icon-sm" }),
   "disabled:cursor-not-allowed disabled:opacity-50",
@@ -207,7 +216,22 @@ function pageClass(selected: boolean): string {
   return cn(
     buttonVariants({ variant: selected ? "primary" : "ghost", size: "sm" }),
     "min-w-8 px-2 tabular",
-    "disabled:cursor-not-allowed disabled:opacity-50",
+    // No `opacity` here, unlike the edges above, because this button's content
+    // *is* text — the page number, the one thing a reader needs from a pager
+    // that is briefly out of service. `disabled:opacity-50` composited the
+    // ghost variant's `--color-muted-foreground` down to 2.05:1 and the current
+    // page's white-on-warp label down to 2.48:1; halving the alpha more than
+    // halves the contrast. Unavailability is painted in measured colours
+    // instead.
+    //
+    // The two branches drain to different wells on purpose, which is Chip's
+    // rule applied to a row of numbers: an unselected page falls to the neutral
+    // well at 4.67:1, and the current page keeps the warp wash it already wears
+    // at 6.84:1. Which page a reader is on is information, and a disabled pager
+    // that forgets it has answered the question by refusing to answer it.
+    selected
+      ? "disabled:cursor-not-allowed disabled:bg-primary-muted disabled:text-primary disabled:shadow-none"
+      : "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
   );
 }
 

@@ -86,6 +86,28 @@ describe("RadioGroup", () => {
     }
   });
 
+  it("keeps the dim on the radio circle and mutes the label in a measured colour instead", () => {
+    // The library-wide rule is that an `opacity` may drain a border, a fill or
+    // a glyph and may never drain text, because compositing at 50% more than
+    // halves the contrast of whatever is underneath. This group is on the right
+    // side of it already: the dim sits on the circle, which holds nothing but
+    // the selected dot, while the label beside it swaps to a colour that was
+    // measured. This test is what stops a later edit from hoisting the dim onto
+    // the `<label>` and taking the option's words down with it.
+    const wrapper = mount(RadioGroup, { props: { modelValue: "free", options, disabled: true } });
+
+    const circle = wrapper.findAll('[role="radio"]')[0]!;
+    expect(circle.classes()).toContain("disabled:opacity-50");
+    expect(circle.text()).toBe("");
+    expect(wrapper.findAll("label")[0]!.classes()).toContain("text-muted-foreground");
+
+    const dimmed = wrapper
+      .findAll("*")
+      .filter((el) => el.text().trim() !== "")
+      .filter((el) => el.classes().some((name) => /(^|:)opacity-/.test(name)));
+    expect(dimmed.map((el) => el.classes().join(" "))).toEqual([]);
+  });
+
   it("marks the checked option's role=radio with aria-checked", () => {
     const wrapper = mount(RadioGroup, { props: { modelValue: "pro", options } });
     const radios = wrapper.findAll('[role="radio"]');

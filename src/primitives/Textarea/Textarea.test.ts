@@ -123,6 +123,25 @@ describe("Textarea", () => {
     const readOnly = mount(Textarea, { props: { ariaLabel: "Notes", readonly: true } });
     expect(readOnly.get("textarea").attributes("data-readonly")).toBe("true");
     expect(readOnly.get("textarea").classes()).toContain("bg-muted");
+    // The half that keeps the two states apart now that they share a fill. The
+    // muted label colour rides the `disabled:` variant, which a read-only
+    // element never matches, so the value stays on `text-foreground` — and it
+    // is still focusable, which the test above pins.
+    expect(readOnly.get("textarea").classes()).toContain("text-foreground");
+    expect((readOnly.get("textarea").element as HTMLTextAreaElement).disabled).toBe(false);
+  });
+
+  // The defect this pins. The element *is* the text: `disabled:opacity-50` took
+  // a filed answer from 14.09:1 to 3.06:1 and its placeholder from 5.25:1 to
+  // 2.05:1. Drained instead, to the same well and the same measured label
+  // colour Select and OtpInput wear, at 4.67:1.
+  it("drains a disabled textarea rather than fading the text written in it", () => {
+    const wrapper = mount(Textarea, { props: { ariaLabel: "Notes", disabled: true } });
+    const classes = wrapper.get("textarea").classes();
+
+    expect(classes.some((c) => c.includes("opacity"))).toBe(false);
+    expect(classes).toContain("disabled:bg-muted");
+    expect(classes).toContain("disabled:text-muted-foreground");
   });
 
   it("takes its id, description, name, required and invalid state from the row it sits in", () => {

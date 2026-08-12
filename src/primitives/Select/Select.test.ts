@@ -288,6 +288,21 @@ describe("Select choice", () => {
   });
 });
 
+// Every element that wraps text, anywhere under `root`. The rule these tests
+// pin is one line — **an `opacity` may dim a border, a fill or a glyph, and may
+// never dim text** — and it is a property of the tree rather than of any one
+// class name, so it is asserted by walking the tree rather than by naming the
+// class that happened to break it. A variant-prefixed utility sits in
+// `classList` whatever the element's current state is, so this catches
+// `disabled:opacity-50` on a node holding a label without the label's control
+// having to be disabled first.
+function textNodesCarryingOpacity(root: ParentNode): string[] {
+  return [...root.querySelectorAll<HTMLElement>("*")]
+    .filter((el) => el.textContent.trim() !== "")
+    .filter((el) => [...el.classList].some((name) => /(^|:)opacity-/.test(name)))
+    .map((el) => el.className);
+}
+
 describe("Select unavailable state", () => {
   it("refuses to open while disabled", async () => {
     mountSelect({ disabled: true });
@@ -312,6 +327,47 @@ describe("Select unavailable state", () => {
     expect(trigger.className).not.toContain("border-destructive");
     expect(trigger.getAttribute("aria-invalid")).toBeNull();
     expect(trigger.hasAttribute("data-invalid")).toBe(false);
+  });
+
+  it("drains the disabled trigger in measured colours instead of dimming the label it carries", async () => {
+    const wrapper = mountSelect({ modelValue: "vi", disabled: true });
+    await settle();
+    const trigger = getTrigger();
+
+    // The chosen value is the one thing a reader still needs from a control
+    // they cannot change, so it has to survive the unavailable state legibly.
+    expect(trigger.textContent).toContain("Tiếng Việt");
+    expect(trigger.className).toContain("disabled:bg-muted");
+    expect(trigger.className).toContain("disabled:text-muted-foreground");
+
+    // The whole tree, not just the trigger: the fix is worthless if the dim
+    // simply moved to an ancestor of the same words.
+    expect(textNodesCarryingOpacity(document.body)).toEqual([]);
+    wrapper.unmount();
+  });
+
+  it("dims no text on any row of the open list, including the one nobody can choose", async () => {
+    // The rows are portalled, so they only exist to be walked once the list is
+    // open — and the unchoosable row is where the defect used to live.
+    mountSelect({ modelValue: "en" });
+    await openList();
+    expect(getOptions()).toHaveLength(3);
+    expect(textNodesCarryingOpacity(document.body)).toEqual([]);
+  });
+
+  it("mutes an unchoosable row on its own text node, where a checked row's colour cannot outrank it", async () => {
+    mountSelect({ modelValue: "ja" });
+    await openList();
+
+    // The third row is both disabled and the chosen one — the case that made
+    // the container the wrong home for the colour, since `data-[disabled]:`
+    // sorts ahead of `data-[state=checked]:` and would have lost.
+    const row = getOptions()[2];
+    if (!row) throw new Error("no third row");
+    expect(row.getAttribute("data-state")).toBe("checked");
+
+    const label = [...row.querySelectorAll("*")].find((el) => el.textContent === "日本語");
+    expect(label?.className).toContain("text-muted-foreground");
   });
 });
 

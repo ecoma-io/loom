@@ -237,6 +237,17 @@ describe("Rating", () => {
     const root = wrapper.get('[role="radiogroup"]');
     expect(root.attributes("data-disabled")).toBe("");
     expect(root.classes()).toContain("data-[disabled]:opacity-50");
+
+    // The dim is allowed to stay here, and this is the reason: the library-wide
+    // rule is that an `opacity` may drain a border, a fill or a glyph and may
+    // never drain text, because compositing at 50% more than halves the
+    // contrast of whatever is underneath. A rating is glyphs the whole way
+    // down — the score is carried by `aria-label`, which no opacity touches —
+    // so there is nothing under this dim for it to make illegible.
+    expect(wrapper.text().trim()).toBe("");
+    expect(root.attributes("aria-label") ?? radios[0]!.attributes("aria-label")).toContain(
+      "of 5 stars",
+    );
   });
 
   it("renders a read-only score as one labelled image, with nothing inside it to focus", () => {

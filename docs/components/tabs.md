@@ -43,6 +43,15 @@ error — worth checking for when a `tabs` array is built dynamically.
   <TabsDemo />
 </Demo>
 
+A disabled tab takes a drained plate rather than a dimmed label, and the reason
+is worth stating because it is the awkward case of the rule. An unselected tab
+is already painted in the muted colour, so simply removing the dim would have
+left an unavailable tab looking exactly like an available one — while keeping
+the dim took the label to 2.05:1, well under the 4.5:1 bar. The fill carries the
+state instead and the text stays at a colour it can be read in. The label is
+still what says which tab it is; a reader has no use for a tab they cannot make
+out.
+
 ## Keyboard and roving tabindex
 
 The trigger row is one tab stop, not several: `Tab` moves focus onto the row

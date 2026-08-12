@@ -317,7 +317,13 @@ const inputFieldAttrs = computed(() => {
           comboboxVariants({ size }),
           !field.invalid && 'focus-within:shadow-halo',
           field.invalid && 'border-destructive focus-within:outline-destructive',
-          field.disabled && 'cursor-not-allowed opacity-50',
+          // The box holds the chosen value, so it is drained rather than
+          // dimmed: `opacity-50` composited the input's text down to 3.06:1,
+          // and what a reader needs from an unavailable Combobox is precisely
+          // what it is set to. The neutral well says unavailable on its own —
+          // the input's own `disabled:text-muted-foreground` below carries the
+          // text to 4.67:1 over it.
+          field.disabled && 'cursor-not-allowed bg-muted',
           attrs.class as string,
         )
       "
@@ -327,7 +333,7 @@ const inputFieldAttrs = computed(() => {
         :model-value="query"
         :display-value="displayValue"
         :placeholder="placeholder"
-        class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+        class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-muted-foreground"
         @update:model-value="onQuery"
       />
       <!-- Reka takes this button out of the tab order itself, so the whole
@@ -404,11 +410,21 @@ const inputFieldAttrs = computed(() => {
                 'animate-fade-rise',
                 'data-[highlighted]:bg-subtle',
                 'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary',
-                'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                // Inert, but still readable. `data-[disabled]:opacity-50` took
+                // the label to 3.13:1 on the popover; the colour on the span
+                // below leaves it at 5.76:1 and still visibly lighter than the
+                // rows around it.
+                'data-[disabled]:pointer-events-none',
               )
             "
           >
-            {{ option.label }}
+            <!-- The mute lives on this span rather than on the row, and it has
+                 to. `data-[disabled]:` sorts *before* `data-[state=checked]:`
+                 in Tailwind's variant order, so a disabled row that is also the
+                 chosen one would take `text-primary` from the container — and a
+                 container colour is only inherited. Declared here it wins
+                 whatever the row resolved to. -->
+            <span :class="option.disabled && 'text-muted-foreground'">{{ option.label }}</span>
             <ComboboxItemIndicator class="absolute right-2 inline-flex items-center">
               <Check class="h-4 w-4" />
             </ComboboxItemIndicator>

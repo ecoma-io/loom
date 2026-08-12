@@ -96,9 +96,16 @@ value moving.
 declarations: either surface may grow a field the other should not inherit by
 accident, and a shared alias would make that change look free when it is not.
 
-A `disabled` option still renders. It is present but unchoosable — dimmed,
+A `disabled` option still renders. It is present but unchoosable — muted,
 skipped by the keyboard, and unresponsive to a click — which is the honest way
 to show that a choice exists and is currently out of reach.
+
+Muted, and deliberately not dimmed. The row's label moves to the muted
+foreground colour rather than being drawn at half opacity, because a
+transparency multiplies the _text_ down with everything else: at 50% the label
+measured 3.13:1 against the popover, under the 4.5:1 the rest of the site holds
+itself to. The colour is a measured 5.76:1 and still visibly lighter than the
+rows around it.
 
 <Demo title="Options">
   <div class="w-full max-w-xs">
@@ -222,8 +229,14 @@ not re-animated at all — they are the same elements, still where they were.
 
 ## Disabled and invalid
 
-A disabled Combobox dims, takes no text and refuses to open. An invalid one
-still works: it takes the destructive border and focus ring and sets
+A disabled Combobox drains, takes no text and refuses to open: the box takes the
+neutral fill and the value inside it moves to the muted foreground colour. It
+does not fade — the box is what shows the chosen value, and that value is the
+one thing a reader still needs from a control they cannot change. Half opacity
+took it to 3.06:1; the drained pair measures 4.67:1.
+
+An invalid one still works: it takes the destructive border and focus ring and
+sets
 `aria-invalid`, which is the same error language every other form control
 speaks, so a field reporting an error looks the same whichever control it holds.
 

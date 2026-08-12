@@ -228,6 +228,29 @@ describe("Checkbox", () => {
     expect(row.get("label").classes()).toContain("cursor-not-allowed");
   });
 
+  it("keeps the dim on the box, which holds no text, and never on the label beside it", () => {
+    // The library-wide rule is that an `opacity` may drain a border, a fill or
+    // a glyph and may never drain text, because compositing at 50% more than
+    // halves the contrast of whatever is underneath. This control is on the
+    // right side of it *by construction* — the box is a sibling of the label,
+    // not a wrapper around it — and this test is what stops a later edit from
+    // hoisting the dim onto the `<label>` and taking the words with it.
+    const row = mount(ProbeRow, {
+      props: { disabled: true },
+      slots: { default: h(Checkbox, { label: "Accept the terms" }) },
+    });
+
+    const box = row.get('[role="checkbox"]');
+    expect(box.classes()).toContain("disabled:opacity-50");
+    expect(box.text()).toBe("");
+
+    const dimmed = row
+      .findAll("*")
+      .filter((el) => el.text().trim() !== "")
+      .filter((el) => el.classes().some((name) => /(^|:)opacity-/.test(name)));
+    expect(dimmed.map((el) => el.classes().join(" "))).toEqual([]);
+  });
+
   it("lets an explicit disabled overrule the row in both directions", () => {
     const optedOut = mount(ProbeRow, {
       props: { disabled: true },

@@ -592,6 +592,8 @@ describe("TimePicker read-only", () => {
     const readOnly = mountPicker({ modelValue: "09:30", readonly: true });
     await settle();
     expect(getField().className).toContain("bg-muted");
+    // A read-only time is a value on show, so its text stays at full strength.
+    expect(getField().className).not.toContain("text-muted-foreground");
     expect(getField().className).not.toContain("opacity-50");
     // Off the document before the next mount: `getField()` reads the first
     // group in it, and two pickers at once would answer for each other.
@@ -599,8 +601,12 @@ describe("TimePicker read-only", () => {
 
     mountPicker({ modelValue: "09:30", disabled: true });
     await settle();
-    expect(getField().className).toContain("opacity-50");
-    expect(getField().className).not.toContain("bg-muted");
+    // Disabled shares read-only's drained fill and parts from it on the text
+    // colour and the cursor. Never on an alpha: dimming the field takes the
+    // time it is showing down with it, which is the whole point of the state.
+    expect(getField().className).toContain("bg-muted");
+    expect(getField().className).toContain("text-muted-foreground");
+    expect(getField().className).not.toContain("opacity-50");
     expect(getField().hasAttribute("data-readonly")).toBe(false);
   });
 });
@@ -640,7 +646,8 @@ describe("TimePicker inside a Field", () => {
     const disabled = mountRow({ disabled: true }, h(TimePicker, { modelValue: "09:30" }));
     await settle();
     expect(getSegments().some((segment) => segment.hasAttribute("tabindex"))).toBe(false);
-    expect(getField().className).toContain("opacity-50");
+    expect(getField().className).toContain("text-muted-foreground");
+    expect(getField().className).not.toContain("opacity-50");
     disabled.unmount();
 
     mountRow({ readonly: true }, h(TimePicker, { modelValue: "09:30" }));

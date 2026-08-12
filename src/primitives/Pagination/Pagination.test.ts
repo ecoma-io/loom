@@ -215,6 +215,46 @@ describe("Pagination", () => {
     expect(wrapper.emitted("update:page")).toBeUndefined();
   });
 
+  // The defect these two pin. `disabled:opacity-50` on a page button faded the
+  // number written on it along with the button: 2.05:1 for an ordinary page,
+  // 2.48:1 for the current one. The numbers are the only thing a pager says, so
+  // the dim is replaced by measured fills — and no test of the emitted markup
+  // would have caught a colour, which is why the absence of the class is
+  // asserted alongside what took its place.
+  it("paints a disabled page number in a measured colour rather than fading it", () => {
+    const wrapper = mountPagination({ total: 120, page: 3, disabled: true });
+    const other = wrapper.get('[aria-label="Page 4"]').classes();
+
+    expect(other.some((c) => c.includes("opacity"))).toBe(false);
+    // 4.67:1 — `--color-muted-foreground` over the neutral well it drains to.
+    expect(other).toContain("disabled:bg-muted");
+    expect(other).toContain("disabled:text-muted-foreground");
+  });
+
+  it("keeps the current page on the warp wash while disabled, so which page it is survives", () => {
+    const wrapper = mountPagination({ total: 120, page: 3, disabled: true });
+    const current = wrapper.get('[aria-current="page"]').classes();
+
+    expect(current.some((c) => c.includes("opacity"))).toBe(false);
+    // 6.84:1, and still the only button in the row wearing the warp — being on
+    // page 3 is information, not decoration.
+    expect(current).toContain("disabled:bg-primary-muted");
+    expect(current).toContain("disabled:text-primary");
+  });
+
+  // The counterpart verdict, and it is deliberate rather than an oversight: an
+  // edge control's entire content is an `aria-hidden` chevron, so there is no
+  // text for the alpha to take down and the name it announces comes from an
+  // `aria-label` no paint touches.
+  it("leaves the edge controls dimming, because they hold a glyph and no text", () => {
+    const wrapper = mountPagination({ total: 120, page: 1 });
+    const prev = button(wrapper, "Previous page");
+
+    expect(prev.disabled).toBe(true);
+    expect(prev.className).toContain("disabled:opacity-50");
+    expect(prev.textContent.trim()).toBe("");
+  });
+
   it("widens the window with siblingCount rather than needing a different variant", () => {
     const wrapper = mountPagination({ total: 1000, page: 37, siblingCount: 2 });
     expect(pages(wrapper)).toEqual(["1", "35", "36", "37", "38", "39", "100"]);

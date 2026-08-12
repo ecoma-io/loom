@@ -85,6 +85,29 @@ describe("Switch", () => {
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
   });
 
+  it("keeps the dim on the track and thumb, which hold no text of their own", () => {
+    // The library-wide rule is that an `opacity` may drain a border, a fill or
+    // a glyph and may never drain text, because compositing at 50% more than
+    // halves the contrast of whatever is underneath. This control renders a
+    // track and a thumb and no words at all, so `disabled:opacity-50` here is
+    // correct and stays. The name lives on a label the *host* owns, outside
+    // this tree — `SwitchDemo.vue` is where that half is pinned.
+    const wrapper = mount(Switch, {
+      props: { modelValue: true, disabled: true },
+      attrs: { "aria-label": "Autosave" },
+    });
+
+    const track = wrapper.get('[role="switch"]');
+    expect(track.classes()).toContain("disabled:opacity-50");
+    expect(track.text()).toBe("");
+
+    const dimmed = wrapper
+      .findAll("*")
+      .filter((el) => el.text().trim() !== "")
+      .filter((el) => el.classes().some((name) => /(^|:)opacity-/.test(name)));
+    expect(dimmed.map((el) => el.classes().join(" "))).toEqual([]);
+  });
+
   it("mirrors the model value into data-state, the hook the checked warp fill and the unchecked muted track both key on", async () => {
     const wrapper = mount(Switch, { props: { modelValue: false }, attrs: { "aria-label": "X" } });
     expect(wrapper.get('[role="switch"]').attributes("data-state")).toBe("unchecked");

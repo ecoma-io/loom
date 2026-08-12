@@ -212,6 +212,15 @@ boundaries of that calculation are where off-by-one bugs live.
 instance. Every button takes the DOM `disabled` state rather than a dimmed
 paint, so nothing that looks unavailable can still be pressed.
 
+The numbers stay legible while it is closed, and that is a deliberate split
+rather than an oversight. A page button's whole content is its number, so it
+drains to a measured colour instead of fading: an ordinary page to the neutral
+well, and the current one to the warp wash it already wears, because which page
+a reader is on is information a closed pager still has to answer. The edge
+controls do fade, because a chevron is a glyph — there is no text on them for an
+opacity to make unreadable, and a faded arrow is the conventional reading of
+"no further this way" on page 1.
+
 <Demo title="Disabled">
   <Pagination v-model:page="feed" disabled :total="120" :labels="{ nav: 'Invoices, loading' }" />
 </Demo>

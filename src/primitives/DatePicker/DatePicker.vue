@@ -373,13 +373,26 @@ function onOpenAutoFocus(event: Event) {
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
             !field.invalid && 'focus-within:shadow-halo',
             field.invalid && 'border-destructive focus-within:outline-destructive',
-            // Filled rather than dimmed, and it keeps its focus ring: a
+            // Read-only keeps its focus ring and its full-strength text: a
             // read-only date is a value on show, not an unavailable control,
             // and the two must not look alike. Reka's own `data-readonly` on
             // this group carries the same state to assistive tech, so nothing
             // here rests on colour.
             field.readonly && 'bg-muted',
-            field.disabled && 'cursor-not-allowed opacity-50',
+            // Unavailable is a *colour*, never an opacity. `opacity-50` here
+            // faded the segments along with the box, and the segments are the
+            // whole content of the control: `--color-foreground` measures
+            // 14.09:1 on this fill and 2.99:1 once composited at half alpha,
+            // with the literal separators and any placeholder segment down at
+            // 2.02:1. The drained fill and the muted text below are a measured
+            // 4.67:1 and still read as unavailable — grey text where read-only
+            // keeps black, and a cursor that says so.
+            //
+            // The colour is set here rather than on each segment because no
+            // segment declares one of its own in the resting state, so each
+            // inherits this; `focus:text-primary` below is unreachable on a
+            // control that cannot take focus.
+            field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
           )
         "
       >
@@ -457,6 +470,11 @@ function onOpenAutoFocus(event: Event) {
              reached. -->
         <DatePickerCalendar v-slot="{ grid, weekDays }" :calendar-label="panelText.calendar">
           <DatePickerHeader class="flex items-center justify-between gap-2">
+            <!-- The two pagers keep `data-[disabled]:opacity-50` where the
+                 field and the cells gave it up, and the difference is what is
+                 inside them: a chevron and nothing else. Fading a glyph costs a
+                 reader nothing, and the buttons carry their name in
+                 `aria-label` rather than in dimmed text. -->
             <DatePickerPrev
               :aria-label="panelText.previousMonth"
               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
@@ -520,12 +538,22 @@ function onOpenAutoFocus(event: Event) {
                   :date="day"
                   class="p-0 text-center"
                 >
+                  <!-- A day out of `min`/`max` range is drawn in colour rather
+                       than faded: the number is the cell's whole content, and
+                       `opacity-50` took `--color-foreground` from 14.09:1 on
+                       the popover to 3.13:1. Muted is 5.76:1 and the rule is
+                       written as `:not([data-selected])` so it can never order
+                       against the selected fill's own text colour — the same
+                       trick the range pickers use on their four competing
+                       fills. The strike is the second, hueless cue, and it is
+                       what keeps an unavailable day apart from an adjacent
+                       month's, which is muted too and still selectable. -->
                   <DatePickerCellTrigger
                     v-slot="{ dayValue, today }"
                     :day="day"
                     :month="month.value"
                     :aria-current="isDateToday(day) ? 'date' : undefined"
-                    class="group relative inline-flex h-9 w-9 items-center justify-center rounded-sm text-sm text-foreground transition-colors duration-fast ease-out hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[outside-view]:text-muted-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                    class="group relative inline-flex h-9 w-9 items-center justify-center rounded-sm text-sm text-foreground transition-colors duration-fast ease-out hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[outside-view]:text-muted-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:line-through [&[data-disabled]:not([data-selected])]:text-muted-foreground"
                   >
                     {{ dayValue }}
                     <!-- Today's second cue. The dot is decoration to a screen

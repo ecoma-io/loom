@@ -69,11 +69,23 @@ describe("Button", () => {
     expect(wrapper.get("span.animate-shimmer").attributes("aria-hidden")).toBe("true");
   });
 
-  it("dims only a genuinely disabled button — a loading button stays at full opacity so it reads as working, not unavailable", async () => {
+  // Drained rather than dimmed, and the distinction is the point: `opacity`
+  // takes the label down with the button, and a button is nothing but a label
+  // on a fill. The treatment is keyed off the `disabled` prop rather than the
+  // DOM disabled state, because a loading button is also DOM-disabled and has
+  // to read as "working" rather than "unavailable".
+  it("drains only a genuinely disabled button — a loading one keeps its fill so it reads as working, not unavailable", async () => {
     const wrapper = mount(Button, { props: { loading: true }, slots: { default: "Save" } });
+    expect(wrapper.get("button").classes()).not.toContain("bg-muted");
     expect(wrapper.get("button").classes()).not.toContain("opacity-50");
+
     await wrapper.setProps({ loading: false, disabled: true });
-    expect(wrapper.get("button").classes()).toContain("opacity-50");
+    expect(wrapper.get("button").classes()).toEqual(
+      expect.arrayContaining(["bg-muted", "text-muted-foreground", "border-border-strong"]),
+    );
+    // The regression this guards: the label has to stay readable, so nothing
+    // may put an alpha over it again.
+    expect(wrapper.get("button").classes()).not.toContain("opacity-50");
   });
 
   it("keeps every icon size square and at or above the 24px minimum target, so a dense row never shrinks the hit area below what a pointer can land on", () => {

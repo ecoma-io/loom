@@ -99,12 +99,19 @@ two ways is one fact that can disagree with itself: a control written
 still be disabled by the element, leaving a live-looking control that silently
 refuses input. The element reaches further anyway.
 
-The group also dims as a unit, because a set of controls that silently stops
-accepting input reads as a broken form rather than an unavailable one. A
-control that already dims itself when disabled — Switch, RadioGroup, Select —
-ends up fainter still inside a disabled group; that is deliberate, and it reads
-as one inactive block. The native `disabled` attribute carries the same state
-to assistive technology, so the state is never colour alone.
+The group does **not** dim as a unit, and it used to. Opacity composites, so a
+dim on the group multiplied against the dim a control applies to itself: a
+Switch or a Select inside a disabled Fieldset landed near 25% effective opacity,
+with its label measuring 1.65:1 against a 4.5:1 bar, and the group's own hint —
+dimmed once rather than twice — still measured 2.05:1. Neither number was
+reachable by fixing the controls, because neither was the controls' doing.
+
+What says the group is unavailable now is the legend, which mutes to a measured
+colour, together with each control's own disabled treatment; a set of controls
+that silently stops accepting input would indeed read as a broken form, and this
+still reads as one inactive block. Nothing the group does reduces the contrast of
+anything inside it. The native `disabled` attribute carries the same state to
+assistive technology, so the state is never colour alone.
 
 ## Hint and error
 
@@ -219,7 +226,7 @@ error is exposed through the group's `aria-describedby`.
 
 None. A group container is a place things sit, not a place things move, so
 nothing here transitions, animates or reflows on a state change — including the
-dim that arrives with `disabled`.
+legend's colour change under `disabled`.
 
 The one exception is the error line, which rises in on the shared
 `animate-fade-rise` lane that InlineError already owns, so a group's error

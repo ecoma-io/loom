@@ -85,9 +85,16 @@ tells a reader the shape of what is wanted before they have typed anything.
 ## Bounds
 
 `min` and `max` fence the calendar. A day outside them is announced with
-`aria-disabled`, dimmed, unclickable, and — the part that is easy to leave out —
-skipped by the arrow keys, so a keyboard user cannot land on a day they are not
-allowed to choose and then wonder why Enter did nothing.
+`aria-disabled`, greyed and struck through, unclickable, and — the part that is
+easy to leave out — skipped by the arrow keys, so a keyboard user cannot land on
+a day they are not allowed to choose and then wonder why Enter did nothing.
+
+It is greyed rather than faded, and that is a legibility decision rather than a
+stylistic one: the number is the cell's whole content, and half opacity took
+`--color-foreground` from 14.09:1 against the panel to 3.13:1. The muted colour
+measures 5.76:1. The strike is the second cue, and a hueless one — it is what
+keeps an unavailable day apart from an adjacent month's, which is muted too and
+still perfectly selectable.
 
 They fence the typed field too, though more gently: a date typed outside the
 window marks the field invalid rather than refusing the keystroke, because
@@ -118,8 +125,12 @@ hands back `2026-…`.
 
 ## Disabled and invalid
 
-A disabled DatePicker dims, refuses the calendar, and leaves nothing of itself
-in the tab order. An invalid one still works: it takes the destructive border
+A disabled DatePicker drains to a grey fill with muted segments, refuses the
+calendar, and leaves nothing of itself in the tab order. The state is carried by
+colour rather than by opacity, deliberately: fading the field fades the date
+inside it, and the date is the whole content of the control — 14.09:1 becomes
+2.99:1 at half alpha, and the separators between the segments 2.02:1. Drained,
+every segment measures 4.67:1 and the field still plainly reads as unavailable. An invalid one still works: it takes the destructive border
 and focus ring and sets `aria-invalid`, which is the same error language every
 other form control here speaks, so a field reporting an error looks the same
 whichever control it holds.
@@ -135,10 +146,12 @@ whichever control it holds.
 
 A date on show that cannot be edited is a genuine state, and it is not the same
 one as disabled. A read-only DatePicker stays a Tab stop, keeps its segments
-readable and arrow-navigable, stays in the form's submitted data, and is filled
-rather than dimmed — Reka marks it `data-readonly` for assistive tech, so the
+readable and arrow-navigable, stays in the form's submitted data, and keeps its
+date at full strength — Reka marks it `data-readonly` for assistive tech, so the
 state never rests on the fill alone. A disabled one is unavailable: no Tab stop,
-dimmed, nothing submitted. Reaching for `disabled` to show a date nobody may
+muted text, nothing submitted. Both take the same grey fill and the text colour
+is what separates them, which is the right way round — a read-only value is
+there to be read. Reaching for `disabled` to show a date nobody may
 change tells a screen reader the field is unavailable when it is simply not
 editable.
 

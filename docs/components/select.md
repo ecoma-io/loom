@@ -50,10 +50,18 @@ model carries and what `update:modelValue` reports; `label` is what a reader
 sees, on the row and on the trigger once it is chosen. Keeping them separate is
 what lets the label be translated without the stored value moving.
 
-A `disabled` option still renders. It is present but unchoosable — dimmed,
+A `disabled` option still renders. It is present but unchoosable — muted,
 skipped by the keyboard, and unresponsive to a click — which is the honest way
 to show that a choice exists and is currently out of reach. Dropping the row
 instead tells a reader nothing.
+
+Muted, and deliberately not dimmed. The row's label moves to the muted
+foreground colour rather than being drawn at half opacity, because a
+transparency multiplies the _text_ down with everything else: at 50% the label
+measured 3.13:1 against the popover, under the 4.5:1 the rest of the site holds
+itself to, and a row nobody can read is a row that tells a reader nothing
+either. The colour is a measured 5.76:1 and still visibly lighter than the rows
+around it.
 
 <Demo title="Options">
   <div class="w-full max-w-xs">
@@ -118,7 +126,14 @@ depth — a long list never turns into a slow one.
 
 ## Disabled and invalid
 
-A disabled Select dims and refuses to open. An invalid one still works: it takes
+A disabled Select drains and refuses to open: the trigger takes the neutral
+fill, its chosen label moves to the muted foreground colour, and the cursor says
+not-allowed. What it does **not** do is fade — the trigger is the one node
+carrying the chosen value, and what a reader needs from a control they cannot
+change is exactly that value. Half opacity took the label to 3.06:1; the drained
+pair measures 4.67:1.
+
+An invalid one still works: it takes
 the destructive border and focus ring and sets `aria-invalid`, which is the same
 error language every other form control speaks, so a field reporting an error
 looks the same whichever control it holds.

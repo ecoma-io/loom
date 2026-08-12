@@ -767,12 +767,18 @@ function onOpenAutoFocus(event: Event) {
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
             !errored && 'focus-within:shadow-halo',
             errored && 'border-destructive focus-within:outline-destructive',
-            // Filled rather than dimmed, and it keeps its focus ring — a
+            // Read-only keeps its focus ring and its full-strength text — a
             // read-only span is a value on show, not an unavailable control.
             // Reka's own `data-readonly` on this group says the same thing to
             // assistive tech, so nothing here rests on colour.
             field.readonly && 'bg-muted',
-            field.disabled && 'cursor-not-allowed opacity-50',
+            // Drained rather than faded, for the reason DatePicker writes out:
+            // `opacity-50` took all ten segments and the dash between the halves
+            // down with the box, from 14.09:1 to 2.99:1 and the dash to 2.02:1.
+            // Muted text on the drained fill is 4.67:1 and still reads
+            // unavailable. The dash declares its own colour and the segments
+            // declare none, so this one line covers both by inheritance.
+            field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
           )
         "
       >
@@ -862,6 +868,9 @@ function onOpenAutoFocus(event: Event) {
              fallthrough attribute could not have reached. -->
         <DateRangePickerCalendar v-slot="{ grid, weekDays }" :calendar-label="panelText.calendar">
           <DateRangePickerHeader class="flex items-center justify-between gap-2">
+            <!-- The pagers keep their opacity where the field and the cells gave
+                 it up: a chevron is a glyph, and fading one costs a reader
+                 nothing. Their names live in `aria-label`, not in dimmed text. -->
             <DateRangePickerPrev
               :aria-label="panelText.previousMonth"
               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
@@ -934,7 +943,14 @@ function onOpenAutoFocus(event: Event) {
                           'transition-colors duration-fast ease-out hover:bg-subtle',
                           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',
                           'data-[outside-view]:text-muted-foreground',
-                          'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                          // Out of range is colour and a strike, not a fade —
+                          // DatePicker carries the measured account. The
+                          // `:not([data-selected])` is there for the same reason
+                          // the fills below are written that way, and the strike
+                          // is what separates an unavailable day from an
+                          // adjacent month's: muted too, and still pickable.
+                          'data-[disabled]:pointer-events-none data-[disabled]:line-through',
+                          '[&[data-disabled]:not([data-selected])]:text-muted-foreground',
                           // The four competing fills, written as `:not()` of one
                           // another so no cell ever has two backgrounds for the
                           // stylesheet to order — DateRangePicker carries why

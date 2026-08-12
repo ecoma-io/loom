@@ -422,11 +422,32 @@ describe("NumberField read-only", () => {
     const readOnly = mountField({ readonly: true });
     expect(readOnly.get(ROOT).classes()).toContain("bg-muted");
     expect(readOnly.get(ROOT).classes()).not.toContain("opacity-50");
+    // A read-only value is on show: its text stays where an editable one is.
+    expect(readOnly.get(SPINBUTTON).classes()).toContain("text-foreground");
     expect(readOnly.get(ROOT).attributes("data-readonly")).toBeDefined();
 
     const editable = mountField();
     expect(editable.get(ROOT).classes()).not.toContain("bg-muted");
     expect(editable.get(ROOT).attributes("data-readonly")).toBeUndefined();
+  });
+
+  // The defect this pins: `opacity-50` on the box faded the value inside it —
+  // `--color-foreground` is 14.09:1 on the resting fill and 2.99:1 once
+  // composited at half alpha, with the unit suffix beside it down at 2.02:1.
+  // The state is a drained fill now, and the number keeps a measured 4.67:1.
+  it("drains an unavailable field in colour rather than fading its value", () => {
+    const disabled = mountField({ disabled: true, unit: "px" });
+    expect(disabled.get(ROOT).classes()).not.toContain("opacity-50");
+    expect(disabled.get(ROOT).classes()).toContain("bg-muted");
+
+    // On the input rather than inherited from the box: the input names
+    // `text-foreground` itself, and a colour set on an ancestor is only
+    // inherited — it would lose to that declaration every time. `cn()` is what
+    // keeps the pair to one class rather than two for the stylesheet to order.
+    const input = disabled.get(SPINBUTTON);
+    expect(input.classes()).toContain("text-muted-foreground");
+    expect(input.classes()).not.toContain("text-foreground");
+    expect(input.classes()).toContain("cursor-not-allowed");
   });
 
   it("takes no scrub: the pointer places a caret instead of running the value", () => {

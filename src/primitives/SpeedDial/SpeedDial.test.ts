@@ -120,6 +120,19 @@ describe("SpeedDial", () => {
     expect(wrapper.emitted("select")).toBeUndefined();
   });
 
+  // The defect this pins. Each action is a floating label with no panel behind
+  // it, so `data-[disabled]:opacity-50` faded the words against whatever page
+  // showed through — 3.21:1. The pill drains to the neutral well instead and
+  // the label lands on the measured muted colour, 4.67:1 over it.
+  it("drains a disabled action's pill instead of fading the label on it", async () => {
+    await mountDial();
+    const archive = actions()[2]!;
+
+    expect(archive.className).not.toContain("opacity");
+    expect(archive.className).toContain("data-[disabled]:bg-muted");
+    expect(archive.className).toContain("data-[disabled]:text-muted-foreground");
+  });
+
   it("keeps the fan unmounted while closed, so a set of actions never sits in the DOM catching clicks", async () => {
     await mountDial({ open: false });
     expect(fan()).toBeNull();

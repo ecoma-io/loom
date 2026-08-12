@@ -61,6 +61,42 @@ describe("Fieldset", () => {
     expect(wrapper.get("input").element.matches(":disabled")).toBe(false);
   });
 
+  // The defect this pins, and it was the worst instance of it in the library
+  // because opacity composites and therefore multiplies. The group's own 50%
+  // ran over the 50% a Switch or a Select applies to itself, so a control
+  // inside a disabled group rendered at 25% effective alpha — 1.65:1 — and the
+  // group's hint, dimmed once rather than twice, still measured 2.05:1. No
+  // amount of fixing the controls could reach either number, because neither
+  // was the controls' doing.
+  //
+  // Asserting the absence of a class is weak on its own, which is why the two
+  // halves of the replacement are asserted beside it: the fieldset is the
+  // `group` the legend reads its state from, and the legend names the measured
+  // colour it drops to.
+  it("dims nothing itself, so a control inside a disabled group is never dimmed twice", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Notifications", disabled: true, hint: "Available once enabled" },
+      slots: { default: '<input aria-label="Nested" class="disabled:opacity-50" />' },
+    });
+    const fieldset = wrapper.get("fieldset");
+
+    expect(fieldset.classes().some((c) => c.includes("opacity"))).toBe(false);
+    expect(fieldset.classes()).toContain("group");
+    // What a nested control is left computing: its own treatment and nothing
+    // multiplied on top of it.
+    expect(wrapper.get("input").classes()).toEqual(["disabled:opacity-50"]);
+  });
+
+  it("mutes the legend to say the group is unavailable, rather than fading the whole block", async () => {
+    const wrapper = mount(Fieldset, { props: { legend: "Notifications", disabled: true } });
+    // 14.09:1 available, 5.25:1 not — `group-disabled:` reads the real
+    // `:disabled` on the fieldset, so there is no second copy of the state.
+    expect(wrapper.get("legend").classes()).toContain("group-disabled:text-muted-foreground");
+
+    await wrapper.setProps({ disabled: false });
+    expect(wrapper.get("fieldset").attributes("disabled")).toBeUndefined();
+  });
+
   it("names the group with a real legend inside a real fieldset", () => {
     const wrapper = mount(Fieldset, { props: { legend: "Shipping address" } });
     expect(wrapper.html()).toMatch(/^<fieldset/);

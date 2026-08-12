@@ -110,8 +110,16 @@ than flagged.
 `readonly` and `disabled` are different states, not two dials on one, and a
 number is the case that makes the difference obvious. A rate, a computed total
 or a coordinate locked to a parent is a value on show: it stays a Tab stop,
-stays in the form's posted data, and is filled rather than dimmed. A disabled
-field is unavailable — not reachable, not posted, dimmed.
+stays in the form's posted data, and keeps its number at full strength. A
+disabled field is unavailable — not reachable, not posted, and drained to a grey
+fill with the number muted to match.
+
+Both are colours rather than opacities, and for a measured reason. `opacity-50`
+on the box fades the value inside it: 14.09:1 becomes 2.99:1 at half alpha, and
+a unit suffix beside it falls to 2.02:1. Drained, the number measures 4.67:1
+against its own fill and the field still plainly reads as unavailable. The two
+stepper chevrons keep their fade — a glyph can be dimmed without costing anyone
+a value they need to read.
 
 Read-only closes every path into the value rather than only the obvious one:
 typing, the arrow keys, Shift+Arrow, the scrub gesture, and the stepper, which

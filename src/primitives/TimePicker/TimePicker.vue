@@ -338,7 +338,15 @@ function hourAnnouncement(
         // not look alike. Reka's own `data-readonly` on this node carries the
         // same state to assistive tech, so nothing here rests on colour.
         field.readonly && 'bg-muted',
-        field.disabled && 'cursor-not-allowed opacity-50',
+        // Drained rather than faded, for the reason DatePicker and
+        // DateTimePicker both write out — this control was the one member of
+        // the family the sweep still caught. `opacity-50` took the segments
+        // down with the box: measured on the built site, the hour and the
+        // period read 3.08:1 and the colon between them 2.07:1, and those
+        // segments *are* the value. Muted text on the drained fill is 4.67:1
+        // and still reads unavailable. Set on the group because no segment
+        // declares a resting colour of its own, so each inherits this one.
+        field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
         attrs.class as string,
       )
     "

@@ -439,12 +439,18 @@ function onOpenAutoFocus(event: Event) {
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
             !errored && 'focus-within:shadow-halo',
             errored && 'border-destructive focus-within:outline-destructive',
-            // Filled rather than dimmed, and it keeps its focus ring — a
+            // Read-only keeps its focus ring and its full-strength text — a
             // read-only instant is a value on show, not an unavailable control.
             // Reka's own `data-readonly` on this group says the same thing to
             // assistive tech, so nothing here rests on colour.
             field.readonly && 'bg-muted',
-            field.disabled && 'cursor-not-allowed opacity-50',
+            // Drained rather than faded, for the reason DatePicker writes out:
+            // `opacity-50` here took the five segments down with the box, from
+            // 14.09:1 to 2.99:1, and the segments are the whole value. Muted
+            // text on the drained fill is 4.67:1 and still reads unavailable.
+            // Set on the group because no segment declares a resting colour of
+            // its own, so each inherits this one.
+            field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
           )
         "
       >
@@ -517,6 +523,9 @@ function onOpenAutoFocus(event: Event) {
              fallthrough attribute could not have reached. -->
         <DatePickerCalendar v-slot="{ grid, weekDays }" :calendar-label="panelText.calendar">
           <DatePickerHeader class="flex items-center justify-between gap-2">
+            <!-- The pagers keep their opacity where the field and the cells
+                 gave it up: a chevron is a glyph, and fading one costs a reader
+                 nothing. Their names live in `aria-label`, not in dimmed text. -->
             <DatePickerPrev
               :aria-label="panelText.previousMonth"
               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
@@ -573,12 +582,19 @@ function onOpenAutoFocus(event: Event) {
                   :date="day"
                   class="p-0 text-center"
                 >
+                  <!-- Out of range is colour and a strike, not a fade: the
+                       number is the cell's whole content, and half alpha took
+                       it from 14.09:1 to 3.13:1. Muted is 5.76:1, the
+                       `:not([data-selected])` keeps it from ever ordering
+                       against the selected fill's own text colour, and the
+                       strike is what separates an unavailable day from an
+                       adjacent month's — muted too, and still selectable. -->
                   <DatePickerCellTrigger
                     v-slot="{ dayValue, today }"
                     :day="day"
                     :month="month.value"
                     :aria-current="isDateToday(day) ? 'date' : undefined"
-                    class="group relative inline-flex h-9 w-9 items-center justify-center rounded-sm text-sm text-foreground transition-colors duration-fast ease-out hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[outside-view]:text-muted-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                    class="group relative inline-flex h-9 w-9 items-center justify-center rounded-sm text-sm text-foreground transition-colors duration-fast ease-out hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[outside-view]:text-muted-foreground data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:line-through [&[data-disabled]:not([data-selected])]:text-muted-foreground"
                   >
                     {{ dayValue }}
                     <!-- Today's second cue: a shape rather than a hue, so it

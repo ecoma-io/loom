@@ -187,6 +187,15 @@ onBeforeUnmount(() => window.removeEventListener("click", close));
       >
         <template v-for="(item, i) in openMenu(menu)" :key="i">
           <div v-if="item.separator" role="separator" class="my-1 h-px bg-border" />
+          <!-- The row's colour, not its alpha, says it is unavailable. A menu
+               row is nothing but its label, and `disabled:opacity-40` composited
+               that label to 2.40:1 on the popover — a disabled row a reader
+               cannot make out tells them nothing about what is unavailable,
+               which is the only thing it is there to say. Muted instead: 5.76:1
+               at rest, and a clear drop from the 15.46:1 an available row wears,
+               so the state still reads at a glance. The shortcut beside it
+               declares `text-muted-foreground` on its own element, so it lands
+               on the same colour rather than inheriting this one. -->
           <button
             v-else
             type="button"
@@ -194,7 +203,7 @@ onBeforeUnmount(() => window.removeEventListener("click", close));
             :disabled="item.disabled"
             :data-highlighted="activeIndex === i || undefined"
             :style="{ animationDelay: listStaggerDelay(i) }"
-            class="flex w-full items-center justify-between gap-6 rounded-sm px-2 py-1.5 text-left text-xs text-foreground transition-colors duration-fast ease-out hover:bg-subtle disabled:pointer-events-none disabled:opacity-40 data-[highlighted]:bg-subtle animate-fade-rise"
+            class="flex w-full items-center justify-between gap-6 rounded-sm px-2 py-1.5 text-left text-xs text-foreground transition-colors duration-fast ease-out hover:bg-subtle disabled:pointer-events-none disabled:text-muted-foreground data-[highlighted]:bg-subtle animate-fade-rise"
             @click="choose(item)"
             @mouseenter="activeIndex = i"
             @focus="activeIndex = i"
