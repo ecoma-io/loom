@@ -385,7 +385,7 @@ function onPointerDown(event: PointerEvent) {
       class="absolute right-1 flex flex-col opacity-0 transition-opacity duration-fast group-hover:opacity-100"
     >
       <NumberFieldIncrement
-        class="flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out)] hover:bg-subtle hover:text-foreground active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+        class="flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out)] hover:bg-subtle hover:text-foreground active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
       >
         <!-- Stroke lives on the 24 grid and scales with size, so the inherited
              1.5 would render 0.75 device pixels at this 12px box and all but
@@ -393,7 +393,7 @@ function onPointerDown(event: PointerEvent) {
         <ChevronUp class="h-3 w-3" :stroke-width="2.5" />
       </NumberFieldIncrement>
       <NumberFieldDecrement
-        class="flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out)] hover:bg-subtle hover:text-foreground active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+        class="flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out)] hover:bg-subtle hover:text-foreground active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
       >
         <ChevronDown class="h-3 w-3" :stroke-width="2.5" />
       </NumberFieldDecrement>

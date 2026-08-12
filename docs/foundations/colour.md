@@ -55,6 +55,34 @@ force hues, so a status colour can never be misread as "a person did this" or
 "an agent did this." None of the four is reused as an action colour outside
 its own meaning.
 
+Each carries its own wash too — `destructive-muted`, `success-muted`,
+`warning-muted`, `info-muted` — on the same pattern as the two forces. Reach
+for one whenever a status needs a _fill_ rather than a mark: a badge's ground,
+a selected chip, the panel behind an inline error. The strong hue then goes on
+top of it, as the text or the hairline, and every pairing holds at least 4.5:1.
+
+**Reach for the wash rather than an alpha of the base hue.** Writing
+`bg-warning/12` looks equivalent and is not: an alpha fill composites against
+whatever sits behind it, so the same badge comes out one colour on a `card` and
+another on `sunken`, and a reader cannot learn a status tint that moves. The
+washes are opaque for exactly that reason. If you find yourself picking a
+percentage, the answer is a token.
+
+## Scrims
+
+An overlay's scrim is `foreground` at one of two named weights, written as a
+modifier — `bg-foreground/scrim` and `bg-foreground/scrim-light`:
+
+<!-- @tokens opacity -->
+
+The choice is a statement about the surface, not a taste setting. `scrim` is
+for a surface that **interrupts**: a dialog demands an answer, so the page
+behind it drops to context. `scrim-light` is for a surface worked **alongside**
+its page — a drawer where you tune a filter and watch the rows change behind
+it — so that page stays legible and stays the subject. Pick by which of those
+two things the overlay is, and a third overlay will land in the right place
+without anyone having to rediscover the reasoning.
+
 ## The seam
 
 The one place the two forces are allowed to touch visually is a gradient

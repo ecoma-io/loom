@@ -63,7 +63,7 @@ defineEmits<{ dismiss: [id: string | number] }>();
     />
 
     <ToastViewport
-      class="fixed bottom-0 right-0 z-[100] flex max-h-dvh w-[min(92vw,24rem)] flex-col gap-2 overflow-hidden p-4 pb-[max(1rem,env(safe-area-inset-bottom))] outline-none"
+      class="fixed bottom-0 right-0 z-toast flex max-h-dvh w-[min(92vw,24rem)] flex-col gap-2 overflow-hidden p-4 pb-[max(1rem,env(safe-area-inset-bottom))] outline-none"
     />
   </ToastProvider>
 </template>

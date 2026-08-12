@@ -56,7 +56,7 @@ const FANS = {
  */
 const PRESS = [
   "[transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),box-shadow_var(--duration-fast)_var(--ease-out)]",
-  "active:scale-[0.97]",
+  "active:scale-press",
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
 ].join(" ");
 

@@ -92,23 +92,32 @@ defineEmits<{ "update:open": [value: boolean] }>();
     </DialogTrigger>
 
     <DialogPortal>
-      <!-- The scrim is heavy on purpose: at 70% the page behind reads as
-           context, and at 60% it read as competing content. It fades rather
-           than moves, so nothing behind the dialog appears to shift. -->
-      <DialogOverlay class="fixed inset-0 z-50 bg-foreground/70 data-[state=open]:animate-fade" />
+      <!-- The heavy weight on purpose: at `scrim`'s 70% the page behind reads
+           as context, and at 60% it read as competing content. It fades rather
+           than moves, so nothing behind the dialog appears to shift. The exit
+           is shorter than the entrance by design — `theme.css` carries the
+           argument, and a scrim that lingers on the way out is a page that
+           feels slow to give itself back. -->
+      <DialogOverlay
+        class="fixed inset-0 z-50 bg-foreground/scrim data-[state=open]:animate-fade data-[state=closed]:animate-fade-out"
+      />
       <DialogContent
         :class="
           cn(
             'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
             SIZE_CLASS[size],
             'rounded-lg border border-border bg-popover p-6 text-popover-foreground shadow-lg outline-none',
-            // Scoped to the open state, never unconditional. Reka's Presence
-            // keeps closed content mounted until an animationend arrives, and a
+            // Both states scoped, never unconditional. Reka's Presence keeps
+            // closed content mounted until an animationend arrives, and a
             // mount-only animation never fires a second one — which here would
             // strand a full-screen, input-blocking overlay over a page with no
-            // dialog on it. Scoped, the closed element computes
-            // `animation-name: none` and Presence unmounts it at once.
-            'data-[state=open]:animate-scale-in',
+            // dialog on it. The paired exit does not reintroduce that: an
+            // animation that ends is precisely what Presence is waiting for,
+            // and under `prefers-reduced-motion` the 0.01ms collapse still
+            // fires `animationend`. What it removes is the asymmetry — a panel
+            // that scaled in over 140ms used to vanish between two frames,
+            // which reads as a crash rather than as a close.
+            'data-[state=open]:animate-scale-in data-[state=closed]:animate-scale-out',
           )
         "
       >

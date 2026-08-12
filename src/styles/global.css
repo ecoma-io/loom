@@ -109,6 +109,78 @@
   }
 }
 
+/* ---- The exits. Each mirrors the entrance above it, and the pairing is the
+ * point: a surface that rose 4px on the way in falls 4px on the way out rather
+ * than dissolving in place, so the eye reads one gesture reversed instead of
+ * two unrelated ones. `theme.css` carries the timing argument for why they are
+ * not simply the entrances run backwards. */
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-fall {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+/* An edge-anchored panel leaving along its own axis.
+ *
+ * These animate `translate`, not `transform`, and the distinction is the whole
+ * reason they are usable: Reka writes a live swipe onto a drawer as `transform`
+ * and leaves the rendering to the component, so a keyframe on `transform` would
+ * overwrite a gesture mid-drag. On `translate` the two properties compose, the
+ * same way the entry `@starting-style` transition already does.
+ *
+ * Only the `to` frame is declared. The implicit `from` is the element's own
+ * computed value, so a panel that is already part-way out under a finger leaves
+ * from where it actually sits rather than snapping back to the origin first. */
+@keyframes slide-out-to-left {
+  to {
+    translate: -100% 0;
+  }
+}
+
+@keyframes slide-out-to-right {
+  to {
+    translate: 100% 0;
+  }
+}
+
+@keyframes slide-out-to-top {
+  to {
+    translate: 0 -100%;
+  }
+}
+
+@keyframes slide-out-to-bottom {
+  to {
+    translate: 0 100%;
+  }
+}
+
 @keyframes shimmer {
   from {
     background-position: -180% 0;

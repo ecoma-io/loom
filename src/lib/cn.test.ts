@@ -100,3 +100,49 @@ describe("cn and Loom's named type scale", () => {
     expect(cn("text-primary", "text-destructive")).toBe("text-destructive");
   });
 });
+
+// The same defect, in the four other namespaces Loom names things under. Each
+// of these returned *both* classes before the registration, which does not read
+// as a bug — the element still gets a duration, an easing, an animation — but
+// the one it gets is whichever Tailwind emitted last rather than the one the
+// caller asked for. That makes a consumer override a coin toss, and it is why
+// each new name in `theme.css` has to arrive with a line in `cn.ts`.
+describe("cn and the rest of the named vocabulary", () => {
+  it("resolves two named durations to the later one", () => {
+    expect(cn("duration-fast", "duration-slow")).toBe("duration-slow");
+  });
+
+  // One group with Tailwind's numeric durations, so a consumer reaching past
+  // the scale still wins, and a component using the scale still beats a stale
+  // numeric value underneath it.
+  it("merges a named duration against a numeric one in both directions", () => {
+    expect(cn("duration-fast", "duration-200")).toBe("duration-200");
+    expect(cn("duration-200", "duration-fast")).toBe("duration-fast");
+  });
+
+  it("resolves two named animations to the later one", () => {
+    expect(cn("animate-fade", "animate-fade-rise")).toBe("animate-fade-rise");
+  });
+
+  // The entrance/exit pairs are the reason this matters now: an overlay binds
+  // one of each under different `data-[state=…]` variants, and a merge that
+  // kept both would leave a closing panel still playing its entrance.
+  it("resolves an entrance against its answering exit", () => {
+    expect(cn("animate-fade-rise", "animate-fade-fall")).toBe("animate-fade-fall");
+    expect(cn("animate-scale-in", "animate-scale-out")).toBe("animate-scale-out");
+  });
+
+  it("merges Loom's spring against Tailwind's own easings in both directions", () => {
+    expect(cn("ease-out", "ease-spring")).toBe("ease-spring");
+    expect(cn("ease-spring", "ease-out")).toBe("ease-out");
+  });
+
+  // `bg-seam` paints a background *image*; `bg-primary` a background *colour*.
+  // Read as a colour, the gradient was dropped whenever a base colour followed
+  // it — the seam is the one thing in the library that may never be lost by
+  // accident, since it is the brand moment rather than decoration.
+  it("keeps the seam gradient alongside a background colour, in either order", () => {
+    expect(cn("bg-seam", "bg-primary")).toBe("bg-seam bg-primary");
+    expect(cn("bg-primary", "bg-seam")).toBe("bg-primary bg-seam");
+  });
+});

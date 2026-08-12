@@ -32,8 +32,63 @@ const TYPE_SCALE = [
   "text-micro",
 ];
 
+/**
+ * The rest of the named vocabulary, registered for the same reason and found by
+ * probing rather than by reading — every one of these was returning *both*
+ * classes, leaving the winner to stylesheet order instead of to what the
+ * component wrote.
+ *
+ * A registration here is the precondition for adding a name to `theme.css`, not
+ * a follow-up to it. Anything Loom names under a namespace tailwind-merge
+ * resolves by value table — durations, easings, animations — is invisible to it
+ * until it appears below, and the defect it produces is the silent one this
+ * file already exists to document.
+ *
+ * `bg-seam` is the odd one and the clearest bug of the set. It sets
+ * `background-image`; `bg-primary` sets `background-color`. tailwind-merge read
+ * the unrecognised name as a colour, so a gradient laid over a base colour lost
+ * the gradient. In its own group the two correctly coexist.
+ */
+const ANIMATIONS = [
+  "animate-fade",
+  "animate-fade-rise",
+  "animate-fade-out",
+  "animate-fade-fall",
+  "animate-scale-in",
+  "animate-scale-out",
+  "animate-shimmer",
+  "animate-conduct",
+  "animate-seam-flow",
+  "animate-progress-indeterminate",
+  "animate-toast-in",
+  "animate-slide-out-to-left",
+  "animate-slide-out-to-right",
+  "animate-slide-out-to-top",
+  "animate-slide-out-to-bottom",
+];
+
+// The four `@utility` blocks at the foot of `theme.css`. They exist because
+// Tailwind's generated `duration-*` takes a millisecond count and not a token
+// name, which is the same reason tailwind-merge cannot see them either.
+const DURATIONS = ["duration-instant", "duration-fast", "duration-slow", "duration-slower"];
+
+// `ease-out`, `ease-in` and `ease-in-out` are Tailwind's own names and already
+// resolve; only the restrained overshoot is ours.
+const EASINGS = ["ease-spring"];
+
 const twMerge = extendTailwindMerge({
-  extend: { classGroups: { "font-size": TYPE_SCALE } },
+  extend: {
+    classGroups: {
+      "font-size": TYPE_SCALE,
+      animate: ANIMATIONS,
+      duration: DURATIONS,
+      ease: EASINGS,
+      "bg-image": ["bg-seam"],
+      z: ["z-raised", "z-sticky", "z-chrome", "z-overlay", "z-toast"],
+      opacity: ["opacity-disabled", "opacity-scrim", "opacity-scrim-light"],
+      scale: ["scale-press"],
+    },
+  },
 });
 
 /**

@@ -32,7 +32,7 @@ export const buttonVariants = cva(
     "relative inline-flex items-center justify-center gap-2 whitespace-nowrap select-none",
     "rounded-md text-sm font-medium",
     "[transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out),box-shadow_var(--duration-fast)_var(--ease-out)]",
-    "active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
+    "active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
     "disabled:pointer-events-none",
   ],
   {

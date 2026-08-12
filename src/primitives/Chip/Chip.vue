@@ -191,7 +191,7 @@ const { attrs, rest: containerAttrs } = useSplitAttrs();
           // A neutral darkening rather than a token fill: the pill underneath
           // can be any of eight colours, and a hover state is not an action
           // colour.
-          'hover:bg-foreground/5 active:scale-[0.97]',
+          'hover:bg-foreground/5 active:scale-press',
           focusRing,
           'disabled:pointer-events-none',
         )

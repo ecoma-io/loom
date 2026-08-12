@@ -29,14 +29,26 @@ export type DrawerSize = "sm" | "md" | "lg";
  * and looks like a rendering bug nobody can name. `satisfies` is the other half
  * — adding a member to `DrawerSide` and not to this table stops compiling.
  *
+ * `slide` and `exit` are the same motion in two directions and deliberately not
+ * the same mechanism, which is worth reading before either is "unified".
+ *
  * `slide` is a `starting:` variant rather than a keyframe, and it is a
  * transform rather than an inset or a width. A full-height panel animated on
  * `width`/`right` relayouts the document on every frame; `translate` runs on
  * the compositor. `@starting-style` supplies the before-value for the entry
  * transition at the moment Reka's `Presence` inserts the node, which is the one
- * thing a plain class cannot do — and unlike a mount-only `animation` it leaves
- * `animation-name: none` on close, so `Presence` unmounts the panel in the same
- * frame instead of waiting for an `animationend` that never arrives.
+ * thing a plain class cannot do. It also composes with the live swipe below:
+ * the gesture writes `transform` while the entry owns `translate`, and a
+ * keyframe on `transform` would overwrite a drag mid-finger.
+ *
+ * `exit` has to be a keyframe, for the opposite reason. `Presence` decides how
+ * long to keep a closing panel mounted by reading `animation-name` and waiting
+ * for `animationend` — it never observes `transitionend`. So a closed panel
+ * carrying only a transition is removed from the DOM in the same frame and the
+ * transition never runs, which is exactly what a drawer did until these tokens
+ * existed: a 320ms slide in, answered by a hard cut. The keyframes animate
+ * `translate` rather than `transform` for the same composition reason the entry
+ * does, so a panel released mid-swipe leaves from where the finger left it.
  *
  * `handle` positions the grab affordance on the panel's *inner* edge, running
  * along it: a vertical pill on a side drawer, a horizontal one on a sheet.
@@ -46,6 +58,7 @@ const SIDES = {
     edge: "inset-y-0 left-0 border-r",
     corners: "rounded-r-lg",
     slide: "starting:-translate-x-full",
+    exit: "data-[state=closed]:animate-slide-out-to-left",
     extent: "width",
     swipe: "left",
     handle: "right-1.5 top-1/2 h-10 w-1.5 -translate-y-1/2",
@@ -54,6 +67,7 @@ const SIDES = {
     edge: "inset-y-0 right-0 border-l",
     corners: "rounded-l-lg",
     slide: "starting:translate-x-full",
+    exit: "data-[state=closed]:animate-slide-out-to-right",
     extent: "width",
     swipe: "right",
     handle: "left-1.5 top-1/2 h-10 w-1.5 -translate-y-1/2",
@@ -62,6 +76,7 @@ const SIDES = {
     edge: "inset-x-0 top-0 border-b",
     corners: "rounded-b-lg",
     slide: "starting:-translate-y-full",
+    exit: "data-[state=closed]:animate-slide-out-to-top",
     extent: "height",
     swipe: "up",
     handle: "bottom-1.5 left-1/2 h-1.5 w-10 -translate-x-1/2",
@@ -70,6 +85,7 @@ const SIDES = {
     edge: "inset-x-0 bottom-0 border-t",
     corners: "rounded-t-lg",
     slide: "starting:translate-y-full",
+    exit: "data-[state=closed]:animate-slide-out-to-bottom",
     extent: "height",
     swipe: "down",
     handle: "top-1.5 left-1/2 h-1.5 w-10 -translate-x-1/2",
@@ -80,6 +96,7 @@ const SIDES = {
     edge: string;
     corners: string;
     slide: string;
+    exit: string;
     extent: "width" | "height";
     swipe: "left" | "right" | "up" | "down";
     handle: string;
@@ -235,18 +252,21 @@ function guardOutsidePress(event: Event): void {
     </DrawerTrigger>
 
     <DrawerPortal>
-      <!-- The scrim is lighter than Dialog's 70%, and the difference is the
-           point: a dialog wants the page behind it read as context, a drawer
-           wants it read as the thing still being worked on. It fades rather
-           than moves, so nothing behind the panel appears to shift.
+      <!-- `scrim-light` rather than Dialog's `scrim`, and the token now carries
+           the reason: a drawer's page is still the thing being worked on. It
+           fades rather than moves, so nothing behind the panel appears to
+           shift.
 
-           Scoped to the open state, never unconditional. Reka's Presence keeps
+           Both states are scoped, never unconditional. Reka's Presence keeps
            closed content mounted until an animationend arrives, and a
            mount-only animation never fires a second one — which here would
            strand a full-screen, input-blocking scrim over a page with no drawer
-           on it. Scoped, the closed element computes `animation-name: none` and
-           Presence unmounts it at once. -->
-      <DrawerOverlay class="fixed inset-0 z-50 bg-foreground/40 data-[state=open]:animate-fade" />
+           on it. The paired exit is what makes the close a timed fade instead
+           of a cut, and it keeps that guarantee: `fade-out` ends, so Presence
+           unmounts on its own animationend rather than on the absence of one. -->
+      <DrawerOverlay
+        class="fixed inset-0 z-50 bg-foreground/scrim-light data-[state=open]:animate-fade data-[state=closed]:animate-fade-out"
+      />
 
       <DrawerContent
         v-bind="panelAttrs"
@@ -263,6 +283,12 @@ function guardOutsidePress(event: Event): void {
             // viewport at 200ms reads as a flinch rather than a slide.
             'transition-transform duration-slow ease-out',
             anchor.slide,
+            // The other half of the same gesture. `SIDES` carries why the two
+            // directions are a transition and a keyframe rather than one
+            // mechanism run both ways; the short version is that Presence
+            // watches `animationend` and nothing else, so a transition on the
+            // way out never gets a frame to run in.
+            anchor.exit,
             // Reka's swipe-to-dismiss writes the live drag onto the panel as
             // CSS custom properties and leaves the rendering to us. Applying
             // them as `transform` keeps them off `translate`, which the slide

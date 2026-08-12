@@ -181,7 +181,7 @@ watch(
           size === 'sm' ? 'px-1.5 py-px text-[11px]' : 'px-3 py-1 text-sm',
           'data-[state=checked]:font-medium data-[state=checked]:text-foreground',
           'data-[state=unchecked]:hover:bg-subtle',
-          'active:scale-[0.97]',
+          'active:scale-press',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',
           'disabled:pointer-events-none disabled:opacity-50',
         )

@@ -71,7 +71,7 @@ defineEmits<{ "update:open": [value: boolean]; action: [] }>();
     />
 
     <ToastViewport
-      class="fixed bottom-0 right-0 z-[100] flex w-[min(92vw,24rem)] flex-col gap-2 p-4 outline-none"
+      class="fixed bottom-0 right-0 z-toast flex w-[min(92vw,24rem)] flex-col gap-2 p-4 outline-none"
     />
   </ToastProvider>
 </template>
