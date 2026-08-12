@@ -20,8 +20,14 @@ const autosave = ref(true);
       <span id="switch-demo-autosave" class="text-sm text-foreground">Autosave</span>
       <Switch v-model="autosave" aria-labelledby="switch-demo-autosave" />
     </div>
-    <div class="flex items-center justify-between gap-4 opacity-60">
-      <span id="switch-demo-disabled" class="text-sm text-foreground">Locked (disabled)</span>
+    <!-- The row says "inactive" with a token, not with `opacity-60`. Dimming a
+         whole row multiplies down the label as well: measured, `text-foreground`
+         under that opacity landed at 4.20:1 on the page ground, under the 4.5:1
+         AA floor. `Switch` already carries its own `disabled:opacity-50`, so the
+         control still reads as off — and `text-muted-foreground` is a colour
+         that was measured rather than a transparency that has to be. -->
+    <div class="flex items-center justify-between gap-4">
+      <span id="switch-demo-disabled" class="text-sm text-muted-foreground">Locked (disabled)</span>
       <Switch :model-value="true" disabled aria-labelledby="switch-demo-disabled" />
     </div>
   </div>
