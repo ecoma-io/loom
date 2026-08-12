@@ -1,13 +1,99 @@
 <script lang="ts">
+import type { LabelOf } from "../../lib/labels";
+
 export type TextFieldType = "text" | "email" | "password" | "search" | "url" | "tel";
 
 export type TextFieldSize = "sm" | "md" | "lg";
+
+/**
+ * Everything this control says out loud, and every word of it is Loom's own —
+ * a bare `<input>` renders no English of anybody else's, so a dropped key here
+ * falls back to nothing rather than to a stray untranslated string.
+ *
+ * The four counter labels take the **numbers**, never a formatted string, for
+ * the reason `src/lib/labels.ts` gives at length: `${count}/${max}` is a
+ * punctuation choice made in one language, and "3 characters left" has one
+ * plural form in Vietnamese, two in English and six in Arabic. A host handed
+ * the integers reaches `Intl.PluralRules` for the category and
+ * `Intl.NumberFormat` for the digits; a host handed "3/20" can do neither.
+ *
+ * There are three visible counter strings rather than one with a conditional
+ * inside it, because the three say different things: a running total against
+ * no limit, a total against a limit, and a limit already passed. The last is
+ * the one that must not read as merely a redder version of the second — see
+ * `countOverMax`.
+ */
+export interface TextFieldLabels {
+  /**
+   * The password reveal toggle, named for what pressing it does. The name is
+   * **stable across both states** and `aria-pressed` carries which state the
+   * field is in, so word it as an action ("Show password"), not as a report.
+   */
+  readonly reveal: string;
+  /** The counter when the field has no maximum: a running total, nothing more. */
+  readonly count: LabelOf<{ count: number }>;
+  /** The counter when the field has a maximum and is within it. */
+  readonly countOfMax: LabelOf<{ count: number; max: number }>;
+  /**
+   * The counter once the value is past the maximum.
+   *
+   * Loom's English adds words rather than only digits, and that is the
+   * accessibility requirement rather than a flourish: over-limit is painted
+   * `text-destructive`, and a state carried by colour alone fails WCAG 1.4.1.
+   * An override that returns the same shape as `countOfMax` puts that failure
+   * back.
+   */
+  readonly countOverMax: LabelOf<{ count: number; max: number; over: number }>;
+  /**
+   * Announced **once**, as the value crosses into the last stretch of its
+   * allowance — not on every keystroke after it. The numbers are true at the
+   * moment it is spoken; the visible counter is what carries them afterwards.
+   */
+  readonly approachingLimit: LabelOf<{ remaining: number; max: number }>;
+  /** Announced once, as the value crosses the maximum. */
+  readonly limitExceeded: LabelOf<{ over: number; max: number }>;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing
+ * rather than a transcription of it.
+ */
+export const TEXT_FIELD_LABELS: TextFieldLabels = {
+  reveal: "Show password",
+  count: ({ count }) => String(count),
+  countOfMax: ({ count, max }) => `${String(count)}/${String(max)}`,
+  countOverMax: ({ count, max }) => `${String(count)}/${String(max)} over limit`,
+  approachingLimit: ({ remaining }) =>
+    `${String(remaining)} ${remaining === 1 ? "character" : "characters"} left`,
+  limitExceeded: ({ over, max }) =>
+    `${String(over)} ${over === 1 ? "character" : "characters"} over the limit of ${String(max)}`,
+};
+
+/**
+ * How close to the maximum the warning fires: the last quarter of a short
+ * allowance, or the last ten characters of a long one, whichever is smaller.
+ *
+ * Ten is about a word, and a warning is only worth anything while there is
+ * still room to act on it — a fixed tenth would give a 280-character field
+ * twenty-eight characters of notice and a twenty-character field two, which is
+ * either too early to mean anything or too late to be a warning.
+ */
+function warningWindow(max: number): number {
+  return Math.min(10, Math.ceil(max / 4));
+}
+
+/** Where the value sits against its maximum, and the only thing the announcement watches. */
+type CountBand = "under" | "near" | "over";
 </script>
 
 <script setup lang="ts">
+import { computed, nextTick, ref, useId, useTemplateRef, watch } from "vue";
+import { Eye, EyeOff } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * TextField — single-line text entry (text · email · password · search · url ·
@@ -26,6 +112,14 @@ import { useFieldControl } from "../../lib/field-context";
  * loose fallthrough attr, so it is bound onto the input explicitly and shows
  * up in the props table — a bare input primitive can only be named by its
  * host.
+ *
+ * That same wrapper is why `revealable` and the character counter are props
+ * here rather than a `PasswordField` and a `CountedField` beside it. `password`
+ * is already a `TextFieldType` and the adornment row already exists, so a
+ * second component would duplicate an entire input, its Field wiring and its
+ * three sizes to add one button; and a counter rendered *below* the field
+ * would have to move the fallthrough `class` off the box a caller sizes with
+ * it. Both live inside the border, where the adornments already live.
  *
  * Inside a [Field](../Field/Field.vue) it wires itself: the row's id, the id
  * of the hint or error line, and `required` / `invalid` / `disabled` /
@@ -65,6 +159,39 @@ const props = withDefaults(
     ariaLabel?: string;
     /** The id of the visible element that labels the field (e.g. a Field wrapper's label). */
     ariaLabelledby?: string;
+    /**
+     * Adds a toggle that shows the typed password in place, for
+     * `type="password"` **and nothing else** — on any other type it renders
+     * nothing at all, because there is nothing to reveal.
+     */
+    revealable?: boolean;
+    /**
+     * The character limit the counter reports against, and the point past
+     * which it reads as over-limit.
+     *
+     * Advisory, exactly as `required` is: it does **not** set the native
+     * `maxlength`, which silently truncates a paste and tells the reader
+     * nothing. Pass `maxlength` yourself as a plain attribute where you want
+     * the browser to enforce it too.
+     */
+    maxLength?: number;
+    /**
+     * Forces the counter on or off. Left unset it follows `maxLength` — a
+     * limit the reader is never shown is one they can only discover by
+     * exceeding it — so set it `true` for a running total with no limit, and
+     * `false` to hold a limit the field reports nowhere.
+     */
+    showCount?: boolean | undefined;
+    /**
+     * Names for everything this control says out loud, as any subset of
+     * `TextFieldLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application: the case it exists for is a field counting something other
+     * than characters, where "80 words left" is the true sentence.
+     */
+    labels?: LabelOverrides<TextFieldLabels>;
   }>(),
   {
     type: "text",
@@ -78,18 +205,157 @@ const props = withDefaults(
     invalid: undefined,
     required: undefined,
     size: "md",
+    revealable: false,
+    // `undefined` for the same Boolean-cast reason, and here it is the whole
+    // feature: `showCount ?? (maxLength !== undefined)` would be a dead branch
+    // if an absent prop arrived as `false`.
+    showCount: undefined,
   },
 );
 
-defineEmits<{ "update:modelValue": [value: string] }>();
+const emit = defineEmits<{ "update:modelValue": [value: string] }>();
 
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: inputAttrs } = useSplitAttrs();
 
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("textField", TEXT_FIELD_LABELS, () => props.labels);
+
+const inputRef = useTemplateRef<HTMLInputElement>("input");
+const countId = useId();
+
+/**
+ * What is actually in the box, which is not always `modelValue`.
+ *
+ * Used without `v-model` this component is uncontrolled — `modelValue` stays
+ * `undefined` while the reader types — and the counter still has to count. So
+ * the last typed value is kept here and `currentValue` prefers the prop: a
+ * controlled host that *declines* an update keeps the count honest, and an
+ * uncontrolled one gets the text in front of it.
+ *
+ * Binding `:value="currentValue"` rather than `:value="modelValue"` is
+ * load-bearing and not cosmetic. Vue's `value` patch coerces `null`/`undefined`
+ * to `""`, so any re-render of an uncontrolled field wipes the input — a defect
+ * nothing had met only because nothing in this component re-rendered on a
+ * keystroke until the counter did.
+ */
+const typed = ref(props.modelValue ?? "");
+const currentValue = computed(() => props.modelValue ?? typed.value);
+
+function onInput(event: Event): void {
+  const value = (event.target as HTMLInputElement).value;
+  typed.value = value;
+  emit("update:modelValue", value);
+}
+
+/**
+ * The reveal, and the two guards that make `revealable` inert rather than
+ * surprising on a non-password field: the toggle is not rendered, and the type
+ * cannot flip. A `type` that stops being `password` also drops the reveal —
+ * coming back as a password already revealed would put a secret on screen that
+ * nobody asked for a second time.
+ */
+const canReveal = computed(() => props.revealable && props.type === "password");
+const revealed = ref(false);
+watch(canReveal, (able) => {
+  if (!able) revealed.value = false;
+});
+
+const inputType = computed(() => (canReveal.value && revealed.value ? "text" : props.type));
+
+/**
+ * Flipping `type` is what loses the caret: the input is re-created enough,
+ * engine by engine, that the selection lands back at 0 or at the end, and a
+ * reader who was fixing the third character of a long passphrase is now
+ * somewhere else with no way to tell where. So the range is read before the
+ * flip and written back after the DOM has it.
+ *
+ * Both `password` and `text` support the selection API (`email`, `url` and
+ * `number` do not, and throw), and this path is unreachable for any other type
+ * by construction — see `canReveal`.
+ *
+ * Focus is deliberately *not* moved back to the input. A reader who pressed
+ * this with the keyboard is standing on the toggle and will very often press
+ * it again; dropping them into the field would make hiding the password a
+ * Shift+Tab away. The restored range is what greets them when they do return.
+ */
+function toggleReveal(): void {
+  const input = inputRef.value;
+  const start = input?.selectionStart ?? null;
+  const end = input?.selectionEnd ?? null;
+  const direction = input?.selectionDirection ?? "none";
+
+  revealed.value = !revealed.value;
+
+  if (input === null || start === null || end === null) return;
+  void nextTick(() => {
+    input.setSelectionRange(start, end, direction);
+  });
+}
+
+/**
+ * Length in UTF-16 code units, which is what the platform's own `maxlength`
+ * counts. `[...value].length` would count code points and disagree with the
+ * browser on any astral character, so a caller who pairs this with a native
+ * `maxlength` would watch the counter and the enforcement drift apart.
+ */
+const count = computed(() => currentValue.value.length);
+const showsCount = computed(() => props.showCount ?? props.maxLength !== undefined);
+
+const band = computed<CountBand>(() => {
+  const max = props.maxLength;
+  if (max === undefined) return "under";
+  const remaining = max - count.value;
+  if (remaining < 0) return "over";
+  return remaining <= warningWindow(max) ? "near" : "under";
+});
+
+const countText = computed(() => {
+  const max = props.maxLength;
+  if (max === undefined) return text.value.count({ count: count.value });
+  const over = count.value - max;
+  return over > 0
+    ? text.value.countOverMax({ count: count.value, max, over })
+    : text.value.countOfMax({ count: count.value, max });
+});
+
+/**
+ * What the live region says, and it changes **only when the band changes**.
+ *
+ * A region holding the counter itself would speak on every keystroke, which is
+ * worse than silence: it buries the field's own echo of the character just
+ * typed under a number nobody asked for. What a reader needs is the two facts
+ * they cannot see coming — the limit is close, and the limit is passed — so
+ * this fires once at each crossing and goes quiet again on the way back down.
+ *
+ * The numbers are therefore true at the moment they are spoken and not after.
+ * That is the deliberate trade: the visible counter carries the live figure,
+ * and it is wired into `aria-describedby`, so the exact count is one
+ * re-read away whenever the reader wants it rather than pushed at them.
+ */
+const announcement = ref("");
+watch(band, (now) => {
+  const max = props.maxLength;
+  if (max === undefined || now === "under") {
+    announcement.value = "";
+    return;
+  }
+  announcement.value =
+    now === "over"
+      ? text.value.limitExceeded({ over: count.value - max, max })
+      : text.value.approachingLimit({ remaining: max - count.value, max });
+});
+
 // `id` and `aria-describedby` reach a bare control as fallthrough attrs rather
 // than props, so they are read off `attrs` and handed in as this caller's own
 // values — a caller who sets either still beats the row, and the row's
-// description is merged into theirs rather than replacing it.
+// description is merged into theirs rather than replacing it. The counter joins
+// that list rather than replacing anything: it is one more thing this field
+// says about itself, and it reads after the caller's own description and before
+// the row's message, which is the same most-specific-first order
+// `useFieldControl` applies one layer out.
 //
 // `field.attrs` then spreads onto the `<input>` **after** `inputAttrs`, and
 // that position is the contract: the bag has already resolved the caller's own
@@ -100,7 +366,9 @@ const { attrs, rest: inputAttrs } = useSplitAttrs();
 // to the row.
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
-  describedBy: attrs["aria-describedby"] as string | undefined,
+  describedBy: [attrs["aria-describedby"] as string | undefined, showsCount.value ? countId : ""]
+    .filter((id): id is string => typeof id === "string" && id.length > 0)
+    .join(" "),
   name: props.name,
   disabled: props.disabled,
   readonly: props.readonly,
@@ -131,7 +399,15 @@ const field = useFieldControl(() => ({
         // must not look alike. The native `readonly` attribute below carries
         // the same state to assistive tech, so nothing here rests on colour.
         field.readonly && 'bg-muted',
-        field.disabled && 'cursor-not-allowed opacity-50',
+        // Drained rather than faded, the same treatment the date family
+        // arrived at. The element the dim sat on is the box, and the box is
+        // wrapped around the one thing a reader still needs: measured on the
+        // built site, `opacity-50` put a disabled field's value at 3.08:1 and
+        // its placeholder — already the muted colour before the fade — at
+        // 2.07:1. Declared here rather than on the `<input>` because the input
+        // sets no resting colour of its own and inherits this one, which also
+        // carries it to the counter and the adornments in the same box.
+        field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
         attrs.class as string,
       )
     "
@@ -143,22 +419,87 @@ const field = useFieldControl(() => ({
       <slot name="leading" />
     </span>
     <input
+      ref="input"
       v-bind="{ ...inputAttrs, ...field.attrs }"
       :aria-label="ariaLabel"
       :aria-labelledby="ariaLabelledby"
-      :type="type"
-      :value="modelValue"
+      :type="inputType"
+      :value="currentValue"
       :placeholder="placeholder"
       :disabled="field.disabled"
       :readonly="field.readonly"
       class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      @input="onInput"
     />
+    <!-- The counter is an adornment like any other, and it renders inside the
+         border for the reason the icons do: the box is what a caller's `class`
+         sizes, so a readout hung underneath it would need an outer element and
+         `w-64` would then size something other than the field. Absent, both
+         nodes are gone and the box is exactly what it was.
+
+         `tabular` because the number changes under itself on every keystroke,
+         and proportional digits would shuffle the whole readout sideways as
+         they do. -->
     <span
-      v-if="$slots.trailing"
-      class="inline-flex shrink-0 text-muted-foreground transition-colors duration-fast ease-out group-focus-within:text-foreground"
+      v-if="showsCount"
+      :id="countId"
+      :data-over-limit="band === 'over' || undefined"
+      :class="
+        cn(
+          'tabular shrink-0 select-none text-small',
+          band === 'under' && 'text-muted-foreground',
+          // Colour, and never only colour: `countOverMax` says the limit is
+          // passed in words as well, and `approachingLimit` announces the near
+          // band once. The digits themselves are the third reading — 21/20 is
+          // over the limit whatever it is painted.
+          band === 'near' && 'text-warning',
+          band === 'over' && 'text-destructive',
+        )
+      "
+    >
+      {{ countText }}
+    </span>
+    <!-- In the DOM from the first render, empty. A live region mounted at the
+         same moment as its text is a region assistive tech was not yet
+         watching, so the first warning — the one that matters most — is the one
+         it announces least reliably. -->
+    <span v-if="showsCount && maxLength !== undefined" role="status" class="sr-only">
+      {{ announcement }}
+    </span>
+    <span
+      v-if="$slots.trailing || canReveal"
+      class="inline-flex shrink-0 items-center gap-1 text-muted-foreground transition-colors duration-fast ease-out group-focus-within:text-foreground"
     >
       <slot name="trailing" />
+      <!-- Last in the row and last in the tab order, which is the requirement:
+           a control that acts on the input must never stand between the reader
+           and the input itself.
+
+           `aria-pressed` rather than a name that changes with the state, and
+           the two are not interchangeable. A name alone can only say what
+           pressing will do, so a reader arriving on "Hide password" has to
+           infer the state from the offer — and on activation the announcement
+           is a *rename*, which some screen readers re-read and some do not, so
+           the state change can pass in silence. A pressed state changes under a
+           stable name, which every major screen reader announces as a state
+           change, and it leaves the control findable by voice under the one
+           name it always had. The glyph swap is the sighted half of the same
+           fact.
+
+           It stays available while the field is read-only: `readonly` is about
+           changing the value, and revealing does not. -->
+      <button
+        v-if="canReveal"
+        type="button"
+        :aria-label="text.reveal"
+        :aria-pressed="revealed"
+        :disabled="field.disabled"
+        class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed"
+        @click="toggleReveal"
+      >
+        <EyeOff v-if="revealed" class="h-4 w-4" aria-hidden="true" />
+        <Eye v-else class="h-4 w-4" aria-hidden="true" />
+      </button>
     </span>
   </div>
 </template>

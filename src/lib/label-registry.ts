@@ -7,6 +7,7 @@ import type {
 import type { DateRangeLabels } from "../primitives/DateRangePicker/DateRangePicker.vue";
 import type { DateTimeRangeLabels } from "../primitives/DateTimeRangePicker/DateTimeRangePicker.vue";
 import type { ComboboxLabels } from "../primitives/Combobox/Combobox.vue";
+import type { EditableLabels } from "../primitives/Editable/Editable.vue";
 import type { FileUploadLabels } from "../primitives/FileUpload/FileUpload.vue";
 import type { NumberFieldLabels } from "../primitives/NumberField/NumberField.vue";
 import type { OtpInputLabels } from "../primitives/OtpInput/OtpInput.vue";
@@ -23,6 +24,8 @@ import type { DialogLabels } from "../primitives/Dialog/Dialog.vue";
 import type { DrawerLabels } from "../primitives/Drawer/Drawer.vue";
 import type { StepperLabels } from "../primitives/Stepper/Stepper.vue";
 import type { ToastLabels } from "../primitives/Toast/Toast.vue";
+import type { TagsInputLabels } from "../primitives/TagsInput/TagsInput.vue";
+import type { TextFieldLabels } from "../primitives/TextField/TextField.vue";
 
 /**
  * Every slot a host can localise, and nothing else. One line per component that
@@ -67,6 +70,9 @@ export interface LoomLabels {
   readonly otpInput: OtpInputLabels;
   readonly fileUpload: FileUploadLabels;
   readonly rating: RatingLabels;
+  readonly tagsInput: TagsInputLabels;
+  readonly editable: EditableLabels;
+  readonly textField: TextFieldLabels;
   // The overlays and the flow. `SpeedDial` is deliberately absent for the same
   // reason `Select` is: its trigger name, its action labels and its glyphs all
   // arrive from the host, so it has no slot rather than an empty one.

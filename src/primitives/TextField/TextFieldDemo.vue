@@ -6,6 +6,9 @@ import TextField from "./TextField.vue";
 const name = ref("Ada Lovelace");
 const query = ref("");
 const email = ref("not-an-email");
+const password = ref("correct horse battery staple");
+const headline = ref("Weaving interfaces that hold together");
+const overrun = ref("A headline written before anyone mentioned the limit");
 </script>
 
 <template>
@@ -25,6 +28,42 @@ const email = ref("not-an-email");
       >
         <template #leading><Search class="h-4 w-4" /></template>
       </TextField>
+    </div>
+
+    <!-- The reveal toggle rides in the adornment row, after the input in both
+         document and tab order, and it appears only because the type is
+         `password`. -->
+    <div class="flex flex-col gap-2">
+      <span id="tf-demo-password" class="text-xs text-muted-foreground">Password</span>
+      <TextField
+        v-model="password"
+        type="password"
+        revealable
+        aria-labelledby="tf-demo-password"
+        placeholder="Your passphrase"
+      />
+    </div>
+
+    <!-- `maxLength` alone turns the counter on: a limit the reader is never
+         shown is one they can only find by exceeding it. -->
+    <div class="flex flex-col gap-2">
+      <span id="tf-demo-headline" class="text-xs text-muted-foreground">Headline</span>
+      <TextField
+        v-model="headline"
+        :max-length="48"
+        aria-labelledby="tf-demo-headline"
+        placeholder="One line about your work"
+      />
+    </div>
+
+    <!-- Seeded past the limit, which is how a field arrives holding a value
+         written before the limit existed. The counter says "over limit" as well
+         as turning red. -->
+    <div class="flex flex-col gap-2">
+      <span id="tf-demo-overrun" class="text-xs text-muted-foreground"
+        >Headline (over the limit)</span
+      >
+      <TextField v-model="overrun" :max-length="48" aria-labelledby="tf-demo-overrun" />
     </div>
 
     <div class="flex flex-col gap-2">

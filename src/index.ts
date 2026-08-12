@@ -110,6 +110,12 @@ export { default as Drawer, DRAWER_LABELS } from "./primitives/Drawer/Drawer.vue
 export type { DrawerLabels, DrawerSide, DrawerSize } from "./primitives/Drawer/Drawer.vue";
 export { default as DropdownMenu } from "./primitives/DropdownMenu/DropdownMenu.vue";
 export type { DropdownMenuEntry } from "./primitives/DropdownMenu/DropdownMenu.vue";
+export { default as Editable, EDITABLE_LABELS } from "./primitives/Editable/Editable.vue";
+export type {
+  EditableActivationMode,
+  EditableLabels,
+  EditableSubmitMode,
+} from "./primitives/Editable/Editable.vue";
 export { default as Field } from "./primitives/Field/Field.vue";
 export { default as Fieldset } from "./primitives/Fieldset/Fieldset.vue";
 export { default as FileUpload, FILE_UPLOAD_LABELS } from "./primitives/FileUpload/FileUpload.vue";
@@ -194,6 +200,12 @@ export type { SurfaceElevation, SurfacePad } from "./primitives/Surface/Surface.
 export { default as Switch } from "./primitives/Switch/Switch.vue";
 export { default as Tabs } from "./primitives/Tabs/Tabs.vue";
 export type { TabItem } from "./primitives/Tabs/Tabs.vue";
+export { default as TagsInput, TAGS_INPUT_LABELS } from "./primitives/TagsInput/TagsInput.vue";
+export type {
+  TagsInputLabels,
+  TagsInputRejection,
+  TagsInputRejectReason,
+} from "./primitives/TagsInput/TagsInput.vue";
 export { default as Textarea } from "./primitives/Textarea/Textarea.vue";
 export type { TextareaResize } from "./primitives/Textarea/Textarea.vue";
 export { default as TextField } from "./primitives/TextField/TextField.vue";

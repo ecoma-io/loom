@@ -1,6 +1,6 @@
-import { enableAutoUnmount, mount } from "@vue/test-utils";
+import { enableAutoUnmount, mount, type DOMWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import TextField from "./TextField.vue";
 import { provideFieldContext } from "../../lib/field-context";
 
@@ -35,6 +35,41 @@ const ProbeRow = defineComponent({
     return () => h("div", slots.default?.());
   },
 });
+
+/**
+ * The counter, located by the one class only it carries. A locator rather than
+ * an assertion: every expectation below reads its text or its state marker,
+ * which is what the component promises — nothing here cares how it is painted.
+ */
+function counterOf(wrapper: Queryable): Found {
+  return wrapper.get("span.tabular");
+}
+
+/** What `mount()` and a slotted probe row have in common, for the helper above. */
+type Found = Omit<DOMWrapper<Element>, "exists">;
+interface Queryable {
+  get: (selector: string) => Found;
+}
+
+/**
+ * What a real engine does to the selection when `type` flips, and what jsdom
+ * does not: measured, `input.type = "text"` leaves `selectionStart` and
+ * `selectionEnd` exactly where they were here, so a test that only set a range
+ * and read it back after the toggle would pass against a component that
+ * restored nothing at all. The reset is installed so the restore has something
+ * to undo.
+ */
+function breakSelectionOnTypeChange(input: HTMLInputElement): void {
+  const native = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "type");
+  Object.defineProperty(input, "type", {
+    configurable: true,
+    get: () => native?.get?.call(input) as string,
+    set: (value: string) => {
+      native?.set?.call(input, value);
+      input.setSelectionRange(0, 0);
+    },
+  });
+}
 
 describe("TextField", () => {
   it("emits the raw string on input so v-model tracks each keystroke", async () => {
@@ -141,10 +176,19 @@ describe("TextField", () => {
   it("shows a readonly field as filled rather than dimmed, so it does not read as unavailable", () => {
     const readOnly = mount(TextField, { props: { ariaLabel: "Email", readonly: true } });
     expect(readOnly.attributes("data-readonly")).toBe("true");
+    expect(readOnly.classes()).toContain("bg-muted");
+    // A read-only value is on show, so its text stays at full strength.
+    expect(readOnly.classes()).not.toContain("text-muted-foreground");
     expect(readOnly.classes()).not.toContain("opacity-50");
 
+    // Disabled shares the drained fill and parts from read-only on the text
+    // colour and the cursor — never on an alpha, which took the value down to
+    // 3.08:1 and is the defect this pins shut.
     const disabled = mount(TextField, { props: { ariaLabel: "Email", disabled: true } });
-    expect(disabled.classes()).toContain("opacity-50");
+    expect(disabled.classes()).toEqual(
+      expect.arrayContaining(["bg-muted", "text-muted-foreground", "cursor-not-allowed"]),
+    );
+    expect(disabled.classes()).not.toContain("opacity-50");
     expect(disabled.attributes("data-readonly")).toBeUndefined();
   });
 
@@ -205,5 +249,243 @@ describe("TextField", () => {
     expect(row.get("input").attributes("aria-describedby")).toBe(
       "password-rules email-description",
     );
+  });
+
+  describe("revealable", () => {
+    it("shows the password in place and puts the caret back where the reader left it", async () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Password", type: "password", revealable: true, modelValue: "hunter2" },
+        attachTo: document.body,
+      });
+      const input = wrapper.get("input").element as HTMLInputElement;
+      breakSelectionOnTypeChange(input);
+      input.setSelectionRange(2, 4);
+
+      await wrapper.get("button").trigger("click");
+      await nextTick();
+
+      expect(input.type).toBe("text");
+      expect(input.value).toBe("hunter2");
+      expect([input.selectionStart, input.selectionEnd]).toEqual([2, 4]);
+    });
+
+    it("renders no toggle at all on a type that has nothing to reveal", async () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Email", type: "email", revealable: true },
+      });
+      expect(wrapper.find("button").exists()).toBe(false);
+      expect(wrapper.get("input").attributes("type")).toBe("email");
+
+      await wrapper.setProps({ type: "password" });
+      expect(wrapper.find("button").exists()).toBe(true);
+    });
+
+    it("keeps the toggle after the input, so nothing stands between the reader and the field", () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Password", type: "password", revealable: true },
+        attachTo: document.body,
+      });
+      const input = wrapper.get("input").element;
+      const toggle = wrapper.get("button").element;
+      // DOCUMENT_POSITION_FOLLOWING: the toggle comes after the input in
+      // document order, which is what fixes the sequential-focus order — the
+      // toggle takes no tabindex of its own.
+      expect(input.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(toggle.hasAttribute("tabindex")).toBe(false);
+    });
+
+    it("reports whether the password is showing through aria-pressed, under a name that does not move", async () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Password", type: "password", revealable: true },
+      });
+      const toggle = wrapper.get("button");
+      const name = toggle.attributes("aria-label");
+
+      expect(name).toBe("Show password");
+      expect(toggle.attributes("aria-pressed")).toBe("false");
+
+      await toggle.trigger("click");
+
+      expect(toggle.attributes("aria-pressed")).toBe("true");
+      expect(toggle.attributes("aria-label")).toBe(name);
+      expect(wrapper.get("input").attributes("type")).toBe("text");
+    });
+
+    it("keeps the password showing across blur, and hides it only when the field stops being one", async () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Password", type: "password", revealable: true },
+        attachTo: document.body,
+      });
+      await wrapper.get("button").trigger("click");
+      expect(wrapper.get("input").attributes("type")).toBe("text");
+
+      // Blur does not re-hide, and it must not: clicking the toggle blurs the
+      // input on the way, so a reset there would undo the reveal it was asked
+      // for. See TextField.vue for why the reveal is the reader's to end.
+      await wrapper.get("input").trigger("blur");
+      expect(wrapper.get("input").attributes("type")).toBe("text");
+
+      await wrapper.setProps({ type: "text" });
+      await wrapper.setProps({ type: "password" });
+      expect(wrapper.get("input").attributes("type")).toBe("password");
+      expect(wrapper.get("button").attributes("aria-pressed")).toBe("false");
+    });
+
+    it("stays usable on a read-only field and goes unavailable with a disabled one", () => {
+      const readOnly = mount(TextField, {
+        props: { ariaLabel: "Password", type: "password", revealable: true, readonly: true },
+      });
+      expect((readOnly.get("button").element as HTMLButtonElement).disabled).toBe(false);
+
+      const disabled = mount(TextField, {
+        props: { ariaLabel: "Password", type: "password", revealable: true, disabled: true },
+      });
+      expect((disabled.get("button").element as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it("never submits the form it sits in", () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Password", type: "password", revealable: true },
+      });
+      expect(wrapper.get("button").attributes("type")).toBe("button");
+    });
+  });
+
+  describe("character count", () => {
+    it("leaves the field's box exactly as it was when no count is asked for", () => {
+      // Nothing but the input inside the border: no counter, no live region,
+      // and no wrapper span that would put a gap in the row.
+      const wrapper = mount(TextField, { props: { ariaLabel: "Name" } });
+      expect(wrapper.findAll("span")).toHaveLength(0);
+      expect(wrapper.findAll("input")).toHaveLength(1);
+      expect(wrapper.get("input").attributes("aria-describedby")).toBeUndefined();
+    });
+
+    it("shows the counter as soon as a maximum is set, and lets showCount overrule that either way", () => {
+      const limited = mount(TextField, { props: { ariaLabel: "Bio", maxLength: 20 } });
+      expect(counterOf(limited).text()).toBe("0/20");
+
+      const suppressed = mount(TextField, {
+        props: { ariaLabel: "Bio", maxLength: 20, showCount: false },
+      });
+      expect(suppressed.find('[role="status"]').exists()).toBe(false);
+
+      const unlimited = mount(TextField, { props: { ariaLabel: "Bio", showCount: true } });
+      expect(counterOf(unlimited).text()).toBe("0");
+    });
+
+    it("counts what the reader typed with no v-model, without wiping the field to do it", async () => {
+      // Uncontrolled: `modelValue` stays undefined while the counter forces a
+      // re-render on every keystroke, and Vue's `value` patch coerces an
+      // undefined binding to "". Counting the typed value is what keeps the
+      // text in the box.
+      const wrapper = mount(TextField, { props: { ariaLabel: "Bio", maxLength: 20 } });
+      const input = wrapper.get("input");
+      await input.setValue("hello");
+
+      expect((input.element as HTMLInputElement).value).toBe("hello");
+      expect(counterOf(wrapper).text()).toBe("5/20");
+    });
+
+    it("counts the value a controlled host actually applied, not the keystroke it declined", async () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Bio", maxLength: 20, modelValue: "ok" },
+      });
+      await wrapper.get("input").setValue("rejected");
+      expect(counterOf(wrapper).text()).toBe("2/20");
+    });
+
+    it("describes the input with the counter, after the caller's own description and before the row's", () => {
+      const row = mount(ProbeRow, {
+        props: { describedBy: "bio-hint" },
+        slots: {
+          default: h(TextField, {
+            ariaLabel: "Bio",
+            maxLength: 20,
+            modelValue: "hello",
+            "aria-describedby": "bio-rules",
+          }),
+        },
+      });
+      const ids = (row.get("input").attributes("aria-describedby") ?? "").split(" ");
+
+      expect(ids).toHaveLength(3);
+      expect(ids[0]).toBe("bio-rules");
+      expect(ids[2]).toBe("bio-hint");
+      expect(row.get(`[id="${String(ids[1])}"]`).text()).toBe("5/20");
+    });
+
+    it("reports the limit rather than enforcing it, leaving the native maxlength to the caller", () => {
+      const wrapper = mount(TextField, { props: { ariaLabel: "Bio", maxLength: 20 } });
+      expect(wrapper.get("input").attributes("maxlength")).toBeUndefined();
+
+      const enforced = mount(TextField, {
+        props: { ariaLabel: "Bio", maxLength: 20 },
+        attrs: { maxlength: 20 },
+      });
+      expect(enforced.get("input").attributes("maxlength")).toBe("20");
+    });
+
+    it("says the limit is passed in words, not only in red", async () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Bio", maxLength: 5, modelValue: "ab" },
+      });
+      const counter = counterOf(wrapper);
+      expect(counter.text()).toBe("2/5");
+      expect(counter.attributes("data-over-limit")).toBeUndefined();
+
+      await wrapper.setProps({ modelValue: "abcdefg" });
+      expect(counter.text()).toBe("7/5 over limit");
+      expect(counter.attributes("data-over-limit")).toBe("true");
+    });
+
+    it("announces the limit once as it is neared and once as it is passed, never per keystroke", async () => {
+      const wrapper = mount(TextField, {
+        props: { ariaLabel: "Bio", maxLength: 20, modelValue: "" },
+      });
+      const live = wrapper.get('[role="status"]');
+      expect(live.text()).toBe("");
+
+      await wrapper.setProps({ modelValue: "a".repeat(10) });
+      expect(live.text()).toBe("");
+
+      await wrapper.setProps({ modelValue: "a".repeat(15) });
+      expect(live.text()).toBe("5 characters left");
+
+      // Still inside the warning band: the counter moves, the announcement does
+      // not. A region that re-spoke here would read a number on every keystroke.
+      await wrapper.setProps({ modelValue: "a".repeat(16) });
+      expect(counterOf(wrapper).text()).toBe("16/20");
+      expect(live.text()).toBe("5 characters left");
+
+      await wrapper.setProps({ modelValue: "a".repeat(21) });
+      expect(live.text()).toBe("1 character over the limit of 20");
+
+      await wrapper.setProps({ modelValue: "a" });
+      expect(live.text()).toBe("");
+    });
+
+    it("takes the counter wording and the toggle name from the labels prop", async () => {
+      const wrapper = mount(TextField, {
+        props: {
+          ariaLabel: "Bio",
+          type: "password",
+          revealable: true,
+          maxLength: 20,
+          modelValue: "hello",
+          labels: {
+            reveal: "Hiện mật khẩu",
+            countOfMax: ({ count, max }) => `còn ${String(max - count)}`,
+          },
+        },
+      });
+      expect(counterOf(wrapper).text()).toBe("còn 15");
+      expect(wrapper.get("button").attributes("aria-label")).toBe("Hiện mật khẩu");
+
+      // Key by key: the override said nothing about the over-limit wording, so
+      // Loom's English stands there rather than the slot falling back whole.
+      await wrapper.setProps({ modelValue: "a".repeat(21) });
+      expect(counterOf(wrapper).text()).toBe("21/20 over limit");
+    });
   });
 });
