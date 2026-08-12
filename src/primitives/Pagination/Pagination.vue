@@ -1,5 +1,68 @@
 <script lang="ts">
 import { cva } from "class-variance-authority";
+import type { LabelOf } from "../../lib/labels";
+
+/**
+ * Everything this control publishes to assistive technology — including the six
+ * names Reka would otherwise supply in English of its own accord.
+ *
+ * `first`, `previous`, `next`, `last` and `page` are not decoration. Reka's
+ * `PaginationFirst` and its siblings write `aria-label="First Page"` into their
+ * own vnode props and expose no prop for it; `PaginationListItem` writes
+ * `` `Page ${value}` ``. A binding on the Loom side arrives as a fallthrough
+ * attribute, which Vue merges onto the root vnode *after* the render function
+ * produced it, and `mergeProps` is last-write-wins for everything that is not
+ * `class`, `style` or `on*`. So these replace Reka's rather than competing with
+ * it — the same mechanism `DateRangePicker`'s cell triggers have relied on
+ * since they landed, and `Pagination.test.ts` pins it by asserting the
+ * *capitalisation* Loom uses and Reka does not.
+ *
+ * `page` and `position` take the numbers rather than a formatted string, so an
+ * `ar-EG` host reaches `Intl.NumberFormat` for Eastern Arabic digits and a
+ * language that orders "of" differently can order it differently. See
+ * `LabelOf` in `src/lib/labels.ts`.
+ */
+export interface PaginationLabels {
+  /**
+   * The `<nav>` landmark's own name. A page commonly carries two of these —
+   * above and below a table — and two `<nav>`s named the same thing are as
+   * confusing to a screen reader as two named nothing, so give each one a name
+   * that says which it is.
+   */
+  readonly nav: string;
+  /** The button that jumps to page one. */
+  readonly first: string;
+  /** The button that steps back one page. */
+  readonly previous: string;
+  /** The button that steps on one page. */
+  readonly next: string;
+  /** The button that jumps to the last page. */
+  readonly last: string;
+  /** One numbered button in the `full` variant, named for the page it reaches. */
+  readonly page: LabelOf<{ page: number }>;
+  /** The position readout the `compact` and `simple` variants publish. */
+  readonly position: LabelOf<{ page: number; pageCount: number }>;
+  /** The ellipsis standing in for the pages the window had no room for. */
+  readonly ellipsis: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it: a
+ * consumer who never imports Pagination ships none of these bytes.
+ *
+ * Exported so a host can build a partial vocabulary against the real thing
+ * rather than a transcription of it.
+ */
+export const PAGINATION_LABELS: PaginationLabels = {
+  nav: "Pagination",
+  first: "First page",
+  previous: "Previous page",
+  next: "Next page",
+  last: "Last page",
+  page: ({ page }) => `Page ${String(page)}`,
+  position: ({ page, pageCount }) => `Page ${String(page)} of ${String(pageCount)}`,
+  ellipsis: "More pages",
+};
 
 /**
  * How much of the paging apparatus is rendered. All three drive the same
@@ -49,6 +112,7 @@ import { buttonVariants } from "../Button/Button.vue";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * Pagination — moving through a paged result set, one page at a time or by
@@ -70,7 +134,7 @@ import { useSplitAttrs } from "../../lib/attrs";
  * ellipses fall. That window is fiddly enough at the boundaries that
  * recomputing it here would only be a second, subtly different answer.
  */
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /**
      * The current page, 1-based. Leave it unset to let the component keep its
@@ -90,12 +154,15 @@ withDefaults(
     /** Unavailable: every control dims and refuses to move the page. */
     disabled?: boolean;
     /**
-     * The navigation's accessible name. A page commonly carries two of these —
-     * above and below a table — and two `<nav>`s named the same thing are as
-     * confusing to a screen reader as two named nothing, so give each one a
-     * name that says which it is.
+     * Names for everything this control says out loud, as any subset of
+     * `PaginationLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application: the case it exists for is the two paginations above and
+     * below one table, which must not share `labels.nav`.
      */
-    label?: string;
+    labels?: LabelOverrides<PaginationLabels>;
   }>(),
   {
     itemsPerPage: 10,
@@ -106,7 +173,6 @@ withDefaults(
     // mean by a full pagination, so Loom turns it on.
     showEdges: true,
     disabled: false,
-    label: "Pagination",
   },
 );
 
@@ -114,6 +180,11 @@ const emit = defineEmits<{
   /** The 1-based page the reader asked for. A controlled host decides whether to honour it. */
   "update:page": [page: number];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("pagination", PAGINATION_LABELS, () => props.labels);
 
 // The root renders the `<nav>`, so every fallthrough attribute belongs on it —
 // there is no second node they could sensibly describe. `class` is pulled out
@@ -212,16 +283,27 @@ function onPageChange(value: number): void {
     :sibling-count="siblingCount"
     :show-edges="showEdges"
     :disabled="disabled"
-    :aria-label="label"
+    :aria-label="text.nav"
     :class="cn(paginationVariants({ variant }), attrs.class as string)"
     @click="rememberKeyboardPress"
     @update:page="onPageChange"
   >
-    <PaginationFirst v-if="variant === 'full'" data-edge="first" :class="edgeClass">
+    <!-- Every `:aria-label` from here down replaces one Reka writes in English
+         inside its own render function. It reaches the DOM node as a
+         fallthrough attribute, which Vue merges last, so it is a replacement
+         rather than a second name. Removing one does not fall back to nothing;
+         it falls back to Reka's English, which is the failure this whole seam
+         exists to close and which no test of Loom's own strings would catch. -->
+    <PaginationFirst
+      v-if="variant === 'full'"
+      data-edge="first"
+      :aria-label="text.first"
+      :class="edgeClass"
+    >
       <ChevronsLeft class="h-4 w-4" aria-hidden="true" />
     </PaginationFirst>
 
-    <PaginationPrev data-edge="prev" :class="edgeClass">
+    <PaginationPrev data-edge="prev" :aria-label="text.previous" :class="edgeClass">
       <ChevronLeft class="h-4 w-4" aria-hidden="true" />
     </PaginationPrev>
 
@@ -237,6 +319,7 @@ function onPageChange(value: number): void {
         <PaginationListItem
           v-if="item.type === 'page'"
           :value="item.value"
+          :aria-label="text.page({ page: item.value })"
           :class="pageClass(item.value === current)"
         />
         <!-- The ellipsis is not a control, so it renders as a span rather than
@@ -250,7 +333,7 @@ function onPageChange(value: number): void {
           class="inline-flex h-8 min-w-8 select-none items-center justify-center text-sm text-muted-foreground"
         >
           <span aria-hidden="true">…</span>
-          <span class="sr-only">More pages</span>
+          <span class="sr-only">{{ text.ellipsis }}</span>
         </PaginationEllipsis>
       </template>
     </PaginationList>
@@ -261,20 +344,30 @@ function onPageChange(value: number): void {
          `aria-current` moves. The `full` variant deliberately has no live
          region: its number row already carries the state, and announcing it
          again on top of the focus hand-off below would say everything twice. -->
+    <!-- One string rather than three nodes with the numbers between them: a
+         language that puts the count before the word, or drops the preposition
+         entirely, cannot reorder markup this component emits. `tabular` moves
+         from the two number spans to the whole readout, which is the only real
+         cost — the "of" between them is now tabular too, and the row of digits
+         it was steadying is not rendered in either of these variants. -->
     <span
       v-if="variant !== 'full'"
       role="status"
-      :class="variant === 'compact' ? 'px-1 text-sm text-muted-foreground' : 'sr-only'"
+      :class="variant === 'compact' ? 'px-1 text-sm tabular text-muted-foreground' : 'sr-only'"
     >
-      Page <span class="tabular">{{ current }}</span> of
-      <span class="tabular">{{ pageCount }}</span>
+      {{ text.position({ page: current, pageCount }) }}
     </span>
 
-    <PaginationNext data-edge="next" :class="edgeClass">
+    <PaginationNext data-edge="next" :aria-label="text.next" :class="edgeClass">
       <ChevronRight class="h-4 w-4" aria-hidden="true" />
     </PaginationNext>
 
-    <PaginationLast v-if="variant === 'full'" data-edge="last" :class="edgeClass">
+    <PaginationLast
+      v-if="variant === 'full'"
+      data-edge="last"
+      :aria-label="text.last"
+      :class="edgeClass"
+    >
       <ChevronsRight class="h-4 w-4" aria-hidden="true" />
     </PaginationLast>
   </PaginationRoot>

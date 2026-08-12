@@ -60,10 +60,22 @@ strip; a host free to put it anywhere a window's chrome needs it.
 
 ## Localising the labels
 
-The three accessible names default to English but are entirely
-host-controlled through the `labels` prop — pass a full
-`WindowControlsLabels` object to relabel the cluster for another language
-without forking the primitive.
+Four accessible names — the middle button is one control in two states, and a
+language may well name those with unrelated words. Every glyph here is an inline
+SVG marked `aria-hidden`, so these names are the only thing a screen reader has
+to go on.
+
+They default to English and are entirely host-controlled through `labels`, which
+takes **any subset** of `WindowControlsLabels`; the names you leave out stay as
+your application's vocabulary — or Loom's English — left them.
+
+```vue
+<WindowControls :labels="{ close: 'Fermer' }" />
+```
+
+For a whole application, set this once with `provideLoomLabels` rather than
+threading a prop down through whatever chrome renders the cluster. See
+[Localisation](/foundations/localisation).
 
 ## API
 

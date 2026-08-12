@@ -1,5 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { defineComponent, h } from "vue";
+import { provideLoomLabels } from "../../lib/labels";
 import WindowControls from "./WindowControls.vue";
 
 describe("WindowControls", () => {
@@ -46,6 +48,33 @@ describe("WindowControls", () => {
     expect(wrapper.get('[data-testid="win-minimize"]').attributes("aria-label")).toBe("Réduire");
     expect(wrapper.get('[data-testid="win-maximize"]').attributes("aria-label")).toBe("Restaurer");
     expect(wrapper.get('[data-testid="win-close"]').attributes("aria-label")).toBe("Fermer");
+  });
+
+  it("takes a partial bag, leaving the names it was not given in English", () => {
+    // Before the seam this prop took a whole object, so a host wanting one word
+    // in their own language had to restate the other three in English and keep
+    // them in step by hand.
+    const wrapper = mount(WindowControls, { props: { labels: { close: "Fermer" } } });
+    expect(wrapper.get('[data-testid="win-close"]').attributes("aria-label")).toBe("Fermer");
+    expect(wrapper.get('[data-testid="win-minimize"]').attributes("aria-label")).toBe("Minimize");
+    expect(wrapper.get('[data-testid="win-maximize"]').attributes("aria-label")).toBe("Maximize");
+  });
+
+  it("takes its names from a host's vocabulary, which the instance's own prop still beats", () => {
+    const Host = defineComponent({
+      setup(_props, { slots }) {
+        provideLoomLabels(() => ({
+          windowControls: { minimize: "Thu nhỏ", close: "Đóng" },
+        }));
+        return () => h("div", slots.default?.());
+      },
+    });
+    const wrapper = mount(Host, {
+      slots: { default: () => h(WindowControls, { labels: { close: "Đóng cửa sổ" } }) },
+    });
+    expect(wrapper.get('[data-testid="win-minimize"]').attributes("aria-label")).toBe("Thu nhỏ");
+    expect(wrapper.get('[data-testid="win-close"]').attributes("aria-label")).toBe("Đóng cửa sổ");
+    expect(wrapper.get('[data-testid="win-maximize"]').attributes("aria-label")).toBe("Maximize");
   });
 
   it("marks every control type=button so a control cluster inside a form never submits it", () => {

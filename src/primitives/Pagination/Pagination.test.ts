@@ -1,6 +1,7 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
+import { provideLoomLabels } from "../../lib/labels";
 import Pagination from "./Pagination.vue";
 
 // The focus hand-off moves real focus, and focus only works for a tree that is
@@ -41,13 +42,30 @@ function press(target: HTMLElement, detail: number): void {
   target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail }));
 }
 
+/** A host declaring an application-wide vocabulary above the control. */
+function hostWith(vocabulary: () => Record<string, unknown>) {
+  return defineComponent({
+    setup(_props, { slots }) {
+      provideLoomLabels(vocabulary);
+      return () => h("div", slots.default?.());
+    },
+  });
+}
+
+/** Every `aria-label` on the control, in document order. */
+function names(wrapper: {
+  findAll: (selector: string) => { attributes: (n: string) => string | undefined }[];
+}) {
+  return wrapper.findAll("button").map((b) => b.attributes("aria-label"));
+}
+
 describe("Pagination", () => {
   it("is a navigation landmark carrying an accessible name, so two on one page stay distinguishable", () => {
     const wrapper = mountPagination({ total: 50, page: 1 });
     expect((wrapper.element as HTMLElement).tagName).toBe("NAV");
     expect(wrapper.attributes("aria-label")).toBe("Pagination");
 
-    const named = mountPagination({ total: 50, page: 1, label: "Invoices, bottom" });
+    const named = mountPagination({ total: 50, page: 1, labels: { nav: "Invoices, bottom" } });
     expect(named.attributes("aria-label")).toBe("Invoices, bottom");
   });
 
@@ -70,35 +88,35 @@ describe("Pagination", () => {
 
   it("keeps its own page when the host supplies none, rather than sticking on page one", async () => {
     const wrapper = mountPagination({ total: 50 });
-    await wrapper.get('[aria-label="Next Page"]').trigger("click");
+    await wrapper.get('[aria-label="Next page"]').trigger("click");
     expect(wrapper.emitted("update:page")).toEqual([[2]]);
     expect(wrapper.get('[aria-current="page"]').text()).toBe("2");
   });
 
   it("genuinely disables the backward controls on the first page, rather than only dimming them", () => {
     const wrapper = mountPagination({ total: 50, page: 1 });
-    expect(button(wrapper, "First Page").disabled).toBe(true);
-    expect(button(wrapper, "Previous Page").disabled).toBe(true);
-    expect(button(wrapper, "Next Page").disabled).toBe(false);
-    expect(button(wrapper, "Last Page").disabled).toBe(false);
+    expect(button(wrapper, "First page").disabled).toBe(true);
+    expect(button(wrapper, "Previous page").disabled).toBe(true);
+    expect(button(wrapper, "Next page").disabled).toBe(false);
+    expect(button(wrapper, "Last page").disabled).toBe(false);
   });
 
   it("genuinely disables the forward controls on the last page, rather than only dimming them", () => {
     const wrapper = mountPagination({ total: 50, page: 5 });
-    expect(button(wrapper, "Next Page").disabled).toBe(true);
-    expect(button(wrapper, "Last Page").disabled).toBe(true);
-    expect(button(wrapper, "Previous Page").disabled).toBe(false);
+    expect(button(wrapper, "Next page").disabled).toBe(true);
+    expect(button(wrapper, "Last page").disabled).toBe(true);
+    expect(button(wrapper, "Previous page").disabled).toBe(false);
   });
 
   it("does not fire a disabled direction, so a control that looks unavailable is unavailable", async () => {
     const wrapper = mountPagination({ total: 50, page: 1 });
-    await wrapper.get('[aria-label="Previous Page"]').trigger("click");
+    await wrapper.get('[aria-label="Previous page"]').trigger("click");
     expect(wrapper.emitted("update:page")).toBeUndefined();
   });
 
   it("hands keyboard focus to the current page when the control it was on becomes disabled", async () => {
     const wrapper = mountPagination({ total: 20 });
-    const next = button(wrapper, "Next Page");
+    const next = button(wrapper, "Next page");
     next.focus();
 
     press(next, 0);
@@ -111,17 +129,17 @@ describe("Pagination", () => {
 
   it("hands focus to the mirror control when the variant has no page buttons to land on", async () => {
     const wrapper = mountPagination({ total: 20, variant: "simple" });
-    const next = button(wrapper, "Next Page");
+    const next = button(wrapper, "Next page");
     next.focus();
     press(next, 0);
     await settle();
 
-    expect(document.activeElement).toBe(button(wrapper, "Previous Page"));
+    expect(document.activeElement).toBe(button(wrapper, "Previous page"));
   });
 
   it("leaves focus alone for a pointer press, which has no place in the document to lose", async () => {
     const wrapper = mountPagination({ total: 20 });
-    press(button(wrapper, "Next Page"), 1);
+    press(button(wrapper, "Next page"), 1);
     await settle();
 
     expect(document.activeElement).toBe(document.body);
@@ -155,30 +173,30 @@ describe("Pagination", () => {
   it("floors an empty result set at one page, so the control never renders zero pages", () => {
     const wrapper = mountPagination({ total: 0, page: 1 });
     expect(pages(wrapper)).toEqual(["1"]);
-    expect(button(wrapper, "Previous Page").disabled).toBe(true);
-    expect(button(wrapper, "Next Page").disabled).toBe(true);
+    expect(button(wrapper, "Previous page").disabled).toBe(true);
+    expect(button(wrapper, "Next page").disabled).toBe(true);
   });
 
   it("keeps a single page reachable and both directions closed when everything fits on it", () => {
     const wrapper = mountPagination({ total: 6, page: 1 });
     expect(pages(wrapper)).toEqual(["1"]);
     expect(wrapper.get('[aria-current="page"]').text()).toBe("1");
-    expect(button(wrapper, "First Page").disabled).toBe(true);
-    expect(button(wrapper, "Last Page").disabled).toBe(true);
+    expect(button(wrapper, "First page").disabled).toBe(true);
+    expect(button(wrapper, "Last page").disabled).toBe(true);
   });
 
   it("reads the position out as text in the compact variant, with no numbered row", () => {
     const wrapper = mountPagination({ total: 120, page: 3, variant: "compact" });
     expect(wrapper.get('[role="status"]').text().replace(/\s+/g, " ")).toBe("Page 3 of 12");
     expect(wrapper.findAll('[data-type="page"]')).toHaveLength(0);
-    expect(wrapper.find('[aria-label="First Page"]').exists()).toBe(false);
+    expect(wrapper.find('[aria-label="First page"]').exists()).toBe(false);
   });
 
   it("leaves the simple variant with prev and next alone, announcing the position only to a reader", () => {
     const wrapper = mountPagination({ total: 120, page: 3, variant: "simple" });
     expect(wrapper.findAll("button").map((b) => b.attributes("aria-label"))).toEqual([
-      "Previous Page",
-      "Next Page",
+      "Previous page",
+      "Next page",
     ]);
     expect(wrapper.get('[role="status"]').classes()).toContain("sr-only");
   });
@@ -237,5 +255,131 @@ describe("Pagination", () => {
   it("routes every other fallthrough attribute onto the nav, which is the node they describe", () => {
     const wrapper = mountPagination({ total: 50, page: 1 }, { "data-testid": "invoices" });
     expect(wrapper.attributes("data-testid")).toBe("invoices");
+  });
+
+  it("speaks Loom's English rather than Reka's, which no prop of Reka's can reach", () => {
+    const wrapper = mountPagination({ total: 50, page: 3 });
+    // Reka writes `aria-label="First Page"`, `"Previous Page"`, `"Next Page"`
+    // and `"Last Page"` into its own vnode props with no prop to change them.
+    // Loom's defaults differ from Reka's in exactly one respect — the second
+    // word is not capitalised — and that is what makes this an assertion about
+    // *whose* string reached the DOM rather than about the wording.
+    expect(names(wrapper)).toEqual([
+      "First page",
+      "Previous page",
+      "Page 1",
+      "Page 2",
+      "Page 3",
+      "Page 4",
+      "Page 5",
+      "Next page",
+      "Last page",
+    ]);
+    for (const name of names(wrapper)) {
+      expect(name).not.toMatch(/ Page$/);
+    }
+  });
+
+  it("replaces every name Reka supplies when a caller hands it a bag", () => {
+    const wrapper = mountPagination({
+      total: 50,
+      page: 2,
+      labels: {
+        first: "Trang đầu",
+        previous: "Trang trước",
+        next: "Trang sau",
+        last: "Trang cuối",
+        page: ({ page }) => `Trang ${String(page)}`,
+      },
+    });
+    expect(names(wrapper)).toEqual([
+      "Trang đầu",
+      "Trang trước",
+      "Trang 1",
+      "Trang 2",
+      "Trang 3",
+      "Trang 4",
+      "Trang 5",
+      "Trang sau",
+      "Trang cuối",
+    ]);
+    // Replacing the name leaves everything else Reka publishes about the button
+    // intact — the override is not a whole-props takeover.
+    expect(wrapper.get('[aria-label="Trang 2"]').attributes("aria-current")).toBe("page");
+    expect(button(wrapper, "Trang đầu").disabled).toBe(false);
+  });
+
+  it("keeps the keys a caller left out in English instead of blanking them", () => {
+    const wrapper = mountPagination({ total: 50, page: 2, labels: { next: "Trang sau" } });
+    expect(button(wrapper, "Trang sau").disabled).toBe(false);
+    expect(button(wrapper, "Previous page").disabled).toBe(false);
+    expect(wrapper.attributes("aria-label")).toBe("Pagination");
+  });
+
+  it("renames the ellipsis and the position readout, which are Loom's own strings", () => {
+    const gapped = mountPagination({
+      total: 1000,
+      page: 37,
+      labels: { ellipsis: "Còn nhiều trang" },
+    });
+    expect(gapped.get('[data-type="ellipsis"]').text()).toContain("Còn nhiều trang");
+
+    const compact = mountPagination({
+      total: 120,
+      page: 3,
+      variant: "compact",
+      // The numbers arrive raw, so a host reorders the sentence and shapes the
+      // digits itself. Loom never hands a label a formatted string.
+      labels: { position: ({ page, pageCount }) => `${String(page)}/${String(pageCount)} trang` },
+    });
+    expect(compact.get('[role="status"]').text().replace(/\s+/g, " ")).toBe("3/12 trang");
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct a single key", () => {
+    const wrapper = mount(
+      hostWith(() => ({ pagination: { nav: "Phân trang", next: "Trang sau" } })),
+      {
+        attachTo: document.body,
+        slots: {
+          default: () => [
+            h(Pagination, { total: 50, page: 1, variant: "simple" }),
+            h(Pagination, {
+              total: 50,
+              page: 1,
+              variant: "simple",
+              labels: { nav: "Phân trang, dưới" },
+            }),
+          ],
+        },
+      },
+    );
+
+    const navs = wrapper.findAll("nav");
+    // Two paginations on one page must be distinguishable, and an
+    // application-wide vocabulary alone cannot make them so.
+    expect(navs[0]!.attributes("aria-label")).toBe("Phân trang");
+    expect(navs[1]!.attributes("aria-label")).toBe("Phân trang, dưới");
+    // The vocabulary still reaches the keys neither instance touched.
+    expect(navs[1]!.findAll("button").map((b) => b.attributes("aria-label"))).toEqual([
+      "Previous page",
+      "Trang sau",
+    ]);
+  });
+
+  it("repaints its names when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(
+      hostWith(() => (locale.value === "en" ? {} : { pagination: { next: "Trang sau" } })),
+      {
+        attachTo: document.body,
+        slots: { default: () => h(Pagination, { total: 50, page: 1, variant: "simple" }) },
+      },
+    );
+    expect(wrapper.get('[data-edge="next"]').attributes("aria-label")).toBe("Next page");
+
+    locale.value = "vi";
+    await nextTick();
+
+    expect(wrapper.get('[data-edge="next"]').attributes("aria-label")).toBe("Trang sau");
   });
 });

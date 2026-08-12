@@ -15,6 +15,13 @@
 // Utilities.
 export { cn } from "./lib/cn";
 export { applyLoomIconDefaults } from "./lib/icon-defaults";
+// The localisation seam. Loom ships the contract, never the content: there is
+// no i18n dependency here and no bundled translations, and a label that takes a
+// count is a function the host supplies, because pluralisation differs by
+// language and Loom carries no engine that could decide it.
+export { provideLoomLabels } from "./lib/labels";
+export type { LabelOf, LabelOverrides, LoomLabelOverrides } from "./lib/labels";
+export type { LoomLabels } from "./lib/label-registry";
 export { LIST_STAGGER_CAP, LIST_STAGGER_STEP_MS, listStaggerDelay } from "./lib/motion";
 
 // Primitives, alphabetical. Each component ships beside the types its own
@@ -73,8 +80,12 @@ export type { MenubarItem, MenubarMenu } from "./primitives/Menubar/Menubar.vue"
 export { default as NumberField } from "./primitives/NumberField/NumberField.vue";
 export { default as OtpInput } from "./primitives/OtpInput/OtpInput.vue";
 export type { OtpInputType } from "./primitives/OtpInput/OtpInput.vue";
-export { default as Pagination, paginationVariants } from "./primitives/Pagination/Pagination.vue";
-export type { PaginationVariant } from "./primitives/Pagination/Pagination.vue";
+export {
+  default as Pagination,
+  paginationVariants,
+  PAGINATION_LABELS,
+} from "./primitives/Pagination/Pagination.vue";
+export type { PaginationLabels, PaginationVariant } from "./primitives/Pagination/Pagination.vue";
 export { default as Popover } from "./primitives/Popover/Popover.vue";
 export type { PopoverAlign, PopoverSide } from "./primitives/Popover/Popover.vue";
 export { default as Progress, progressVariants } from "./primitives/Progress/Progress.vue";
@@ -120,7 +131,10 @@ export { default as Toast } from "./primitives/Toast/Toast.vue";
 export type { ToastVariant } from "./primitives/Toast/Toast.vue";
 export { default as Tooltip } from "./primitives/Tooltip/Tooltip.vue";
 export type { TooltipSide } from "./primitives/Tooltip/Tooltip.vue";
-export { default as WindowControls } from "./primitives/WindowControls/WindowControls.vue";
+export {
+  default as WindowControls,
+  WINDOW_CONTROLS_LABELS,
+} from "./primitives/WindowControls/WindowControls.vue";
 export type { WindowControlsLabels } from "./primitives/WindowControls/WindowControls.vue";
 
 // Blocks, alphabetical. A block is an arrangement of primitives that every

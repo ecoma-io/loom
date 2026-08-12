@@ -32,6 +32,17 @@ const simple = ref(2);
 const narrow = ref(6);
 const wide = ref(6);
 const edgeless = ref(6);
+const localised = ref(4);
+
+const vietnamese = {
+  nav: "Hoá đơn",
+  first: "Trang đầu",
+  previous: "Trang trước",
+  next: "Trang sau",
+  last: "Trang cuối",
+  page: ({ page }) => `Trang ${new Intl.NumberFormat("vi-VN").format(page)}`,
+  ellipsis: "Còn nhiều trang",
+};
 </script>
 
 ## Usage
@@ -45,7 +56,7 @@ const page = ref(1);
 </script>
 
 <template>
-  <Pagination v-model:page="page" :total="248" :items-per-page="25" label="Invoices" />
+  <Pagination v-model:page="page" :total="248" :items-per-page="25" :labels="{ nav: 'Invoices' }" />
 </template>
 ```
 
@@ -69,7 +80,7 @@ jumping to a known page is a real task — a table someone works through in
 order, and comes back to.
 
 <Demo title="Full">
-  <Pagination v-model:page="invoices" :total="120" label="Invoices" />
+  <Pagination v-model:page="invoices" :total="120" :labels="{ nav: 'Invoices' }" />
 </Demo>
 
 `compact` trades the numbers for the position as text. It fits a toolbar with
@@ -77,7 +88,7 @@ no room for a row of squares, and still answers "where am I, and how much is
 left".
 
 <Demo title="Compact">
-  <Pagination v-model:page="compact" variant="compact" :total="120" label="Invoices, compact" />
+  <Pagination v-model:page="compact" variant="compact" :total="120" :labels="{ nav: 'Invoices, compact' }" />
 </Demo>
 
 `simple` is previous and next alone, for a feed nobody navigates by index. The
@@ -85,7 +96,7 @@ position is still announced to a screen reader — see below — it simply is no
 drawn.
 
 <Demo title="Simple">
-  <Pagination v-model:page="simple" variant="simple" :total="120" label="Activity" />
+  <Pagination v-model:page="simple" variant="simple" :total="120" :labels="{ nav: 'Activity' }" />
 </Demo>
 
 ## The window, and the ellipsis
@@ -101,11 +112,11 @@ ellipsis" is not what it means. The words _more pages_ are, and that is what a
 screen reader reads there instead.
 
 <Demo title="One sibling either side, both ends anchored">
-  <Pagination v-model:page="deep" :total="1000" label="Search results" />
+  <Pagination v-model:page="deep" :total="1000" :labels="{ nav: 'Search results' }" />
 </Demo>
 
 <Demo title="Two siblings">
-  <Pagination v-model:page="wide" :total="1000" :sibling-count="2" label="Search results, wide" />
+  <Pagination v-model:page="wide" :total="1000" :sibling-count="2" :labels="{ nav: 'Search results, wide' }" />
 </Demo>
 
 Turning `showEdges` off drops the anchors and the ellipses together — the
@@ -114,7 +125,7 @@ edge buttons. It is the tighter, quieter form; it is also the one that hides
 how large the set is.
 
 <Demo title="showEdges off">
-  <Pagination v-model:page="edgeless" :total="1000" :show-edges="false" label="Search results, unanchored" />
+  <Pagination v-model:page="edgeless" :total="1000" :show-edges="false" :labels="{ nav: 'Search results, unanchored' }" />
 </Demo>
 
 ## Naming it
@@ -122,12 +133,54 @@ how large the set is.
 A page very often carries two of these — one above a table and one below it —
 and two `<nav>` landmarks with the same name are as unhelpful as two with no
 name at all: a screen reader lists them both and offers no way to tell them
-apart. `label` is what names each one, and it defaults to `Pagination` so an
-unnamed instance is at least a named landmark rather than an anonymous one.
+apart. `labels.nav` is what names each one, and it defaults to `Pagination` so
+an unnamed instance is at least a named landmark rather than an anonymous one.
 
 Where there are two, say which is which — `Invoices, top` and `Invoices,
 bottom` — or give both the same name only when they genuinely are the same
 control rendered twice.
+
+```vue
+<Pagination :total="248" :labels="{ nav: 'Invoices, bottom' }" />
+```
+
+## Everything it says out loud
+
+`labels` carries eight names, and `nav` is only the first of them. Five of the
+other seven exist because Reka UI writes them in English of its own accord and
+offers no prop for them — `First Page`, `Previous Page`, `Next Page`,
+`Last Page` on the edge controls and `Page 3` on every numbered one. Loom
+replaces each with its own default and lets you replace those in turn, so a
+localised application does not end up with a row of buttons speaking a language
+nobody chose. The remaining two are Loom's own: the ellipsis's screen-reader
+text and the position readout the `compact` and `simple` variants publish.
+
+```ts
+interface PaginationLabels {
+  nav: string; // the <nav> landmark's own name
+  first: string;
+  previous: string;
+  next: string;
+  last: string;
+  page: (args: { page: number }) => string; // one numbered button
+  position: (args: { page: number; pageCount: number }) => string;
+  ellipsis: string;
+}
+```
+
+`page` and `position` are functions of raw numbers rather than templates with a
+hole in them, so `Intl.NumberFormat` decides how the digits are written and your
+own translation decides where they sit in the sentence. Every key is optional:
+supply one and the other seven stay as your application's vocabulary — or Loom's
+English — left them.
+
+<Demo title="Localised">
+  <Pagination v-model:page="localised" :total="120" :labels="vietnamese" />
+</Demo>
+
+For a whole application, set this once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is for the per-instance correction, like the
+two landmark names above. See [Localisation](/foundations/localisation).
 
 ## Boundaries
 
@@ -147,9 +200,9 @@ boundaries of that calculation are where off-by-one bugs live.
 
 <Demo title="Empty, single, and both ellipses">
   <div class="flex flex-col gap-3">
-    <Pagination :page="1" :total="0" label="Empty" />
-    <Pagination :page="1" :total="6" label="Single page" />
-    <Pagination v-model:page="narrow" :total="1000" label="A hundred pages" />
+    <Pagination :page="1" :total="0" :labels="{ nav: 'Empty' }" />
+    <Pagination :page="1" :total="6" :labels="{ nav: 'Single page' }" />
+    <Pagination v-model:page="narrow" :total="1000" :labels="{ nav: 'A hundred pages' }" />
   </div>
 </Demo>
 
@@ -160,7 +213,7 @@ instance. Every button takes the DOM `disabled` state rather than a dimmed
 paint, so nothing that looks unavailable can still be pressed.
 
 <Demo title="Disabled">
-  <Pagination v-model:page="feed" disabled :total="120" label="Invoices, loading" />
+  <Pagination v-model:page="feed" disabled :total="120" :labels="{ nav: 'Invoices, loading' }" />
 </Demo>
 
 ## Keyboard and screen readers
