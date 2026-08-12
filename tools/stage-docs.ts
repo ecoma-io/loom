@@ -13,7 +13,18 @@
 // request rewrite in the Worker keeps the deployment scriptless: there is no
 // handler to reason about, and the file layout is the whole explanation.
 //
-// Run: `node tools/stage-docs.ts`
+// Two jobs, and `--check` is the seam between them. Asserting the route reads
+// two source files and compares them; copying the build needs a build to exist.
+// They are one script because they are one decision — where the site lives —
+// and splitting them across two files would leave the assertion somewhere a
+// reader looking for the layout would not find it. But CI's `verify` job no
+// longer builds the site (every end-to-end leg does, through Playwright's
+// `webServer`), and it still has to make the assertion, because nothing else
+// before a merge does. Without the flag it would have to build a site it then
+// throws away just to reach the check.
+//
+// Run: `node tools/stage-docs.ts`         — assert, then stage the build.
+//      `node tools/stage-docs.ts --check` — assert only; no build required.
 import { cp, mkdir, readFile, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { BASE, SITE_HOST, SITE_URL } from "../docs/.vitepress/base.ts";
@@ -22,6 +33,8 @@ const ROOT = new URL("../", import.meta.url);
 const BUILD = new URL("docs/.vitepress/dist/", ROOT);
 const STAGE = new URL(".cloudflare/", ROOT);
 const WRANGLER = new URL("wrangler.jsonc", ROOT);
+
+const CHECK_ONLY = process.argv.includes("--check");
 
 /**
  * The route Cloudflare must carry for the staged tree to be reachable.
@@ -48,15 +61,21 @@ if (!wranglerSource.includes(`"pattern": "${EXPECTED_ROUTE}"`)) {
   process.exit(1);
 }
 
-// `BASE` is `/a/b/` — the leading and trailing slashes are what make it a URL
-// prefix, and what make it the wrong shape for a path segment list.
-const segments = BASE.split("/").filter(Boolean);
-const target = new URL(`${segments.join("/")}/`, STAGE);
+if (CHECK_ONLY) {
+  console.log(
+    `wrangler.jsonc routes ${EXPECTED_ROUTE}, matching the base ${SITE_URL} is built with.`,
+  );
+} else {
+  // `BASE` is `/a/b/` — the leading and trailing slashes are what make it a URL
+  // prefix, and what make it the wrong shape for a path segment list.
+  const segments = BASE.split("/").filter(Boolean);
+  const target = new URL(`${segments.join("/")}/`, STAGE);
 
-await rm(STAGE, { recursive: true, force: true });
-await mkdir(target, { recursive: true });
-await cp(BUILD, target, { recursive: true });
+  await rm(STAGE, { recursive: true, force: true });
+  await mkdir(target, { recursive: true });
+  await cp(BUILD, target, { recursive: true });
 
-console.log(
-  `Staged ${fileURLToPath(BUILD)}\n     to ${fileURLToPath(target)}\n` + `  serving ${SITE_URL}`,
-);
+  console.log(
+    `Staged ${fileURLToPath(BUILD)}\n     to ${fileURLToPath(target)}\n` + `  serving ${SITE_URL}`,
+  );
+}

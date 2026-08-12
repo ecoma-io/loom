@@ -11,8 +11,25 @@ pre-commit:
       run: pnpm exec prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
     lint:
+      # Same cache file as `pnpm lint`, deliberately. ESLint keys an entry by
+      # the file's absolute path, so the staged-file run here and the whole-tree
+      # run there address the same entries rather than two half-populated
+      # copies, and a partial run rewrites only what it linted — the entries for
+      # files it was never given survive. So a commit warms the cache for the
+      # `pnpm lint` that follows it, and the other way round.
+      #
+      # `content` rather than the default `metadata`, which keys on size and
+      # mtime: `git checkout`, `git stash` and a rebase all rewrite mtimes on
+      # files whose bytes never changed, and on a CI runner a fresh clone
+      # rewrites every one of them — a metadata-keyed cache would restore
+      # perfectly and then miss on all of it.
+      #
+      # Under `node_modules/` because that is already ignored by Git, Prettier
+      # and ESLint alike; a cache file at the repository root would need adding
+      # to all three, and a committed one is a defect of its own.
       glob: "*.{ts,mts,cts,mjs,cjs,js,vue}"
-      run: pnpm exec eslint --no-warn-ignored --max-warnings 0 {staged_files}
+      run: pnpm exec eslint --no-warn-ignored --cache --cache-strategy content --cache-location
+        node_modules/.cache/eslint --max-warnings 0 {staged_files}
 
 pre-push:
   parallel: false
