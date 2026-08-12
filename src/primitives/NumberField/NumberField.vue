@@ -1,3 +1,47 @@
+<script lang="ts">
+/**
+ * Everything this control publishes to assistive technology — and all three of
+ * these are names Reka UI would otherwise supply in English of its own accord.
+ *
+ * `increment` and `decrement` are the stepper buttons, which Reka labels
+ * `Increase` and `Decrease` inside its own render function with no prop to
+ * reach them by. `roleDescription` replaces the `aria-roledescription="Number
+ * field"` Reka writes on the spinbutton itself — the phrase a screen reader
+ * announces *in place of* "spin button", so leaving it unreachable means a
+ * fully localised form still names its own control in English.
+ *
+ * A binding on the Loom side arrives as a fallthrough attribute, which Vue
+ * merges onto the root vnode after Reka's render function produced it, and
+ * `mergeProps` is last-write-wins for everything that is not `class`, `style`
+ * or `on*`. So these replace Reka's rather than competing with it, and
+ * `NumberField.test.ts` pins that by overriding each one and reading the DOM
+ * back — the check the wording alone cannot make, since Loom's English for the
+ * role description is the same phrase Reka chose.
+ */
+export interface NumberFieldLabels {
+  /** The stepper's up button. */
+  readonly increment: string;
+  /** The stepper's down button. */
+  readonly decrement: string;
+  /**
+   * What the field calls itself, announced in place of "spin button". Set it
+   * to the kind of number the field holds — "Rotation, in degrees" — where
+   * that is more use to a reader than the control's generic name.
+   */
+  readonly roleDescription: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const NUMBER_FIELD_LABELS: NumberFieldLabels = {
+  increment: "Increase value",
+  decrement: "Decrease value",
+  roleDescription: "Number field",
+};
+</script>
+
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from "vue";
 import {
@@ -10,6 +54,7 @@ import { ChevronUp, ChevronDown } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 import { optional } from "../../lib/props";
 
 /**
@@ -63,6 +108,17 @@ const props = withDefaults(
     readonly?: boolean | undefined;
     /** Error state: paints the destructive border and ring, and sets `aria-invalid`. Unset defers to a wrapping Field's `error`. */
     invalid?: boolean | undefined;
+    /**
+     * Names for everything this control says out loud, as any subset of
+     * `NumberFieldLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application: the case it exists for is `roleDescription`, where a field
+     * holding a rotation or a price is more useful named as that than as a
+     * number field.
+     */
+    labels?: LabelOverrides<NumberFieldLabels>;
   }>(),
   {
     step: 1,
@@ -83,6 +139,11 @@ const emit = defineEmits<{
   /** Committed: once per gesture boundary — drag release, Enter, or focus leaving. */
   commit: [value: number];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("numberField", NUMBER_FIELD_LABELS, () => props.labels);
 
 // The rendered root is a non-focusable `role="group"` wrapper, so fallthrough
 // attributes that describe the *control* — `aria-labelledby`, `data-testid` —
@@ -347,7 +408,15 @@ function onPointerDown(event: PointerEvent) {
     @focusout="onFocusOut"
     @pointerdown="onPointerDown"
   >
+    <!-- `aria-roledescription` is written before the `v-bind` rather than after
+         it, which is the opposite of the field bag below and deliberate: it is
+         replacing Reka's own literal, not a caller's, so a caller who passes
+         the attribute directly should still beat it. Reka's is merged inside
+         its render function and Vue applies everything from here afterwards,
+         so both orders defeat Reka and only this one leaves the caller a way
+         past Loom. -->
     <NumberFieldInput
+      :aria-roledescription="text.roleDescription"
       v-bind="{ ...inputAttrs, ...inputFieldAttrs }"
       :class="
         cn(
@@ -384,7 +453,13 @@ function onPointerDown(event: PointerEvent) {
       v-if="!field.readonly"
       class="absolute right-1 flex flex-col opacity-0 transition-opacity duration-fast group-hover:opacity-100"
     >
+      <!-- Both `:aria-label`s replace one Reka writes in English inside its own
+           render function — "Increase" and "Decrease". They reach the DOM node
+           as fallthrough attributes, which Vue merges last, so each is a
+           replacement rather than a second name. Removing one does not fall
+           back to nothing; it falls back to Reka's English. -->
       <NumberFieldIncrement
+        :aria-label="text.increment"
         class="flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out)] hover:bg-subtle hover:text-foreground active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
       >
         <!-- Stroke lives on the 24 grid and scales with size, so the inherited
@@ -393,6 +468,7 @@ function onPointerDown(event: PointerEvent) {
         <ChevronUp class="h-3 w-3" :stroke-width="2.5" />
       </NumberFieldIncrement>
       <NumberFieldDecrement
+        :aria-label="text.decrement"
         class="flex h-4 w-4 items-center justify-center rounded-sm text-muted-foreground [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out)] hover:bg-subtle hover:text-foreground active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
       >
         <ChevronDown class="h-3 w-3" :stroke-width="2.5" />

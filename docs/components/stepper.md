@@ -74,9 +74,9 @@ second. Leave it unset and the Stepper owns its own position, which is enough
 for a spine that only reports where a flow already is.
 
 The spine is a `role="group"`, and the name you give it is the name of the flow
-— `aria-label="Checkout"`, not "Stepper". Without one it falls back to the
-generic label Reka writes, which tells a reader nothing about which flow they
-are in.
+— `aria-label="Checkout"`, not "Stepper". Without one it falls back to
+`labels.group`, which says "Progress" and so tells a reader they are in a flow
+but not which one.
 
 ## Steps
 
@@ -185,7 +185,8 @@ roving-tabindex pattern exists to prevent.
 
 The root is a `role="group"` holding a polite live region that reports "Step 2 of
 4" as the position changes, so an advance made by a button elsewhere on the page
-is announced without moving focus.
+is announced without moving focus. That region is Loom's own, and there is
+exactly one of it — see [Labels](#labels) for why there would otherwise be two.
 
 ## Motion
 
@@ -200,6 +201,50 @@ to.
 <Demo title="Every state" :source="stepperDemoSource">
   <StepperDemo />
 </Demo>
+
+## Labels
+
+Three names, and two of them exist because Reka UI says them in English of its
+own accord.
+
+```ts
+interface StepperLabels {
+  group: string; // the spine's own name, standing in for Reka's "progress"
+  position: (args: { step: number; stepCount: number }) => string;
+  completed: (args: { title: string }) => string;
+}
+```
+
+`position` and `completed` are functions of raw values rather than templates
+with a hole in them, so `Intl.NumberFormat` decides how the digits are written
+and your own translation decides where they sit in the sentence. `completed`
+receives the step's title and returns that step's _whole_ accessible name
+— "Payment (completed)" in English — because where a language puts a qualifier
+relative to the thing it qualifies is a property of the language, and a suffix
+Loom appended would be Loom deciding it for you.
+
+`position` is worth one more note. Reka's own Stepper writes "Step 2 of 4" into
+a live region as a text node inside its render function: no prop, no slot, no
+attribute, and English however your application is localised. Loom renders a
+translatable region beside it and removes Reka's from the accessibility tree
+from its global stylesheet, so a step change is announced **once**, in your
+language. This is the only place in the library that reaches into a
+dependency's DOM, and an end-to-end test asserts in a real browser that a Loom
+stepper exposes exactly one live region.
+
+The `labels` prop takes **any subset**; for a whole application set it once
+with `provideLoomLabels`. The per-instance case is `group` — a page carrying
+two flows needs each named for what it steps through, and a caller's own
+`aria-label` on `<Stepper>` still beats both.
+
+```vue
+<Stepper :steps="steps" :labels="{ group: 'Checkout' }" />
+```
+
+Annotate your own bag with `LabelOverrides<StepperLabels>` rather than with
+`StepperLabels` itself: the override type is partial, so a key added to Loom in
+a later release is one your bag may ignore. See
+[Localisation](/foundations/localisation).
 
 ## API
 

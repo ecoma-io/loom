@@ -16,6 +16,12 @@ vi.mock("./ToastItem.vue", async () => {
   const actual = await vi.importActual("./ToastItem.vue");
   const c = (actual as { default: { emits?: string[]; props?: Record<string, unknown> } }).default;
   return {
+    // `ToastItem` is where the toast vocabulary is declared, and `Toast` reads
+    // the defaults off it to name the provider and the viewport. Stubbing only
+    // the component and letting the real bag through keeps that seam honest:
+    // a key renamed in `ToastLabels` fails here rather than resolving to a
+    // stub's invention.
+    ...(actual as object),
     default: {
       name: "ToastItem",
       props: c.props ? Object.keys(c.props) : [],

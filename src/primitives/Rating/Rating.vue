@@ -1,5 +1,39 @@
 <script lang="ts">
 import { cva } from "class-variance-authority";
+import type { LabelOf } from "../../lib/labels";
+
+/**
+ * The one thing this control says out loud — and it carries both numbers,
+ * because a row of star glyphs announces nothing at all on its own.
+ *
+ * **One key, not a score plus a joiner plus a noun.** "4 of 5 stars" is three
+ * language decisions in one sentence: where the qualifier sits relative to the
+ * numbers, how the digits are written, and which plural form "stars" takes at
+ * 1, at 4 and at 0.5 — a category English does not distinguish and Russian
+ * does. Handing over both raw numbers is what lets a host make all three of
+ * those; a `${score} of ${length} stars` template with holes in it has already
+ * made the first two, in English.
+ *
+ * Rounding to two decimals lives in Loom's default rather than in the
+ * component, so it is a wording choice a host replaces along with the words:
+ * it is what turns a half step's `4.0` into `4`.
+ */
+export interface RatingLabels {
+  /**
+   * The score out of the scale. It names the read-only picture, and it names
+   * every radio in the interactive branch — which is what turns a bare "4"
+   * into "4 of 5 stars" at the moment a reader arrives on it.
+   */
+  readonly score: LabelOf<{ score: number; length: number }>;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const RATING_LABELS: RatingLabels = {
+  score: ({ score, length }) => `${String(Number(score.toFixed(2)))} of ${String(length)} stars`,
+};
 
 /**
  * Star size. Deliberately *not* the control-height scale the text input,
@@ -43,6 +77,7 @@ import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * Rating — a score on a small, fixed, ordinal scale, drawn as a row of stars.
@@ -118,6 +153,17 @@ const props = withDefaults(
     disabled?: boolean | undefined;
     /** Star size. It follows the icon scale, not the control-height scale. */
     size?: RatingSize;
+    /**
+     * The name it gives a score, as any subset of `RatingLabels` — the rest
+     * stay as the host's `provideLoomLabels` vocabulary left them, and then as
+     * Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application: the case it exists for is a scale whose stars are not stars
+     * — five chillies for heat, five bars for confidence — where the noun in
+     * the name has to say so however well the application is translated.
+     */
+    labels?: LabelOverrides<RatingLabels>;
   }>(),
   {
     length: 5,
@@ -139,6 +185,11 @@ defineEmits<{
   /** The newly chosen score in stars, or `0` when a `clearable` rating is cleared. */
   "update:modelValue": [value: number];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("rating", RATING_LABELS, () => props.labels);
 
 // Two roots, one branch each, so `class` needs a Tailwind-aware merge on
 // whichever one renders — Vue's own fallthrough merge only concatenates, and a
@@ -190,19 +241,6 @@ const score = computed(() => Math.min(Math.max(props.modelValue ?? 0, 0), props.
 const stars = computed(() => Array.from({ length: props.length }, (_, index) => index + 1));
 
 /**
- * What a screen reader is given for a score — the text the stars are not.
- *
- * Five spans wearing a star glyph announce nothing at all, so the maximum
- * rides in every one of these strings: on the read-only picture's own name,
- * and on each radio's, where it turns "4" into "4 of 5 stars" at the moment
- * the reader is on it. `toFixed` then `Number` drops the trailing zero a half
- * step leaves behind, so 4 reads "4" rather than "4.0".
- */
-function starsLabel(value: number): string {
-  return `${String(Number(value.toFixed(2)))} of ${String(props.length)} stars`;
-}
-
-/**
  * How much of star `n` is painted, as a percentage — the read-only clip
  * window. Rounded, because binary floating point turns a score of 4.2 into a
  * width of `20.000000000000018%`: correct to the pixel and unreadable in a
@@ -222,7 +260,7 @@ function fillOf(star: number): string {
     v-if="field.readonly"
     v-bind="{ ...rest, ...pictureAttrs }"
     role="img"
-    :aria-label="starsLabel(score)"
+    :aria-label="text.score({ score, length })"
     :class="cn(rowVariants({ size }), attrs.class as string)"
   >
     <span v-for="star in stars" :key="star" :class="cn(starVariants({ size }), 'relative')">
@@ -288,7 +326,7 @@ function fillOf(star: number): string {
         v-for="stepValue in steps"
         :key="stepValue"
         :step="stepValue"
-        :aria-label="starsLabel(stepValue)"
+        :aria-label="text.score({ score: stepValue, length })"
         class="group/step absolute inset-y-0 left-0 cursor-pointer overflow-hidden rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed"
         style="
           width: var(--reka-rating-item-step-width);

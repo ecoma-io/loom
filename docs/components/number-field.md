@@ -149,6 +149,42 @@ formatted value — `1,234` for 1234 — so the name goes to a hidden control
 alongside it rather than onto the input itself. A form reading `width` gets
 `1234`.
 
+## Labels
+
+Three of the things this field publishes to a screen reader are strings, and
+Reka UI writes all three in English of its own accord: the two stepper buttons,
+which it names `Increase` and `Decrease` with no prop to reach them by, and the
+`aria-roledescription` on the spinbutton, which is the phrase announced _in
+place of_ "spin button". Loom replaces each with a default of its own and lets
+you replace those in turn, so a localised form does not end up with a control
+naming itself in a language nobody chose.
+
+```ts
+interface NumberFieldLabels {
+  increment: string; // the stepper's up button
+  decrement: string; // the stepper's down button
+  roleDescription: string; // announced in place of "spin button"
+}
+```
+
+`roleDescription` is the one worth correcting per instance: a field holding a
+rotation or a price is more use to a reader named as that than as a number
+field.
+
+```vue
+<NumberField v-model="angle" unit="deg" :labels="{ roleDescription: 'Rotation, in degrees' }" />
+```
+
+Every key is optional — supply one and the other two stay as your application's
+vocabulary, or Loom's English, left them. Annotate a bag of your own with
+`LabelOverrides<NumberFieldLabels>` rather than with `NumberFieldLabels` itself:
+the override type is partial, so a key added in a later release is one your bag
+may ignore, where the bag interface is total and would stop compiling.
+
+For a whole application set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is for the per-instance correction. See
+[Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api NumberField -->

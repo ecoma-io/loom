@@ -117,8 +117,10 @@ all.
 So "no results" is a row inside the listbox rather than a caption beside it — a
 `role="option"` marked `aria-disabled`, which is a legitimate child of a listbox
 and therefore something a screen reader reaches, while remaining a statement
-rather than a choice. `emptyMessage` is its wording; say what was searched
-rather than restating the obvious, and the row will carry it.
+rather than a choice. `emptyMessage` is its wording for one box; say what was
+searched rather than restating the obvious, and the row will carry it. Leave it
+unset and the row says what [`labels.empty`](#labels) says, which is where the
+wording for a whole application belongs.
 
 <Demo title="Empty state — type anything that matches nothing">
   <div class="w-full max-w-xs">
@@ -259,6 +261,39 @@ reading `country` gets `vn`.
 caption rewritten on every choice rather than the value, so making it read-only
 would freeze the caption while the list underneath still opened on a click. A
 choice nobody may change is a disabled Combobox, or the label rendered as text.
+
+## Labels
+
+Two of the strings on this control are its own rather than yours. The chevron is
+a real button and Reka UI names it `Show popup`, in English, inside its own
+render function with no prop to reach it by; and the empty row needs wording
+when `emptyMessage` gives it none.
+
+```ts
+interface ComboboxLabels {
+  trigger: string; // the chevron that opens the list
+  empty: string; // the row shown when the filter matches nothing
+}
+```
+
+`emptyMessage` and `labels.empty` are not rivals. The prop is one box's wording
+— "No country by that name" — and the label is what every other box says, so the
+prop wins wherever both are set. Reach for the label when you are translating an
+application and for the prop when you are writing copy for one control.
+
+```vue
+<Combobox :options="countries" :labels="{ trigger: 'Hiện danh sách' }" />
+```
+
+Every key is optional — supply one and the other stays as your application's
+vocabulary, or Loom's English, left it. Annotate a bag of your own with
+`LabelOverrides<ComboboxLabels>` rather than with `ComboboxLabels` itself: the
+override type is partial, so a key added in a later release is one your bag may
+ignore, where the bag interface is total and would stop compiling.
+
+For a whole application set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is for the per-instance correction. See
+[Localisation](/foundations/localisation).
 
 ## API
 

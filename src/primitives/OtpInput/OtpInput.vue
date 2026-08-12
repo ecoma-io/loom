@@ -1,9 +1,41 @@
 <script lang="ts">
+import type { LabelOf } from "../../lib/labels";
+
 /**
  * What a cell accepts, and what keyboard a phone raises for it. `numeric` is
  * digits only; `text` takes any character, for an alphanumeric backup code.
  */
 export type OtpInputType = "numeric" | "text";
+
+/**
+ * The one name this control publishes, and it replaces one Reka writes in
+ * English of its own accord: `PinInputInput` labels every cell
+ * `` `pin input ${index + 1} of ${length}` `` and exposes no prop for it.
+ *
+ * **One key, not "Digit" plus "Character" plus a joiner plus a position.** The
+ * noun and the two numbers arrive together in one argument object, and the
+ * variant — whether this row takes digits or any character — arrives with
+ * them, because which word a language uses for a cell and where the position
+ * sits relative to it are one decision rather than two. Four fragment keys
+ * Loom then joined would be a sentence no translator could reorder.
+ *
+ * `index` is 1-based: it is a position a person is being read, not an offset
+ * into an array, and handing over the 0-based one would make every override
+ * write `index + 1` before it could say anything.
+ */
+export interface OtpInputLabels {
+  /** One cell, named for what it takes and where it sits in the row. */
+  readonly cell: LabelOf<{ index: number; length: number; type: OtpInputType }>;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const OTP_INPUT_LABELS: OtpInputLabels = {
+  cell: ({ index, length, type }) =>
+    `${type === "numeric" ? "Digit" : "Character"} ${String(index)} of ${String(length)}`,
+};
 </script>
 
 <script setup lang="ts">
@@ -12,6 +44,7 @@ import { PinInputInput, PinInputRoot } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 import { optional } from "../../lib/props";
 
 /**
@@ -84,6 +117,18 @@ const props = withDefaults(
     ariaLabel?: string;
     /** The id of the visible element that labels the row — a heading, or a field's own label. */
     ariaLabelledby?: string;
+    /**
+     * The name each cell gives itself, as any subset of `OtpInputLabels` — the
+     * rest stay as the host's `provideLoomLabels` vocabulary left them, and
+     * then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application: the case it exists for is a row whose cells are neither
+     * digits nor characters in the reader's terms — the groups of a licence
+     * key, say — where the noun has to say so however well the application is
+     * translated.
+     */
+    labels?: LabelOverrides<OtpInputLabels>;
   }>(),
   {
     length: 6,
@@ -105,6 +150,11 @@ const emit = defineEmits<{
   /** The finished code. Fires once, as the last empty cell takes its character. */
   complete: [value: string];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("otpInput", OTP_INPUT_LABELS, () => props.labels);
 
 // Every fallthrough attribute lands on the group: an `aria-describedby`
 // pointing at an error line, a `data-testid`, an `id` — each describes the
@@ -186,13 +236,6 @@ const pinType = computed(() => (props.type === "numeric" ? "number" : "text"));
 // code is full — so Tab lands where the next character goes.
 const tabStopIndex = computed(() => Math.min(code.value.length, props.length - 1));
 
-// Reka names every cell "pin input 3 of 6", which is the field's whole purpose
-// restated six times. The group carries the purpose; a cell carries only where
-// it sits, so a reader entering the row hears the name once and then position.
-function cellLabel(index: number): string {
-  return `${props.type === "numeric" ? "Digit" : "Character"} ${index + 1} of ${props.length}`;
-}
-
 // Typed wider than the declared emit on purpose: in numeric mode the array
 // really does come back holding numbers, and a cleared middle cell comes back
 // as a hole. Both are why a scalar is the exposed shape.
@@ -233,12 +276,18 @@ function onUpdate(next: (string | number)[]) {
     :class="cn('inline-flex items-center gap-2', attrs.class as string)"
     @update:model-value="onUpdate"
   >
+    <!-- The `:aria-label` replaces the one Reka writes inside its own render
+         function — "pin input 3 of 6", the field's whole purpose restated once
+         per cell. It reaches the DOM node as a fallthrough attribute, which Vue
+         merges last, so it is a replacement rather than a second name. Removing
+         it does not fall back to nothing; it falls back to Reka's English. The
+         group carries the purpose, and a cell carries only where it sits. -->
     <PinInputInput
       v-for="cell in length"
       :key="cell"
       :index="cell - 1"
       :tabindex="cell - 1 === tabStopIndex ? 0 : -1"
-      :aria-label="cellLabel(cell - 1)"
+      :aria-label="text.cell({ index: cell, length, type })"
       :aria-required="field.required || undefined"
       :aria-invalid="field.invalid || undefined"
       :data-filled="cell <= code.length || undefined"

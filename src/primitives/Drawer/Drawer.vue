@@ -1,5 +1,28 @@
 <script lang="ts">
 /**
+ * The one thing this component says on its own account. The title, the
+ * description, the body and the footer are all the host's; the drag handle is
+ * `aria-hidden` and unfocusable by Reka's own design, so it says nothing at
+ * all.
+ *
+ * The close control's glyph is `aria-hidden`, which makes this name the only
+ * thing a screen reader has to go on — and unlike Dialog's, this control is
+ * unconditional, so a drawer always publishes it.
+ */
+export interface DrawerLabels {
+  /** The corner control that dismisses the panel. */
+  readonly close: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const DRAWER_LABELS: DrawerLabels = {
+  close: "Close",
+};
+
+/**
  * Which edge of the viewport the panel is anchored to. `right` is the default
  * because a drawer is most often opened *from* a row or a toolbar to show more
  * about what is already on screen, and left-to-right readers expect that
@@ -144,6 +167,7 @@ import { X } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * Drawer — a panel anchored to an edge of the viewport that slides in over the
@@ -197,6 +221,17 @@ const props = withDefaults(
     size?: DrawerSize;
     /** Whether a press outside the panel dismisses it, and whether the drag handle is offered. Esc and the close control work either way. */
     dismissible?: boolean;
+    /**
+     * The name on the close control, as any subset of `DrawerLabels` — what it
+     * leaves out stays as the host's `provideLoomLabels` vocabulary left it,
+     * and then as Loom's English.
+     *
+     * A whole application's language belongs in that vocabulary rather than
+     * here. This is the per-instance correction, for the drawer whose close
+     * means something more specific than "Close" — "Close filters", say, on a
+     * page carrying two of them.
+     */
+    labels?: LabelOverrides<DrawerLabels>;
   }>(),
   // `open: undefined` is load-bearing, not a redundant default — it is what
   // keeps the uncontrolled third state reachable past Vue's absent-Boolean
@@ -210,6 +245,11 @@ defineEmits<{
   /** The drawer opened or closed, for `v-model:open`. The host stays the source of truth — the drawer reports the request and waits. */
   "update:open": [value: boolean];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("drawer", DRAWER_LABELS, () => props.labels);
 
 const anchor = computed(() => SIDES[props.side]);
 
@@ -351,7 +391,7 @@ function guardOutsidePress(event: Event): void {
              decision; a drawer often has no footer at all, and one of its two
              keyboard-independent exits must always be visible. -->
         <DrawerClose
-          aria-label="Close"
+          :aria-label="text.close"
           class="absolute right-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <X class="h-4 w-4" />

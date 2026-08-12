@@ -1,6 +1,8 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { defineComponent, h, nextTick, ref, type PropType } from "vue";
 import RadialProgress from "./RadialProgress.vue";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 /** The ring's own geometry, recomputed here rather than copied off the component. */
 function circumferenceOf(radius: number): number {
@@ -244,5 +246,83 @@ describe("RadialProgress", () => {
       expect(bar.attributes("aria-describedby")).toBe("quota-hint");
       expect(bar.attributes("data-testid")).toBe("ring");
     });
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the ring. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      required: true,
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+describe("RadialProgress labels", () => {
+  it("writes the centre readout and the indeterminate placeholder from its own English by default", () => {
+    const wrapper = mount(LabelHost, {
+      props: { vocabulary: () => ({}) },
+      slots: {
+        default: () => [
+          h(RadialProgress, { modelValue: 33.7, ariaLabel: "Quota" }),
+          h(RadialProgress, { ariaLabel: "Loading" }),
+        ],
+      },
+    });
+    expect(wrapper.text()).toBe("34%—");
+  });
+
+  it("hands the value and the scale over raw, so the per-cent sign can lead the digits", () => {
+    // Turkish writes the sign first — `%42`.
+    const wrapper = mount(RadialProgress, {
+      props: {
+        modelValue: 42,
+        ariaLabel: "Quota",
+        labels: {
+          value: ({ value, max }: { value: number; max: number }) =>
+            new Intl.NumberFormat("tr-TR", { style: "percent" }).format(value / max),
+        },
+      },
+    });
+    expect(wrapper.text()).toBe("%42");
+  });
+
+  it("keeps its own slot, so a ring and a bar can be worded differently", () => {
+    // The two components mirror each other's contract but not each other's
+    // room: a phrase that fits beside a bar overflows a 40px circle.
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => ({
+          progress: { value: () => "beside the bar" },
+          radialProgress: { value: () => "in the ring" },
+        }),
+      },
+      slots: { default: () => h(RadialProgress, { modelValue: 40, ariaLabel: "Quota" }) },
+    });
+    expect(wrapper.text()).toBe("in the ring");
+  });
+
+  it("repaints the readout when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () =>
+          locale.value === "en" ? {} : { radialProgress: { indeterminate: "đang chờ" } },
+      },
+      slots: { default: () => h(RadialProgress, { ariaLabel: "Loading" }) },
+    });
+    expect(wrapper.text()).toBe("—");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.text()).toBe("đang chờ");
   });
 });

@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { AvatarForce, AvatarShape, AvatarSize } from "../Avatar/Avatar.vue";
+import type { LabelOf } from "../../lib/labels";
 
 /** One face in the row. */
 export interface AvatarGroupItem {
@@ -15,6 +16,37 @@ export interface AvatarGroupItem {
 
 /** The surface the row sits on, which the separating ring matches. */
 export type AvatarGroupSurface = "background" | "card" | "sunken" | "popover";
+
+/**
+ * The two sentences the row says that are not a member's own name.
+ *
+ * **`agent` is one key and not a name, a comma and a qualifier.** Where the
+ * qualifier sits relative to the name, and whether a comma is what separates
+ * them at all, is a property of the language — Loom joining `${who}, ${what}`
+ * has already answered both, in English, for every host that translates the
+ * two halves. The name arrives raw because it is the caller's own data rather
+ * than anything Loom formatted, and the empty case arrives too: a face with no
+ * `alt` and no `fallback` is still an agent, and "AI agent" alone is the honest
+ * reading of it.
+ *
+ * `overflow` takes the count for the reason every counted message here does —
+ * "3 more" is a plural category English collapses and Russian does not.
+ */
+export interface AvatarGroupLabels {
+  /** The counter tile at the end of the row, named for how many faces it stands in for. */
+  readonly overflow: LabelOf<{ count: number }>;
+  /** One member's whole name, with the agent qualifier already worked into it. `name` is empty when the member gave neither an `alt` nor a `fallback`. */
+  readonly agent: LabelOf<{ name: string }>;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const AVATAR_GROUP_LABELS: AvatarGroupLabels = {
+  overflow: ({ count }) => `${String(count)} more`,
+  agent: ({ name }) => (name ? `${name}, AI agent` : "AI agent"),
+};
 
 /**
  * How far each face tucks under the one before it — a quarter of its own width
@@ -51,6 +83,7 @@ import Avatar from "../Avatar/Avatar.vue";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * AvatarGroup — the faces on one thing, overlapped into a single row: the
@@ -85,22 +118,31 @@ const props = withDefaults(
     force?: AvatarForce;
     /** The group's accessible name: "Assignees", "Reviewers", "Agents on this run". */
     label?: string;
-    /** What a screen reader announces for the counter. Leave it unset for the derived "3 more", and set it whenever "more" is not the right word for what was left out. */
-    overflowLabel?: string;
-    /** Appended to the name of any `ai` member, since the weft rim that marks one is not something a screen reader can see. Localise it. */
-    agentLabel?: string;
     /** The surface the row sits on, so the ring separating the faces matches what surrounds them. */
     surface?: AvatarGroupSurface;
+    /**
+     * Names for the counter and for an agent member, as any subset of
+     * `AvatarGroupLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * The per-instance case is a row where "more" is the wrong word for what
+     * was left out: three reviewers, three agents, three files.
+     */
+    labels?: LabelOverrides<AvatarGroupLabels>;
   }>(),
   {
     max: 4,
     size: "md",
     shape: "circle",
     force: "human",
-    agentLabel: "AI agent",
     surface: "background",
   },
 );
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("avatarGroup", AVATAR_GROUP_LABELS, () => props.labels);
 
 // One rendered node, and it takes every fallthrough attribute — but `class`
 // goes through `cn()`, so a caller's `gap-1` can beat the row's own layout
@@ -122,8 +164,6 @@ const hidden = computed(() => props.avatars.length - shown.value.length);
 /** What the counter prints. `+3` is the layout; the sentence below is the information. */
 const printed = computed(() => `+${String(hidden.value)}`);
 
-const overflowText = computed(() => props.overflowLabel?.trim() || `${String(hidden.value)} more`);
-
 const overlap = computed(() => OVERLAP[props.size]);
 
 /** `ring-2` in the surface colour, on every face including the counter. */
@@ -138,7 +178,7 @@ const ring = computed(() => cn("ring-2", SURFACE_RING[props.surface]));
 function memberName(item: AvatarGroupItem): string {
   const who = (item.alt ?? item.fallback ?? "").trim();
   if ((item.force ?? props.force) !== "ai") return who;
-  return who ? `${who}, ${props.agentLabel}` : props.agentLabel;
+  return text.value.agent({ name: who });
 }
 </script>
 
@@ -199,7 +239,7 @@ function memberName(item: AvatarGroupItem): string {
         :shape="shape"
         :class="cn(ring, 'bg-subtle text-subtle-foreground tabular')"
       />
-      <span class="sr-only">{{ overflowText }}</span>
+      <span class="sr-only">{{ text.overflow({ count: hidden }) }}</span>
     </span>
   </div>
 </template>

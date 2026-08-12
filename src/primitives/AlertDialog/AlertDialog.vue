@@ -1,3 +1,43 @@
+<script lang="ts">
+/**
+ * The two buttons, which are the whole of what this component says on its own
+ * account: the title and the consequence line are the host's, and there is no
+ * body slot for anything else to arrive through.
+ *
+ * These were `confirmLabel` and `cancelLabel` props, and folding them in here
+ * is not a rename. A prop default is per-instance by construction, so
+ * "Confirm" and "Cancel" were the two strings in this library that a host
+ * could correct at every call site and nowhere else — an application in
+ * Vietnamese had to restate `cancelLabel` on every alert it rendered, and
+ * forgetting one left an English button in the middle of a Vietnamese
+ * decision. As a slot, `cancel` is set once for the application and `confirm`
+ * is corrected per instance, which is the split these two actually want.
+ */
+export interface AlertDialogLabels {
+  /**
+   * The action button. **Replace it with the verb it performs** — "Delete",
+   * "Discard", "Leave without saving". The default is a placeholder: "Confirm"
+   * tells a reader they are confirming and not what.
+   */
+  readonly confirm: string;
+  /**
+   * The way out, and the control that opens with focus. Unlike `confirm` this
+   * one usually is the same word everywhere in an application, which is what
+   * makes a vocabulary rather than a prop the right home for it.
+   */
+  readonly cancel: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const ALERT_DIALOG_LABELS: AlertDialogLabels = {
+  confirm: "Confirm",
+  cancel: "Cancel",
+};
+</script>
+
 <script setup lang="ts">
 import { computed } from "vue";
 import {
@@ -15,6 +55,7 @@ import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
 import { buttonVariants } from "../Button/Button.vue";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * AlertDialog — the modal that demands a decision before anything else
@@ -51,12 +92,18 @@ const props = withDefaults(
     title: string;
     /** The consequence line, announced with the title rather than found later. Omit it only when the title already says everything. */
     description?: string;
-    /** The action's label. Replace the default with the verb it performs — "Delete", "Discard", "Leave without saving". */
-    confirmLabel?: string;
-    /** The label on the way out. It is the control that opens with focus. */
-    cancelLabel?: string;
-    /** Paints the action in the destructive language. The verb in `confirmLabel` is what carries the meaning; this only adds emphasis to it. */
+    /** Paints the action in the destructive language. The verb in `labels.confirm` is what carries the meaning; this only adds emphasis to it. */
     destructive?: boolean;
+    /**
+     * The two button names, as any subset of `AlertDialogLabels` — what it
+     * leaves out stays as the host's `provideLoomLabels` vocabulary left it,
+     * and then as Loom's English.
+     *
+     * **`confirm` is meant to be set here on all but the rarest alert**, since
+     * the verb is what tells a reader what the button does; `cancel` belongs in
+     * the application's vocabulary, where it is written once.
+     */
+    labels?: LabelOverrides<AlertDialogLabels>;
   }>(),
   // `open: undefined` is load-bearing, not a redundant default — it is what
   // keeps the uncontrolled third state reachable past Vue's absent-Boolean
@@ -64,8 +111,6 @@ const props = withDefaults(
   // carries the reasoning for both.
   {
     open: undefined,
-    confirmLabel: "Confirm",
-    cancelLabel: "Cancel",
     destructive: false,
   },
 );
@@ -78,6 +123,11 @@ defineEmits<{
   /** A close was requested. Fires alongside `confirm` and `cancel`, so a host driving `v-model:open` needs only this one. */
   "update:open": [value: boolean];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("alertDialog", ALERT_DIALOG_LABELS, () => props.labels);
 
 // The root renders no DOM node at all, so fallthrough attributes would be
 // dropped on the floor rather than landing anywhere. They go to the panel,
@@ -157,17 +207,17 @@ const panelBindings = computed(() => ({
             :class="buttonVariants({ variant: 'subtle' })"
             @click="$emit('cancel')"
           >
-            {{ cancelLabel }}
+            {{ text.cancel }}
           </AlertDialogCancel>
           <!-- The destructive paint is emphasis, not the signal. What tells a
                reader this button destroys something is the verb in its label,
-               which is why `confirmLabel` is meant to be replaced rather than
+               which is why `labels.confirm` is meant to be replaced rather than
                left as "Confirm". -->
           <AlertDialogAction
             :class="buttonVariants({ variant: destructive ? 'destructive' : 'primary' })"
             @click="$emit('confirm')"
           >
-            {{ confirmLabel }}
+            {{ text.confirm }}
           </AlertDialogAction>
         </div>
       </AlertDialogContent>

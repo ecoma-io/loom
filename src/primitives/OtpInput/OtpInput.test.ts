@@ -1,8 +1,9 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { defineComponent, h, nextTick, type VNode } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import OtpInput from "./OtpInput.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import { attachToBody } from "../../testing/attach-to-body";
 
 // Reka moves real focus between the cells, and focus only works for a tree
@@ -528,5 +529,101 @@ describe("OtpInput attribute routing", () => {
     for (const cell of cellsOf(wrapper)) {
       expect(cell.attributes("data-testid")).toBeUndefined();
     }
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the control. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: { type: Function as PropType<() => LoomLabelOverrides>, required: true },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+function names(wrapper: ReturnType<typeof mountOtp>): (string | undefined)[] {
+  return cellsOf(wrapper).map((cell) => cell.attributes("aria-label"));
+}
+
+describe("OtpInput labels", () => {
+  it("names each cell from its own English, replacing the one Reka writes", () => {
+    const digits = mountOtp({ length: 3 });
+    expect(names(digits)).toEqual(["Digit 1 of 3", "Digit 2 of 3", "Digit 3 of 3"]);
+    // Reka's own is `pin input 1 of 3`, lower-cased and with its own noun. A
+    // dropped binding falls back to that rather than to no name at all, so the
+    // check is that Reka's wording is nowhere in the row.
+    for (const name of names(digits)) {
+      expect(name).not.toMatch(/pin input/i);
+    }
+
+    const characters = mountOtp({ length: 2, type: "text" });
+    expect(names(characters)).toEqual(["Character 1 of 2", "Character 2 of 2"]);
+  });
+
+  it("hands the position, the length and the kind over in one argument object", () => {
+    // One key rather than a noun, a joiner and two numbers: Vietnamese puts the
+    // count after the noun and needs no preposition, which no fragment
+    // assembled on Loom's side could produce.
+    const wrapper = mountOtp({
+      length: 2,
+      labels: {
+        cell: ({ index, length, type }) =>
+          `${type === "numeric" ? "Số" : "Ký tự"} ${String(index)}/${String(length)}`,
+      },
+    });
+    expect(names(wrapper)).toEqual(["Số 1/2", "Số 2/2"]);
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct them", () => {
+    const wrapper = mount(LabelHost, {
+      attachTo: document.body,
+      props: {
+        vocabulary: () => ({
+          otpInput: { cell: ({ index }) => `Số ${String(index)}` },
+        }),
+      },
+      slots: {
+        default: () => [
+          h(OtpInput, { length: 2 }),
+          h(OtpInput, {
+            length: 2,
+            // The per-instance case: a row whose cells are neither digits nor
+            // characters in the reader's terms.
+            labels: { cell: ({ index }: { index: number }) => `Nhóm ${String(index)}` },
+          }),
+        ],
+      },
+    });
+    const rows = wrapper.findAll('[role="group"]');
+    expect(rows[0]!.findAll(CELL).map((c) => c.attributes("aria-label"))).toEqual(["Số 1", "Số 2"]);
+    expect(rows[1]!.findAll(CELL).map((c) => c.attributes("aria-label"))).toEqual([
+      "Nhóm 1",
+      "Nhóm 2",
+    ]);
+  });
+
+  it("repaints every cell's name when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      attachTo: document.body,
+      props: {
+        vocabulary: () =>
+          locale.value === "en" ? {} : { otpInput: { cell: ({ index }) => `Số ${String(index)}` } },
+      },
+      slots: { default: () => h(OtpInput, { length: 2 }) },
+    });
+    expect(wrapper.findAll(CELL).map((c) => c.attributes("aria-label"))).toEqual([
+      "Digit 1 of 2",
+      "Digit 2 of 2",
+    ]);
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.findAll(CELL).map((c) => c.attributes("aria-label"))).toEqual(["Số 1", "Số 2"]);
   });
 });

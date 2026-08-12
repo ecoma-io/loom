@@ -1,4 +1,6 @@
 <script lang="ts">
+import type { LabelOf } from "../../lib/labels";
+
 /** Why a file the reader offered was not added to the list. */
 export type FileUploadRejectReason = "too-large" | "type" | "duplicate" | "too-many";
 
@@ -36,6 +38,78 @@ function formatBytes(bytes: number): string {
   const rounded = step > 0 && value < 10 ? Math.round(value * 10) / 10 : Math.round(value);
   return `${String(rounded)} ${BYTE_UNITS[step] ?? "B"}`;
 }
+
+/**
+ * Everything this control puts in front of a reader that is not a file name —
+ * and it is the most prose in the library, which is why every one of these
+ * takes raw values and returns a finished string.
+ *
+ * **Every size arrives as a byte count, never as `"5 MB"`.** The unit ladder,
+ * the decimal separator and the space before the unit are all language
+ * decisions: `formatBytes` above writes `1,5 MB` nowhere and `%42` never, and
+ * a host handed the number reaches `Intl.NumberFormat` for both. Handing over
+ * a string Loom had already formatted would make Loom's English the only
+ * arithmetic anyone could do.
+ *
+ * **`rejected` takes the whole list, not one refusal at a time.** Loom joined
+ * four sentences with a space before this, and a joiner is a fragment — the
+ * character between two sentences is a property of the script, and a language
+ * that would rather say "3 files were refused" than list them cannot get there
+ * from a per-file message. One function over the list can say either.
+ *
+ * **`remove` and `rejected` are handed the `File` itself**, not its name, for
+ * the same reason: a host that would rather name the row by index, or truncate
+ * a long name from the middle, has the whole object to work from.
+ */
+export interface FileUploadLabels {
+  /** The zone's own line of copy, which is also the file input's accessible name. The `label` prop overrides it for one zone. */
+  readonly zone: LabelOf<{ multiple: boolean }>;
+  /** The smaller line under it, stating the size limit. The `hint` prop overrides it for one zone. */
+  readonly hint: LabelOf<{ maxSize: number }>;
+  /** The size shown against one chosen file. */
+  readonly size: LabelOf<{ bytes: number }>;
+  /** The button that takes one file back out of the list. */
+  readonly remove: LabelOf<{ file: File }>;
+  /** Everything refused by one interaction, as one message. `maxSize` is `undefined` when no limit is set. */
+  readonly rejected: LabelOf<{
+    rejections: readonly FileUploadRejection[];
+    maxSize: number | undefined;
+  }>;
+}
+
+/**
+ * Every refusal names the file, because the reader is looking at a list of
+ * several and "that file is too large" identifies none of them.
+ */
+function describeRejection(rejection: FileUploadRejection, limit: string): string {
+  const name = rejection.file.name;
+  switch (rejection.reason) {
+    case "too-large":
+      return `${name} is larger than ${limit}.`;
+    case "type":
+      return `${name} is not an accepted file type.`;
+    case "duplicate":
+      return `${name} has already been chosen.`;
+    case "too-many":
+      return `${name} was not added — only one file can be chosen.`;
+  }
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const FILE_UPLOAD_LABELS: FileUploadLabels = {
+  zone: ({ multiple }) =>
+    multiple ? "Choose files or drag them here" : "Choose a file or drag it here",
+  hint: ({ maxSize }) => `Up to ${formatBytes(maxSize)}`,
+  size: ({ bytes }) => formatBytes(bytes),
+  remove: ({ file }) => `Remove ${file.name}`,
+  rejected: ({ rejections, maxSize }) => {
+    const limit = maxSize === undefined ? "the size limit" : formatBytes(maxSize);
+    return rejections.map((rejection) => describeRejection(rejection, limit)).join(" ");
+  },
+};
 </script>
 
 <script setup lang="ts">
@@ -45,6 +119,7 @@ import { cn } from "../../lib/cn";
 import { listStaggerDelay } from "../../lib/motion";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * FileUpload — choosing files, and nothing else. A drop zone that is also a
@@ -100,10 +175,21 @@ const props = withDefaults(
     disabled?: boolean | undefined;
     /** Error state: paints the destructive border and ring, and sets `aria-invalid` on the input. Unset defers to a wrapping Field's `error`. */
     invalid?: boolean | undefined;
-    /** The zone's own line of copy, which is also the input's accessible name. Defaults to wording that matches `multiple`. */
+    /** The zone's own line of copy, which is also the input's accessible name. Defaults to `labels.zone`, whose wording matches `multiple`. */
     label?: string;
-    /** The smaller line under it. Defaults to the `maxSize` limit, spelled out, when there is one. */
+    /** The smaller line under it. Defaults to `labels.hint` against the `maxSize` limit, when there is one. */
     hint?: string;
+    /**
+     * Everything this control says that is not a file name, as any subset of
+     * `FileUploadLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application. `label` and `hint` are the shorter way to reach the two
+     * keys of the same name for one zone; this is what reaches the refusal
+     * message, the remove buttons and the size column.
+     */
+    labels?: LabelOverrides<FileUploadLabels>;
   }>(),
   {
     // Not `[]`. An empty array is a concrete value, so it would say "the host
@@ -129,6 +215,11 @@ const emit = defineEmits<{
   /** Every file refused by this one interaction, each with the rule that refused it. Fires once per interaction, not once per file. */
   reject: [rejections: FileUploadRejection[]];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("fileUpload", FILE_UPLOAD_LABELS, () => props.labels);
 
 // `class` sizes the whole control, so it lands on the root; everything else a
 // caller passes — `name`, `id`, `data-testid`, `aria-describedby` — describes
@@ -300,44 +391,29 @@ function onDrop(event: DragEvent): void {
 // is the host's, so the listeners a component cannot tear down are the ones it
 // never registers.
 
-const zoneLabel = computed(
-  () =>
-    props.label ??
-    (props.multiple ? "Choose files or drag them here" : "Choose a file or drag it here"),
-);
+// The two content props sit *above* the resolved label rather than replacing
+// it: `label` is the wording for one zone — "Drop last month's export here" —
+// and the label is what every other zone says. Read through `text.` here and
+// not resolved above, so a language switch after mount repaints the copy.
+const zoneLabel = computed(() => props.label ?? text.value.zone({ multiple: props.multiple }));
 
-const zoneHint = computed(
-  () =>
-    props.hint ?? (props.maxSize === undefined ? undefined : `Up to ${formatBytes(props.maxSize)}`),
-);
-
-/**
- * Every refusal names the file, because the reader is looking at a list of
- * several and "that file is too large" identifies none of them.
- *
- * The limit is passed in rather than read from `props` here so the "no limit
- * set" wording is decided once per render instead of once per refused file —
- * a `maxSize` that changed between the refusal and this render would otherwise
- * be quoted against files it never applied to.
- */
-function describe(rejection: FileUploadRejection, limit: string): string {
-  const name = rejection.file.name;
-  switch (rejection.reason) {
-    case "too-large":
-      return `${name} is larger than ${limit}.`;
-    case "type":
-      return `${name} is not an accepted file type.`;
-    case "duplicate":
-      return `${name} has already been chosen.`;
-    case "too-many":
-      return `${name} was not added — only one file can be chosen.`;
-  }
-}
-
-const message = computed(() => {
-  const limit = props.maxSize === undefined ? "the size limit" : formatBytes(props.maxSize);
-  return rejections.value.map((rejection) => describe(rejection, limit)).join(" ");
+const zoneHint = computed(() => {
+  if (props.hint !== undefined) return props.hint;
+  // The limit is handed over as a byte count, never as `formatBytes` output: a
+  // host that writes `1,5 Mo` or Eastern Arabic digits cannot get there from a
+  // string this component already decided the shape of.
+  return props.maxSize === undefined ? undefined : text.value.hint({ maxSize: props.maxSize });
 });
+
+// One call over the whole list rather than one per refusal joined with a
+// space. The joiner was the fragment: which character separates two sentences
+// is a property of the script, and a language that would rather count the
+// refused files than list them has no way to say so from a per-file message.
+const message = computed(() =>
+  rejections.value.length === 0
+    ? ""
+    : text.value.rejected({ rejections: rejections.value, maxSize: props.maxSize }),
+);
 
 // The Field wiring sits here, below `message`, because it reads it: this is the
 // one control in the family that already had something of its own to say about
@@ -466,14 +542,14 @@ const inputId = computed(() => field.id ?? generatedId);
         <FileIcon class="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span class="min-w-0 flex-1 truncate text-sm text-foreground">{{ file.name }}</span>
         <span class="shrink-0 tabular text-small text-muted-foreground">
-          {{ formatBytes(file.size) }}
+          {{ text.size({ bytes: file.size }) }}
         </span>
         <!-- Named with the file it removes. Seven buttons all called "Remove"
              are seven identical announcements and one guess about which row a
              reader is on. -->
         <button
           type="button"
-          :aria-label="`Remove ${file.name}`"
+          :aria-label="text.remove({ file })"
           :disabled="field.disabled"
           class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed disabled:opacity-50"
           @click="remove(index)"

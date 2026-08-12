@@ -1,3 +1,88 @@
+<script lang="ts">
+import type { LabelOf } from "../../lib/labels";
+
+/**
+ * Everything this picker publishes to assistive technology, and none of it is
+ * optional: a saturation surface, two thumbs and a row of coloured squares
+ * carry no text at all, so a name missing here is a control announced as
+ * "slider" and nothing else.
+ *
+ * Six of the nine replace a string Reka UI writes in English inside its own
+ * render function, with no prop to reach it — `ColorAreaThumb`'s
+ * `Saturation, Brightness`, `ColorSliderThumb`'s `Hue`, the three
+ * `aria-roledescription`s (`Color picker`, `Color thumb`, `color swatch`) and
+ * the colour *name* `ColorSwatch` and `ColorSwatchPickerItem` derive from the
+ * hex. Loom binds over each one, which works for the reason
+ * `docs/foundations/localisation.md` sets out: Vue merges a caller's
+ * fallthrough attributes after the render function that produced the vnode, and
+ * for everything but `class`, `style` and `on*` the later value wins.
+ *
+ * **`swatch` defaults to the hex rather than to a colour name**, and that is a
+ * deliberate loss. Reka answers "vibrant red"; its `getColorName` is not part
+ * of the package's public surface, so Loom cannot delegate to it, and inventing
+ * a second English colour vocabulary here would be shipping translations — the
+ * one thing this seam exists to avoid. `#ef4444` is at least the value itself,
+ * in no language, and a host with real colour names supplies them through this
+ * key.
+ *
+ * `aria-roledescription` is exposed rather than suppressed because an empty one
+ * is not a neutral choice either: it drops the phrase and leaves the screen
+ * reader's own localised role announcement, which is what a host may well want
+ * — setting the key to `""` is how they ask for it.
+ */
+export interface ColorPickerLabels {
+  /** The saturation/brightness surface. Reka gives it `role="application"` and hands it every key press, so this name is what tells a reader where those keys are going. */
+  readonly area: string;
+  /** Replaces Reka's `aria-roledescription` on that surface (`Color picker`). */
+  readonly areaRoleDescription: string;
+  /** The two-axis thumb inside the surface. */
+  readonly areaThumb: string;
+  /** Replaces Reka's `aria-roledescription` on that thumb (`Color thumb`). */
+  readonly areaThumbRoleDescription: string;
+  /**
+   * What that thumb reports as its value on every arrow key, replacing the
+   * `aria-valuetext="Saturation 60, Brightness 80"` Reka builds from its own
+   * English channel names.
+   *
+   * It is the one string in this control a reader hears repeatedly rather than
+   * once, and both numbers arrive raw so a host can order the sentence its own
+   * way and put the digits through `Intl.NumberFormat`.
+   */
+  readonly areaValue: LabelOf<{ saturation: number; brightness: number }>;
+  /** The hue slider's thumb. */
+  readonly hue: string;
+  /** The hex field — the picker's one non-colour channel, and its only real form control. */
+  readonly hex: string;
+  /** The preset row, which is a listbox. */
+  readonly presets: string;
+  /** One colour named: the swatch beside the hex field and every preset square. */
+  readonly swatch: LabelOf<{ color: string }>;
+  /** Replaces Reka's `aria-roledescription` on the swatch beside the hex field (`color swatch`). */
+  readonly swatchRoleDescription: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const COLOR_PICKER_LABELS: ColorPickerLabels = {
+  area: "Saturation and brightness",
+  areaRoleDescription: "Colour picker",
+  areaThumb: "Saturation and brightness",
+  areaThumbRoleDescription: "Colour thumb",
+  // Differs from Reka's own "Saturation 60, Brightness 80" by the one capital,
+  // which is the same trick the rest of the library uses to let a test assert
+  // whose string reached the DOM rather than merely what it said.
+  areaValue: ({ saturation, brightness }) =>
+    `Saturation ${String(saturation)}, brightness ${String(brightness)}`,
+  hue: "Hue",
+  hex: "Hex value",
+  presets: "Presets",
+  swatch: ({ color }) => color,
+  swatchRoleDescription: "Colour swatch",
+};
+</script>
+
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
 import {
@@ -13,13 +98,16 @@ import {
   ColorSwatchPickerRoot,
   ColorSwatchPickerItem,
   colorToString,
+  getChannelValue,
   isValidColor,
+  normalizeColor,
   type Color,
 } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * ColorPicker — choose one colour, as `#rrggbb`. A saturation/brightness
@@ -50,8 +138,9 @@ import { useFieldControl } from "../../lib/field-context";
  * **The hex is the non-colour channel.** A control that communicates only in
  * colour is unusable by the readers most likely to need help choosing one, so
  * the hex value is always on screen as text and is itself the edit surface;
- * presets are named ("vibrant red") rather than left as bare squares; and the
- * disabled state is carried by `aria-disabled` as well as by the dimming.
+ * every swatch is named rather than left a bare square — by its hex unless
+ * `labels.swatch` gives it words; and the disabled state is carried by
+ * `aria-disabled` as well as by the dimming.
  *
  * The event contract matches Slider and NumberField. `update:modelValue` is
  * transient — every position a thumb passes through — and `commit` fires once
@@ -84,6 +173,16 @@ const props = withDefaults(
     ariaLabel?: string;
     /** The id of the visible element that labels the picker (a Field wrapper's label, say). */
     ariaLabelledby?: string;
+    /**
+     * Names for the parts, as any subset of `ColorPickerLabels` — the rest stay
+     * as the host's `provideLoomLabels` vocabulary left them, and then as
+     * Loom's English.
+     *
+     * `ariaLabel` above names the *picker*; this names what is inside it, and
+     * six of its nine keys are the only thing standing between a reader and
+     * Reka UI's own English.
+     */
+    labels?: LabelOverrides<ColorPickerLabels>;
   }>(),
   {
     // Not `false`: absent has to stay tellable from `false` for a Field above
@@ -100,6 +199,11 @@ const emit = defineEmits<{
   /** Committed: once per gesture — drag release, arrow step, hex entry, preset click. */
   commit: [value: string];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("colorPicker", COLOR_PICKER_LABELS, () => props.labels);
 
 // The seed for an unset or unparseable model value. Reka's ColorArea, ColorField
 // and ColorSlider each fall back to this same string internally, so matching it
@@ -158,6 +262,30 @@ function apply(next: string): void {
   current.value = value;
   emit("update:modelValue", value);
 }
+
+/**
+ * The area thumb's `aria-valuetext`, which Reka would otherwise build from its
+ * own English channel names — "Saturation 60, Brightness 80", said again on
+ * every arrow key.
+ *
+ * The two numbers are recomputed here rather than read out of Reka, because
+ * Reka exposes neither: `ColorAreaRoot` yields only `style` to its slot and
+ * keeps `xValue`/`yValue` in a context this component cannot inject. What it
+ * does export is the arithmetic — `getChannelValue` and `normalizeColor` are
+ * the same two functions `ColorAreaRoot` calls, applied to the same `current`
+ * this component hands it as `model-value`, with the same `Math.round`. So the
+ * number here and the `aria-valuenow` beside it agree by construction rather
+ * than by coincidence, which is what makes replacing this string safe: Reka
+ * re-derives its own pair from the model on the next tick after any gesture,
+ * to this identical formula.
+ */
+const areaValueText = computed(() => {
+  const color = normalizeColor(current.value);
+  return text.value.areaValue({
+    saturation: Math.round(getChannelValue(color, "saturation")),
+    brightness: Math.round(getChannelValue(color, "brightness")),
+  });
+});
 
 function onFieldCommit(value: string | Color): void {
   applyFromPart(value);
@@ -290,14 +418,32 @@ const THUMB =
       <!-- Reka gives this `role="application"`, which hands every key straight
            to the area rather than to the screen reader's own navigation. That
            only works if the region says what it is, so it is named here; the
-           thumb inside carries the per-axis values. -->
+           thumb inside carries the per-axis values.
+
+           Both `aria-roledescription`s below replace one Reka writes in English
+           inside its own render function. They reach the DOM as fallthrough
+           attributes, which Vue merges last, so each is a replacement rather
+           than a second phrase — and removing one falls back to Reka's English
+           rather than to nothing, which is the failure no test of Loom's own
+           strings would catch.
+
+           `aria-valuetext` on the thumb is the third of them and the one a
+           reader hears most, since it is re-announced on every arrow key.
+           `areaValueText` explains why replacing it does not risk contradicting
+           the `aria-valuenow` beside it. -->
       <ColorAreaArea
         :style="style"
-        aria-label="Saturation and brightness"
+        :aria-label="text.area"
+        :aria-roledescription="text.areaRoleDescription"
         class="relative h-40 w-full rounded-md border border-border"
         @keydown="onAreaKeydown"
       >
-        <ColorAreaThumb :class="THUMB" />
+        <ColorAreaThumb
+          :aria-label="text.areaThumb"
+          :aria-roledescription="text.areaThumbRoleDescription"
+          :aria-valuetext="areaValueText"
+          :class="THUMB"
+        />
       </ColorAreaArea>
     </ColorAreaRoot>
 
@@ -311,7 +457,9 @@ const THUMB =
       @change-end="commitCurrent"
     >
       <ColorSliderTrack class="relative h-3 w-full grow rounded-full border border-border" />
-      <ColorSliderThumb :class="THUMB" />
+      <!-- Reka names this from its channel — "Hue" — so the binding replaces
+           that rather than adding to it. -->
+      <ColorSliderThumb :aria-label="text.hue" :class="THUMB" />
     </ColorSliderRoot>
 
     <!-- The hex is the picker's text channel, so it is always on screen and it
@@ -326,8 +474,15 @@ const THUMB =
       class="flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm text-foreground transition-[color,background-color,box-shadow] duration-fast ease-out focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring focus-within:shadow-halo data-[disabled]:cursor-not-allowed"
       @update:model-value="onFieldCommit"
     >
+      <!-- `label` is Reka's own documented prop for this, so it is set rather
+           than bound over: left unset the swatch names itself through a
+           `getColorName` that answers "vibrant red" in English and is not
+           exported for Loom to delegate to. The roledescription is a
+           fallthrough replacement, as on the area above. -->
       <ColorSwatch
         :color="current"
+        :label="text.swatch({ color: current })"
+        :aria-roledescription="text.swatchRoleDescription"
         :style="{ backgroundColor: current }"
         class="size-5 shrink-0 rounded-sm border border-border"
       />
@@ -335,7 +490,7 @@ const THUMB =
            see `groupFieldAttrs`. `aria-label` stays: it names the *field*, not
            the picker, and a row's label never reached this element anyway. -->
       <ColorFieldInput
-        aria-label="Hex value"
+        :aria-label="text.hex"
         :name="field.name"
         :aria-required="field.required || undefined"
         :aria-invalid="field.invalid || undefined"
@@ -356,15 +511,19 @@ const THUMB =
       :disabled="field.disabled"
       :aria-disabled="field.disabled || undefined"
       selection-behavior="replace"
-      aria-label="Presets"
+      :aria-label="text.presets"
       class="flex flex-wrap gap-2"
       @update:model-value="onPresetPick"
     >
+      <!-- Each item names itself from Reka's English `getColorName` unless this
+           binding replaces it, so a row of presets is where that vocabulary
+           leaks in bulk. -->
       <ColorSwatchPickerItem
         v-for="preset in presets"
         :key="preset"
         :value="preset"
         :disabled="field.disabled"
+        :aria-label="text.swatch({ color: preset })"
         :style="{ backgroundColor: preset }"
         class="size-6 cursor-pointer rounded-sm border border-border transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo aria-selected:ring-2 aria-selected:ring-primary aria-selected:ring-offset-2 aria-selected:ring-offset-background data-[disabled]:pointer-events-none"
       />

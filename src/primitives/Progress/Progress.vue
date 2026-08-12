@@ -1,5 +1,37 @@
 <script lang="ts">
 import { cva } from "class-variance-authority";
+import type { LabelOf } from "../../lib/labels";
+
+/**
+ * The one thing this bar prints, and the placeholder it prints instead when
+ * there is no percentage yet.
+ *
+ * **`value` takes both raw numbers and no formatting at all.** A hand-built
+ * `${Math.round(pct)}%` has already decided three things a component cannot
+ * know: that the sign trails the digits — Turkish writes `%42` — that the
+ * digits are Western Arabic, and that a percentage is the right reading of the
+ * pair at all. Handed `value` and `max`, a host reaches
+ * `Intl.NumberFormat(locale, { style: "percent" })` for the first two and can
+ * answer "3 of 4 steps" instead of "75%" for the third.
+ *
+ * The rounding therefore lives in Loom's default rather than in the component,
+ * so it is a wording choice a host replaces along with the words.
+ */
+export interface ProgressLabels {
+  /** The readout beside the track, from the clamped value and the scale it is out of. */
+  readonly value: LabelOf<{ value: number; max: number }>;
+  /** What the readout prints while there is no percentage — never a false zero. */
+  readonly indeterminate: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const PROGRESS_LABELS: ProgressLabels = {
+  value: ({ value, max }) => `${String(Math.round((value / max) * 100))}%`,
+  indeterminate: "—",
+};
 
 /**
  * The track's thickness. Deliberately *not* the shared control-height scale a
@@ -27,6 +59,7 @@ import { computed } from "vue";
 import { ProgressRoot, ProgressIndicator } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * Progress — determinate progress bar for a task whose extent as a percentage
@@ -56,6 +89,15 @@ const props = withDefaults(
     ariaLabel?: string;
     /** Accessible name sourced from another element's id, in place of `ariaLabel`. */
     ariaLabelledby?: string;
+    /**
+     * How the readout is written, as any subset of `ProgressLabels` — the rest
+     * stay as the host's `provideLoomLabels` vocabulary left them, and then as
+     * Loom's English.
+     *
+     * The per-instance case is a bar counting something a percentage is the
+     * wrong reading of: `value: ({ value, max }) => \`Step ${value} of ${max}\``.
+     */
+    labels?: LabelOverrides<ProgressLabels>;
   }>(),
   {
     max: 100,
@@ -63,6 +105,11 @@ const props = withDefaults(
     showValue: false,
   },
 );
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("progress", PROGRESS_LABELS, () => props.labels);
 
 /** The readout tracks the track: a 1px bar with 14px digits beside it is not one object. */
 const VALUE_TEXT = {
@@ -151,11 +198,20 @@ const indicatorStyle = computed(() =>
 );
 
 /**
- * An indeterminate bar has no percentage, so the readout prints an em dash
+ * An indeterminate bar has no percentage, so the readout prints the placeholder
  * rather than the `0%` a naive `pct ?? 0` would produce — "we do not know yet"
  * and "none of it is done" are different facts, and only one of them is true.
+ *
+ * The determinate branch hands over `value` and `max` rather than the
+ * percentage it already computed for the transform: rounding, the position of
+ * the per-cent sign and the shape of the digits are all the host's, and `pct`
+ * is a division this component happens to need for the paint.
  */
-const readout = computed(() => (pct.value === null ? "—" : `${Math.round(pct.value)}%`));
+const readout = computed(() =>
+  value.value === null
+    ? text.value.indeterminate
+    : text.value.value({ value: value.value, max: props.max }),
+);
 
 defineExpose({ pct });
 </script>

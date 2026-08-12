@@ -1,11 +1,21 @@
 <script lang="ts">
 export type ToastVariant = "info" | "success" | "warning" | "destructive" | "ai";
+
+// Re-exported so the vocabulary is reachable from the component a consumer
+// actually imports. It is declared in `ToastItem.vue` — which is where the ✕
+// it names is rendered, and which `ToastStack` mounts without this file in the
+// picture at all — and that file's docblock carries why the direction cannot
+// be reversed.
+export type { ToastLabels } from "./ToastItem.vue";
+export { TOAST_LABELS } from "./ToastItem.vue";
 </script>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { ToastProvider, ToastViewport } from "reka-ui";
 import { optional } from "../../lib/props";
-import ToastItem from "./ToastItem.vue";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
+import ToastItem, { TOAST_LABELS, type ToastLabels } from "./ToastItem.vue";
 
 /**
  * Toast — a transient, self-dismissing notification the user need not act on
@@ -24,7 +34,7 @@ import ToastItem from "./ToastItem.vue";
  * For a blocking confirmation use `Dialog`; for a persistent field/section error
  * that must stay until resolved use `InlineError`.
  */
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** Controls visibility; pair with `v-model:open`. Omit to let the toast own its own open state. */
     open?: boolean | undefined;
@@ -40,6 +50,17 @@ withDefaults(
     closable?: boolean;
     /** Renders a single inline action button; emits `action` when pressed. */
     actionLabel?: string;
+    /**
+     * Names for everything the toast says on its own account, as any subset of
+     * `ToastLabels` — the ✕ control, the word spoken ahead of the
+     * announcement, and the name of the region the cards stack in. What this
+     * leaves out stays as the host's `provideLoomLabels` vocabulary left it,
+     * and then as Loom's English.
+     *
+     * A whole application's language belongs in that vocabulary rather than
+     * here; `title`, `description` and `actionLabel` are the per-instance copy.
+     */
+    labels?: LabelOverrides<ToastLabels>;
   }>(),
   {
     // `open` is tri-state and its third state is the default: `undefined`
@@ -56,12 +77,29 @@ withDefaults(
 );
 
 defineEmits<{ "update:open": [value: boolean]; action: [] }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("toast", TOAST_LABELS, () => props.labels);
+
+// Reka's `ToastViewport` accepts its label as `(hotkey: string) => string` as
+// well as a template with a `{hotkey}` hole in it, and the function form is the
+// one this seam needs: the hole would be Loom deciding where the key sits in
+// the phrase. Wrapped in a `computed` rather than written inline in the
+// template so that the identity it hands Reka changes when — and only when —
+// the resolved vocabulary does.
+const regionLabel = computed(() => (hotkey: string) => text.value.region({ hotkey }));
 </script>
 
 <template>
-  <ToastProvider>
+  <!-- `label` is a real Reka prop rather than a hard-coded vnode attribute, so
+       this sets it rather than racing it — but leaving it unset is not neutral:
+       Reka reads out "Notification" ahead of every toast, in English, from a
+       live region nothing else on the page can reach. -->
+  <ToastProvider :label="text.announce">
     <ToastItem
-      v-bind="optional({ open, description, actionLabel })"
+      v-bind="optional({ open, description, actionLabel, labels })"
       :title="title"
       :variant="variant"
       :duration="duration"
@@ -71,6 +109,7 @@ defineEmits<{ "update:open": [value: boolean]; action: [] }>();
     />
 
     <ToastViewport
+      :label="regionLabel"
       class="fixed bottom-0 right-0 z-toast flex w-[min(92vw,24rem)] flex-col gap-2 p-4 outline-none"
     />
   </ToastProvider>

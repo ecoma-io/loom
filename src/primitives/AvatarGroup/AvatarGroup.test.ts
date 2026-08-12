@@ -1,6 +1,8 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { defineComponent, h, nextTick, ref, type PropType } from "vue";
 import AvatarGroup, { type AvatarGroupItem } from "./AvatarGroup.vue";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 const TEAM: AvatarGroupItem[] = [
   { src: "/ada.jpg", alt: "Ada Lovelace", fallback: "AL" },
@@ -149,34 +151,11 @@ describe("AvatarGroup", () => {
     }
   });
 
-  it("takes a localised agent label", () => {
+  it("names a member with no alt and no fallback as the agent alone rather than as a stray comma", () => {
     const wrapper = mount(AvatarGroup, {
-      props: {
-        avatars: [{ alt: "Weaver", fallback: "WV" }],
-        force: "ai",
-        agentLabel: "Tác nhân AI",
-        label: "Agents",
-      },
+      props: { avatars: [{ src: "/weaver.jpg" }], force: "ai", label: "Agents" },
     });
-    expect(wrapper.get(ITEMS).get(".sr-only").text()).toBe("Weaver, Tác nhân AI");
-  });
-
-  it("prefers an explicit overflow label, since 'more' is not always the right word", () => {
-    const wrapper = mount(AvatarGroup, {
-      props: { avatars: TEAM, max: 2, overflowLabel: "3 more reviewers", label: "Reviewers" },
-    });
-    const items = wrapper.findAll(ITEMS);
-    expect(items[2]?.get(".sr-only").text()).toBe("3 more reviewers");
-  });
-
-  it("falls back to the derived count when the overflow label is blank, so the counter is never silent", () => {
-    for (const overflowLabel of ["", "   "]) {
-      const wrapper = mount(AvatarGroup, {
-        props: { avatars: TEAM, max: 2, overflowLabel, label: "Reviewers" },
-      });
-      const items = wrapper.findAll(ITEMS);
-      expect(items[2]?.get(".sr-only").text()).toBe("3 more");
-    }
+    expect(wrapper.get(ITEMS).get(".sr-only").text()).toBe("AI agent");
   });
 
   it("forwards size and shape to every face, counter included, so the row is one shape", () => {
@@ -215,5 +194,116 @@ describe("AvatarGroup", () => {
     const list = wrapper.get('[role="list"]');
     expect(list.attributes("aria-label")).toBe("Reviewers");
     expect(list.attributes("data-testid")).toBe("reviewers");
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the row. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      required: true,
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+describe("AvatarGroup labels", () => {
+  it("names the counter and an agent member from its own English by default", () => {
+    const wrapper = mount(LabelHost, {
+      props: { vocabulary: () => ({}) },
+      slots: {
+        default: () => h(AvatarGroup, { avatars: TEAM, max: 2, force: "ai", label: "Agents" }),
+      },
+    });
+    const items = wrapper.findAll(ITEMS);
+    expect(items[0]?.get(".sr-only").text()).toBe("Ada Lovelace, AI agent");
+    expect(items[2]?.get(".sr-only").text()).toBe("3 more");
+  });
+
+  it("hands the overflow its count raw, so the plural category is the host's to pick", () => {
+    // Russian has three categories where English has two, and no template with
+    // a hole in it could reach the one for 3.
+    const plural = new Intl.PluralRules("ru-RU");
+    const forms: Record<string, string> = { one: "ещё", few: "ещё", many: "ещё" };
+    const wrapper = mount(AvatarGroup, {
+      props: {
+        avatars: TEAM,
+        max: 2,
+        label: "Reviewers",
+        labels: {
+          overflow: ({ count }: { count: number }) =>
+            `${forms[plural.select(count)] ?? ""} ${new Intl.NumberFormat("ru-RU").format(count)}`,
+        },
+      },
+    });
+    expect(wrapper.findAll(ITEMS)[2]?.get(".sr-only").text()).toBe("ещё 3");
+  });
+
+  it("lets the agent qualifier sit wherever the language puts it, joiner included", () => {
+    // The whole reason this is one key rather than a name, a comma and a word:
+    // Vietnamese leads with the qualifier, and a `${who}, ${what}` join in the
+    // component has already ruled that out.
+    const wrapper = mount(AvatarGroup, {
+      props: {
+        avatars: [{ alt: "Weaver", fallback: "WV" }],
+        force: "ai",
+        label: "Agents",
+        labels: { agent: ({ name }: { name: string }) => `Tác nhân AI ${name}` },
+      },
+    });
+    expect(wrapper.get(ITEMS).get(".sr-only").text()).toBe("Tác nhân AI Weaver");
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct them", () => {
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => ({
+          avatarGroup: { overflow: ({ count }) => `còn ${String(count)}` },
+        }),
+      },
+      slots: {
+        default: () => [
+          h(AvatarGroup, { avatars: TEAM, max: 2, label: "Assignees" }),
+          h(AvatarGroup, {
+            avatars: TEAM,
+            max: 2,
+            label: "Reviewers",
+            // The per-instance case: "more" is the wrong noun for what was
+            // left out of this particular row, in any language.
+            labels: {
+              overflow: ({ count }: { count: number }) => `${String(count)} more reviewers`,
+            },
+          }),
+        ],
+      },
+    });
+    const rows = wrapper.findAll('[role="list"]');
+    expect(rows[0]!.findAll(ITEMS)[2]!.get(".sr-only").text()).toBe("còn 3");
+    expect(rows[1]!.findAll(ITEMS)[2]!.get(".sr-only").text()).toBe("3 more reviewers");
+  });
+
+  it("repaints its names when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () =>
+          locale.value === "en"
+            ? {}
+            : { avatarGroup: { overflow: ({ count }) => `còn ${String(count)}` } },
+      },
+      slots: { default: () => h(AvatarGroup, { avatars: TEAM, max: 2, label: "Assignees" }) },
+    });
+    expect(wrapper.findAll(ITEMS)[2]?.get(".sr-only").text()).toBe("3 more");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.findAll(ITEMS)[2]?.get(".sr-only").text()).toBe("còn 3");
   });
 });

@@ -187,6 +187,58 @@ way to draw an eye.
 Both paths are CSS animations, so the global `prefers-reduced-motion` rule
 collapses them without anything in this component having to answer for itself.
 
+## Labels
+
+Every string this component can utter is one it derived, because a coloured
+circle has no text of its own to fall back on. `labels` is the vocabulary those
+derivations are written in.
+
+```ts
+interface IndicatorLabels {
+  online: string;
+  offline: string;
+  busy: string;
+  away: string;
+  count: (args: { count: number }) => string;
+  attention: string; // a dot with no status
+}
+```
+
+The four presence keys are named for the four members of `IndicatorStatus` and
+resolved by lookup, so they cannot drift apart from the states they name.
+
+`count` receives the number rather than a written one, which is the whole
+pluralisation answer: "3 unread" has one form in Vietnamese, two in English and
+three in Russian, and Eastern Arabic digits are not reachable at all from a
+string Loom has already composed. It also receives the _real_ figure rather than
+the clamped `99+` — a reader who cannot see the pill has no reason to inherit a
+decision about how wide it was allowed to get.
+
+```ts
+provideLoomLabels(() => ({
+  indicator: {
+    online: "Trực tuyến",
+    count: ({ count }) => `${count} chưa đọc`,
+  },
+}));
+```
+
+`label` still beats all of it, and the two answer different questions: `labels`
+is the language, `label` is this instance's own name. A bell counting drafts
+rather than unread mail wants `label`, in every language.
+
+```vue
+<Indicator variant="count" :count="7" label="7 agent runs waiting" />
+```
+
+Annotate a bag of your own with `LabelOverrides<IndicatorLabels>` rather than
+with `IndicatorLabels` itself: the override type is partial, so a key added in a
+later release is one your bag may ignore, where the bag interface is total and
+would stop compiling.
+
+For a whole application set this once with `provideLoomLabels` rather than at
+every call site. See [Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api Indicator -->

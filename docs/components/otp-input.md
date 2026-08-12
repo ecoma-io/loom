@@ -184,6 +184,43 @@ clicking a label pointed at it hands focus to the first cell.
 uneditable code box that a line of text would not show better, and the cells
 exist to be typed into.
 
+## Labels
+
+One string, and it replaces one Reka UI writes in English of its own accord:
+every cell arrives named `pin input 3 of 6` unless something else names it.
+
+```ts
+interface OtpInputLabels {
+  cell: (args: { index: number; length: number; type: "numeric" | "text" }) => string;
+}
+```
+
+One key rather than four — a noun, a joiner and two numbers — because which word
+a language uses for a cell and where the position sits relative to it are one
+decision rather than several. The noun this row wants arrives as `type`, the
+position as a 1-based `index`, and both numbers arrive raw so `Intl.NumberFormat`
+decides how the digits are written and your own translation decides where they
+sit in the sentence. Four fragment keys Loom then joined would be a sentence no
+translator could reorder.
+
+```vue
+<OtpInput
+  :length="4"
+  aria-label="Licence key"
+  :labels="{ cell: ({ index, length }) => `Group ${index} of ${length}` }"
+/>
+```
+
+Annotate a bag of your own with `LabelOverrides<OtpInputLabels>` rather than with
+`OtpInputLabels` itself: the override type is partial, so a key added in a later
+release is one your bag may ignore, where the bag interface is total and would
+stop compiling.
+
+For a whole application set this once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is for the per-instance correction — a row
+whose cells are neither digits nor characters in the reader's terms. See
+[Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api OtpInput -->

@@ -1,8 +1,9 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { defineComponent, h, nextTick, type VNode } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import TimePicker from "./TimePicker.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 // Nothing here is portalled — there is no panel — so the jsdom stubs DatePicker
 // needs for Reka's dismiss layer and floating machinery have nothing to answer
@@ -40,10 +41,12 @@ function getSegment(part: string): HTMLElement {
   return segment;
 }
 
-function segmentNames(): (string | undefined)[] {
-  return getSegments().map((segment) =>
-    segment.getAttribute("aria-label")?.trim().replace(/,$/, ""),
-  );
+// Capitalised, and `AM or PM` rather than Reka's `AM/PM`: these are Loom's
+// names, written into the segments as fallthrough attributes over the English
+// Reka renders itself. Asserting the exact spelling is what pins whose string
+// reached the DOM.
+function segmentNames(): (string | null)[] {
+  return getSegments().map((segment) => segment.getAttribute("aria-label"));
 }
 
 function segmentValues(): string[] {
@@ -105,7 +108,7 @@ describe("TimePicker field", () => {
     mountPicker({ modelValue: "09:30", hourCycle: 24 });
     await settle();
 
-    expect(segmentNames()).toEqual(["hour", "minute"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute"]);
   });
 
   it("shows the bound time across the segments rather than as one string", async () => {
@@ -163,6 +166,8 @@ describe("TimePicker field", () => {
     await settle();
 
     expect(document.querySelector('[data-segment="timeZoneName"]')).toBeNull();
+    // Reka has a `"timezone, "` name for a segment none of these controls can
+    // produce; `TIME_SEGMENT_LABELS` deliberately has no key for it.
     expect(segmentNames()).not.toContain("timezone");
   });
 });
@@ -198,7 +203,7 @@ describe("TimePicker clock-string boundary", () => {
     const wrapper = mountPicker({ modelValue: "09:30:15", granularity: "second", hourCycle: 24 });
     await settle();
 
-    expect(segmentNames()).toEqual(["hour", "minute", "second"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute", "Second"]);
 
     const second = getSegment("second");
     second.focus();
@@ -212,7 +217,7 @@ describe("TimePicker clock-string boundary", () => {
     const wrapper = mountPicker({ modelValue: "09:30:45", hourCycle: 24 });
     await settle();
 
-    expect(segmentNames()).toEqual(["hour", "minute"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute"]);
 
     const minute = getSegment("minute");
     minute.focus();
@@ -226,7 +231,7 @@ describe("TimePicker clock-string boundary", () => {
     const wrapper = mountPicker({ modelValue: "09:00", granularity: "hour", hourCycle: 24 });
     await settle();
 
-    expect(segmentNames()).toEqual(["hour"]);
+    expect(segmentNames()).toEqual(["Hour"]);
 
     const hour = getSegment("hour");
     hour.focus();
@@ -290,25 +295,25 @@ describe("TimePicker hour cycle", () => {
   it("follows the locale when no cycle is asked for", async () => {
     const american = mountPicker({ modelValue: "13:30", locale: "en-US" });
     await settle();
-    expect(segmentNames()).toEqual(["hour", "minute", "AM/PM"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute", "AM or PM"]);
     expect(segmentValues()).toEqual(["1", "30", "PM"]);
     american.unmount();
 
     mountPicker({ modelValue: "13:30", locale: "en-GB" });
     await settle();
-    expect(segmentNames()).toEqual(["hour", "minute"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute"]);
     expect(segmentValues()).toEqual(["13", "30"]);
   });
 
   it("shows an AM/PM segment on a 12-hour cycle and none on a 24-hour one", async () => {
     const twelve = mountPicker({ modelValue: "13:30", hourCycle: 12, locale: "en-GB" });
     await settle();
-    expect(segmentNames()).toEqual(["hour", "minute", "AM/PM"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute", "AM or PM"]);
     twelve.unmount();
 
     mountPicker({ modelValue: "13:30", hourCycle: 24, locale: "en-US" });
     await settle();
-    expect(segmentNames()).toEqual(["hour", "minute"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute"]);
   });
 
   it("announces the hour segment as the reader sees it, not as the value stores it", async () => {
@@ -324,13 +329,32 @@ describe("TimePicker hour cycle", () => {
     expect(hour.getAttribute("aria-valuetext")).toBe("1 PM");
   });
 
-  it("keeps announcing an unfilled hour as empty rather than as a number", async () => {
+  it("announces an unfilled hour as empty rather than as a number", async () => {
     mountPicker({ hourCycle: 12 });
     await settle();
 
-    // The rewritten announcement has nothing to say about a segment showing its
-    // placeholder, and Reka's "Empty" is already the right thing to say.
-    expect(getSegment("hour").getAttribute("aria-valuetext")).toBe("Empty");
+    // The rewritten hour announcement has nothing to say about a segment
+    // showing its placeholder, so the empty message stands — and it is the
+    // vocabulary's, not Reka's `aria-valuetext="Empty"`, which is English no
+    // host could reach. Loom's default differs from Reka's by more than a
+    // capital so this assertion says whose string won.
+    expect(getSegment("hour").getAttribute("aria-valuetext")).toBe("Not set");
+  });
+
+  it("lets a host replace the empty announcement", async () => {
+    mountPicker({ hourCycle: 12, labels: { empty: "Chưa đặt" } });
+    await settle();
+
+    expect(getSegment("hour").getAttribute("aria-valuetext")).toBe("Chưa đặt");
+  });
+
+  it("leaves a filled hour's own announcement alone", async () => {
+    // The empty case is the only hard-coded one; replacing the filled case too
+    // would erase the number the segment exists to read out.
+    mountPicker({ modelValue: "13:30", hourCycle: 12 });
+    await settle();
+
+    expect(getSegment("hour").getAttribute("aria-valuetext")).toBe("1 PM");
   });
 
   it("leaves the hour announcement to the formatter on a 24-hour cycle", async () => {
@@ -498,7 +522,7 @@ describe("TimePicker shape changes", () => {
     // Reka seeds its segment values from the granularity it started with, so
     // an unrebuilt field renders the new seconds segment with no entry to read
     // and no `role` at all — a contenteditable div a screen reader cannot see.
-    expect(segmentNames()).toEqual(["hour", "minute", "second"]);
+    expect(segmentNames()).toEqual(["Hour", "Minute", "Second"]);
     expect(getSegment("second").getAttribute("role")).toBe("spinbutton");
   });
 
@@ -683,5 +707,92 @@ describe("TimePicker inside a Field", () => {
     expect(field.hasAttribute("data-readonly")).toBe(false);
     expect(getFormInput().hasAttribute("id")).toBe(false);
     expect(getFormInput().hasAttribute("name")).toBe(false);
+  });
+});
+
+// A host declaring a vocabulary, with the source left reactive on purpose:
+// `provideLoomLabels` takes a getter so that a language switch repaints, and
+// only a reactive source can pin that.
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      default: (): LoomLabelOverrides => ({}),
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountUnder(vocabulary: () => LoomLabelOverrides, node: VNode) {
+  return mount(LabelHost, {
+    props: { vocabulary },
+    slots: { default: () => node },
+    attachTo: document.body,
+  });
+}
+
+describe("TimePicker labels", () => {
+  it("names every segment in English with no vocabulary above it", async () => {
+    mountPicker({ modelValue: "09:30", granularity: "second", hourCycle: 12 });
+    await settle();
+
+    expect(segmentNames()).toEqual(["Hour", "Minute", "Second", "AM or PM"]);
+  });
+
+  it("takes an instance's own labels prop over its English, key by key", async () => {
+    mountPicker({ modelValue: "09:30", hourCycle: 24, labels: { hour: "Giờ" } });
+    await settle();
+
+    // The key the prop did not name stays English rather than blanking out —
+    // an unnamed spinbutton is the worst available reading of a partial bag.
+    expect(segmentNames()).toEqual(["Giờ", "Minute"]);
+  });
+
+  it("takes a host's vocabulary when the instance names nothing", async () => {
+    mountUnder(
+      () => ({ timeSegments: { hour: "Giờ", minute: "Phút" } }),
+      h(TimePicker, { modelValue: "09:30", hourCycle: 24 }),
+    );
+    await settle();
+
+    expect(segmentNames()).toEqual(["Giờ", "Phút"]);
+  });
+
+  it("lets the instance's prop beat the host's vocabulary", async () => {
+    mountUnder(
+      () => ({ timeSegments: { hour: "Giờ" } }),
+      h(TimePicker, { modelValue: "09:30", hourCycle: 24, labels: { hour: "Giờ bắt đầu" } }),
+    );
+    await settle();
+
+    expect(segmentNames()).toEqual(["Giờ bắt đầu", "Minute"]);
+  });
+
+  it("repaints every name when the host switches language under it", async () => {
+    const locale = ref("en");
+    mountUnder(
+      () => (locale.value === "en" ? {} : { timeSegments: { hour: "Giờ", minute: "Phút" } }),
+      h(TimePicker, { modelValue: "09:30", hourCycle: 24 }),
+    );
+    await settle();
+    expect(segmentNames()).toEqual(["Hour", "Minute"]);
+
+    locale.value = "vi";
+    await settle();
+
+    // This is the assertion that fails the moment a label is resolved once in
+    // `setup` instead of inside the render effect — a change that passes every
+    // other test here and breaks every language switch.
+    expect(segmentNames()).toEqual(["Giờ", "Phút"]);
+  });
+
+  it("reads an explicitly undefined override as no opinion rather than as a blank name", async () => {
+    mountPicker({ modelValue: "09:30", hourCycle: 24, labels: { hour: undefined } });
+    await settle();
+
+    expect(segmentNames()).toEqual(["Hour", "Minute"]);
   });
 });

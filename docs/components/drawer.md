@@ -195,6 +195,33 @@ panel that feels broken. Everything here is a CSS transition, so the global
 `prefers-reduced-motion` rule collapses it without the component needing a path
 of its own.
 
+## Labels
+
+One name — the corner close control's. The title, the description, the body and
+the footer are all yours, and the drag handle is `aria-hidden` and unfocusable
+by design, so it says nothing at all.
+
+```ts
+interface DrawerLabels {
+  close: string;
+}
+```
+
+Unlike Dialog's, this control is unconditional: a drawer often has no footer, so
+one of its two keyboard-independent exits must always be visible and always
+named. For a whole application, set it once with `provideLoomLabels`; the
+`labels` prop is the per-instance correction, for a page carrying two drawers
+whose closes should not read the same.
+
+```vue
+<Drawer title="Filters" :labels="{ close: 'Close filters' }" />
+```
+
+Annotate your own bag with `LabelOverrides<DrawerLabels>` rather than with
+`DrawerLabels` itself: the override type is partial, so a key added to Loom in a
+later release is one your bag may ignore. See
+[Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api Drawer -->

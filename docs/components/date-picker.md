@@ -245,6 +245,56 @@ change at `instant` or `fast`, well inside the feedback ceiling.
   <DatePickerDemo />
 </Demo>
 
+## Labels
+
+Everything this control says out loud is replaceable, and most of it has to be:
+**five of these eight names are English that Reka UI writes of its own accord**,
+with no prop of its own to set them. The three date segments are named `"day,"`,
+`"month, "` and `"year, "` — spacing and all — the two paging buttons are called
+`"Previous page"` and `"Next page"`, and the calendar itself answers to
+`"Event Date"`. Leave one unset and it does not fall back to nothing; it falls
+back to English, in a language nobody chose.
+
+```ts
+interface DatePickerLabels {
+  // The segmented field's parts
+  month: string; // "Month"
+  day: string; // "Day"
+  year: string; // "Year"
+  era: string; // "Era" — only locales such as ja-JP-u-ca-japanese render one
+  empty: string; // "Not set" — what an unfilled segment reports, in place of Reka's "Empty"
+
+  // The calendar popover
+  calendar: string; // "Calendar" — read before the month and year on entering it
+  openCalendar: string; // "Open calendar" — the button in the field
+  previousMonth: string; // "Previous month"
+  nextMonth: string; // "Next month"
+}
+```
+
+The eight arrive from two shared slices, `dateSegments` and `calendarPanel`,
+because DateTimePicker, DateRangePicker and DateTimeRangePicker say the same
+words for the same reason — one Reka implementation underneath all four. Name
+`previousMonth` once in your vocabulary and every calendar in your application
+answers to it.
+
+```ts
+provideLoomLabels(() => ({
+  dateSegments: { month: "Tháng", day: "Ngày", year: "Năm" },
+  calendarPanel: { openCalendar: "Mở lịch", previousMonth: "Tháng trước" },
+}));
+```
+
+For a whole application, set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is the per-instance correction. See
+[Localisation](/foundations/localisation).
+
+Annotate your own bag with `LabelOverrides<DatePickerLabels>` — never with
+`DatePickerLabels` itself. The override type is partial, so a key added to Loom
+in a later release is a key your vocabulary may ignore; the bag interface is
+total, and a bag typed with one would stop compiling the day the vocabulary
+grew.
+
 ## API
 
 <!-- @api DatePicker -->

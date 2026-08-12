@@ -1,3 +1,26 @@
+<script lang="ts">
+import type {
+  CalendarPanelLabels,
+  DateSegmentLabels,
+  TimeSegmentLabels,
+} from "../../lib/date-labels";
+
+/**
+ * Everything this control publishes to assistive technology, which is three
+ * shared slices and nothing of its own: the date half of the field's segments,
+ * the clock half, and the calendar popover's chrome. All three are declared in
+ * `src/lib/date-labels.ts`, because the other four members of this family say
+ * the same words for the same reason — they are one Reka implementation
+ * underneath.
+ *
+ * An intersection rather than a fourth interface, so this name is the type a
+ * consumer annotates their own bag with and each slice stays one definition.
+ * Annotate with `LabelOverrides<DateTimePickerLabels>` and never with this,
+ * which is total.
+ */
+export type DateTimePickerLabels = DateSegmentLabels & TimeSegmentLabels & CalendarPanelLabels;
+</script>
+
 <script setup lang="ts">
 import { computed, ref, useId } from "vue";
 import {
@@ -34,6 +57,15 @@ import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
+import {
+  CALENDAR_PANEL_LABELS,
+  DATE_SEGMENT_LABELS,
+  TIME_SEGMENT_LABELS,
+  emptySegmentValueText,
+  isDateSegmentPart,
+  isTimeSegmentPart,
+} from "../../lib/date-labels";
 
 /**
  * DateTimePicker — one instant: a day and a time of day together, entered by
@@ -103,6 +135,17 @@ const props = withDefaults(
     required?: boolean | undefined;
     /** The field name for a native form post or `FormData`, carried on the hidden input Reka submits the instant through. Unset defers to a wrapping Field. */
     name?: string;
+    /**
+     * Names for everything this control says out loud, as any subset of
+     * `DateTimePickerLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application: eleven of the fourteen names replace English literals Reka UI
+     * writes of its own accord, and a language is set once with
+     * `provideLoomLabels`.
+     */
+    labels?: LabelOverrides<DateTimePickerLabels>;
   }>(),
   {
     granularity: "minute",
@@ -122,6 +165,38 @@ const emit = defineEmits<{
   /** The chosen instant as ISO `"YYYY-MM-DDTHH:mm"` (or `…:ss`), or `undefined` once the field has been cleared. */
   "update:modelValue": [value: string | undefined];
 }>();
+
+// Three slots, one prop. There is no single `text` here because there is no
+// single slot: the two halves of the field and the popover's chrome are
+// separate vocabularies with separate registry entries, and naming them apart
+// is what keeps a reader of the template able to see which one a binding came
+// from. The one `labels` prop feeds all three — a getter returning the
+// intersection satisfies each slice, and the keys a slice does not know are
+// ignored by `useLabels`' own return type.
+const dateText = useLabels("dateSegments", DATE_SEGMENT_LABELS, () => props.labels);
+const timeText = useLabels("timeSegments", TIME_SEGMENT_LABELS, () => props.labels);
+const panelText = useLabels("calendarPanel", CALENDAR_PANEL_LABELS, () => props.labels);
+
+// Read through the refs on every call rather than resolved into a lookup table
+// once: a table built in `setup` freezes the first language and every later
+// switch silently does nothing. `undefined` for the `literal` separators, which
+// Reka renders `aria-hidden` and which must stay unnamed.
+function segmentLabel(part: string): string | undefined {
+  if (isDateSegmentPart(part)) return dateText.value[part];
+  return isTimeSegmentPart(part) ? timeText.value[part] : undefined;
+}
+
+// The companion to `segmentLabel`, and the reason it returns an object rather
+// than a string is in `emptySegmentValueText`: Reka's `aria-valuetext` is a
+// hard-coded "Empty" only while the segment holds nothing, so this replaces
+// that case and leaves the filled one — a number, and the locale's own month
+// name — exactly as Reka wrote it.
+// The half that owns the part owns its empty message too, so a host localising
+// only `timeSegments` still reaches the clock segments of this control.
+function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
+  const empty = isTimeSegmentPart(part) ? timeText.value.empty : dateText.value.empty;
+  return emptySegmentValueText(part, value, empty);
+}
 
 // Routed exactly as DatePicker routes it, and for the same reasons: `class`
 // sizes the whole control so it lands on the anchor, and everything else names
@@ -373,12 +448,22 @@ function onOpenAutoFocus(event: Event) {
           )
         "
       >
+        <!-- Every `:aria-label` from here down replaces one Reka writes in
+             English inside its own render function. Each reaches the DOM node
+             as a fallthrough attribute, which Vue merges last, so it is a
+             replacement rather than a second name. Removing one does not fall
+             back to nothing; it falls back to Reka's English, which is the
+             failure the label seam exists to close. -->
         <DatePickerInput
           v-for="(item, index) in segments"
           :key="index"
           :part="item.part"
           :tabindex="segmentTabIndex(item.part, segments)"
-          v-bind="item.part === 'hour' ? hourAnnouncement(segments) : undefined"
+          :aria-label="segmentLabel(item.part)"
+          v-bind="{
+            ...segmentValueText(item.part, item.value),
+            ...(item.part === 'hour' ? hourAnnouncement(segments) : undefined),
+          }"
           :class="
             cn(
               'tabular rounded-sm px-0.5 outline-none',
@@ -400,7 +485,7 @@ function onOpenAutoFocus(event: Event) {
              open a panel in which nothing can be chosen. -->
         <DatePickerTrigger
           v-if="!field.readonly"
-          aria-label="Open calendar"
+          :aria-label="panelText.openCalendar"
           class="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed"
         >
           <CalendarClock class="h-4 w-4" />
@@ -425,10 +510,15 @@ function onOpenAutoFocus(event: Event) {
       <!-- The whole panel rises as one piece; the cells carry no stagger of
            their own, for the reason DatePicker writes out. -->
       <div ref="panel" class="flex flex-col gap-3">
-        <DatePickerCalendar v-slot="{ grid, weekDays }">
+        <!-- `calendarLabel` is a real Reka prop rather than a literal to
+             override, and it defaults to `"Event Date"`. It is published twice:
+             as the calendar container's `aria-label`, and inside a
+             visually-hidden live region Reka renders itself, which a
+             fallthrough attribute could not have reached. -->
+        <DatePickerCalendar v-slot="{ grid, weekDays }" :calendar-label="panelText.calendar">
           <DatePickerHeader class="flex items-center justify-between gap-2">
             <DatePickerPrev
-              aria-label="Previous month"
+              :aria-label="panelText.previousMonth"
               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
             >
               <ChevronLeft class="h-4 w-4" />
@@ -444,7 +534,7 @@ function onOpenAutoFocus(event: Event) {
             />
 
             <DatePickerNext
-              aria-label="Next month"
+              :aria-label="panelText.nextMonth"
               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
             >
               <ChevronRight class="h-4 w-4" />

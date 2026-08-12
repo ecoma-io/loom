@@ -1,5 +1,6 @@
 <script lang="ts">
 import { cva } from "class-variance-authority";
+import type { LabelOf } from "../../lib/labels";
 
 /** A presence dot, or a number. */
 export type IndicatorVariant = "dot" | "count";
@@ -89,13 +90,48 @@ const STATUS_TONES = {
   away: "warning",
 } satisfies Record<IndicatorStatus, IndicatorTone>;
 
-/** What a screen reader is told when the caller passes no `label`. */
-const STATUS_LABELS = {
+/**
+ * What a screen reader is told when the caller passes no `label` — which is
+ * every string this component can utter, because a marker that renders nothing
+ * but a coloured circle has no text of its own to fall back on.
+ *
+ * The four presence keys are named for the four `IndicatorStatus` members and
+ * resolved by lookup, so a status added to the union without a name for it is a
+ * compile error rather than an unnamed dot.
+ *
+ * `count` takes the number and not a formatted string: "3 unread" is a plural
+ * category in most languages and a digit shape in several, and a component
+ * whose whole job is to show a small integer has no business deciding either.
+ * It also reports the *real* figure rather than the clamped `99+` — see the
+ * comment on `name` below.
+ */
+export interface IndicatorLabels {
+  /** The `online` dot. */
+  readonly online: string;
+  /** The `offline` dot. */
+  readonly offline: string;
+  /** The `busy` dot. */
+  readonly busy: string;
+  /** The `away` dot. */
+  readonly away: string;
+  /** The `count` pill, named for how many things it counts. */
+  readonly count: LabelOf<{ count: number }>;
+  /** A dot with no `status`: something changed here, and nothing more specific. */
+  readonly attention: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const INDICATOR_LABELS: IndicatorLabels = {
   online: "Online",
   offline: "Offline",
   busy: "Busy",
   away: "Away",
-} satisfies Record<IndicatorStatus, string>;
+  count: ({ count }) => `${String(count)} unread`,
+  attention: "Needs attention",
+};
 
 /**
  * The shape layer, and it exists for the sighted reader the `sr-only` string
@@ -117,6 +153,7 @@ const STATUS_GLYPHS = {
 import { computed, useId } from "vue";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * Indicator — the small marker pinned onto the corner of something else: a
@@ -176,6 +213,15 @@ const props = withDefaults(
     showZero?: boolean;
     /** The surface the marked element sits on, so the ring separating the marker from it matches what surrounds them. */
     surface?: IndicatorSurface;
+    /**
+     * Names for the markers this component derives on its own, as any subset
+     * of `IndicatorLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * This is the vocabulary, not the instance's name: `label` still beats it
+     * and is what one bell counting drafts rather than unread mail reaches for.
+     */
+    labels?: LabelOverrides<IndicatorLabels>;
   }>(),
   {
     variant: "dot",
@@ -186,6 +232,11 @@ const props = withDefaults(
     surface: "background",
   },
 );
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("indicator", INDICATOR_LABELS, () => props.labels);
 
 // One rendered node, and every fallthrough attribute belongs on it — but
 // `class` still has to go the long way round. A consumer replacing the root's
@@ -229,8 +280,12 @@ const glyph = computed(() => (props.status ? STATUS_GLYPHS[props.status] : ""));
 const name = computed(() => {
   const given = props.label?.trim();
   if (given) return given;
-  if (props.variant === "count") return `${String(total.value)} unread`;
-  return props.status ? STATUS_LABELS[props.status] : "Needs attention";
+  if (props.variant === "count") return text.value.count({ count: total.value });
+  // Keyed by the status itself rather than through a lookup table of its own:
+  // `IndicatorLabels` names its four presence keys after the four members of
+  // `IndicatorStatus`, so a state added to the union with no name for it stops
+  // compiling here instead of rendering an unnamed dot.
+  return props.status ? text.value[props.status] : text.value.attention;
 });
 </script>
 

@@ -154,6 +154,47 @@ component went away.
 - Don't invent a `modelValue` to dodge the indeterminate state — leave it
   `null`/omitted.
 
+## Labels
+
+The centre readout is the one string this component writes, and it is
+`Progress`'s contract to the letter — including the reason it exists: a
+hand-built `${Math.round(pct)}%` is already wrong for Turkish, which writes
+`%42`.
+
+```ts
+interface RadialProgressLabels {
+  value: (args: { value: number; max: number }) => string;
+  indeterminate: string; // what prints while there is no percentage yet
+}
+```
+
+Both raw numbers go over and nothing is formatted first, so the rounding, the
+position of the sign and the shape of the digits are all yours. The value handed
+over is the clamped one, so the readout cannot report a number the arc is not
+painting.
+
+```ts
+provideLoomLabels(() => ({
+  radialProgress: {
+    value: ({ value, max }) =>
+      new Intl.NumberFormat("tr-TR", { style: "percent" }).format(value / max),
+  },
+}));
+```
+
+**It is a separate slot from `progress`, though the keys match**, and that is
+the point rather than an oversight: this readout sits inside a 40px circle at
+`text-micro` where the bar's has a whole line beside it, so a wording that fits
+one overflows the other. Set both when both should say the same thing.
+
+Annotate a bag of your own with `LabelOverrides<RadialProgressLabels>` rather
+than with `RadialProgressLabels` itself: the override type is partial, so a key
+added in a later release is one your bag may ignore, where the bag interface is
+total and would stop compiling.
+
+For a whole application set this once with `provideLoomLabels` rather than at
+every call site. See [Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api RadialProgress -->

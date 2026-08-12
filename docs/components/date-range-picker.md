@@ -255,6 +255,88 @@ colour change at `instant` or `fast`, well inside the feedback ceiling.
   <DateRangePickerDemo />
 </Demo>
 
+## Labels
+
+Everything this control says out loud is replaceable, and much of it has to be:
+**five of these twelve names are English that Reka UI writes of its own
+accord**, with no prop of its own to set them — the segment names, the two
+paging buttons, and the calendar's own `"Event Date"`. The other seven are
+Loom's: the two half-group names, the status line above the grids, and the
+accessible name of one calendar cell.
+
+```ts
+interface DateRangePickerLabels {
+  // The segmented field's parts, in both halves
+  month: string; // "Month"
+  day: string; // "Day"
+  year: string; // "Year"
+  era: string; // "Era" — only locales such as ja-JP-u-ca-japanese render one
+  empty: string; // "Not set" — what an unfilled segment reports, in place of Reka's "Empty"
+
+  // The calendar popover
+  calendar: string; // "Calendar"
+  openCalendar: string; // "Open calendar"
+  previousMonth: string; // "Previous month"
+  nextMonth: string; // "Next month"
+
+  // This control's own
+  startDate: string; // "Start date" — the group holding the first half
+  endDate: string; // "End date" — the group holding the second
+  status: (args: {
+    locale: string;
+    start: DateValue | undefined;
+    end: DateValue | undefined;
+    days: number | undefined; // both ends counted: the 14th to the 20th is 7
+  }) => string;
+  cell: (args: {
+    locale: string;
+    date: DateValue;
+    part: "start" | "end" | "both" | "within" | undefined;
+  }) => string;
+}
+```
+
+`status` and `cell` are **whole sentences rather than phrases Loom joins**, and
+that is what makes them translatable. Which end has been chosen, whether a day
+count follows the dates or precedes them, and on which side of a date its
+qualifier belongs are all properties of a language — a control that emitted them
+as separate keys would have decided all three in English. So the raw values
+arrive and the finished string comes back: `days` is a number, so
+`Intl.PluralRules` picks the form and `Intl.NumberFormat` writes the digits, and
+Loom ships neither.
+
+```ts
+provideLoomLabels(() => ({
+  dateSegments: { month: "Tháng", day: "Ngày", year: "Năm" },
+  calendarPanel: { openCalendar: "Mở lịch" },
+  dateRange: {
+    startDate: "Ngày nhận phòng",
+    endDate: "Ngày trả phòng",
+    status: ({ start, end, days }) =>
+      start && end && days !== undefined
+        ? `${fmt(start)} đến ${fmt(end)}, ${days} ngày.`
+        : "Chưa chọn ngày nào.",
+  },
+}));
+```
+
+The twelve arrive from four slices, and three of them are shared: `dateSegments`
+and `calendarPanel` with every other date control, and `rangeCell` — which
+carries `cell` — with DateTimeRangePicker, whose calendar cells say exactly the
+same thing. `startDate`, `endDate` and `status` are this control's own
+`dateRange` slice, because DateTimeRangePicker says both in different words and
+from different facts.
+
+For a whole application, set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is the per-instance correction. See
+[Localisation](/foundations/localisation).
+
+Annotate your own bag with `LabelOverrides<DateRangePickerLabels>` — never with
+`DateRangePickerLabels` itself. The override type is partial, so a key added to Loom
+in a later release is a key your vocabulary may ignore; the bag interface is
+total, and a bag typed with one would stop compiling the day the vocabulary
+grew.
+
 ## API
 
 <!-- @api DateRangePicker -->

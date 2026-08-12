@@ -1,9 +1,10 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick, type VNode } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import DateTimeRangePicker from "./DateTimeRangePicker.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import { attachToBody } from "../../testing/attach-to-body";
 
 // The same jsdom gaps both parents' suites stub, for the same reason: the panel
@@ -92,18 +93,24 @@ function getSegment(type: "Start" | "End", part: string): HTMLElement {
   return segment;
 }
 
-function segmentNamesOf(type: "Start" | "End"): (string | undefined)[] {
-  return getSegmentsOf(type).map((segment) =>
-    segment.getAttribute("aria-label")?.trim().replace(/,$/, ""),
-  );
+// Capitalised because these are Loom's names, not Reka's: Reka writes
+// `"month, "`, `"hour, "` and their siblings into its own render function, and
+// asserting the capitalisation is what pins whose string reached the DOM.
+function segmentNamesOf(type: "Start" | "End"): (string | null)[] {
+  return getSegmentsOf(type).map((segment) => segment.getAttribute("aria-label"));
 }
 
 function segmentValuesOf(type: "Start" | "End"): string[] {
   return getSegmentsOf(type).map((segment) => segment.textContent.trim());
 }
 
+/**
+ * The calendar button found by position rather than by name. Its name is now
+ * one of the things under test — a host can replace it — so a selector that
+ * reads the name cannot be the one that finds it.
+ */
 function getTrigger(): HTMLButtonElement {
-  const trigger = document.querySelector<HTMLButtonElement>('[aria-label="Open calendar"]');
+  const trigger = getField().querySelector("button");
   if (!trigger) throw new Error("no trigger rendered");
   return trigger;
 }
@@ -222,8 +229,8 @@ describe("DateTimeRangePicker field", () => {
     mountPicker({ modelValue: RANGE, hourCycle: 24 });
     await settle();
 
-    expect(segmentNamesOf("Start")).toEqual(["month", "day", "year", "hour", "minute"]);
-    expect(segmentNamesOf("End")).toEqual(["month", "day", "year", "hour", "minute"]);
+    expect(segmentNamesOf("Start")).toEqual(["Month", "Day", "Year", "Hour", "Minute"]);
+    expect(segmentNamesOf("End")).toEqual(["Month", "Day", "Year", "Hour", "Minute"]);
   });
 
   it("shows both instants across the segments rather than as two strings", async () => {
@@ -295,13 +302,13 @@ describe("DateTimeRangePicker field", () => {
   it("grows an AM/PM segment in both halves on a 12-hour cycle and none on a 24-hour one", async () => {
     const wrapper = mountPicker({ modelValue: RANGE, hourCycle: 12 });
     await settle();
-    expect(segmentNamesOf("Start")).toContain("AM/PM");
-    expect(segmentNamesOf("End")).toContain("AM/PM");
+    expect(segmentNamesOf("Start")).toContain("AM or PM");
+    expect(segmentNamesOf("End")).toContain("AM or PM");
 
     await wrapper.setProps({ hourCycle: 24 });
     await settle();
-    expect(segmentNamesOf("Start")).not.toContain("AM/PM");
-    expect(segmentNamesOf("End")).not.toContain("AM/PM");
+    expect(segmentNamesOf("Start")).not.toContain("AM or PM");
+    expect(segmentNamesOf("End")).not.toContain("AM or PM");
   });
 
   it("announces each hour as the reader sees it, not as the value stores it", async () => {
@@ -404,7 +411,7 @@ describe("DateTimeRangePicker ISO boundary", () => {
     });
     await settle();
 
-    expect(segmentNamesOf("End")).toEqual(["month", "day", "year", "hour", "minute", "second"]);
+    expect(segmentNamesOf("End")).toEqual(["Month", "Day", "Year", "Hour", "Minute", "Second"]);
 
     const second = getSegment("End", "second");
     second.focus();
@@ -423,7 +430,7 @@ describe("DateTimeRangePicker ISO boundary", () => {
     });
     await settle();
 
-    expect(segmentNamesOf("Start")).not.toContain("second");
+    expect(segmentNamesOf("Start")).not.toContain("Second");
 
     const minute = getSegment("Start", "minute");
     minute.focus();
@@ -1226,12 +1233,12 @@ describe("DateTimeRangePicker shape changes", () => {
   it("gives a widened granularity a real segment in both halves even when nothing is chosen", async () => {
     const wrapper = mountPicker({ hourCycle: 24 });
     await settle();
-    expect(segmentNamesOf("End")).not.toContain("second");
+    expect(segmentNamesOf("End")).not.toContain("Second");
 
     await wrapper.setProps({ granularity: "second" });
     await settle();
 
-    expect(segmentNamesOf("End")).toContain("second");
+    expect(segmentNamesOf("End")).toContain("Second");
     expect(getSegment("End", "second").getAttribute("role")).toBe("spinbutton");
   });
 
@@ -1422,5 +1429,212 @@ describe("DateTimeRangePicker inside a Field", () => {
     expect(getFormInput().hasAttribute("id")).toBe(false);
     expect(getFormInput().hasAttribute("name")).toBe(false);
     expect(getAnchor().hasAttribute("data-invalid")).toBe(false);
+  });
+});
+
+// A host declaring a vocabulary, with the source left reactive on purpose:
+// `provideLoomLabels` takes a getter so that a language switch repaints, and
+// only a reactive source can pin that.
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      default: (): LoomLabelOverrides => ({}),
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountUnder(vocabulary: () => LoomLabelOverrides, node: VNode) {
+  return mount(LabelHost, {
+    props: { vocabulary },
+    slots: { default: () => node },
+    attachTo: document.body,
+  });
+}
+
+/**
+ * The two half-groups by position rather than by name. `getHalf` finds them by
+ * the very string these tests replace, so it cannot be the one that finds them
+ * here — and neither can `segmentNamesOf`, which goes through it.
+ */
+function halves(): HTMLElement[] {
+  return [...getField().querySelectorAll<HTMLElement>('[role="group"]')];
+}
+
+function halfNames(): (string | null)[] {
+  return halves().map((half) => half.getAttribute("aria-label"));
+}
+
+function segmentNamesAt(half: 0 | 1): (string | null)[] {
+  return [...(halves()[half]?.querySelectorAll<HTMLElement>('[role="spinbutton"]') ?? [])].map(
+    (segment) => segment.getAttribute("aria-label"),
+  );
+}
+
+describe("DateTimeRangePicker labels", () => {
+  it("names every segment, both halves and every control in English with no vocabulary above it", async () => {
+    mountPicker({ modelValue: RANGE, hourCycle: 24 });
+    await settle();
+    await openCalendar();
+
+    expect(segmentNamesOf("Start")).toEqual(["Month", "Day", "Year", "Hour", "Minute"]);
+    expect(halfNames()).toEqual(["Start date and time", "End date and time"]);
+    expect(getTrigger().getAttribute("aria-label")).toBe("Open calendar");
+    expect(document.querySelector('[aria-label="Previous month"]')).not.toBeNull();
+    expect(document.querySelector('[aria-label="Next month"]')).not.toBeNull();
+  });
+
+  it("replaces the name Reka gives the calendar itself, which is not a literal but a prop", async () => {
+    mountPicker({ modelValue: RANGE });
+    await settle();
+    await openCalendar();
+
+    // Reka's own default is `"Event Date"`, published both as the calendar's
+    // `aria-label` and inside a visually-hidden live region it renders itself —
+    // so a fallthrough attribute could not have reached it.
+    const named = [...document.querySelectorAll("[aria-label]")].map((el) =>
+      el.getAttribute("aria-label"),
+    );
+    expect(named.some((name) => name?.startsWith("Calendar,"))).toBe(true);
+    expect(named.some((name) => name?.startsWith("Event Date"))).toBe(false);
+  });
+
+  it("hands the status line the duration as a signed number of minutes, never as words", async () => {
+    mountUnder(
+      () => ({
+        dateTimeRange: {
+          status: ({ minutes }) => (minutes === undefined ? "Chưa chọn" : `${String(minutes)}p`),
+        },
+      }),
+      h(DateTimeRangePicker, {
+        modelValue: { start: "2026-03-14T09:00", end: "2026-03-14T10:30" },
+      }),
+    );
+    await settle();
+    await openCalendar();
+
+    // 90, not "1 hour 30 minutes". The `unit(count, name)` that appended an
+    // `"s"` here is deleted rather than extracted: a host with
+    // `Intl.DurationFormat`, or a language with one plural form, builds its own
+    // sentence out of the number.
+    expect(getStatus().textContent).toBe("90p");
+  });
+
+  it("signs the duration so an end before its start needs no second flag", async () => {
+    mountUnder(
+      () => ({
+        dateTimeRange: {
+          status: ({ minutes }) =>
+            minutes !== undefined && minutes < 0 ? "Ngược" : String(minutes ?? "?"),
+        },
+      }),
+      h(DateTimeRangePicker, {
+        modelValue: { start: "2026-03-14T17:00", end: "2026-03-14T09:00" },
+      }),
+    );
+    await settle();
+    await openCalendar();
+
+    expect(getStatus().textContent).toBe("Ngược");
+  });
+
+  it("hands a calendar cell its date and its part in the range rather than a joined phrase", async () => {
+    mountUnder(
+      () => ({
+        rangeCell: {
+          cell: ({ date, part }) =>
+            part === undefined ? `ngày ${String(date.day)}` : `${part}: ${String(date.day)}`,
+        },
+      }),
+      h(DateTimeRangePicker, { modelValue: RANGE }),
+    );
+    await settle();
+    await openCalendar();
+
+    expect(getDay("2026-03-14").getAttribute("aria-label")).toBe("start: 14");
+    expect(getDay("2026-03-20").getAttribute("aria-label")).toBe("end: 20");
+    expect(getDay("2026-03-17").getAttribute("aria-label")).toBe("within: 17");
+    expect(getDay("2026-03-25").getAttribute("aria-label")).toBe("ngày 25");
+  });
+
+  it("takes an instance's own labels prop over its English, key by key", async () => {
+    mountPicker({
+      modelValue: RANGE,
+      hourCycle: 24,
+      labels: { hour: "Giờ", startDate: "Bắt đầu" },
+    });
+    await settle();
+
+    // The keys the prop did not name stay English rather than blanking out.
+    expect(segmentNamesAt(1)).toEqual(["Month", "Day", "Year", "Giờ", "Minute"]);
+    expect(halfNames()).toEqual(["Bắt đầu", "End date and time"]);
+  });
+
+  it("takes a host's vocabulary across all five of its slots", async () => {
+    mountUnder(
+      () => ({
+        dateSegments: { month: "Tháng", day: "Ngày", year: "Năm" },
+        timeSegments: { hour: "Giờ", minute: "Phút" },
+        calendarPanel: { openCalendar: "Mở lịch" },
+        rangeCell: { cell: ({ date }) => `ngày ${String(date.day)}` },
+        dateTimeRange: { startDate: "Bắt đầu", endDate: "Kết thúc" },
+      }),
+      h(DateTimeRangePicker, { modelValue: RANGE, hourCycle: 24 }),
+    );
+    await settle();
+    await openCalendar();
+
+    expect(segmentNamesAt(0)).toEqual(["Tháng", "Ngày", "Năm", "Giờ", "Phút"]);
+    expect(halfNames()).toEqual(["Bắt đầu", "Kết thúc"]);
+    expect(getTrigger().getAttribute("aria-label")).toBe("Mở lịch");
+    expect(getDay("2026-03-17").getAttribute("aria-label")).toBe("ngày 17");
+  });
+
+  it("lets the instance's prop beat the host's vocabulary", async () => {
+    mountUnder(
+      () => ({ dateTimeRange: { startDate: "Bắt đầu" } }),
+      h(DateTimeRangePicker, { modelValue: RANGE, labels: { startDate: "Nhận phòng" } }),
+    );
+    await settle();
+
+    expect(halfNames()).toEqual(["Nhận phòng", "End date and time"]);
+  });
+
+  it("repaints every name when the host switches language under it", async () => {
+    const locale = ref("en");
+    mountUnder(
+      () =>
+        locale.value === "en"
+          ? {}
+          : {
+              timeSegments: { hour: "Giờ" },
+              calendarPanel: { openCalendar: "Mở lịch" },
+              dateTimeRange: { startDate: "Bắt đầu" },
+            },
+      h(DateTimeRangePicker, { modelValue: RANGE, hourCycle: 24 }),
+    );
+    await settle();
+    expect(getTrigger().getAttribute("aria-label")).toBe("Open calendar");
+
+    locale.value = "vi";
+    await settle();
+
+    // This is the assertion that fails the moment a label is resolved once in
+    // `setup` instead of inside the render effect — a change that passes every
+    // other test here and breaks every language switch.
+    expect(segmentNamesAt(0)).toEqual(["Month", "Day", "Year", "Giờ", "Minute"]);
+    expect(halfNames()).toEqual(["Bắt đầu", "End date and time"]);
+    expect(getTrigger().getAttribute("aria-label")).toBe("Mở lịch");
+  });
+
+  it("reads an explicitly undefined override as no opinion rather than as a blank name", async () => {
+    mountPicker({ modelValue: RANGE, labels: { startDate: undefined } });
+    await settle();
+
+    expect(halfNames()).toEqual(["Start date and time", "End date and time"]);
   });
 });

@@ -1,8 +1,9 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { defineComponent, h, nextTick } from "vue";
-import FileUpload from "./FileUpload.vue";
+import { defineComponent, h, nextTick, ref, type PropType } from "vue";
+import FileUpload, { type FileUploadRejection } from "./FileUpload.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 // A stand-in for the Field wrapping this control. Field's own behaviour is
 // pinned in `Field.test.ts`; what matters here is that the zone reads a row it
@@ -623,5 +624,179 @@ describe("FileUpload inside a Field", () => {
     const id = input.attributes("id");
     expect(id).toBeDefined();
     expect(wrapper.get("label").attributes("for")).toBe(id);
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the control. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: { type: Function as PropType<() => LoomLabelOverrides>, required: true },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+describe("FileUpload labels", () => {
+  it("writes the zone, the limit, the size column and every remove button in its own English", () => {
+    const wrapper = mount(FileUpload, {
+      props: { multiple: true, maxSize: 5 * MB, modelValue: [makeFile("a.txt", { size: 2 * KB })] },
+    });
+    expect(wrapper.get("label").text()).toContain("Choose files or drag them here");
+    expect(wrapper.get("label").text()).toContain("Up to 5 MB");
+    expect(wrapper.get("li").text()).toContain("2 KB");
+    expect(wrapper.get("li button").attributes("aria-label")).toBe("Remove a.txt");
+  });
+
+  it("hands every size over as a byte count, never as text it has already formatted", async () => {
+    // `formatBytes` writes `5 MB` with a space and a full stop for a decimal.
+    // French writes `5 Mo` and a comma; Turkish puts the unit differently
+    // again. A host handed the number reaches all of them; a host handed
+    // `"5 MB"` reaches none.
+    const wrapper = mount(FileUpload, {
+      props: {
+        maxSize: 5 * MB,
+        labels: {
+          hint: ({ maxSize }: { maxSize: number }) =>
+            `Tối đa ${new Intl.NumberFormat("vi-VN").format(maxSize)} byte`,
+          size: ({ bytes }: { bytes: number }) =>
+            `${new Intl.NumberFormat("vi-VN").format(bytes)} byte`,
+        },
+      },
+    });
+    expect(wrapper.get("label").text()).toContain("Tối đa 5.242.880 byte");
+
+    await chooseIn(wrapper.get('input[type="file"]').element, [makeFile("a.txt", { size: 2048 })]);
+    expect(wrapper.get("li").text()).toContain("2.048 byte");
+  });
+
+  it("hands `remove` the File itself rather than its name", () => {
+    const wrapper = mount(FileUpload, {
+      props: {
+        modelValue: [makeFile("a.txt", { size: 99 })],
+        // The whole object, so a host can name the row by anything the file
+        // carries — not only the name Loom happened to pick out of it.
+        labels: { remove: ({ file }: { file: File }) => `Bỏ ${file.name} (${String(file.size)})` },
+      },
+    });
+    expect(wrapper.get("li button").attributes("aria-label")).toBe("Bỏ a.txt (99)");
+  });
+
+  it("hands `rejected` the whole list, so the joiner between sentences is the host's", async () => {
+    const wrapper = mount(FileUpload, {
+      props: {
+        multiple: true,
+        maxSize: KB,
+        // Counting the refusals rather than listing them is the thing a
+        // per-file message could not express, and it is why this key takes the
+        // list instead of one rejection at a time.
+        labels: {
+          rejected: ({ rejections }: { rejections: readonly FileUploadRejection[] }) =>
+            `${String(rejections.length)} tệp bị từ chối.`,
+        },
+      },
+    });
+    await chooseIn(wrapper.get('input[type="file"]').element, [
+      makeFile("big.bin", { size: 2 * KB }),
+      makeFile("huge.bin", { size: 4 * KB }),
+    ]);
+    expect(wrapper.get('[aria-live="polite"]').text()).toBe("2 tệp bị từ chối.");
+  });
+
+  it("tells the refusal message which limit applied, and says so when none did", async () => {
+    const wrapper = mount(FileUpload, {
+      props: {
+        accept: ".csv",
+        labels: {
+          rejected: ({
+            rejections,
+            maxSize,
+          }: {
+            rejections: readonly FileUploadRejection[];
+            maxSize: number | undefined;
+          }) =>
+            `${String(rejections.length)}/${maxSize === undefined ? "no limit" : String(maxSize)}`,
+        },
+      },
+    });
+    await chooseIn(wrapper.get('input[type="file"]').element, [makeFile("notes.txt")]);
+    // `undefined` is the honest answer for "no limit was set", and it is what
+    // lets a host word that case for itself rather than inherit "the size
+    // limit" in English.
+    expect(wrapper.get('[aria-live="polite"]').text()).toBe("1/no limit");
+  });
+
+  it("keeps the keys a caller left out in English instead of blanking them", async () => {
+    const wrapper = mount(FileUpload, {
+      props: { maxSize: KB, labels: { remove: ({ file }: { file: File }) => `Bỏ ${file.name}` } },
+    });
+    await chooseIn(wrapper.get('input[type="file"]').element, [
+      makeFile("big.bin", { size: 2048 }),
+    ]);
+    expect(wrapper.get('[aria-live="polite"]').text()).toBe("big.bin is larger than 1 KB.");
+    expect(wrapper.get("label").text()).toContain("Choose a file or drag it here");
+  });
+
+  it("lets `label` and `hint` beat the resolved labels, because they are one zone's wording", () => {
+    const wrapper = mount(FileUpload, {
+      props: {
+        maxSize: KB,
+        label: "Attach the signed contract",
+        hint: "PDF only",
+        labels: { zone: () => "Kéo tệp vào đây", hint: () => "Tối đa 1 KB" },
+      },
+    });
+    expect(wrapper.get("label").text()).toContain("Attach the signed contract");
+    expect(wrapper.get("label").text()).toContain("PDF only");
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct one key", () => {
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => ({
+          fileUpload: {
+            zone: () => "Kéo tệp vào đây",
+            remove: ({ file }: { file: File }) => `Bỏ ${file.name}`,
+          },
+        }),
+      },
+      slots: {
+        default: () => [
+          h(FileUpload, { modelValue: [makeFile("a.txt")] }),
+          h(FileUpload, {
+            modelValue: [makeFile("b.txt")],
+            labels: { zone: () => "Ảnh đại diện" },
+          }),
+        ],
+      },
+    });
+    const zones = wrapper.findAll("label");
+    expect(zones[0]!.text()).toContain("Kéo tệp vào đây");
+    expect(zones[1]!.text()).toContain("Ảnh đại diện");
+    // The vocabulary still reaches the key neither instance touched.
+    expect(wrapper.findAll("li button").map((b) => b.attributes("aria-label"))).toEqual([
+      "Bỏ a.txt",
+      "Bỏ b.txt",
+    ]);
+  });
+
+  it("repaints its copy when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () =>
+          locale.value === "en" ? {} : { fileUpload: { zone: () => "Kéo tệp vào đây" } },
+      },
+      slots: { default: () => h(FileUpload) },
+    });
+    expect(wrapper.get("label").text()).toContain("Choose a file or drag it here");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.get("label").text()).toContain("Kéo tệp vào đây");
   });
 });

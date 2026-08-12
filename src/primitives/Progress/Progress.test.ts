@@ -1,6 +1,8 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { defineComponent, h, nextTick, ref, type PropType } from "vue";
 import Progress from "./Progress.vue";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 describe("Progress", () => {
   it("derives the indicator's percentage from modelValue/max and drives the translateX transform", () => {
@@ -183,5 +185,109 @@ describe("Progress", () => {
         "upload-hint",
       );
     });
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the bar. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      required: true,
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+describe("Progress labels", () => {
+  it("writes the readout and the indeterminate placeholder from its own English by default", () => {
+    const wrapper = mount(LabelHost, {
+      props: { vocabulary: () => ({}) },
+      slots: {
+        default: () => [
+          h(Progress, { modelValue: 33.7, showValue: true, ariaLabel: "Upload" }),
+          h(Progress, { showValue: true, ariaLabel: "Loading" }),
+        ],
+      },
+    });
+    expect(wrapper.text()).toBe("34%—");
+  });
+
+  it("hands the value and the scale over raw, so the per-cent sign can lead the digits", () => {
+    // Turkish writes the sign first — `%42` — which a `${Math.round(pct)}%`
+    // template in the component has already ruled out for every host.
+    const wrapper = mount(Progress, {
+      props: {
+        modelValue: 42,
+        showValue: true,
+        ariaLabel: "Upload",
+        labels: {
+          value: ({ value, max }: { value: number; max: number }) =>
+            new Intl.NumberFormat("tr-TR", { style: "percent" }).format(value / max),
+        },
+      },
+    });
+    expect(wrapper.text()).toBe("%42");
+  });
+
+  it("hands over the clamped value rather than the raw prop, so the readout cannot exceed the bar", () => {
+    const wrapper = mount(Progress, {
+      props: {
+        modelValue: 150,
+        showValue: true,
+        ariaLabel: "Upload",
+        labels: { value: ({ value }: { value: number }) => String(value) },
+      },
+    });
+    expect(wrapper.text()).toBe("100");
+  });
+
+  it("takes its readout from a host's vocabulary, and lets one instance correct it", () => {
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => ({ progress: { value: ({ value }) => `${String(value)} phần trăm` } }),
+      },
+      slots: {
+        default: () => [
+          h(Progress, { modelValue: 40, showValue: true, ariaLabel: "Upload" }),
+          // The per-instance case: a bar counting steps, which a percentage is
+          // simply the wrong reading of however well the application is
+          // translated.
+          h(Progress, {
+            modelValue: 3,
+            max: 4,
+            showValue: true,
+            ariaLabel: "Steps",
+            labels: {
+              value: ({ value, max }: { value: number; max: number }) =>
+                `${String(value)}/${String(max)}`,
+            },
+          }),
+        ],
+      },
+    });
+    expect(wrapper.text()).toBe("40 phần trăm3/4");
+  });
+
+  it("repaints the readout when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () =>
+          locale.value === "en" ? {} : { progress: { indeterminate: "đang chờ" } },
+      },
+      slots: { default: () => h(Progress, { showValue: true, ariaLabel: "Loading" }) },
+    });
+    expect(wrapper.text()).toBe("—");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.text()).toBe("đang chờ");
   });
 });

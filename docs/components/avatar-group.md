@@ -82,9 +82,8 @@ and a count would have said.
 
 The counter is information rather than decoration, so it does not announce
 itself as "plus three". What a reader sees is `+3`; what a screen reader is
-told is "3 more". Pass `overflowLabel` when "more" is not the right word for
-what was left out — "3 more reviewers", say — and the derived default comes
-back if that string is blank, so the counter is never silent.
+told is "3 more". Where "more" is not the right word for what was left out —
+"3 more reviewers", say — [`labels.overflow`](#labels) is what changes it.
 
 <Demo title="Overflow">
   <AvatarGroup :avatars="team" :max="3" label="Assignees, three shown" />
@@ -97,8 +96,9 @@ back if that string is blank, so the counter is never silent.
 `force` is forwarded to every face, and a member may name its own — which is
 the case worth designing for, because a run worked by a person and two agents
 is one row, not two. An agent's face wears the weft rim described on the
-[Avatar](./avatar) page, and its name is announced with `agentLabel` appended:
-"Weaver, AI agent". Localise that string.
+[Avatar](./avatar) page, and its name is announced with the agent qualifier
+worked into it: "Weaver, AI agent". [`labels.agent`](#labels) is what changes
+that — both the word and where in the sentence it sits.
 
 <Demo title="People and agents">
   <AvatarGroup :avatars="run" label="Working on this run" />
@@ -160,6 +160,58 @@ belongs in a tooltip or a page the consumer supplies, not in an animation.
 <Demo title="Every state" :source="avatarGroupDemoSource">
   <AvatarGroupDemo />
 </Demo>
+
+## Labels
+
+The row says two things that are not a member's own name: the counter at the
+end of it, and the qualifier on an agent's face. Both are keys rather than
+props, so a whole application sets them once.
+
+```ts
+interface AvatarGroupLabels {
+  overflow: (args: { count: number }) => string;
+  agent: (args: { name: string }) => string;
+}
+```
+
+`overflow` receives the count and not a written number, because "3 more" is a
+plural category English collapses and Russian does not — `Intl.PluralRules` and
+`Intl.NumberFormat` are yours to reach for.
+
+`agent` is one key rather than a name, a comma and a word. Where the qualifier
+sits relative to the name, and whether a comma separates them at all, is a
+property of the language; a `${name}, ${qualifier}` join inside the component
+has already answered both in English. `name` arrives empty for a member that
+gave neither an `alt` nor a `fallback`, which is still an agent and still needs
+naming.
+
+```ts
+provideLoomLabels(() => ({
+  avatarGroup: {
+    overflow: ({ count }) => `còn ${count} người`,
+    agent: ({ name }) => (name ? `Tác nhân AI ${name}` : "Tác nhân AI"),
+  },
+}));
+```
+
+The per-instance case is a row where the noun is wrong however well the
+application is translated:
+
+```vue
+<AvatarGroup
+  :avatars="reviewers"
+  label="Reviewers"
+  :labels="{ overflow: ({ count }) => `${count} more reviewers` }"
+/>
+```
+
+Annotate a bag of your own with `LabelOverrides<AvatarGroupLabels>` rather than
+with `AvatarGroupLabels` itself: the override type is partial, so a key added in
+a later release is one your bag may ignore, where the bag interface is total and
+would stop compiling.
+
+For a whole application set this once with `provideLoomLabels` rather than at
+every call site. See [Localisation](/foundations/localisation).
 
 ## API
 

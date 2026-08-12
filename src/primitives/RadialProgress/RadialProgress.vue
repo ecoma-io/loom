@@ -1,5 +1,33 @@
 <script lang="ts">
 import { cva } from "class-variance-authority";
+import type { LabelOf } from "../../lib/labels";
+
+/**
+ * The one thing this ring prints, and the placeholder it prints instead when
+ * there is no percentage yet. `Progress`'s keys, for the reason its whole
+ * contract is `Progress`'s — see `ProgressLabels` for why both raw numbers go
+ * over and nothing is formatted first.
+ *
+ * A separate slot rather than a shared one, though, and that is deliberate:
+ * the readout beside a bar has a line to itself, where this one sits inside a
+ * 40px circle at `text-micro`. "42% uploaded" fits the first and overflows the
+ * second, and one shared slot would leave a host no way to say so.
+ */
+export interface RadialProgressLabels {
+  /** The readout in the ring's centre, from the clamped value and the scale it is out of. */
+  readonly value: LabelOf<{ value: number; max: number }>;
+  /** What the readout prints while there is no percentage — never a false zero. */
+  readonly indeterminate: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const RADIAL_PROGRESS_LABELS: RadialProgressLabels = {
+  value: ({ value, max }) => `${String(Math.round((value / max) * 100))}%`,
+  indeterminate: "—",
+};
 
 /**
  * The ring's outer diameter. `sm` is a table-row or list-item marker, `md` a
@@ -36,6 +64,7 @@ import { computed } from "vue";
 import { ProgressRoot } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * RadialProgress — the same information Progress carries, drawn as a ring: a
@@ -75,6 +104,12 @@ const props = withDefaults(
     ariaLabel?: string;
     /** Accessible name sourced from another element's id, in place of `ariaLabel`. */
     ariaLabelledby?: string;
+    /**
+     * How the centre readout is written, as any subset of
+     * `RadialProgressLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     */
+    labels?: LabelOverrides<RadialProgressLabels>;
   }>(),
   {
     max: 100,
@@ -173,8 +208,21 @@ const dashOffset = computed(() =>
  */
 const lineCap = computed(() => (pct.value === 0 ? "butt" : "round"));
 
-/** Matches Progress: an em dash for "no percentage yet", never a false `0%`. */
-const readout = computed(() => (pct.value === null ? "—" : `${Math.round(pct.value)}%`));
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("radialProgress", RADIAL_PROGRESS_LABELS, () => props.labels);
+
+/**
+ * Matches Progress: a placeholder for "no percentage yet", never a false `0%`,
+ * and both raw numbers handed over rather than a percentage already written in
+ * English.
+ */
+const readout = computed(() =>
+  value.value === null
+    ? text.value.indeterminate
+    : text.value.value({ value: value.value, max: props.max }),
+);
 
 defineExpose({ pct });
 </script>

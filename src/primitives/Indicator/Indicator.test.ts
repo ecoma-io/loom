@@ -1,7 +1,8 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
-import { h } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType } from "vue";
 import Indicator, { type IndicatorPlacement, type IndicatorStatus } from "./Indicator.vue";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 /** The marker itself — the only node carrying `data-placement`. */
 const MARKER = "[data-placement]";
@@ -190,5 +191,105 @@ describe("Indicator", () => {
       slots: { default: () => h("span", "bell") },
     });
     expect(wrapper.attributes("data-testid")).toBe("bell-indicator");
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the marker. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      required: true,
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+describe("Indicator labels", () => {
+  it("derives every name it can utter from its own English by default", () => {
+    const wrapper = mount(LabelHost, {
+      props: { vocabulary: () => ({}) },
+      slots: {
+        default: () => [
+          h(Indicator, { status: "busy" }),
+          h(Indicator),
+          h(Indicator, { variant: "count", count: 3 }),
+        ],
+      },
+    });
+    expect(wrapper.findAll(".sr-only").map((node) => node.text())).toEqual([
+      "Busy",
+      "Needs attention",
+      "3 unread",
+    ]);
+  });
+
+  it("hands the count over raw, so the plural category and the digits are the host's", () => {
+    // Russian has three categories where English has two, and Eastern Arabic
+    // digits are not reachable at all from a string Loom already wrote.
+    const plural = new Intl.PluralRules("ru-RU");
+    const forms: Record<string, string> = {
+      one: "непрочитанное",
+      few: "непрочитанных",
+      many: "непрочитанных",
+    };
+    const wrapper = mount(Indicator, {
+      props: {
+        variant: "count",
+        count: 3,
+        labels: {
+          count: ({ count }: { count: number }) =>
+            `${new Intl.NumberFormat("ru-RU").format(count)} ${forms[plural.select(count)] ?? ""}`,
+        },
+      },
+    });
+    expect(wrapper.get(".sr-only").text()).toBe("3 непрочитанных");
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct them", () => {
+    const wrapper = mount(LabelHost, {
+      props: { vocabulary: () => ({ indicator: { online: "Trực tuyến" } }) },
+      slots: {
+        default: () => [
+          h(Indicator, { status: "online" }),
+          // The per-instance case: this dot is not about presence at all, and
+          // no application-wide vocabulary could know that.
+          h(Indicator, { status: "online", labels: { online: "Run in flight" } }),
+        ],
+      },
+    });
+    const names = wrapper.findAll(".sr-only").map((node) => node.text());
+    expect(names).toEqual(["Trực tuyến", "Run in flight"]);
+  });
+
+  it("keeps `label` above the vocabulary, since an instance's own name is not a language", () => {
+    const wrapper = mount(LabelHost, {
+      props: { vocabulary: () => ({ indicator: { count: () => "chưa đọc" } }) },
+      slots: {
+        default: () => h(Indicator, { variant: "count", count: 4, label: "4 runs to review" }),
+      },
+    });
+    expect(wrapper.get(".sr-only").text()).toBe("4 runs to review");
+  });
+
+  it("repaints its name when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => (locale.value === "en" ? {} : { indicator: { attention: "Cần chú ý" } }),
+      },
+      slots: { default: () => h(Indicator) },
+    });
+    expect(wrapper.get(".sr-only").text()).toBe("Needs attention");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.get(".sr-only").text()).toBe("Cần chú ý");
   });
 });

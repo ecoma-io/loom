@@ -202,6 +202,53 @@ Both collapse under `prefers-reduced-motion`, through the global rule.
   <RatingDemo />
 </Demo>
 
+## Labels
+
+A row of star glyphs announces nothing at all, so one string carries the whole
+control: it names the read-only picture, and it names every radio in the
+interactive branch — which is what turns a bare "4" into "4 of 5 stars" at the
+moment a reader arrives on it.
+
+```ts
+interface RatingLabels {
+  score: (args: { score: number; length: number }) => string;
+}
+```
+
+One key rather than a score, a joiner and a noun. "4 of 5 stars" is three
+language decisions in one sentence: where the qualifier sits relative to the
+numbers, how the digits are written, and which plural form the noun takes at 1,
+at 4 and at 0.5 — a category English does not distinguish and Russian does. Both
+numbers therefore arrive raw, so `Intl.PluralRules` and `Intl.NumberFormat` are
+yours to reach for.
+
+```ts
+const plural = new Intl.PluralRules("ru-RU");
+const forms = { one: "звезда", few: "звезды", many: "звёзд" };
+
+score: ({ score, length }) =>
+  `${new Intl.NumberFormat("ru-RU").format(score)} из ${length} ${forms[plural.select(score)]}`;
+```
+
+The per-instance case is a scale whose glyphs are not stars in the reader's
+terms — five chillies for heat, five bars for confidence — where the noun has to
+say so however well the application is translated.
+
+```vue
+<Rating
+  v-model="heat"
+  :labels="{ score: ({ score, length }) => `${score} of ${length} chillies` }"
+/>
+```
+
+Annotate a bag of your own with `LabelOverrides<RatingLabels>` rather than with
+`RatingLabels` itself: the override type is partial, so a key added in a later
+release is one your bag may ignore, where the bag interface is total and would
+stop compiling.
+
+For a whole application set this once with `provideLoomLabels` rather than at
+every call site. See [Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api Rating -->

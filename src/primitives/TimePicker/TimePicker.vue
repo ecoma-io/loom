@@ -1,3 +1,22 @@
+<script lang="ts">
+import type { TimeSegmentLabels } from "../../lib/date-labels";
+
+/**
+ * Everything this control publishes to assistive technology: the four names
+ * Reka UI would otherwise give the segments in English of its own accord.
+ * There is nothing else — the icon is decoration and hidden, and the field
+ * group takes its name from the caller or from a wrapping Field.
+ *
+ * An alias for the shared slice rather than a fifth interface. The same four
+ * names are said by `DateTimePicker` and `DateTimeRangePicker`, they come from
+ * one Reka implementation, and `src/lib/date-labels.ts` carries why they are
+ * declared once. The alias exists so this control's `labels` prop reads like
+ * every other one's; annotate with `LabelOverrides<TimePickerLabels>` rather
+ * than with this, which is total.
+ */
+export type TimePickerLabels = TimeSegmentLabels;
+</script>
+
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { TimeFieldInput, TimeFieldRoot, type TimeValue } from "reka-ui";
@@ -7,6 +26,12 @@ import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
+import {
+  TIME_SEGMENT_LABELS,
+  emptySegmentValueText,
+  isTimeSegmentPart,
+} from "../../lib/date-labels";
 
 /**
  * TimePicker — a time of day, typed into a segmented field. Reach for it
@@ -82,6 +107,16 @@ const props = withDefaults(
     required?: boolean | undefined;
     /** The field name for a native form post or `FormData`, carried on the hidden input Reka submits the time through. Unset defers to a wrapping Field. */
     name?: string;
+    /**
+     * Names for the four segments, as any subset of `TimePickerLabels` — the
+     * rest stay as the host's `provideLoomLabels` vocabulary left them, and then
+     * as Loom's English.
+     *
+     * Every one of them replaces a literal Reka writes itself, so this is not
+     * decoration: leave the vocabulary unset and the segments are named in
+     * English rather than named not at all.
+     */
+    labels?: LabelOverrides<TimePickerLabels>;
   }>(),
   {
     granularity: "minute",
@@ -101,6 +136,28 @@ const emit = defineEmits<{
   /** The chosen time as `"HH:mm"` (or `"HH:mm:ss"`), or `undefined` once the field has been cleared. */
   "update:modelValue": [value: string | undefined];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("timeSegments", TIME_SEGMENT_LABELS, () => props.labels);
+
+// Read through the ref on every call rather than resolved into a lookup table
+// once: a table built in `setup` freezes the first language and every later
+// switch silently does nothing. `undefined` for the `literal` separators, which
+// Reka renders `aria-hidden` and which must stay unnamed.
+function segmentLabel(part: string): string | undefined {
+  return isTimeSegmentPart(part) ? text.value[part] : undefined;
+}
+
+// The companion to `segmentLabel`, and the reason it returns an object rather
+// than a string is in `emptySegmentValueText`: Reka's `aria-valuetext` is a
+// hard-coded "Empty" only while the segment holds nothing, so this replaces
+// that case and leaves the filled one — a number, and the locale's own month
+// name — exactly as Reka wrote it.
+function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
+  return emptySegmentValueText(part, value, text.value.empty);
+}
 
 // One rendered node, so both halves of the fallthrough land on it — the split
 // exists only because `class` needs the Tailwind-aware merge and Vue's own
@@ -243,9 +300,11 @@ function hourAnnouncement(
   if (props.hourCycle !== 12) return undefined;
   const shown = Number(segments.find((segment) => segment.part === "hour")?.value);
   const period = segments.find((segment) => segment.part === "dayPeriod")?.value;
-  // An unfilled hour reads as its placeholder rather than a number, and Reka
-  // already announces that one as "Empty" — which is the right thing to say and
-  // not something to replace with a number the field is not showing.
+  // An unfilled hour reads as its placeholder rather than a number, and there is
+  // no number to announce for it. The empty case is not left to Reka's English
+  // "Empty" either — `segmentValueText` binds the vocabulary's word for it on
+  // the same element, and the two never collide: this returns a value only for
+  // a filled hour and that one only for an empty segment.
   if (!Number.isInteger(shown) || period === undefined) return undefined;
   return { "aria-valuenow": shown, "aria-valuetext": `${shown} ${period}` };
 }
@@ -292,12 +351,21 @@ function hourAnnouncement(
          tree — the group's own name says what the field is. -->
     <Clock aria-hidden="true" class="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
 
+    <!-- The `:aria-label` replaces the one Reka writes in English inside its
+         own render function. It reaches the DOM node as a fallthrough
+         attribute, which Vue merges last, so it is a replacement rather than a
+         second name. Removing it does not fall back to nothing; it falls back
+         to Reka's English. -->
     <TimeFieldInput
       v-for="(item, index) in segments"
       :key="index"
       :part="item.part"
       :tabindex="segmentTabIndex(item.part, segments)"
-      v-bind="item.part === 'hour' ? hourAnnouncement(segments) : undefined"
+      :aria-label="segmentLabel(item.part)"
+      v-bind="{
+        ...segmentValueText(item.part, item.value),
+        ...(item.part === 'hour' ? hourAnnouncement(segments) : undefined),
+      }"
       :class="
         cn(
           'tabular rounded-sm px-0.5 outline-none',

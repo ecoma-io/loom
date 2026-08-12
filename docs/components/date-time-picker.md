@@ -315,6 +315,63 @@ slowest a direct answer to a keystroke may be.
   <DateTimePickerDemo />
 </Demo>
 
+## Labels
+
+Everything this control says out loud is replaceable, and most of it has to be:
+**nine of these twelve names are English that Reka UI writes of its own
+accord**, with no prop of its own to set them. Every segment is named — `"day,"`,
+`"hour, "`, `"AM/PM"` and the rest, spacing and all — the two paging buttons are
+called `"Previous page"` and `"Next page"`, and the calendar itself answers to
+`"Event Date"`. Leave one unset and it falls back not to nothing but to English.
+
+```ts
+interface DateTimePickerLabels {
+  // The date half of the segmented field
+  month: string; // "Month"
+  day: string; // "Day"
+  year: string; // "Year"
+  era: string; // "Era" — only locales such as ja-JP-u-ca-japanese render one
+  empty: string; // "Not set" — an unfilled date segment, in place of Reka's "Empty"
+
+  // The clock half
+  hour: string; // "Hour"
+  minute: string; // "Minute"
+  second: string; // "Second" — only at second granularity
+  dayPeriod: string; // "AM or PM" — only in a 12-hour field
+  empty: string; // "Not set" — an unfilled clock segment; a separate key from the one above,
+  //                because the two halves are separate slots (see below)
+
+  // The calendar popover
+  calendar: string; // "Calendar" — read before the month and year on entering it
+  openCalendar: string; // "Open calendar" — the button in the field
+  previousMonth: string; // "Previous month"
+  nextMonth: string; // "Next month"
+}
+```
+
+The twelve arrive from three shared slices — `dateSegments`, `timeSegments` and
+`calendarPanel` — because the other four date and time controls say the same
+words for the same reason. Name `hour` once in your vocabulary and every
+segmented field in your application answers to it.
+
+```ts
+provideLoomLabels(() => ({
+  dateSegments: { month: "Tháng", day: "Ngày", year: "Năm" },
+  timeSegments: { hour: "Giờ", minute: "Phút" },
+  calendarPanel: { openCalendar: "Mở lịch" },
+}));
+```
+
+For a whole application, set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is the per-instance correction. See
+[Localisation](/foundations/localisation).
+
+Annotate your own bag with `LabelOverrides<DateTimePickerLabels>` — never with
+`DateTimePickerLabels` itself. The override type is partial, so a key added to Loom
+in a later release is a key your vocabulary may ignore; the bag interface is
+total, and a bag typed with one would stop compiling the day the vocabulary
+grew.
+
 ## API
 
 <!-- @api DateTimePicker -->

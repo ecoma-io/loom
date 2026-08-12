@@ -1,8 +1,9 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick, type VNode } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import Combobox, { type ComboboxOption } from "./Combobox.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import { LIST_STAGGER_STEP_MS, listStaggerDelay } from "../../lib/motion";
 import { attachToBody } from "../../testing/attach-to-body";
 
@@ -647,5 +648,98 @@ describe("Combobox attribute routing", () => {
     const input = getInput();
     expect(input.getAttribute("aria-label")).toBe("Language");
     expect(input.getAttribute("data-testid")).toBe("language-combobox");
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the control. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: { type: Function as PropType<() => LoomLabelOverrides>, required: true },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+describe("Combobox labels", () => {
+  it("names the chevron from its own English, replacing the one Reka writes", async () => {
+    mountCombobox();
+    await settle();
+    // Reka's own is `Show popup`, written inside its render function with no
+    // prop to reach it by. A dropped binding falls back to that rather than to
+    // an unnamed button, which is why the wording differs deliberately.
+    expect(getTrigger().getAttribute("aria-label")).toBe("Show options");
+  });
+
+  it("replaces the chevron's name and the empty row when a caller hands it a bag", async () => {
+    mountCombobox({ labels: { trigger: "Hiện danh sách", empty: "Không có kết quả" } });
+    await openList();
+    expect(getTrigger().getAttribute("aria-label")).toBe("Hiện danh sách");
+    // Replacing the name leaves everything else Reka publishes about the
+    // button intact — the override is not a whole-props takeover.
+    expect(getTrigger().getAttribute("aria-expanded")).toBe("true");
+
+    await type("zzz");
+    expect(labels()).toEqual(["Không có kết quả"]);
+  });
+
+  it("keeps the key a caller left out in English instead of blanking it", async () => {
+    mountCombobox({ labels: { trigger: "Hiện danh sách" } });
+    await openList();
+    await type("zzz");
+    expect(labels()).toEqual(["No results"]);
+  });
+
+  it("lets `emptyMessage` beat the resolved label, because it is one box's wording", async () => {
+    mountCombobox({
+      emptyMessage: "No language by that name",
+      labels: { empty: "Không có kết quả" },
+    });
+    await openList();
+    await type("zzz");
+    // The prop is the per-box correction and the label is what every other box
+    // says, so the prop has to win where both are set.
+    expect(labels()).toEqual(["No language by that name"]);
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct one key", async () => {
+    mount(LabelHost, {
+      attachTo: document.body,
+      props: {
+        vocabulary: () => ({ combobox: { trigger: "Hiện danh sách", empty: "Trống" } }),
+      },
+      slots: {
+        default: () => [h(Combobox, { options, labels: { trigger: "Chọn quốc gia" } })],
+      },
+    });
+    await settle();
+    expect(getTrigger().getAttribute("aria-label")).toBe("Chọn quốc gia");
+
+    await openList();
+    await type("zzz");
+    // The vocabulary still reaches the key the instance did not touch.
+    expect(labels()).toEqual(["Trống"]);
+  });
+
+  it("repaints the chevron's name when the host switches language under it", async () => {
+    const locale = ref("en");
+    mount(LabelHost, {
+      attachTo: document.body,
+      props: {
+        vocabulary: () =>
+          locale.value === "en" ? {} : { combobox: { trigger: "Hiện danh sách" } },
+      },
+      slots: { default: () => h(Combobox, { options }) },
+    });
+    await settle();
+    expect(getTrigger().getAttribute("aria-label")).toBe("Show options");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(getTrigger().getAttribute("aria-label")).toBe("Hiện danh sách");
   });
 });

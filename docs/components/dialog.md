@@ -103,6 +103,33 @@ The strictest of the overlays, and the reason to reach for it deliberately:
 Reach for [Popover](./popover.md) when the content is secondary rather than
 blocking, and a transient notification when the user need not act at all.
 
+## Labels
+
+One name — the corner close control's. Everything else on the surface is
+yours: `title`, `description`, the body and the footer all arrive as props or
+slots, so there is nothing else here for Loom to say on your behalf.
+
+```ts
+interface DialogLabels {
+  close: string;
+}
+```
+
+Its glyph is `aria-hidden`, so this name is the only thing a screen reader has
+to go on rather than a nicety on top of visible text. For a whole application,
+set it once with `provideLoomLabels`; the `labels` prop is the per-instance
+correction, for the dialog whose close means something more specific than
+"Close".
+
+```vue
+<Dialog title="Import contacts" :labels="{ close: 'Stop importing' }" />
+```
+
+Annotate your own bag with `LabelOverrides<DialogLabels>` rather than with
+`DialogLabels` itself: the override type is partial, so a key added to Loom in
+a later release is one your bag may ignore. See
+[Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api Dialog -->

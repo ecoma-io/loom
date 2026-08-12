@@ -1,9 +1,10 @@
 import { mount } from "@vue/test-utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick, type VNode } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import NumberField from "./NumberField.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import { attachToBody } from "../../testing/attach-to-body";
 
 function mountField(props: Partial<InstanceType<typeof NumberField>["$props"]> = {}) {
@@ -615,5 +616,103 @@ describe("NumberField clamping under arbitrary props", () => {
       // would only re-sample the same clamp arithmetic.
       { numRuns: 100 },
     );
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the control. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: { type: Function as PropType<() => LoomLabelOverrides>, required: true },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+/** The stepper's two buttons, in document order. */
+function stepperNames(wrapper: {
+  findAll: (s: string) => { attributes: (n: string) => string | undefined }[];
+}) {
+  return wrapper.findAll("button").map((b) => b.attributes("aria-label"));
+}
+
+describe("NumberField labels", () => {
+  it("names both spinners and the field itself from its own English", () => {
+    const wrapper = mountField();
+    expect(stepperNames(wrapper)).toEqual(["Increase value", "Decrease value"]);
+    // Reka's own are the bare verbs, written inside its render function with no
+    // prop to reach them by. A dropped binding falls back to those rather than
+    // to an unnamed button, which is why the wording differs deliberately.
+    for (const name of stepperNames(wrapper)) {
+      expect(name).not.toMatch(/^(Increase|Decrease)$/);
+    }
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Number field");
+  });
+
+  it("replaces every one of them when a caller hands it a bag", () => {
+    const wrapper = mountField({
+      labels: { increment: "Tăng", decrement: "Giảm", roleDescription: "Ô số" },
+    });
+    expect(stepperNames(wrapper)).toEqual(["Tăng", "Giảm"]);
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Ô số");
+    // Replacing the name leaves everything else Reka publishes about the
+    // spinbutton intact — the override is not a whole-props takeover.
+    expect(wrapper.get(SPINBUTTON).attributes("aria-valuenow")).toBe("10");
+  });
+
+  it("keeps the keys a caller left out in English instead of blanking them", () => {
+    const wrapper = mountField({ labels: { increment: "Tăng" } });
+    expect(stepperNames(wrapper)).toEqual(["Tăng", "Decrease value"]);
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Number field");
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct one key", () => {
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => ({ numberField: { increment: "Tăng", roleDescription: "Ô số" } }),
+      },
+      slots: {
+        default: () => [
+          h(NumberField, { modelValue: 10 }),
+          // The per-instance case: a field whose number is a rotation, which no
+          // application-wide vocabulary can know.
+          h(NumberField, { modelValue: 10, labels: { roleDescription: "Góc xoay" } }),
+        ],
+      },
+    });
+    const fields = wrapper.findAll('[role="spinbutton"]');
+    expect(fields[0]!.attributes("aria-roledescription")).toBe("Ô số");
+    expect(fields[1]!.attributes("aria-roledescription")).toBe("Góc xoay");
+    // The vocabulary still reaches the key neither instance touched.
+    expect(stepperNames(wrapper)).toEqual(["Tăng", "Decrease value", "Tăng", "Decrease value"]);
+  });
+
+  it("repaints its names when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => (locale.value === "en" ? {} : { numberField: { increment: "Tăng" } }),
+      },
+      slots: { default: () => h(NumberField, { modelValue: 10 }) },
+    });
+    expect(stepperNames(wrapper)[0]).toBe("Increase value");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(stepperNames(wrapper)[0]).toBe("Tăng");
+  });
+
+  it("lets a caller's own aria-roledescription attribute still beat the resolved label", () => {
+    // The binding sits before the fallthrough spread precisely so this works:
+    // it is there to defeat Reka's literal, not the caller's.
+    const wrapper = mount(NumberField, {
+      props: { modelValue: 10 },
+      attrs: { "aria-roledescription": "Rotation" },
+    });
+    expect(wrapper.get(SPINBUTTON).attributes("aria-roledescription")).toBe("Rotation");
   });
 });

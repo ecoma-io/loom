@@ -2,6 +2,38 @@
 import { cva } from "class-variance-authority";
 
 /**
+ * Everything this control says that does not come from the host's own options.
+ *
+ * `trigger` replaces a name Reka UI writes in English of its own accord:
+ * `ComboboxTrigger` puts `aria-label="Show popup"` in its own vnode props and
+ * exposes no prop for it, so without this the chevron is the one control on a
+ * fully localised form still speaking English. A binding on the Loom side
+ * arrives as a fallthrough attribute, which Vue merges onto the root vnode
+ * after Reka's render function produced it, and `mergeProps` is last-write-wins
+ * for everything that is not `class`, `style` or `on*` — so it replaces Reka's
+ * rather than competing with it.
+ *
+ * `empty` is Loom's own, and it is the default beneath the `emptyMessage`
+ * prop rather than a competitor to it: the prop is the wording for one box —
+ * "No country by that name" — and this is what every other box says.
+ */
+export interface ComboboxLabels {
+  /** The chevron that opens the list. It is not a Tab stop; this is what a screen reader reads on it. */
+  readonly trigger: string;
+  /** The row shown in place of the list when the filter matches nothing, unless `emptyMessage` says otherwise. */
+  readonly empty: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const COMBOBOX_LABELS: ComboboxLabels = {
+  trigger: "Show options",
+  empty: "No results",
+};
+
+/**
  * One row of the list. `value` is what the model carries; `label` is what a
  * reader sees, what the filter matches, and what the input shows once the row
  * is chosen.
@@ -74,6 +106,7 @@ import { cn } from "../../lib/cn";
 import { listStaggerDelay } from "../../lib/motion";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 import { optional } from "../../lib/props";
 
 /**
@@ -118,8 +151,8 @@ const props = withDefaults(
     options: ComboboxOption[];
     /** Shown in the empty input, before anything is typed or chosen. */
     placeholder?: string;
-    /** Shown as a row of its own when the filter matches nothing. */
-    emptyMessage?: string;
+    /** Shown as a row of its own when the filter matches nothing. Defaults to `labels.empty`, so say what was searched for rather than restating the default in a second language. */
+    emptyMessage?: string | undefined;
     /** Unavailable: dims the control, refuses to open and refuses to take text. Unset defers to a wrapping Field. */
     disabled?: boolean | undefined;
     /** Error state: paints the destructive border and ring, and sets `aria-invalid`. Unset defers to a wrapping Field's `error`. */
@@ -133,13 +166,26 @@ const props = withDefaults(
      * typed is not then hidden a second time by a filter running underneath it.
      */
     filter?: boolean;
+    /**
+     * Names for the two strings this control supplies itself, as any subset of
+     * `ComboboxLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application. `emptyMessage` is the shorter way to reach `empty` for one
+     * box; this is what reaches `trigger`.
+     */
+    labels?: LabelOverrides<ComboboxLabels>;
   }>(),
   {
     // `modelValue: undefined` is load-bearing rather than redundant: paired
     // with `optional()` below it is what keeps the uncontrolled third state
     // reachable, instead of pinning the control to a value nobody chose.
     modelValue: undefined,
-    emptyMessage: "No results",
+    // No English default here any more. The wording moved into `COMBOBOX_LABELS`
+    // so a host can set it once for the whole application rather than on every
+    // box, and an absent prop is what lets the resolved label through.
+    emptyMessage: undefined,
     // Not `false`, for either. `false` is a caller saying "this control is fine
     // / enabled even though its row is not"; absent is a caller saying nothing,
     // and only `undefined` survives to mean that past Vue's
@@ -158,6 +204,11 @@ const emit = defineEmits<{
   /** The text now in the input — as the reader types, and again when a choice puts its label there. */
   "update:query": [query: string];
 }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("combobox", COMBOBOX_LABELS, () => props.labels);
 
 const query = ref("");
 
@@ -279,9 +330,18 @@ const inputFieldAttrs = computed(() => {
         class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
         @update:model-value="onQuery"
       />
-      <!-- Reka names this button and takes it out of the tab order itself, so
-           the whole control is one Tab stop: the input. -->
-      <ComboboxTrigger class="group shrink-0 text-muted-foreground disabled:cursor-not-allowed">
+      <!-- Reka takes this button out of the tab order itself, so the whole
+           control is one Tab stop: the input. It also names it, in English —
+           `aria-label="Show popup"`, written inside its own render function
+           with no prop to reach it by — and the binding below replaces that
+           rather than competing with it, because Vue merges a fallthrough
+           attribute onto the root vnode after the render function produced it.
+           Removing it does not fall back to nothing; it falls back to Reka's
+           English, which no test of Loom's own strings would catch. -->
+      <ComboboxTrigger
+        :aria-label="text.trigger"
+        class="group shrink-0 text-muted-foreground disabled:cursor-not-allowed"
+      >
         <ChevronDown
           class="h-4 w-4 transition-transform duration-fast ease-out group-data-[state=open]:rotate-180"
         />
@@ -316,7 +376,7 @@ const inputFieldAttrs = computed(() => {
             aria-disabled="true"
             class="animate-fade-rise px-3 py-1.5 text-sm text-muted-foreground"
           >
-            {{ emptyMessage }}
+            {{ emptyMessage ?? text.empty }}
           </ComboboxEmpty>
 
           <!-- Keyed by value rather than by index: a row that survives a

@@ -1,5 +1,27 @@
 <script lang="ts">
 /**
+ * The one thing this component says on its own account.
+ *
+ * Everything else on the surface is the host's — `title`, `description`, the
+ * body and the footer all arrive as props or slots — so the corner close
+ * control is the whole of Dialog's vocabulary. Its glyph is `aria-hidden` by
+ * construction, which makes this name the only thing a screen reader has to go
+ * on rather than a nicety on top of visible text.
+ */
+export interface DialogLabels {
+  /** The corner control that dismisses the dialog. */
+  readonly close: string;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const DIALOG_LABELS: DialogLabels = {
+  close: "Close",
+};
+
+/**
  * How wide the task surface gets. Width is the primitive's decision rather
  * than a class a caller passes, so three dialogs opened from three screens
  * cannot be three different widths: `md` for a confirm or a short form, `lg`
@@ -35,6 +57,7 @@ import {
 import { X } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * Dialog — a modal task surface that blocks the rest of the UI until it is
@@ -57,7 +80,7 @@ import { optional } from "../../lib/props";
  * Reach for `Popover` when the panel is non-blocking secondary content, and a
  * transient notification when the user need not act at all.
  */
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** Drive the dialog from the host with `v-model:open`; omit it and the dialog owns its own state. */
     open?: boolean | undefined;
@@ -71,6 +94,16 @@ withDefaults(
     closable?: boolean;
     /** Panel width. `md` confirms, `lg` multi-section forms, `xl` authoring surfaces. */
     size?: DialogSize;
+    /**
+     * The name on the close control, as any subset of `DialogLabels` — what it
+     * leaves out stays as the host's `provideLoomLabels` vocabulary left it,
+     * and then as Loom's English.
+     *
+     * A whole application's language belongs in that vocabulary rather than
+     * here. This is the per-instance correction, for the dialog whose close
+     * means something more specific than "Close" — "Stop importing", say.
+     */
+    labels?: LabelOverrides<DialogLabels>;
   }>(),
   // `open: undefined` is load-bearing, not a redundant default — it is what
   // keeps the uncontrolled third state reachable past Vue's absent-Boolean
@@ -81,6 +114,11 @@ withDefaults(
 );
 
 defineEmits<{ "update:open": [value: boolean] }>();
+
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("dialog", DIALOG_LABELS, () => props.labels);
 </script>
 
 <template>
@@ -143,7 +181,7 @@ defineEmits<{ "update:open": [value: boolean] }>();
 
         <DialogClose
           v-if="closable"
-          aria-label="Close"
+          :aria-label="text.close"
           class="absolute right-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <X class="h-4 w-4" />

@@ -1,7 +1,18 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import Stepper, { type StepperStep } from "./Stepper.vue";
+
+/** A host declaring an application-wide vocabulary above the spine. */
+function hostWith(vocabulary: () => LoomLabelOverrides) {
+  return defineComponent({
+    setup(_props, { slots }) {
+      provideLoomLabels(vocabulary);
+      return () => h("div", slots.default?.());
+    },
+  });
+}
 
 // The focus assertions mount into the real document — `document.activeElement`
 // is only meaningful for a node that is actually in it — so every wrapper has
@@ -63,6 +74,8 @@ describe("Stepper ARIA contract", () => {
     await nextTick();
 
     expect(status.attributes("aria-live")).toBe("polite");
+    // Loom's, not Reka's: the CSS rule that hides Reka's keys off this marker.
+    expect(status.attributes("data-loom-live")).toBeDefined();
     expect(status.text()).toContain("Step 2 of 4");
 
     await wrapper.setProps({ modelValue: 3 });
@@ -300,9 +313,126 @@ describe("Stepper attribute routing", () => {
     expect(root.classes()).toContain("flex");
   });
 
-  it("lets a caller's aria-label name the flow in place of Reka's generic one", () => {
+  it("lets a caller's aria-label name the flow, beating both Loom's default and Reka's", () => {
     const wrapper = mountStepper({ modelValue: 1 });
 
     expect(wrapper.get('[role="group"]').attributes("aria-label")).toBe("Checkout");
+  });
+});
+
+describe("Stepper labels", () => {
+  it("names the group itself rather than leaving Reka's lowercase 'progress' on it", () => {
+    const wrapper = mount(Stepper, { props: { steps: STEPS, modelValue: 1 } });
+    // The capital is the assertion. Reka writes `aria-label="progress"` into
+    // its own vnode props, so a matching default would prove nothing about
+    // whose string reached the DOM.
+    expect(wrapper.get('[role="group"]').attributes("aria-label")).toBe("Progress");
+  });
+
+  it("renders one live region of its own and leaves Reka's for the stylesheet to take out", () => {
+    const wrapper = mount(Stepper, { props: { steps: STEPS, modelValue: 2 } });
+    const regions = wrapper.findAll('[role="status"]');
+
+    // Two in the DOM, one in the accessibility tree. The rule in `global.css`
+    // is what removes the other, and `e2e/stepper.e2e.ts` is what proves the
+    // removal actually happened in a browser — jsdom applies no stylesheet.
+    expect(regions).toHaveLength(2);
+    expect(wrapper.findAll("[data-loom-live]")).toHaveLength(1);
+    expect(wrapper.get("[data-loom-live]").text()).toBe("Step 2 of 4");
+  });
+
+  it("counts the steps off its own prop, so the first render already announces the total", () => {
+    // Reka's own region reads a registry that fills in as each trigger mounts,
+    // so it says "Step 2 of 0" on the render a screen reader arrives at.
+    const wrapper = mount(Stepper, { props: { steps: STEPS, modelValue: 2 } });
+    expect(wrapper.get("[data-loom-live]").text()).toBe("Step 2 of 4");
+  });
+
+  it("hands the position its numbers raw, so a host orders the sentence and shapes the digits", () => {
+    const wrapper = mount(Stepper, {
+      props: {
+        steps: STEPS,
+        modelValue: 3,
+        labels: {
+          position: ({ step, stepCount }: { step: number; stepCount: number }) =>
+            `${new Intl.NumberFormat("vi-VN").format(step)}/${String(stepCount)} bước`,
+        },
+      },
+    });
+    expect(wrapper.get("[data-loom-live]").text()).toBe("3/4 bước");
+  });
+
+  it("builds a finished step's whole name from its title, rather than appending a qualifier to it", () => {
+    const wrapper = mount(Stepper, {
+      props: {
+        steps: STEPS,
+        modelValue: 3,
+        // A language that puts the qualifier first cannot reorder markup Loom
+        // emits, which is why this receives the title instead of trailing it.
+        labels: { completed: ({ title }: { title: string }) => `Xong: ${title}` },
+      },
+      attachTo: document.body,
+    });
+
+    const completed = wrapper.findAll("button")[0]!;
+    const name = document.getElementById(completed.attributes("aria-labelledby")!)!;
+
+    // The name computation in miniature: an `aria-hidden` subtree contributes
+    // nothing to it, so what a screen reader reads is the one node left.
+    const announced = [...name.children].filter((el) => el.getAttribute("aria-hidden") !== "true");
+    expect(announced.map((el) => el.textContent.trim())).toEqual(["Xong: Cart"]);
+    // The visible title is still rendered, and still the visible one.
+    expect(name.querySelector("[aria-hidden='true']")?.textContent).toBe("Cart");
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct a single key", async () => {
+    const wrapper = mount(
+      hostWith(() => ({
+        stepper: {
+          group: "Tiến trình",
+          position: ({ step, stepCount }: { step: number; stepCount: number }) =>
+            `Bước ${String(step)}/${String(stepCount)}`,
+        },
+      })),
+      {
+        attachTo: document.body,
+        slots: {
+          default: () => [
+            h(Stepper, { steps: STEPS, modelValue: 2 }),
+            h(Stepper, { steps: STEPS, modelValue: 2, labels: { group: "Thanh toán" } }),
+          ],
+        },
+      },
+    );
+    await nextTick();
+
+    const groups = wrapper.findAll('[role="group"]');
+    // Two flows on one page must be distinguishable, and an application-wide
+    // vocabulary alone cannot make them so.
+    expect(groups.map((g) => g.attributes("aria-label"))).toEqual(["Tiến trình", "Thanh toán"]);
+    // The vocabulary still reaches the key neither instance touched.
+    expect(wrapper.findAll("[data-loom-live]").map((r) => r.text())).toEqual([
+      "Bước 2/4",
+      "Bước 2/4",
+    ]);
+  });
+
+  it("repaints its names when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(
+      hostWith(() => (locale.value === "en" ? {} : { stepper: { group: "Tiến trình" } })),
+      {
+        attachTo: document.body,
+        slots: { default: () => h(Stepper, { steps: STEPS, modelValue: 1 }) },
+      },
+    );
+    expect(wrapper.get('[role="group"]').attributes("aria-label")).toBe("Progress");
+
+    // The assertion that fails the moment a label is resolved once in `setup`
+    // rather than inside the render effect: every other test here still passes
+    // and every language switch silently stops working.
+    locale.value = "vi";
+    await nextTick();
+    expect(wrapper.get('[role="group"]').attributes("aria-label")).toBe("Tiến trình");
   });
 });

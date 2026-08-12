@@ -1,9 +1,10 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick, type VNode } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import DateTimePicker from "./DateTimePicker.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import { attachToBody } from "../../testing/attach-to-body";
 
 // The calendar is portalled to `document.body` and Reka drives it with real
@@ -93,18 +94,24 @@ function getSegment(part: string): HTMLElement {
   return segment;
 }
 
-function segmentNames(): (string | undefined)[] {
-  return getSegments().map((segment) =>
-    segment.getAttribute("aria-label")?.trim().replace(/,$/, ""),
-  );
+// Capitalised because these are Loom's names, not Reka's: Reka writes
+// `"month, "`, `"hour, "` and their siblings into its own render function, and
+// asserting the capitalisation is what pins whose string reached the DOM.
+function segmentNames(): (string | null)[] {
+  return getSegments().map((segment) => segment.getAttribute("aria-label"));
 }
 
 function segmentValues(): string[] {
   return getSegments().map((segment) => segment.textContent.trim());
 }
 
+/**
+ * The calendar button found by position rather than by name. Its name is now
+ * one of the things under test — a host can replace it — so a selector that
+ * reads the name cannot be the one that finds it.
+ */
 function getTrigger(): HTMLButtonElement {
-  const trigger = document.querySelector<HTMLButtonElement>('[aria-label="Open calendar"]');
+  const trigger = getField().querySelector("button");
   if (!trigger) throw new Error("no trigger rendered");
   return trigger;
 }
@@ -199,7 +206,7 @@ describe("DateTimePicker field", () => {
     mountPicker({ modelValue: ISO, hourCycle: 24 });
     await settle();
 
-    expect(segmentNames()).toEqual(["month", "day", "year", "hour", "minute"]);
+    expect(segmentNames()).toEqual(["Month", "Day", "Year", "Hour", "Minute"]);
   });
 
   it("shows the bound instant across the segments rather than as one string", async () => {
@@ -256,11 +263,11 @@ describe("DateTimePicker field", () => {
   it("grows an AM/PM segment on a 12-hour cycle and none on a 24-hour one", async () => {
     const wrapper = mountPicker({ modelValue: ISO, hourCycle: 12 });
     await settle();
-    expect(segmentNames()).toContain("AM/PM");
+    expect(segmentNames()).toContain("AM or PM");
 
     await wrapper.setProps({ hourCycle: 24 });
     await settle();
-    expect(segmentNames()).not.toContain("AM/PM");
+    expect(segmentNames()).not.toContain("AM or PM");
   });
 
   it("announces the hour as the reader sees it, not as the value stores it", async () => {
@@ -353,7 +360,7 @@ describe("DateTimePicker ISO boundary", () => {
     });
     await settle();
 
-    expect(segmentNames()).toEqual(["month", "day", "year", "hour", "minute", "second"]);
+    expect(segmentNames()).toEqual(["Month", "Day", "Year", "Hour", "Minute", "Second"]);
 
     getSegment("second").focus();
     pressKey(getSegment("second"), "ArrowUp");
@@ -366,7 +373,7 @@ describe("DateTimePicker ISO boundary", () => {
     const wrapper = mountPicker({ modelValue: "2026-03-14T09:30:45", hourCycle: 24 });
     await settle();
 
-    expect(segmentNames()).not.toContain("second");
+    expect(segmentNames()).not.toContain("Second");
 
     getSegment("minute").focus();
     pressKey(getSegment("minute"), "ArrowUp");
@@ -834,12 +841,12 @@ describe("DateTimePicker shape changes", () => {
   it("gives a widened granularity a real segment even when nothing is chosen", async () => {
     const wrapper = mountPicker({ hourCycle: 24 });
     await settle();
-    expect(segmentNames()).not.toContain("second");
+    expect(segmentNames()).not.toContain("Second");
 
     await wrapper.setProps({ granularity: "second" });
     await settle();
 
-    expect(segmentNames()).toContain("second");
+    expect(segmentNames()).toContain("Second");
     expect(getSegment("second").getAttribute("role")).toBe("spinbutton");
   });
 
@@ -1032,5 +1039,132 @@ describe("DateTimePicker inside a Field", () => {
     expect(getFormInput().hasAttribute("id")).toBe(false);
     expect(getFormInput().hasAttribute("name")).toBe(false);
     expect(getAnchor().hasAttribute("data-invalid")).toBe(false);
+  });
+});
+
+// A host declaring a vocabulary, with the source left reactive on purpose:
+// `provideLoomLabels` takes a getter so that a language switch repaints, and
+// only a reactive source can pin that.
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      default: (): LoomLabelOverrides => ({}),
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountUnder(vocabulary: () => LoomLabelOverrides, node: VNode) {
+  return mount(LabelHost, {
+    props: { vocabulary },
+    slots: { default: () => node },
+    attachTo: document.body,
+  });
+}
+
+describe("DateTimePicker labels", () => {
+  it("names every segment and every control in English with no vocabulary above it", async () => {
+    mountPicker({ modelValue: ISO, hourCycle: 12 });
+    await settle();
+    await openCalendar();
+
+    expect(segmentNames()).toEqual(["Month", "Day", "Year", "Hour", "Minute", "AM or PM"]);
+    expect(getTrigger().getAttribute("aria-label")).toBe("Open calendar");
+    expect(document.querySelector('[aria-label="Previous month"]')).not.toBeNull();
+    expect(document.querySelector('[aria-label="Next month"]')).not.toBeNull();
+  });
+
+  it("replaces the name Reka gives the calendar itself, which is not a literal but a prop", async () => {
+    mountPicker({ modelValue: ISO });
+    await settle();
+    await openCalendar();
+
+    // Reka's own default is `"Event Date"`, published both here and in a
+    // visually-hidden live region it renders itself — so a fallthrough
+    // attribute could not have reached it and the prop is the only way in.
+    const named = [...document.querySelectorAll("[aria-label]")].map((el) =>
+      el.getAttribute("aria-label"),
+    );
+    expect(named.some((name) => name?.startsWith("Calendar,"))).toBe(true);
+    expect(named.some((name) => name?.startsWith("Event Date"))).toBe(false);
+  });
+
+  it("takes an instance's own labels prop over its English, key by key", async () => {
+    mountPicker({
+      modelValue: ISO,
+      hourCycle: 24,
+      labels: { day: "Ngày", hour: "Giờ", openCalendar: "Mở lịch" },
+    });
+    await settle();
+
+    // The keys the prop did not name stay English rather than blanking out —
+    // an unnamed spinbutton is the worst available reading of a partial bag.
+    expect(segmentNames()).toEqual(["Month", "Ngày", "Year", "Giờ", "Minute"]);
+    expect(getTrigger().getAttribute("aria-label")).toBe("Mở lịch");
+  });
+
+  it("takes a host's vocabulary across all three of its slots", async () => {
+    mountUnder(
+      () => ({
+        dateSegments: { month: "Tháng", day: "Ngày", year: "Năm" },
+        timeSegments: { hour: "Giờ", minute: "Phút" },
+        calendarPanel: { openCalendar: "Mở lịch", nextMonth: "Tháng sau" },
+      }),
+      h(DateTimePicker, { modelValue: ISO, hourCycle: 24 }),
+    );
+    await settle();
+    await openCalendar();
+
+    expect(segmentNames()).toEqual(["Tháng", "Ngày", "Năm", "Giờ", "Phút"]);
+    expect(getTrigger().getAttribute("aria-label")).toBe("Mở lịch");
+    expect(document.querySelector('[aria-label="Tháng sau"]')).not.toBeNull();
+    expect(document.querySelector('[aria-label="Previous month"]')).not.toBeNull();
+  });
+
+  it("lets the instance's prop beat the host's vocabulary", async () => {
+    mountUnder(
+      () => ({ calendarPanel: { openCalendar: "Mở lịch" } }),
+      h(DateTimePicker, { modelValue: ISO, labels: { openCalendar: "Chọn thời điểm" } }),
+    );
+    await settle();
+
+    expect(getTrigger().getAttribute("aria-label")).toBe("Chọn thời điểm");
+  });
+
+  it("repaints every name when the host switches language under it", async () => {
+    const locale = ref("en");
+    mountUnder(
+      () =>
+        locale.value === "en"
+          ? {}
+          : {
+              dateSegments: { day: "Ngày" },
+              timeSegments: { hour: "Giờ" },
+              calendarPanel: { openCalendar: "Mở lịch" },
+            },
+      h(DateTimePicker, { modelValue: ISO, hourCycle: 24 }),
+    );
+    await settle();
+    expect(getTrigger().getAttribute("aria-label")).toBe("Open calendar");
+
+    locale.value = "vi";
+    await settle();
+
+    // This is the assertion that fails the moment a label is resolved once in
+    // `setup` instead of inside the render effect — a change that passes every
+    // other test here and breaks every language switch.
+    expect(segmentNames()).toEqual(["Month", "Ngày", "Year", "Giờ", "Minute"]);
+    expect(getTrigger().getAttribute("aria-label")).toBe("Mở lịch");
+  });
+
+  it("reads an explicitly undefined override as no opinion rather than as a blank name", async () => {
+    mountPicker({ modelValue: ISO, hourCycle: 24, labels: { day: undefined } });
+    await settle();
+
+    expect(segmentNames()).toEqual(["Month", "Day", "Year", "Hour", "Minute"]);
   });
 });

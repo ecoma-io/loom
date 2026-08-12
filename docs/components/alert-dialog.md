@@ -30,8 +30,7 @@ import alertDialogDemoSource from "../../src/primitives/AlertDialog/AlertDialogD
   <AlertDialog
     title="Delete workflow?"
     description="Every scene in it goes too, and this cannot be undone."
-    confirm-label="Delete permanently"
-    cancel-label="Keep it"
+    :labels="{ confirm: 'Delete permanently', cancel: 'Keep it' }"
     destructive
   >
     <template #trigger>
@@ -60,8 +59,7 @@ function remove() {
     v-model:open="open"
     title="Delete workflow?"
     description="Every scene in it goes too, and this cannot be undone."
-    confirm-label="Delete permanently"
-    cancel-label="Keep it"
+    :labels="{ confirm: 'Delete permanently', cancel: 'Keep it' }"
     destructive
     @confirm="remove"
   >
@@ -91,7 +89,7 @@ here it does nothing at all.
 
 ## Labels are the destructive signal
 
-`confirmLabel` defaults to "Confirm", and that default is a placeholder rather
+`labels.confirm` defaults to "Confirm", and that default is a placeholder rather
 than a recommendation. **Replace it with the verb the button performs**:
 "Delete", "Discard", "Leave without saving", "Publish now".
 
@@ -125,6 +123,35 @@ There is no body slot, deliberately. A question that needs body content is a
 task, and a task is a [Dialog](./dialog.md). Keeping the surface to a title, a
 consequence line and two buttons is what stops this from quietly becoming an
 undismissible form.
+
+## Labels
+
+Two names, and they are the whole of what this component says on its own
+account — the title and the consequence line are yours, and there is no body
+slot for anything else to arrive through.
+
+```ts
+interface AlertDialogLabels {
+  confirm: string; // the action; replace it with the verb it performs
+  cancel: string; // the way out, and the control that opens with focus
+}
+```
+
+The two want different homes, which is the reason they are one bag rather than
+two props. `cancel` is the same word everywhere in an application, so it belongs
+in `provideLoomLabels` and is written once. `confirm` is the verb _this_ one
+decision performs, so it belongs on the instance:
+
+```vue
+<AlertDialog title="Delete workflow?" :labels="{ confirm: 'Delete permanently' }" destructive />
+```
+
+Every key is optional, and the prop takes **any subset** — supply `confirm` and
+`cancel` stays as your application's vocabulary, or Loom's English, left it.
+Annotate your own bag with `LabelOverrides<AlertDialogLabels>` rather than with
+`AlertDialogLabels` itself: the override type is partial, so a key added to Loom
+in a later release is one your bag may ignore. See
+[Localisation](/foundations/localisation).
 
 ## Deciding is the host's job
 

@@ -1,4 +1,62 @@
 <script lang="ts">
+import type { LabelOf } from "../../lib/labels";
+
+/**
+ * Everything the spine publishes that is not one of the host's own step
+ * titles — and two of the three exist because Reka UI says them in English of
+ * its own accord.
+ *
+ * `group` replaces the literal `aria-label="progress"` that `StepperRoot`
+ * writes into its own vnode props, which it exposes no prop for. `position`
+ * replaces the live region it renders as a bare text node inside its render
+ * function, which no attribute can reach at all — `src/styles/global.css`
+ * carries how that one is taken out of the accessibility tree, and why it has
+ * to be taken out rather than translated in place.
+ *
+ * `position` and `completed` take values rather than returning fragments Loom
+ * would join. "Step 3 of 12" is not four keys and a preposition; it is one
+ * sentence a translator has to be able to re-order, and the same is true of
+ * where a language puts a qualifier relative to the thing it qualifies. See
+ * `LabelOf` in `src/lib/labels.ts`.
+ */
+export interface StepperLabels {
+  /**
+   * The name of the whole spine, as a group. A page carrying two flows should
+   * name each one for what it steps through rather than leaving both
+   * "Progress"; a caller's own `aria-label` on `<Stepper>` still wins over
+   * this, for the instance that needs it.
+   */
+  readonly group: string;
+  /**
+   * The position, announced politely each time the flow advances. It takes the
+   * two numbers raw, so a language can order them its own way and
+   * `Intl.NumberFormat` can write the digits.
+   */
+  readonly position: LabelOf<{ step: number; stepCount: number }>;
+  /**
+   * A finished step's whole accessible name, built from its title. ARIA has a
+   * value for "you are here" and none for "done", and the check glyph is
+   * invisible to a screen reader, so the word has to join the name — and where
+   * it joins is a property of the language, which is why this receives the
+   * title rather than being a suffix Loom appends to it.
+   */
+  readonly completed: LabelOf<{ title: string }>;
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ *
+ * `group` is capitalised where Reka's is not, which is what lets
+ * `Stepper.test.ts` assert whose string reached the DOM rather than merely
+ * what it said.
+ */
+export const STEPPER_LABELS: StepperLabels = {
+  group: "Progress",
+  position: ({ step, stepCount }) => `Step ${String(step)} of ${String(stepCount)}`,
+  completed: ({ title }) => `${title} (completed)`,
+};
+
 /** One step in the spine. Its `title` is also the accessible name of that step's trigger. */
 export interface StepperStep {
   /** The step's label, shown next to its indicator and read out as the trigger's name. */
@@ -28,6 +86,7 @@ import { Check } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 /**
  * Stepper — the progress spine of a multi-step flow: a checkout, an
@@ -46,11 +105,10 @@ import { useSplitAttrs } from "../../lib/attrs";
  * definition, which is why it carries a connector and Tabs carries none.
  *
  * Built on Reka UI's Stepper, which supplies the item state machine
- * (completed / active / inactive), the `linear` reachability rule, arrow-key
- * navigation along the orientation's axis, and a polite live region on the
- * root announcing "Step N of M" as the flow advances.
+ * (completed / active / inactive), the `linear` reachability rule and
+ * arrow-key navigation along the orientation's axis.
  *
- * Two things are added on top of it.
+ * Three things are added on top of it.
  *
  * The first is the roving tab stop. Reka gives *every* focusable trigger
  * `tabindex="0"`, so a five-step spine would be five Tab stops — the defect
@@ -64,6 +122,16 @@ import { useSplitAttrs } from "../../lib/attrs";
  * marking is not conveyed at the moment it matters. It is moved here onto the
  * trigger — the element that takes focus — and given the value the WAI-ARIA
  * pattern asks for on a step in a process.
+ *
+ * The third is the live region. Reka renders one of its own on the root and
+ * writes "Step N of M" into it as a **text node inside its render function** —
+ * not a prop, not a slot, not an attribute — which makes it the one string in
+ * this library that no binding on Loom's side can replace. So Loom renders its
+ * own alongside it and takes Reka's out of the accessibility tree from
+ * `src/styles/global.css`, which carries that reasoning and the coupling it
+ * creates. `e2e/stepper.e2e.ts` is what keeps the coupling honest: it asserts
+ * that a Loom stepper has exactly one live region and that its words are
+ * Loom's.
  */
 const props = withDefaults(
   defineProps<{
@@ -75,6 +143,17 @@ const props = withDefaults(
     orientation?: StepperOrientation;
     /** Locks the flow to its furthest point: a reader may go back, or one step on, never jump ahead. */
     linear?: boolean;
+    /**
+     * Names for everything the spine says out loud, as any subset of
+     * `StepperLabels` — the rest stay as the host's `provideLoomLabels`
+     * vocabulary left them, and then as Loom's English.
+     *
+     * A whole application's language belongs in that vocabulary rather than
+     * here. This is the per-instance correction, and the key it exists for is
+     * `group`: a page with two flows on it needs each named for what it steps
+     * through.
+     */
+    labels?: LabelOverrides<StepperLabels>;
   }>(),
   { orientation: "horizontal", linear: false },
 );
@@ -84,12 +163,19 @@ const emit = defineEmits<{
   "update:modelValue": [value: number];
 }>();
 
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves, and a template reading the raw prop would be reading the overrides
+// rather than the answer.
+const text = useLabels("stepper", STEPPER_LABELS, () => props.labels);
+
 // The root renders a real element and it is the one every fallthrough
 // attribute belongs on: it is the `role="group"` the whole spine lives in, so
-// an `aria-label` naming the flow lands there and overrides the literal
-// "progress" Reka hardcodes. `class` is pulled out of that spread and merged
-// through `cn()` instead, so a caller's layout utility resolves against the
-// root's own rather than merely being concatenated after it.
+// an `aria-label` naming the flow lands there. It is spread *after*
+// `text.group` in the template for that reason — the vocabulary supplies the
+// name a spine has when nobody names it, and a caller who does name one still
+// wins. `class` is pulled out of the spread and merged through `cn()` instead,
+// so a caller's layout utility resolves against the root's own rather than
+// merely being concatenated after it.
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: rootAttrs } = useSplitAttrs();
 
@@ -179,7 +265,8 @@ function onUpdate(value: number | undefined): void {
 <template>
   <StepperRoot
     v-slot="{ modelValue: current }"
-    v-bind="{ ...rootAttrs, ...optional({ modelValue }) }"
+    v-bind="{ 'aria-label': text.group, ...rootAttrs, ...optional({ modelValue }) }"
+    data-loom-stepper
     :orientation="orientation"
     :linear="linear"
     :class="cn(layout.root, attrs.class as string)"
@@ -278,17 +365,39 @@ function onUpdate(value: number | undefined): void {
             cn('text-sm font-medium', step.disabled ? 'text-muted-foreground' : 'text-foreground')
           "
         >
-          {{ step.title }}
           <!-- ARIA has a value for "you are here" and none for "done", and the
-               check glyph is invisible to a screen reader. The title is what
-               `aria-labelledby` names the trigger with, so the word joins the
-               trigger's accessible name from inside it. -->
-          <span v-if="state === 'completed'" class="sr-only">(completed)</span>
+               check glyph is invisible to a screen reader. This element is what
+               `aria-labelledby` names the trigger with, so the word has to join
+               the name from inside it.
+               Two nodes rather than the title plus a trailing "(completed)"
+               span, because a suffix is Loom deciding where a qualifier sits
+               relative to the thing it qualifies, and that is a property of the
+               language. The visible half is `aria-hidden` and excluded from the
+               name computation; the hidden half carries the whole finished
+               sentence the vocabulary returned. -->
+          <template v-if="state === 'completed'">
+            <span aria-hidden="true">{{ step.title }}</span>
+            <span class="sr-only">{{ text.completed({ title: step.title }) }}</span>
+          </template>
+          <template v-else>{{ step.title }}</template>
         </StepperTitle>
         <StepperDescription v-if="step.description" class="text-xs text-muted-foreground">
           {{ step.description }}
         </StepperDescription>
       </div>
     </StepperItem>
+
+    <!-- Loom's own position announcement, standing in for the one `StepperRoot`
+         renders as a text node its render function hard-codes in English.
+         `data-loom-live` is what the rule in `global.css` selects *around* when
+         it removes Reka's from the accessibility tree, so the two are told
+         apart by what Loom marked rather than by DOM order.
+         The count comes from `steps` rather than from Reka's registry, which
+         fills in over a tick as each trigger mounts — the same number, one
+         render sooner, which matters for a region a screen reader reads on
+         arrival. -->
+    <span data-loom-live role="status" aria-live="polite" aria-atomic="true" class="sr-only">{{
+      text.position({ step: current ?? 1, stepCount: steps.length })
+    }}</span>
   </StepperRoot>
 </template>

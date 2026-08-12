@@ -1,9 +1,10 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { ColorAreaRoot, ColorFieldRoot, ColorSliderRoot, ColorSwatchPickerRoot } from "reka-ui";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType } from "vue";
 import ColorPicker from "./ColorPicker.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 // A stand-in for the Field wrapping this control. Field's own behaviour is
 // pinned in `Field.test.ts`; what matters here is that the picker reads a row
@@ -270,11 +271,15 @@ describe("ColorPicker presets", () => {
     expect(options(wrapper)).toHaveLength(2);
   });
 
-  it("names every preset, so a swatch is never a bare coloured square", () => {
+  // Reka names each of these from an English `getColorName` — "vibrant red" —
+  // that is not part of its public surface, so Loom replaces the name with the
+  // value itself rather than shipping a second colour vocabulary. Asserting the
+  // hex here is asserting *whose* string reached the DOM.
+  it("names every preset from the replaceable label rather than from Reka's English", () => {
     const wrapper = mountPicker({ swatches: ["#ff0000", "#00ff00"] });
     expect(options(wrapper).map((option) => option.attributes("aria-label"))).toEqual([
-      "vibrant red",
-      "vibrant green",
+      "#ff0000",
+      "#00ff00",
     ]);
   });
 
@@ -328,19 +333,52 @@ describe("ColorPicker accessibility contract", () => {
     const wrapper = mountPicker({ modelValue: "#3366cc" });
 
     expect(thumbs(wrapper).map((thumb) => thumb.attributes("aria-label"))).toEqual([
-      "Saturation, Brightness",
+      "Saturation and brightness",
       "Hue",
     ]);
+    // The area thumb's `aria-valuetext` is Loom's, and it has to be: Reka builds
+    // its own from English channel names — "Saturation 60, Brightness 80" — and
+    // re-announces it on every arrow key, which makes it the string in this
+    // control a reader hears most. The numbers come from Reka's own
+    // `getChannelValue`, so this and the `aria-valuenow` below cannot disagree.
+    //
+    // The hue thumb's is left alone: Reka writes the bare number for a non-alpha
+    // channel, which is no language at all.
     expect(thumbs(wrapper).map((thumb) => thumb.attributes("aria-valuetext"))).toEqual([
-      "Saturation 60, Brightness 80",
+      "Saturation 60, brightness 80",
       "220",
     ]);
+    expect(thumbs(wrapper)[0]?.attributes("aria-valuenow")).toBe("60");
+  });
+
+  it("lets a host replace the area thumb's value readout", () => {
+    const wrapper = mountPicker({
+      modelValue: "#3366cc",
+      labels: {
+        areaValue: ({ saturation, brightness }) =>
+          `Độ bão hoà ${String(saturation)}, độ sáng ${String(brightness)}`,
+      },
+    });
+
+    expect(thumbs(wrapper)[0]?.attributes("aria-valuetext")).toBe("Độ bão hoà 60, độ sáng 80");
   });
 
   it("names the area, because Reka gives it role=application and hands it every key press", () => {
     const wrapper = mountPicker();
     const area = wrapper.get('[role="application"]');
     expect(area.attributes("aria-label")).toBe("Saturation and brightness");
+  });
+
+  // Each of these replaces one Reka writes in English of its own accord —
+  // `Color picker`, `Color thumb`, `color swatch` — and the assertion is
+  // whose string reached the DOM rather than merely what it said.
+  it("replaces every roledescription Reka writes in English underneath it", () => {
+    const wrapper = mountPicker();
+    expect(wrapper.get('[role="application"]').attributes("aria-roledescription")).toBe(
+      "Colour picker",
+    );
+    expect(thumbs(wrapper)[0]!.attributes("aria-roledescription")).toBe("Colour thumb");
+    expect(wrapper.get('[role="img"]').attributes("aria-roledescription")).toBe("Colour swatch");
   });
 
   it("keeps the hex on screen as editable text, which is the picker's only non-colour channel", async () => {
@@ -494,5 +532,104 @@ describe("ColorPicker inside a Field", () => {
     expect(hex.attributes("name")).toBeUndefined();
     expect(hex.attributes("aria-required")).toBeUndefined();
     expect(hex.attributes("aria-invalid")).toBeUndefined();
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the picker. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      required: true,
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+/** Every name this picker publishes, in template order. */
+function names(wrapper: Picker): readonly (string | undefined)[] {
+  return [
+    wrapper.get('[role="application"]').attributes("aria-label"),
+    wrapper.findAll('[role="slider"]').map((thumb) => thumb.attributes("aria-label"))[0],
+    wrapper.get('[role="img"]').attributes("aria-label"),
+    wrapper.get("input").attributes("aria-label"),
+    wrapper.get('[role="listbox"]').attributes("aria-label"),
+  ];
+}
+
+describe("ColorPicker labels", () => {
+  it("names every part from its own English by default", () => {
+    const wrapper = mountPicker({ swatches: ["#ff0000"] });
+    expect(names(wrapper)).toEqual([
+      "Saturation and brightness",
+      "Saturation and brightness",
+      "#3366cc",
+      "Hex value",
+      "Presets",
+    ]);
+  });
+
+  it("takes its names from a host's vocabulary, and lets one instance correct them", () => {
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => ({
+          colorPicker: { hex: "Giá trị hex", presets: "Màu có sẵn" },
+        }),
+      },
+      slots: {
+        default: () => [
+          h(ColorPicker, { modelValue: "#3366cc", swatches: ["#ff0000"] }),
+          // The per-instance case: a preset row that is a brand palette rather
+          // than a set of presets, which no vocabulary above it can know.
+          h(ColorPicker, {
+            modelValue: "#3366cc",
+            swatches: ["#ff0000"],
+            labels: { presets: "Brand palette" },
+          }),
+        ],
+      },
+      attachTo: document.body,
+    });
+    const listboxes = wrapper.findAll('[role="listbox"]');
+    expect(wrapper.get("input").attributes("aria-label")).toBe("Giá trị hex");
+    expect(listboxes[0]!.attributes("aria-label")).toBe("Màu có sẵn");
+    expect(listboxes[1]!.attributes("aria-label")).toBe("Brand palette");
+  });
+
+  it("hands the swatch its colour raw, so a host with real colour names can supply them", () => {
+    // The key exists because Reka's own answer — "vibrant red" — is English
+    // with no prop and no exported function to reach it.
+    const wrapper = mount(ColorPicker, {
+      props: {
+        modelValue: "#ff0000",
+        swatches: ["#ff0000"],
+        labels: { swatch: ({ color }: { color: string }) => (color === "#ff0000" ? "Đỏ" : color) },
+      },
+      attachTo: document.body,
+    });
+    expect(wrapper.get('[role="img"]').attributes("aria-label")).toBe("Đỏ");
+    expect(wrapper.get('[role="option"]').attributes("aria-label")).toBe("Đỏ");
+  });
+
+  it("repaints every name when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () => (locale.value === "en" ? {} : { colorPicker: { hex: "Giá trị hex" } }),
+      },
+      slots: { default: () => h(ColorPicker, { modelValue: "#3366cc" }) },
+      attachTo: document.body,
+    });
+    expect(wrapper.get("input").attributes("aria-label")).toBe("Hex value");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.get("input").attributes("aria-label")).toBe("Giá trị hex");
   });
 });

@@ -1,8 +1,19 @@
 import { enableAutoUnmount, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { attachToBody } from "../../testing/attach-to-body";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import Drawer from "./Drawer.vue";
+
+/** A host declaring an application-wide vocabulary above the drawer. */
+function hostWith(vocabulary: () => LoomLabelOverrides) {
+  return defineComponent({
+    setup(_props, { slots }) {
+      provideLoomLabels(vocabulary);
+      return () => h("div", slots.default?.());
+    },
+  });
+}
 
 // Reka measures the panel with a ResizeObserver to publish its extent as a CSS
 // custom property, and jsdom has none. Stubbed to the shape Reka reads rather
@@ -449,5 +460,60 @@ describe("Drawer attribute routing", () => {
     await mountDrawer({}, { attrs: { "data-testid": "filters", "aria-roledescription": "rail" } });
     expect(panel().getAttribute("data-testid")).toBe("filters");
     expect(panel().getAttribute("aria-roledescription")).toBe("rail");
+  });
+});
+
+describe("Drawer labels", () => {
+  it("names the close control in English when no host vocabulary is above it", async () => {
+    await mountDrawer();
+    expect(document.querySelector("[aria-label='Close']")).not.toBeNull();
+  });
+
+  it("lets one instance correct the close control's name through its own prop", async () => {
+    await mountDrawer({ labels: { close: "Close filters" } });
+    expect(document.querySelector("[aria-label='Close filters']")).not.toBeNull();
+    expect(document.querySelector("[aria-label='Close']")).toBeNull();
+  });
+
+  it("takes the name from a host's vocabulary, and lets the instance's own prop beat it", async () => {
+    mounted = mount(
+      hostWith(() => ({ drawer: { close: "Đóng" } })),
+      {
+        attachTo: document.body,
+        slots: {
+          default: () => [
+            h(Drawer, { open: true, title: "Scene 12" }),
+            h(Drawer, { open: true, title: "Filters", labels: { close: "Đóng bộ lọc" } }),
+          ],
+        },
+      },
+    );
+    await settle();
+
+    const names = [...document.querySelectorAll("[role='dialog'] [aria-label]")].map((el) =>
+      el.getAttribute("aria-label"),
+    );
+    expect(names).toEqual(["Đóng", "Đóng bộ lọc"]);
+  });
+
+  it("repaints the name when the host switches language under an already-open drawer", async () => {
+    const locale = ref("en");
+    mounted = mount(
+      hostWith(() => (locale.value === "en" ? {} : { drawer: { close: "Đóng" } })),
+      {
+        attachTo: document.body,
+        slots: { default: () => h(Drawer, { open: true, title: "Scene 12" }) },
+      },
+    );
+    await settle();
+    expect(document.querySelector("[aria-label='Close']")).not.toBeNull();
+
+    // The assertion that fails the moment a label is resolved once in `setup`
+    // rather than inside the render effect: every other test here still passes
+    // and every language switch silently stops working.
+    locale.value = "vi";
+    await settle();
+    expect(document.querySelector("[aria-label='Đóng']")).not.toBeNull();
+    expect(document.querySelector("[aria-label='Close']")).toBeNull();
   });
 });

@@ -1,8 +1,19 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { attachToBody } from "../../testing/attach-to-body";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 import AlertDialog from "./AlertDialog.vue";
+
+/** A host declaring an application-wide vocabulary above the alert. */
+function hostWith(vocabulary: () => LoomLabelOverrides) {
+  return defineComponent({
+    setup(_props, { slots }) {
+      provideLoomLabels(vocabulary);
+      return () => h("div", slots.default?.());
+    },
+  });
+}
 
 let mounted: VueWrapper | undefined;
 
@@ -61,7 +72,7 @@ afterEach(reset);
 
 describe("AlertDialog", () => {
   it("opens with focus on cancel rather than on the action, so a reflexive Enter backs out instead of destroying something", async () => {
-    await mountAlert({ destructive: true, confirmLabel: "Delete permanently" });
+    await mountAlert({ destructive: true, labels: { confirm: "Delete permanently" } });
 
     // The single behaviour this component exists to guarantee. Reka's
     // AlertDialogContent is what implements it; this test is what stops a
@@ -71,7 +82,10 @@ describe("AlertDialog", () => {
   });
 
   it("resolves a keypress on the freshly opened panel as a cancel, never as a confirm", async () => {
-    const wrapper = await mountAlert({ destructive: true, confirmLabel: "Delete permanently" });
+    const wrapper = await mountAlert({
+      destructive: true,
+      labels: { confirm: "Delete permanently" },
+    });
 
     // What a reader who hits Enter before finishing the sentence actually gets:
     // whatever is focused is activated, so the outcome is decided entirely by
@@ -123,7 +137,7 @@ describe("AlertDialog", () => {
   });
 
   it("renders no close glyph — the two buttons are the only way out", async () => {
-    await mountAlert({ confirmLabel: "Delete", cancelLabel: "Keep" });
+    await mountAlert({ labels: { confirm: "Delete", cancel: "Keep" } });
     const labels = [...document.querySelectorAll("button")].map((b) => b.textContent.trim());
     expect(labels).toEqual(["Keep", "Delete"]);
   });
@@ -140,7 +154,7 @@ describe("AlertDialog", () => {
   });
 
   it("emits confirm and the close request when the action is pressed", async () => {
-    const wrapper = await mountAlert({ confirmLabel: "Delete permanently" });
+    const wrapper = await mountAlert({ labels: { confirm: "Delete permanently" } });
 
     buttonNamed("Delete permanently")!.click();
     await settle();
@@ -162,7 +176,7 @@ describe("AlertDialog", () => {
   });
 
   it("reports the outcome upward instead of closing itself, so a host can keep it open while the work runs", async () => {
-    await mountAlert({ confirmLabel: "Delete permanently" });
+    await mountAlert({ labels: { confirm: "Delete permanently" } });
     buttonNamed("Delete permanently")!.click();
     await settle();
     expect(panel()).not.toBeNull(); // still open — the host decides
@@ -174,26 +188,26 @@ describe("AlertDialog", () => {
     expect(buttonNamed("Cancel")).toBeDefined();
     reset();
 
-    await mountAlert({ confirmLabel: "Discard", cancelLabel: "Keep editing" });
+    await mountAlert({ labels: { confirm: "Discard", cancel: "Keep editing" } });
     expect(buttonNamed("Discard")).toBeDefined();
     expect(buttonNamed("Keep editing")).toBeDefined();
     expect(buttonNamed("Confirm")).toBeUndefined();
   });
 
   it("paints the action destructive only when asked, and marks it with more than the colour", async () => {
-    await mountAlert({ confirmLabel: "Delete" });
+    await mountAlert({ labels: { confirm: "Delete" } });
     expect([...buttonNamed("Delete")!.classList]).toContain("bg-primary");
     expect(panel()!.hasAttribute("data-destructive")).toBe(false);
     reset();
 
-    await mountAlert({ destructive: true, confirmLabel: "Delete" });
+    await mountAlert({ destructive: true, labels: { confirm: "Delete" } });
     expect([...buttonNamed("Delete")!.classList]).toContain("bg-destructive");
     expect(panel()!.getAttribute("data-destructive")).toBe("true");
   });
 
   it("returns focus to the trigger after a confirm, so the keyboard resumes where the reader left off", async () => {
     mounted = mount(AlertDialog, {
-      props: { title: "Delete workflow?", confirmLabel: "Delete permanently" },
+      props: { title: "Delete workflow?", labels: { confirm: "Delete permanently" } },
       slots: { trigger: '<button type="button" id="opener">Delete workflow</button>' },
       attachTo: document.body,
     });
@@ -278,5 +292,62 @@ describe("AlertDialog", () => {
     expect(classes).toContain("w-[20rem]");
     expect(classes).not.toContain("w-[min(92vw,32rem)]");
     expect(panel()!.getAttribute("data-testid")).toBe("confirm");
+  });
+});
+
+describe("AlertDialog labels", () => {
+  it("names both buttons in English when no host vocabulary is above it", async () => {
+    await mountAlert();
+    expect(buttonNamed("Confirm")).toBeDefined();
+    expect(buttonNamed("Cancel")).toBeDefined();
+  });
+
+  it("takes both names from a host's vocabulary, and lets one instance correct the verb", async () => {
+    mounted = mount(
+      hostWith(() => ({ alertDialog: { confirm: "Đồng ý", cancel: "Huỷ" } })),
+      {
+        attachTo: document.body,
+        slots: {
+          default: () => [
+            h(AlertDialog, { open: true, title: "Rời khỏi trang?" }),
+            h(AlertDialog, {
+              open: true,
+              title: "Xoá cảnh?",
+              labels: { confirm: "Xoá vĩnh viễn" },
+            }),
+          ],
+        },
+      },
+    );
+    await settle();
+
+    // The split this contract exists for: `cancel` is the application's word,
+    // set once; `confirm` is the verb this one decision performs.
+    const names = [...document.querySelectorAll("button")].map((b) => b.textContent.trim());
+    expect(names).toEqual(["Huỷ", "Đồng ý", "Huỷ", "Xoá vĩnh viễn"]);
+  });
+
+  it("repaints both names when the host switches language under an already-open alert", async () => {
+    const locale = ref("en");
+    mounted = mount(
+      hostWith(() =>
+        locale.value === "en" ? {} : { alertDialog: { confirm: "Đồng ý", cancel: "Huỷ" } },
+      ),
+      {
+        attachTo: document.body,
+        slots: { default: () => h(AlertDialog, { open: true, title: "Delete workflow?" }) },
+      },
+    );
+    await settle();
+    expect(buttonNamed("Cancel")).toBeDefined();
+
+    // The assertion that fails the moment a label is resolved once in `setup`
+    // rather than inside the render effect: every other test here still passes
+    // and every language switch silently stops working.
+    locale.value = "vi";
+    await settle();
+    expect(buttonNamed("Huỷ")).toBeDefined();
+    expect(buttonNamed("Đồng ý")).toBeDefined();
+    expect(buttonNamed("Cancel")).toBeUndefined();
   });
 });

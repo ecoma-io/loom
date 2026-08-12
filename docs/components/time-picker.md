@@ -240,6 +240,46 @@ in this library where a deliberately unhurried transition would read as lag.
   <TimePickerDemo />
 </Demo>
 
+## Labels
+
+Every name this control publishes is one Reka UI would otherwise write in
+English of its own accord — `"hour, "`, `"minute, "`, `"second, "` and
+`"AM/PM"`, spacing and all, with no prop to set them. There is nothing else on
+this control to name: the clock glyph is decoration and hidden from assistive
+technology, and the field group takes its name from your `aria-label` or from a
+wrapping [Field](/components/field). So these four are not decoration — leave
+one unset and the segment is named in English rather than named not at all.
+
+```ts
+interface TimePickerLabels {
+  hour: string; // "Hour"
+  minute: string; // "Minute"
+  second: string; // "Second" — only at second granularity
+  dayPeriod: string; // "AM or PM" — only in a 12-hour field
+  empty: string; // "Not set" — what an unfilled segment reports, in place of Reka's "Empty"
+}
+```
+
+They arrive from a shared `timeSegments` slice, because DateTimePicker and
+DateTimeRangePicker name their clock segments with the same words. Name them
+once and every time field in your application answers to it.
+
+```ts
+provideLoomLabels(() => ({
+  timeSegments: { hour: "Giờ", minute: "Phút" },
+}));
+```
+
+For a whole application, set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is the per-instance correction. See
+[Localisation](/foundations/localisation).
+
+Annotate your own bag with `LabelOverrides<TimePickerLabels>` — never with
+`TimePickerLabels` itself. The override type is partial, so a key added to Loom
+in a later release is a key your vocabulary may ignore; the bag interface is
+total, and a bag typed with one would stop compiling the day the vocabulary
+grew.
+
 ## API
 
 <!-- @api TimePicker -->

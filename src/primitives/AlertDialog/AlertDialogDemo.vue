@@ -25,8 +25,7 @@ function settle(what: string, decision: string) {
         v-model:open="deleteOpen"
         title="Delete workflow?"
         description="Every scene in it goes too, and this cannot be undone."
-        confirm-label="Delete permanently"
-        cancel-label="Keep it"
+        :labels="{ confirm: 'Delete permanently', cancel: 'Keep it' }"
         destructive
         @confirm="settle('Delete workflow', 'deleted')"
         @cancel="settle('Delete workflow', 'kept')"
@@ -38,8 +37,7 @@ function settle(what: string, decision: string) {
         v-model:open="discardOpen"
         title="Discard unsaved changes?"
         description="Four edits made since the last save will be lost."
-        confirm-label="Discard changes"
-        cancel-label="Keep editing"
+        :labels="{ confirm: 'Discard changes', cancel: 'Keep editing' }"
         destructive
         @confirm="settle('Unsaved changes', 'discarded')"
         @cancel="settle('Unsaved changes', 'still editing')"
@@ -54,8 +52,7 @@ function settle(what: string, decision: string) {
         v-model:open="publishOpen"
         title="Publish to every subscriber?"
         description="Eleven thousand people receive this immediately, and a published run cannot be recalled."
-        confirm-label="Publish now"
-        cancel-label="Not yet"
+        :labels="{ confirm: 'Publish now', cancel: 'Not yet' }"
         @confirm="settle('Publish', 'sent')"
         @cancel="settle('Publish', 'held back')"
       >

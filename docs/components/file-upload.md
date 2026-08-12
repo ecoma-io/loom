@@ -106,7 +106,9 @@ file.
 
 The four reasons are `too-large`, `type`, `duplicate` and `too-many`. What a
 refusal _means_ is the host's: a conversion offer, a retry, a link to whoever can
-raise the limit. The control only reports it.
+raise the limit. The control only reports it — and the wording it reports with is
+[`labels.rejected`](#labels), one function over the whole list rather than a
+sentence per file.
 
 The message clears itself as soon as the reader edits the list, because a message
 about a file that was never added stops describing anything on screen the moment
@@ -214,6 +216,58 @@ Nothing loops. There is no upload progress in this component to loop for.
 <Demo title="Every state" :source="fileUploadDemoSource">
   <FileUploadDemo />
 </Demo>
+
+## Labels
+
+This control carries the most prose in the library, and every word of it is
+replaceable.
+
+```ts
+interface FileUploadLabels {
+  zone: (args: { multiple: boolean }) => string; // the zone's copy, and the input's name
+  hint: (args: { maxSize: number }) => string; // the limit, spelled out
+  size: (args: { bytes: number }) => string; // the size against one chosen file
+  remove: (args: { file: File }) => string; // one row's remove button
+  rejected: (args: {
+    rejections: readonly FileUploadRejection[];
+    maxSize: number | undefined;
+  }) => string; // everything one interaction refused, as one message
+}
+```
+
+**Every size arrives as a byte count, never as `5 MB`.** The unit ladder, the
+decimal separator and the space before the unit are all language decisions —
+French writes `5 Mo` and a comma, and `Intl.NumberFormat` reaches Eastern Arabic
+digits — so handing over a string Loom had already formatted would make Loom's
+English the only arithmetic anyone could do.
+
+**`rejected` takes the whole list rather than one refusal at a time**, and that
+is the reason there is one key here rather than four sentences plus a joiner.
+The character between two sentences is a property of the script, and a language
+that would rather say "3 files were refused" than list them cannot get there
+from a per-file message. `maxSize` is `undefined` when no limit is set, so that
+case is worded by you as well.
+
+```ts
+rejected: ({ rejections, maxSize }) =>
+  rejections.length === 1
+    ? t("upload.refusedOne", { name: rejections[0].file.name })
+    : t("upload.refusedMany", rejections.length);
+```
+
+`label` and `hint` are props as well as keys, and they are not rivals: the props
+are one zone's copy — "Attach the signed contract" — and the keys are what every
+other zone says, so a prop wins wherever both are set.
+
+Every key is optional — supply one and the rest stay as your application's
+vocabulary, or Loom's English, left them. Annotate a bag of your own with
+`LabelOverrides<FileUploadLabels>` rather than with `FileUploadLabels` itself:
+the override type is partial, so a key added in a later release is one your bag
+may ignore, where the bag interface is total and would stop compiling.
+
+For a whole application set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is for the per-instance correction. See
+[Localisation](/foundations/localisation).
 
 ## API
 

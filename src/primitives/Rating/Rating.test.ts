@@ -1,8 +1,9 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
-import { defineComponent, h, nextTick } from "vue";
+import { defineComponent, h, nextTick, ref, type PropType } from "vue";
 import Rating from "./Rating.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 // A stand-in for the Field wrapping this control. Field's own behaviour is
 // pinned in `Field.test.ts`; what matters here is that the rating reads a row
@@ -415,5 +416,92 @@ describe("Rating inside a Field", () => {
     // unwrapped rating resolves that prop to `false` exactly as it did before.
     expect(group.attributes("aria-required")).toBe("false");
     expect(wrapper.find("input").exists()).toBe(false);
+  });
+});
+
+/** A host declaring an application-wide vocabulary above the control. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: {
+      type: Function as PropType<() => LoomLabelOverrides>,
+      required: true,
+    },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+describe("Rating labels", () => {
+  it("names the read-only picture and every radio from its own English by default", () => {
+    const picture = mount(Rating, { props: { modelValue: 4.2, readonly: true } });
+    expect(picture.get('[role="img"]').attributes("aria-label")).toBe("4.2 of 5 stars");
+
+    const input = mount(Rating, { props: { modelValue: 2, length: 3 } });
+    expect(input.findAll('[role="radio"]').map((r) => r.attributes("aria-label"))).toEqual([
+      "1 of 3 stars",
+      "2 of 3 stars",
+      "3 of 3 stars",
+    ]);
+  });
+
+  it("hands the score and the scale over raw, so the plural and the digits are the host's", () => {
+    // Russian has three plural categories where English has two, and the noun
+    // for "star" changes with the number in front of it. A `${score} of
+    // ${length} stars` template with holes in it could not reach any of that.
+    const plural = new Intl.PluralRules("ru-RU");
+    const forms: Record<string, string> = { one: "звезда", few: "звезды", many: "звёзд" };
+    const wrapper = mount(Rating, {
+      props: {
+        modelValue: 3,
+        readonly: true,
+        labels: {
+          score: ({ score, length }: { score: number; length: number }) =>
+            `${new Intl.NumberFormat("ru-RU").format(score)} из ${String(length)} ${forms[plural.select(score)] ?? ""}`,
+        },
+      },
+    });
+    expect(wrapper.get('[role="img"]').attributes("aria-label")).toBe("3 из 5 звезды");
+  });
+
+  it("takes its name from a host's vocabulary, and lets one instance correct it", () => {
+    const wrapper = mount(LabelHost, {
+      props: { vocabulary: () => ({ rating: { score: ({ score }) => `${String(score)} sao` } }) },
+      slots: {
+        default: () => [
+          h(Rating, { modelValue: 4, readonly: true }),
+          h(Rating, {
+            modelValue: 4,
+            readonly: true,
+            // The per-instance case: a scale whose glyphs are not stars in the
+            // reader's terms, which no application-wide vocabulary can know.
+            labels: { score: ({ score }: { score: number }) => `${String(score)} ớt` },
+          }),
+        ],
+      },
+    });
+    const pictures = wrapper.findAll('[role="img"]');
+    expect(pictures[0]!.attributes("aria-label")).toBe("4 sao");
+    expect(pictures[1]!.attributes("aria-label")).toBe("4 ớt");
+  });
+
+  it("repaints its name when the host switches language under it", async () => {
+    const locale = ref("en");
+    const wrapper = mount(LabelHost, {
+      props: {
+        vocabulary: () =>
+          locale.value === "en" ? {} : { rating: { score: ({ score }) => `${String(score)} sao` } },
+      },
+      slots: { default: () => h(Rating, { modelValue: 4, readonly: true }) },
+    });
+    expect(wrapper.get('[role="img"]').attributes("aria-label")).toBe("4 of 5 stars");
+
+    locale.value = "vi";
+    await nextTick();
+
+    // The assertion that fails the moment a label is read once in `setup`
+    // instead of through `text.` inside the render.
+    expect(wrapper.get('[role="img"]').attributes("aria-label")).toBe("4 sao");
   });
 });

@@ -371,6 +371,95 @@ to a keystroke may be.
   <DateTimeRangePickerDemo />
 </Demo>
 
+## Labels
+
+Everything this control says out loud is replaceable, and much of it has to be:
+**nine of these sixteen names are English that Reka UI writes of its own
+accord**, with no prop of its own to set them — every segment name in both
+halves, the two paging buttons, and the calendar's own `"Event Date"`. The other
+seven are Loom's: the two half-group names, the status line above the grids, and
+the accessible name of one calendar cell.
+
+```ts
+interface DateTimeRangePickerLabels {
+  // The date half of each end's segments
+  month: string; // "Month"
+  day: string; // "Day"
+  year: string; // "Year"
+  era: string; // "Era" — only locales such as ja-JP-u-ca-japanese render one
+  empty: string; // "Not set" — an unfilled date segment, in place of Reka's "Empty"
+
+  // The clock half of each end's segments
+  hour: string; // "Hour"
+  minute: string; // "Minute"
+  second: string; // "Second" — only at second granularity
+  dayPeriod: string; // "AM or PM" — only in a 12-hour field
+  empty: string; // "Not set" — an unfilled clock segment; a separate key from the one above,
+  //                because the two halves are separate slots (see below)
+
+  // The calendar popover
+  calendar: string; // "Calendar"
+  openCalendar: string; // "Open calendar"
+  previousMonth: string; // "Previous month"
+  nextMonth: string; // "Next month"
+
+  // This control's own
+  startDate: string; // "Start date and time"
+  endDate: string; // "End date and time"
+  status: (args: {
+    locale: string;
+    start: DateValue | undefined;
+    end: DateValue | undefined;
+    minutes: number | undefined; // signed: negative means the end falls first
+    hour12: boolean | undefined;
+    seconds: boolean;
+  }) => string;
+  cell: (args: {
+    locale: string;
+    date: DateValue;
+    part: "start" | "end" | "both" | "within" | undefined;
+  }) => string;
+}
+```
+
+`status` is **one sentence rather than four phrases and a joiner**, and the
+duration inside it arrives as `minutes` — a plain signed number — rather than as
+words. That is the whole answer to "2 days 3 hours": Loom carries no plural
+engine and appends no `"s"`, so the form is picked by your
+`Intl.DurationFormat`, `Intl.PluralRules` or translation file. The sign is what
+tells you the end falls before the start, a state that within a single day only
+the times can decide and that nothing in the grid distinguishes.
+
+```ts
+provideLoomLabels(() => ({
+  timeSegments: { hour: "Giờ", minute: "Phút" },
+  dateTimeRange: {
+    status: ({ start, end, minutes }) => {
+      if (!start || !end || minutes === undefined) return "Chưa chọn.";
+      if (minutes < 0) return "Kết thúc trước khi bắt đầu.";
+      return `${fmt(start)} đến ${fmt(end)}, ${minutes} phút.`;
+    },
+  },
+}));
+```
+
+The sixteen arrive from five slices, and four of them are shared: `dateSegments`,
+`timeSegments` and `calendarPanel` with the rest of the family, and `rangeCell` —
+which carries `cell` — with DateRangePicker, whose calendar cells say exactly the
+same thing. `startDate`, `endDate` and `status` are this control's own
+`dateTimeRange` slice, because DateRangePicker says both in different words and
+from different facts.
+
+For a whole application, set these once with `provideLoomLabels` rather than at
+every call site; the `labels` prop is the per-instance correction. See
+[Localisation](/foundations/localisation).
+
+Annotate your own bag with `LabelOverrides<DateTimeRangePickerLabels>` — never with
+`DateTimeRangePickerLabels` itself. The override type is partial, so a key added to Loom
+in a later release is a key your vocabulary may ignore; the bag interface is
+total, and a bag typed with one would stop compiling the day the vocabulary
+grew.
+
 ## API
 
 <!-- @api DateTimeRangePicker -->

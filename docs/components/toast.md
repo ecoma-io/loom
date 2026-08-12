@@ -83,6 +83,42 @@ stacks cleanly, so a multi-toast host owns that layout itself.
   for `InlineError` or `Dialog`.
 - Don't pack in long copy or multiple buttons.
 
+## Labels
+
+Three names. `title`, `description` and `actionLabel` are your copy; these are
+what the component says on its own account, and two of them are strings Reka UI
+would otherwise supply in English.
+
+```ts
+interface ToastLabels {
+  close: string; // the ✕ control
+  announce: string; // spoken ahead of every toast, from a hidden live region
+  region: (args: { hotkey: string }) => string; // the name of the list they stack in
+}
+```
+
+`announce` is the one worth knowing about. A toast is read out through a live
+region the moment it appears, and Reka prefixes that announcement with a word
+of its own — "Notification", in English, from an element nothing else on the
+page can reach. Leave it unset in a localised application and every toast is
+announced half in a language nobody chose.
+
+`region` receives the hotkey that focuses the list ("F8") as a raw value rather
+than a formatted phrase, so a language can put the key wherever it belongs.
+That hotkey is the only way a keyboard user reaches a toast that has already
+been announced, so a region name that lost it is a region nobody can get back
+to.
+
+The `labels` prop takes **any subset**; for a whole application set it once with
+`provideLoomLabels`. Annotate your own bag with `LabelOverrides<ToastLabels>`
+rather than with `ToastLabels` itself: the override type is partial, so a key
+added to Loom in a later release is one your bag may ignore. See
+[Localisation](/foundations/localisation).
+
+```vue
+<Toast title="Saved" :labels="{ close: 'Dismiss' }" />
+```
+
 ## API
 
 <!-- @api Toast -->

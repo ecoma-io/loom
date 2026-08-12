@@ -137,6 +137,63 @@ percentage-only label.
 - Don't print your own percentage beside the bar as visible text — that is
   what `show-value` is for, and a hand-rolled one is announced twice.
 
+## Labels
+
+The readout beside the track is the one string this component writes, and until
+this seam existed it wrote it as `${Math.round(pct)}%` — which is already wrong
+for Turkish, where the sign leads the digits and the answer is `%42`.
+
+```ts
+interface ProgressLabels {
+  value: (args: { value: number; max: number }) => string;
+  indeterminate: string; // what prints while there is no percentage yet
+}
+```
+
+Both raw numbers go over and nothing is formatted first, so three decisions
+stay yours: where the per-cent sign sits, which digits are used, and whether a
+percentage is the right reading of the pair at all. The rounding lives in Loom's
+English default rather than in the component, so it is a wording choice you
+replace along with the words. The value handed over is the _clamped_ one, so a
+`modelValue` of 150 against a `max` of 100 cannot print a number the bar is not
+painting.
+
+```ts
+provideLoomLabels(() => ({
+  progress: {
+    value: ({ value, max }) =>
+      new Intl.NumberFormat("tr-TR", { style: "percent" }).format(value / max),
+    indeterminate: "…",
+  },
+}));
+```
+
+The per-instance case is a bar counting something a percentage is simply the
+wrong reading of:
+
+```vue
+<Progress
+  :model-value="3"
+  :max="4"
+  show-value
+  aria-label="Setup"
+  :labels="{ value: ({ value, max }) => `Step ${value} of ${max}` }"
+/>
+```
+
+`RadialProgress` carries the same two keys under its own slot rather than
+sharing this one. That is deliberate: a readout beside a bar has a line to
+itself, where the ring's sits inside a 40px circle, and "42% uploaded" fits the
+first and overflows the second.
+
+Annotate a bag of your own with `LabelOverrides<ProgressLabels>` rather than
+with `ProgressLabels` itself: the override type is partial, so a key added in a
+later release is one your bag may ignore, where the bag interface is total and
+would stop compiling.
+
+For a whole application set this once with `provideLoomLabels` rather than at
+every call site. See [Localisation](/foundations/localisation).
+
 ## API
 
 <!-- @api Progress -->

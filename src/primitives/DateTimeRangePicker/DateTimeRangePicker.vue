@@ -1,4 +1,13 @@
 <script lang="ts">
+import type { LabelOf } from "../../lib/labels";
+import type {
+  CalendarPanelLabels,
+  DateSegmentLabels,
+  RangeCellLabels,
+  TimeSegmentLabels,
+} from "../../lib/date-labels";
+import { optional } from "../../lib/props";
+
 /**
  * A span between two instants as the outside world holds it: two plain ISO
  * local date-time strings, `"YYYY-MM-DDTHH:mm"`, both optional.
@@ -18,6 +27,125 @@ export interface DateTimeRange {
   /** The instant the span closes at, ISO `"YYYY-MM-DDTHH:mm"`. Absent while only the start has been chosen. */
   end?: string | undefined;
 }
+
+/**
+ * The strings this control says that no other member of the family says: the
+ * two half-group names and the status line above the grids.
+ *
+ * They are **not** shared with `DateRangePicker`, which says both in different
+ * words and from different facts — `Start date` against `Start date and time`,
+ * a count of whole days against a signed duration. A key shared between them
+ * would have to be a sentence that is never true of both. Its calendar cells'
+ * names *are* shared, in `rangeCell`, because those differ in neither.
+ *
+ * The segment names and the calendar chrome, which every one of the five
+ * shares, come from `src/lib/date-labels.ts` too.
+ */
+export interface DateTimeRangeLabels {
+  /** The group holding the first half of the field. Reka names a segment `hour` or `year` alone, which is ten segments and two identical sets of five names with nothing to tell the ends apart. */
+  readonly startDate: string;
+  /** The group holding the second half of the field. */
+  readonly endDate: string;
+  /**
+   * The `role="status"` line above the grids — what has been chosen, what is
+   * wanted next, how long the finished span is, and whether it runs backwards.
+   *
+   * **One message rather than four sentences and a joiner**, and that collapse
+   * is what deleted this control's hand-rolled pluraliser rather than moving
+   * it. `minutes` is the whole duration as a number, so a host builds "2 days
+   * 3 hours" with `Intl.DurationFormat`, `Intl.PluralRules` or their own
+   * translation file — Loom ships no plural engine and appends no `"s"`.
+   *
+   * `minutes` is **signed**: negative means the end falls before the start,
+   * which within a single day only the times can decide and which nothing in
+   * the grid distinguishes. It is `undefined` while the range is half made.
+   *
+   * `locale`, `hour12` and `seconds` arrive only because Loom's own English
+   * default has to format the two instants somehow, and they are the control's
+   * own props rather than anything it has already decided. A host replacing
+   * this formats with whatever their application already uses and ignores all
+   * three.
+   */
+  readonly status: LabelOf<{
+    locale: string;
+    start: DateValue | undefined;
+    end: DateValue | undefined;
+    minutes: number | undefined;
+    hour12: boolean | undefined;
+    seconds: boolean;
+  }>;
+}
+
+const MINUTES_PER_HOUR = 60;
+const MINUTES_PER_DAY = 1440;
+
+/** A date and a time in the control's locale, at the precision the field is showing. */
+function formatInstant(
+  locale: string,
+  date: DateValue,
+  hour12: boolean | undefined,
+  seconds: boolean,
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "long",
+    timeStyle: seconds ? "medium" : "short",
+    // Absent means "follow the locale", which is what an unset `hourCycle`
+    // means everywhere else on this surface; a concrete `false` would force
+    // 24-hour onto a reader whose locale writes AM and PM.
+    ...optional({ hour12 }),
+  }).format(date.toDate(getLocalTimeZone()));
+}
+
+/**
+ * English's plural rule, in English's own bag, which is the only place a plural
+ * rule belongs. It is not extracted, not shared, and applies to nothing a host
+ * supplies: `status` hands over the minutes and receives a finished sentence,
+ * so a language with one form or with six selects its own.
+ */
+function englishDuration(minutes: number): string {
+  if (minutes === 0) return "no time at all";
+  const days = Math.floor(minutes / MINUTES_PER_DAY);
+  const hours = Math.floor((minutes % MINUTES_PER_DAY) / MINUTES_PER_HOUR);
+  const rest = minutes % MINUTES_PER_HOUR;
+  return [
+    [days, "day"],
+    [hours, "hour"],
+    [rest, "minute"],
+  ]
+    .filter(([count]) => (count as number) > 0)
+    .map(([count, name]) => `${String(count)} ${String(name)}${count === 1 ? "" : "s"}`)
+    .join(" ");
+}
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it, and
+ * exported so a host can build a partial vocabulary against the real thing.
+ */
+export const DATE_TIME_RANGE_LABELS: DateTimeRangeLabels = {
+  startDate: "Start date and time",
+  endDate: "End date and time",
+  status: ({ locale, start, end, minutes, hour12, seconds }) => {
+    const anchor = start ?? end;
+    if (!anchor) return "Nothing chosen. Choose the first day of the range.";
+    if (!start || !end || minutes === undefined) {
+      return `${formatInstant(locale, anchor, hour12, seconds)} chosen. Choose the last day of the range.`;
+    }
+    const span = `${formatInstant(locale, start, hour12, seconds)} to ${formatInstant(locale, end, hour12, seconds)}`;
+    if (minutes < 0) return `${span}. The end falls before the start.`;
+    return `${span}, ${englishDuration(minutes)}.`;
+  },
+};
+
+/**
+ * Everything this control can be asked to say: the four shared slices, plus its
+ * own. Annotate a bag with `LabelOverrides<DateTimeRangePickerLabels>` and never
+ * with this, which is total.
+ */
+export type DateTimeRangePickerLabels = DateSegmentLabels &
+  TimeSegmentLabels &
+  CalendarPanelLabels &
+  RangeCellLabels &
+  DateTimeRangeLabels;
 </script>
 
 <script setup lang="ts">
@@ -56,7 +184,17 @@ import {
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
 import { useFieldControl } from "../../lib/field-context";
-import { optional } from "../../lib/props";
+import { useLabels, type LabelOverrides } from "../../lib/labels";
+import {
+  CALENDAR_PANEL_LABELS,
+  DATE_SEGMENT_LABELS,
+  RANGE_CELL_LABELS,
+  TIME_SEGMENT_LABELS,
+  emptySegmentValueText,
+  isDateSegmentPart,
+  isTimeSegmentPart,
+  type RangeCellPart,
+} from "../../lib/date-labels";
 
 /** The range as Reka models it, which is the same shape carrying calendar objects. */
 type CalendarRangeValue = { start: DateValue | undefined; end: DateValue | undefined };
@@ -153,6 +291,17 @@ const props = withDefaults(
     required?: boolean | undefined;
     /** The field name for a native form post or `FormData`. Reka submits the whole span through one hidden input, as `start - end`. Unset defers to a wrapping Field. */
     name?: string;
+    /**
+     * Names for everything this control says out loud, as any subset of
+     * `DateTimeRangePickerLabels` — the rest stay as the host's
+     * `provideLoomLabels` vocabulary left them, and then as Loom's English.
+     *
+     * This is the per-instance correction, not the place to localise an
+     * application: eleven of the eighteen names replace English literals Reka UI
+     * writes of its own accord, and a language is set once with
+     * `provideLoomLabels`.
+     */
+    labels?: LabelOverrides<DateTimeRangePickerLabels>;
   }>(),
   {
     granularity: "minute",
@@ -175,6 +324,40 @@ const emit = defineEmits<{
 }>();
 
 const SEGMENT_TYPES: readonly SegmentType[] = ["start", "end"];
+
+// Five slots, one prop. There is no single `text` for the whole control because
+// there is no single slot: four of the five are vocabularies this control
+// shares with its siblings and only the last is its own. Naming them apart is
+// what keeps a reader of the template able to see which one a binding came
+// from. The one `labels` prop feeds all five — a getter returning the
+// intersection satisfies each slice, and the keys a slice does not know are
+// ignored by `useLabels`' own return type.
+const dateText = useLabels("dateSegments", DATE_SEGMENT_LABELS, () => props.labels);
+const timeText = useLabels("timeSegments", TIME_SEGMENT_LABELS, () => props.labels);
+const panelText = useLabels("calendarPanel", CALENDAR_PANEL_LABELS, () => props.labels);
+const cellText = useLabels("rangeCell", RANGE_CELL_LABELS, () => props.labels);
+const text = useLabels("dateTimeRange", DATE_TIME_RANGE_LABELS, () => props.labels);
+
+// Read through the refs on every call rather than resolved into a lookup table
+// once: a table built in `setup` freezes the first language and every later
+// switch silently does nothing. `undefined` for the `literal` separators, which
+// Reka renders `aria-hidden` and which must stay unnamed.
+function segmentLabel(part: string): string | undefined {
+  if (isDateSegmentPart(part)) return dateText.value[part];
+  return isTimeSegmentPart(part) ? timeText.value[part] : undefined;
+}
+
+// The companion to `segmentLabel`, and the reason it returns an object rather
+// than a string is in `emptySegmentValueText`: Reka's `aria-valuetext` is a
+// hard-coded "Empty" only while the segment holds nothing, so this replaces
+// that case and leaves the filled one — a number, and the locale's own month
+// name — exactly as Reka wrote it.
+// The half that owns the part owns its empty message too, so a host localising
+// only `timeSegments` still reaches the clock segments of this control.
+function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
+  const empty = isTimeSegmentPart(part) ? timeText.value.empty : dateText.value.empty;
+  return emptySegmentValueText(part, value, empty);
+}
 
 // Routed exactly as both parents route it, and for the same reasons: `class`
 // sizes the whole control so it lands on the anchor, and everything else names
@@ -423,31 +606,10 @@ function hourAnnouncement(
 
 const headingId = useId();
 
-// Formatted here rather than read off Reka because what this control has to say
-// — which day a cell is, and what the span so far amounts to — is needed in the
-// parent scope of the cells, where Reka's slot props are not in scope. `locale`
-// drives all of it, so a Thai reader gets a Buddhist year in the announcement
-// as well as in the field.
-const dayFormat = computed(
-  () =>
-    new Intl.DateTimeFormat(props.locale, {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }),
-);
-const instantFormat = computed(
-  () =>
-    new Intl.DateTimeFormat(props.locale, {
-      dateStyle: "long",
-      timeStyle: props.granularity === "second" ? "medium" : "short",
-      // Absent means "follow the locale", which is what an unset `hourCycle`
-      // means everywhere else on this surface; a concrete `false` would force
-      // 24-hour onto a reader whose locale writes AM and PM.
-      ...optional({ hour12: props.hourCycle === undefined ? undefined : props.hourCycle === 12 }),
-    }),
-);
+// Each grid's own name is formatted here rather than read off Reka because it
+// is needed in the parent scope of the cells, where Reka's slot props are not
+// in scope — and it is a date rather than a label, so `Intl` and `locale` are
+// the whole answer. A Thai reader gets a Buddhist year in it, as in the field.
 const monthFormat = computed(
   () => new Intl.DateTimeFormat(props.locale, { month: "long", year: "numeric" }),
 );
@@ -457,43 +619,30 @@ function format(formatter: Intl.DateTimeFormat, date: DateValue): string {
 }
 
 const MS_PER_MINUTE = 60_000;
-const MINUTES_PER_HOUR = 60;
-const MINUTES_PER_DAY = 1440;
-
-function unit(count: number, name: string): string {
-  return `${String(count)} ${name}${count === 1 ? "" : "s"}`;
-}
 
 /**
- * How long the span is, in the largest units that divide it.
+ * How long the span is, as a signed count of minutes — a number handed over,
+ * never words. The `unit(count, name)` that used to append an `"s"` here was
+ * English's plural rule sitting in a control that renders in every language;
+ * it is deleted rather than extracted, and English's own copy of it lives in
+ * `DATE_TIME_RANGE_LABELS` where nothing else inherits it.
  *
  * DateRangePicker counts **days with both ends included**, because a booking of
  * the 14th to the 20th is seven days. That rule is wrong here, and wrong in the
  * direction that matters most: it reads a meeting from 09:00 to 10:00 as "1
  * day". A span between two instants is the distance between them, so this
- * measures that instead.
+ * measures that instead — and signs it, so an end before its start arrives as a
+ * negative rather than as a second boolean the label would have to be handed.
  *
- * Measured through UTC rather than the local zone, like `spanLength` in
- * DateRangePicker and for a sharper reason: this value carries no timezone at
- * all, so the honest answer is wall-clock. Converting through the reader's zone
- * would add or drop an hour across a daylight-saving boundary for two instants
- * that never claimed to be in it.
+ * Measured through UTC rather than the local zone: this value carries no
+ * timezone at all, so the honest answer is wall-clock. Converting through the
+ * reader's zone would add or drop an hour across a daylight-saving boundary for
+ * two instants that never claimed to be in it.
  */
-function spanWords(start: DateValue, end: DateValue): string {
+function spanMinutes(start: DateValue, end: DateValue): number {
   const from = toCalendarDateTime(start).toDate("UTC").getTime();
   const to = toCalendarDateTime(end).toDate("UTC").getTime();
-  const minutes = Math.round((to - from) / MS_PER_MINUTE);
-  if (minutes === 0) return "no time at all";
-  const days = Math.floor(minutes / MINUTES_PER_DAY);
-  const hours = Math.floor((minutes % MINUTES_PER_DAY) / MINUTES_PER_HOUR);
-  const rest = minutes % MINUTES_PER_HOUR;
-  return [
-    days > 0 ? unit(days, "day") : undefined,
-    hours > 0 ? unit(hours, "hour") : undefined,
-    rest > 0 ? unit(rest, "minute") : undefined,
-  ]
-    .filter((part): part is string => part !== undefined)
-    .join(" ");
+  return Math.round((to - from) / MS_PER_MINUTE);
 }
 
 // **The accessibility decision this control inherits and has to say more in.**
@@ -510,14 +659,18 @@ function spanWords(start: DateValue, end: DateValue): string {
 // the grid distinguishes it, and it must not be carried by the destructive
 // border alone.
 function rangeStatus(range: CalendarRangeValue): string {
-  const anchor = range.start ?? range.end;
-  if (!anchor) return "Nothing chosen. Choose the first day of the range.";
-  if (!range.start || !range.end) {
-    return `${format(instantFormat.value, anchor)} chosen. Choose the last day of the range.`;
-  }
-  const span = `${format(instantFormat.value, range.start)} to ${format(instantFormat.value, range.end)}`;
-  if (range.end.compare(range.start) < 0) return `${span}. The end falls before the start.`;
-  return `${span}, ${spanWords(range.start, range.end)}.`;
+  // The whole line is one label taking raw values — two instants and a signed
+  // count of minutes — rather than four sentences this control joins. Which end
+  // is chosen, where a duration sits in the sentence and how "2 days 3 hours"
+  // is written are all properties of a language.
+  return text.value.status({
+    locale: props.locale,
+    start: range.start,
+    end: range.end,
+    minutes: range.start && range.end ? spanMinutes(range.start, range.end) : undefined,
+    hour12: props.hourCycle === undefined ? undefined : props.hourCycle === 12,
+    seconds: props.granularity === "second",
+  });
 }
 
 /**
@@ -532,14 +685,14 @@ function rangeStatus(range: CalendarRangeValue): string {
  * degenerate range, and its single cell is genuinely both ends — announced once
  * as that, not twice as two different things.
  */
-function rangePart(day: DateValue, range: CalendarRangeValue): string | undefined {
+function rangePart(day: DateValue, range: CalendarRangeValue): RangeCellPart | undefined {
   const isStart = range.start !== undefined && isSameDay(day, range.start);
   const isEnd = range.end !== undefined && isSameDay(day, range.end);
-  if (isStart && isEnd) return "the whole range, first and last day";
-  if (isStart) return "first day of the range";
-  if (isEnd) return "last day of the range";
+  if (isStart && isEnd) return "both";
+  if (isStart) return "start";
+  if (isEnd) return "end";
   if (range.start && range.end && day.compare(range.start) > 0 && day.compare(range.end) < 0) {
-    return "within the range";
+    return "within";
   }
   return undefined;
 }
@@ -550,9 +703,7 @@ function rangePart(day: DateValue, range: CalendarRangeValue): string | undefine
 // times are deliberately not in it: the cell is a day, and choosing it changes
 // only the day.
 function dayLabel(day: DateValue, range: CalendarRangeValue): string {
-  const full = format(dayFormat.value, day);
-  const part = rangePart(day, range);
-  return part ? `${full}, ${part}` : full;
+  return cellText.value.cell({ locale: props.locale, date: day, part: rangePart(day, range) });
 }
 
 const panel = ref<HTMLElement | null>(null);
@@ -629,7 +780,12 @@ function onOpenAutoFocus(event: Event) {
              reason this control doubles: Reka labels a segment by its part
              alone, which is ten segments and two identical sets of five names.
              The group name is announced once on entering the half rather than
-             folded into every segment. -->
+             folded into every segment.
+
+             Every `:aria-label` from here down replaces one Reka writes in
+             English inside its own render function, reaching the DOM node as a
+             fallthrough attribute that Vue merges last. Removing one falls back
+             not to nothing but to Reka's English. -->
         <template v-for="(type, typeIndex) in SEGMENT_TYPES" :key="type">
           <span v-if="typeIndex > 0" aria-hidden="true" class="px-1.5 text-muted-foreground"
             >–</span
@@ -637,7 +793,7 @@ function onOpenAutoFocus(event: Event) {
 
           <div
             role="group"
-            :aria-label="type === 'start' ? 'Start date and time' : 'End date and time'"
+            :aria-label="type === 'start' ? text.startDate : text.endDate"
             class="flex items-center"
           >
             <DateRangePickerInput
@@ -646,7 +802,11 @@ function onOpenAutoFocus(event: Event) {
               :part="item.part"
               :type="type"
               :tabindex="segmentTabIndex(type, item.part, segments)"
-              v-bind="item.part === 'hour' ? hourAnnouncement(segments[type]) : undefined"
+              :aria-label="segmentLabel(item.part)"
+              v-bind="{
+                ...segmentValueText(item.part, item.value),
+                ...(item.part === 'hour' ? hourAnnouncement(segments[type]) : undefined),
+              }"
               :class="
                 cn(
                   'tabular rounded-sm px-0.5 outline-none',
@@ -673,7 +833,7 @@ function onOpenAutoFocus(event: Event) {
              nothing can be chosen. -->
         <DateRangePickerTrigger
           v-if="!field.readonly"
-          aria-label="Open calendar"
+          :aria-label="panelText.openCalendar"
           class="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed"
         >
           <CalendarRange class="h-4 w-4" />
@@ -695,10 +855,15 @@ function onOpenAutoFocus(event: Event) {
       @open-auto-focus="onOpenAutoFocus"
     >
       <div ref="panel" class="flex flex-col gap-3">
-        <DateRangePickerCalendar v-slot="{ grid, weekDays }">
+        <!-- `calendarLabel` is a real Reka prop rather than a literal to
+             override, and it defaults to `"Event Date"`. It is published twice:
+             as the calendar container's `aria-label`, and inside a
+             visually-hidden live region Reka renders itself, which a
+             fallthrough attribute could not have reached. -->
+        <DateRangePickerCalendar v-slot="{ grid, weekDays }" :calendar-label="panelText.calendar">
           <DateRangePickerHeader class="flex items-center justify-between gap-2">
             <DateRangePickerPrev
-              aria-label="Previous month"
+              :aria-label="panelText.previousMonth"
               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
             >
               <ChevronLeft class="h-4 w-4" />
@@ -711,7 +876,7 @@ function onOpenAutoFocus(event: Event) {
             />
 
             <DateRangePickerNext
-              aria-label="Next month"
+              :aria-label="panelText.nextMonth"
               class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
             >
               <ChevronRight class="h-4 w-4" />
