@@ -16,6 +16,8 @@ export interface RadioOption {
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
+import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 
 /**
  * RadioGroup — a vertical list of mutually exclusive options, each with a
@@ -24,30 +26,80 @@ import { optional } from "../../lib/props";
  * short options that are all visible at once, reach for SegmentedControl
  * instead. Built on Reka UI's RadioGroup: roving tabindex (the group is one
  * Tab stop, not N) with arrow-key navigation between items.
+ *
+ * Inside a [Field](../Field/Field.vue) the row's description, `name`,
+ * `required` and `invalid` reach the group through `useFieldControl()`, and
+ * `name` below still wins wherever it is set — the row and this prop are one
+ * concept, not two that can disagree.
+ *
+ * **A row's label does not name this group.** `<label for>` names a labelable
+ * element and this renders a `div[role="radiogroup"]`, so the row's label
+ * resolves to the element and names nobody. Name it with a
+ * [Fieldset](../Fieldset/Fieldset.vue)'s real `<legend>`, or with an
+ * `aria-label`/`aria-labelledby` of its own.
+ *
+ * There is no `readonly`, and a row's is ignored rather than approximated: each
+ * option is a `<button role="radio">` with no native read-only state to put it
+ * in, and a group whose options cannot be picked is a disabled group.
  */
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** The selected option's `value`. */
     modelValue?: string;
     /** The rows to render, in order. */
     options: RadioOption[];
-    /** Disables every row at once, distinct from a single option's own `disabled`. */
-    disabled?: boolean;
-    /** Set when this group posts inside a real `<form>` — becomes the submitted field name. */
+    /** Disables every row at once, distinct from a single option's own `disabled`. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
+    /** Set when this group posts inside a real `<form>` — becomes the submitted field name. Unset defers to a wrapping Field. */
     name?: string;
   }>(),
-  { disabled: false },
+  {
+    // Not `false`: absent has to stay tellable from `false` for a Field above
+    // to disable the group and for `:disabled="false"` to overrule one that
+    // does. Vue casts an absent Boolean prop with no declared default to
+    // `false`, which would leave the context wired and inert.
+    disabled: undefined,
+  },
 );
 
 defineEmits<{ "update:modelValue": [value: string] }>();
+
+defineOptions({ inheritAttrs: false });
+const { attrs, rest: groupAttrs } = useSplitAttrs();
+
+// One rendered node, so the split is only about `class` — a caller's class
+// needs a Tailwind-aware merge rather than Vue's concatenating fallthrough.
+//
+// `id` and `aria-describedby` arrive as fallthrough attrs rather than props, so
+// they are handed in as this caller's own values; `field.attrs` then spreads
+// **after** `groupAttrs`, and that position is the contract (see TextField.vue).
+// `name` leaves `optional()` below with it: resolved once here, it reaches
+// RadioGroupRoot's own `name` prop, which is what mints the hidden input a
+// `<form>` submits.
+//
+// `required` and `invalid` are omitted because this component has no prop for
+// either — the row's answer stands unopposed. `readonly` is omitted for the
+// reason the docblock gives.
+//
+// The resolved `required` then reaches the group through Reka's own prop rather
+// than the `aria-required` in `field.attrs`: RadioGroupRoot writes that
+// attribute itself, so leaving it to the bag is a race with a `false` — see
+// Checkbox.vue, where the merge order makes the same race a certainty.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  name: props.name,
+  disabled: props.disabled,
+}));
 </script>
 
 <template>
   <RadioGroupRoot
-    v-bind="optional({ modelValue, name })"
-    :disabled="disabled"
+    v-bind="{ ...optional({ modelValue }), ...groupAttrs, ...field.attrs }"
+    :disabled="field.disabled"
+    :required="field.required"
     orientation="vertical"
-    class="flex flex-col gap-3"
+    :class="cn('flex flex-col gap-3', attrs.class as string)"
     @update:model-value="$emit('update:modelValue', String($event))"
   >
     <!-- RadioGroupItem is a labelable <button role="radio">, so wrapping it in
@@ -63,7 +115,9 @@ defineEmits<{ "update:modelValue": [value: string] }>();
           'flex items-start gap-2 text-sm text-foreground',
           // Disabled text stays readable (AA on the light ground) — only the
           // control glyph dims; quiet, not illegible.
-          disabled || opt.disabled ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer',
+          field.disabled || opt.disabled
+            ? 'cursor-not-allowed text-muted-foreground'
+            : 'cursor-pointer',
         )
       "
     >

@@ -30,6 +30,7 @@ import {
 } from "@internationalized/date";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
 
 /**
@@ -65,6 +66,18 @@ import { optional } from "../../lib/props";
  * For a span rather than a single day, compose two of these — a range control
  * shares almost none of this one's model. For a month or a year alone, neither
  * this nor a Select is right; that is a control this library does not have yet.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself: the row's id, the id of
+ * its hint or error line, and `required` / `invalid` / `disabled` / `readonly` /
+ * `name` all arrive through `useFieldControl()`, so `<Field label="Due date"
+ * error="…"><DatePicker /></Field>` needs no attributes at the call site. Every
+ * prop below still wins over the row when it is set, in both directions — which
+ * is why the four booleans default to `undefined` rather than `false`.
+ *
+ * `readonly` and `disabled` are different states, not two dials on one. A
+ * read-only date is a value on show: the field stays a Tab stop, its segments
+ * stay readable and copyable, and it is filled rather than dimmed. A disabled
+ * one is unavailable: no Tab stop, dimmed, nothing submitted.
  */
 const props = withDefaults(
   defineProps<{
@@ -81,12 +94,29 @@ const props = withDefaults(
     max?: string;
     /** BCP 47 tag driving the order of the field's segments, the month and weekday names, and which day a week starts on. */
     locale?: string;
-    /** Unavailable: dims the control, refuses the calendar, and takes the field out of the tab order. */
-    disabled?: boolean;
-    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. */
-    invalid?: boolean;
+    /** Unavailable: dims the control, refuses the calendar, and takes the field out of the tab order. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
+    /** Shows the date without allowing an edit: the field stays a Tab stop and stays submitted, and the calendar button is dropped because nothing in the calendar could be chosen. Unset defers to a wrapping Field. */
+    readonly?: boolean | undefined;
+    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. Unset defers to a wrapping Field's `error`. */
+    invalid?: boolean | undefined;
+    /** Marks the field mandatory to assistive tech (`aria-required` on the segment group). Unset defers to a wrapping Field. */
+    required?: boolean | undefined;
+    /** The field name for a native form post or `FormData`, carried on the hidden input Reka submits the date through. Unset defers to a wrapping Field. */
+    name?: string;
   }>(),
-  { locale: "en", disabled: false, invalid: false },
+  {
+    locale: "en",
+    // Not `false`, for any of the four — TextField.vue carries the full
+    // reasoning. `false` is a caller deciding this one control is fine,
+    // enabled or editable even though its row is not; absent is a caller
+    // saying nothing, and only `undefined` survives to mean that past Vue's
+    // absent-Boolean-casts-to-false rule.
+    disabled: undefined,
+    readonly: undefined,
+    invalid: undefined,
+    required: undefined,
+  },
 );
 
 const emit = defineEmits<{
@@ -103,6 +133,35 @@ const emit = defineEmits<{
 // would name a layout div nothing ever lands in.
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: fieldAttrs } = useSplitAttrs();
+
+// `id` and `aria-describedby` reach this control as fallthrough attrs rather
+// than props, so they are read off `attrs` and handed in as this caller's own
+// values — a caller who sets either still beats the row, and the row's
+// description is merged into theirs rather than replacing it.
+//
+// `field.attrs` spreads onto `DatePickerField` **after** `fieldAttrs`, which is
+// the node those two were already landing on, and the position is the contract:
+// the bag has resolved the caller's own values already and drops every key that
+// resolved to nothing, so it can only add. Where each key ends up is Reka's
+// decision and worth knowing: `DateFieldRoot` declares `id` and `name` as props
+// and puts both on the visually-hidden `<input>` it submits the date through —
+// which is the element a `<label for>` can actually name, a `role="group"` div
+// being unlabelable — while `aria-describedby`, `aria-required` and
+// `aria-invalid` are undeclared, fall through to `$attrs`, and land on the group
+// itself, where a screen reader announces them once on entering the field.
+//
+// The `:aria-invalid` binding that used to sit on the field is gone with it: an
+// individual attribute written after a `v-bind` wins, so keeping one would
+// overwrite the resolved value with the raw prop.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  name: props.name,
+  disabled: props.disabled,
+  readonly: props.readonly,
+  invalid: props.invalid,
+  required: props.required,
+}));
 
 function fromIso(value: string | undefined): DateValue | undefined {
   if (!value) return undefined;
@@ -169,8 +228,11 @@ const focusedPart = ref<string>();
 
 function segmentTabIndex(part: string, segments: readonly { part: string }[]): number | undefined {
   // A disabled field has no stop at all; returning `undefined` removes the
-  // attribute, which is exactly what Reka does for the same case.
-  if (props.disabled || part === "literal") return undefined;
+  // attribute, which is exactly what Reka does for the same case. A read-only
+  // one keeps every stop it had — the value is on show and a reader still
+  // arrows across it to read it, which is the whole difference between the two
+  // states.
+  if (field.disabled || part === "literal") return undefined;
   const editable = segments.filter((segment) => segment.part !== "literal");
   // The remembered segment is dropped when a locale change takes it away —
   // a field with no tab stop is unreachable, and `en` has no era segment that
@@ -210,7 +272,8 @@ function onOpenAutoFocus(event: Event) {
     v-model:open="open"
     v-bind="rootValue"
     :locale="locale"
-    :disabled="disabled"
+    :disabled="field.disabled"
+    :readonly="field.readonly"
     granularity="day"
     prevent-deselect
     @update:model-value="onDateChange"
@@ -221,13 +284,13 @@ function onOpenAutoFocus(event: Event) {
          `max`. Two markers spelled the same on one element is how a style rule
          starts answering a question nobody asked it. -->
     <DatePickerAnchor
-      :data-invalid="invalid || undefined"
+      :data-invalid="field.invalid || undefined"
+      :data-readonly="field.readonly || undefined"
       :class="cn('block w-full', attrs.class as string)"
     >
       <DatePickerField
         v-slot="{ segments }"
-        v-bind="fieldAttrs"
-        :aria-invalid="invalid || undefined"
+        v-bind="{ ...fieldAttrs, ...field.attrs }"
         :class="
           cn(
             // The text input's own height scale, so a date sitting in a form
@@ -240,9 +303,15 @@ function onOpenAutoFocus(event: Event) {
             // and the focused segment below carries a fill instead of a second
             // outline — a ring drawn inside a ring reads as a rendering fault.
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
-            !invalid && 'focus-within:shadow-halo',
-            invalid && 'border-destructive focus-within:outline-destructive',
-            disabled && 'cursor-not-allowed opacity-50',
+            !field.invalid && 'focus-within:shadow-halo',
+            field.invalid && 'border-destructive focus-within:outline-destructive',
+            // Filled rather than dimmed, and it keeps its focus ring: a
+            // read-only date is a value on show, not an unavailable control,
+            // and the two must not look alike. Reka's own `data-readonly` on
+            // this group carries the same state to assistive tech, so nothing
+            // here rests on colour.
+            field.readonly && 'bg-muted',
+            field.disabled && 'cursor-not-allowed opacity-50',
           )
         "
       >
@@ -265,7 +334,14 @@ function onOpenAutoFocus(event: Event) {
           {{ item.value }}
         </DatePickerInput>
 
+        <!-- Dropped entirely while read-only rather than disabled beside a
+             field that is plainly still alive. Reka's `readonly` reaches the
+             calendar too and makes every cell's click a no-op, so the button
+             would open a panel in which nothing can be chosen — a dead end that
+             looks like a working control, which is worse than not offering it.
+             The segments are still there to read the date off. -->
         <DatePickerTrigger
+          v-if="!field.readonly"
           aria-label="Open calendar"
           class="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed"
         >

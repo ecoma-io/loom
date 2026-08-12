@@ -42,6 +42,7 @@ import { Star } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 
 /**
  * Rating — a score on a small, fixed, ordinal scale, drawn as a row of stars.
@@ -80,6 +81,24 @@ import { useSplitAttrs } from "../../lib/attrs";
  * interactive control asks. A `readonly` rating therefore ignores it and
  * paints the exact value it was given: an average of 4.2 shows and announces
  * 4.2, not the nearest half.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself through
+ * `useFieldControl()`: the row's description, `name`, `required` and `invalid`
+ * land on the radio group, its `name` mints the hidden input a real `<form>`
+ * submits, and its `readonly` switches this control into the picture above —
+ * which is the one place this family's `readonly` does not mean "a native
+ * control with the native attribute set". There is no native element to set it
+ * on: each step is a `<button role="radio">`, and `readonly` is as inert on a
+ * radio as it is on a checkbox. So "still a Tab stop, still submitted" is
+ * unreachable here, and the picture is what is left that is honest — a score
+ * that was never an input, and, above all, not something dimmed to look
+ * unavailable.
+ *
+ * **A row's label does not name this control.** `<label for>` names a labelable
+ * element and both branches render a `div`, so name the group with a
+ * [Fieldset](../Fieldset/Fieldset.vue)'s real `<legend>` or with an
+ * `aria-label` of its own. A read-only rating already names itself from its
+ * score.
  */
 const props = withDefaults(
   defineProps<{
@@ -89,24 +108,29 @@ const props = withDefaults(
     length?: number;
     /** Granularity of one arrow-key step and of the pointer: whole stars, or halves. */
     step?: 1 | 0.5;
-    /** Renders the score as a picture of a number rather than an input: no Tab stop, no dimming, and the exact value regardless of `step`. */
-    readonly?: boolean;
+    /** Renders the score as a picture of a number rather than an input: no Tab stop, no dimming, and the exact value regardless of `step`. Unset defers to a wrapping Field. */
+    readonly?: boolean | undefined;
     /** Lets a reader clear the score by choosing the star that is already chosen, which emits `0`. */
     clearable?: boolean;
     /** Previews the score under the pointer while hovering, before anything is chosen. */
     hoverable?: boolean;
-    /** Unavailable: dims the row and refuses both the pointer and the keyboard. For a score that was never editable, use `readonly`. */
-    disabled?: boolean;
+    /** Unavailable: dims the row and refuses both the pointer and the keyboard. For a score that was never editable, use `readonly`. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
     /** Star size. It follows the icon scale, not the control-height scale. */
     size?: RatingSize;
   }>(),
   {
     length: 5,
     step: 1,
-    readonly: false,
     clearable: false,
     hoverable: false,
-    disabled: false,
+    // Not `false`, for either. `false` is a caller saying "this rating is
+    // editable / live even though its row is not"; absent is a caller saying
+    // nothing, and only `undefined` survives to mean that past Vue's
+    // absent-Boolean-casts-to-false rule — see TextField.vue, which carries the
+    // full reasoning.
+    readonly: undefined,
+    disabled: undefined,
     size: "md",
   },
 );
@@ -123,6 +147,37 @@ defineEmits<{
 // a test hook) rides `rest` onto the same node.
 defineOptions({ inheritAttrs: false });
 const { attrs, rest } = useSplitAttrs();
+
+// `id` and `aria-describedby` arrive as fallthrough attrs rather than props, so
+// they are handed in as this caller's own values: a caller who sets either
+// still beats the row, and the row's description is merged into theirs rather
+// than replacing it. `name`, `required` and `invalid` are absent because this
+// component has no prop for any of them — the row's answer stands unopposed.
+//
+// The resolved `required` then reaches the group through Reka's own prop rather
+// than the `aria-required` in `field.attrs`: RadioGroupRoot underneath writes
+// that attribute itself, so leaving it to the bag is a race — see Checkbox.vue,
+// where the merge order makes the same race a certainty.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  disabled: props.disabled,
+  readonly: props.readonly,
+}));
+
+/**
+ * The two keys of the resolved bag that a picture of a number may carry.
+ *
+ * The read-only branch is a `role="img"`, and ARIA allows neither
+ * `aria-required` nor `name` on one — `aria-allowed-attr` is a WCAG 4.1.2 rule
+ * `e2e/accessibility.e2e.ts` runs over every docs page, so the whole bag
+ * spread here would turn that gate red. They would also both be claims about
+ * an input, and this branch renders none: nothing is required of a reader who
+ * is being shown a number, and nothing is submitted.
+ */
+const pictureAttrs = computed(() =>
+  optional({ id: field.id, "aria-describedby": field.attrs["aria-describedby"] }),
+);
 
 /**
  * The score as it is drawn and announced, clamped into the range the stars can
@@ -164,8 +219,8 @@ function fillOf(star: number): string {
        to offer: one `role="img"` node carrying the score as its name, and
        nothing inside it that a Tab reaches. -->
   <div
-    v-if="readonly"
-    v-bind="rest"
+    v-if="field.readonly"
+    v-bind="{ ...rest, ...pictureAttrs }"
     role="img"
     :aria-label="starsLabel(score)"
     :class="cn(rowVariants({ size }), attrs.class as string)"
@@ -191,12 +246,13 @@ function fillOf(star: number): string {
   <RatingRoot
     v-else
     v-slot="{ items }"
-    v-bind="{ ...rest, ...optional({ modelValue }) }"
+    v-bind="{ ...rest, ...optional({ modelValue }), ...field.attrs }"
     :length="length"
     :step="step"
     :clearable="clearable"
     :hoverable="hoverable"
-    :disabled="disabled"
+    :disabled="field.disabled"
+    :required="field.required"
     :class="
       cn(
         rowVariants({ size }),

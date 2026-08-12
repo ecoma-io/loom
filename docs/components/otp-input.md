@@ -151,6 +151,39 @@ so the global `prefers-reduced-motion` rule collapses it to an instant change.
   <OtpInputDemo />
 </Demo>
 
+## Inside a Field
+
+Wrapped in a [Field](./field), OtpInput wires itself: the id of the row's hint
+or error line, `required`, `invalid`, `disabled` and the name the code is posted
+under all arrive from the row.
+
+```vue
+<Field name="otp" error="That code has expired" required>
+  <OtpInput v-model="code" aria-label="Verification code" @complete="verify" />
+</Field>
+```
+
+`disabled` and `invalid` still win when you set them, in both directions — which
+is why both are `boolean | undefined` and default to `undefined` rather than
+`false`.
+
+**Give the row a name anyway.** This is the one control a Field cannot name for
+you: a `<label for>` associates with a labelable element, and the row is a
+`role="group"`. Keep `aria-label` (or `aria-labelledby`) on the OtpInput, and
+leave the Field's own `label` off unless it is labelling something else — a
+label whose `for` resolves to nothing is worse than no label at all.
+
+**What lands where.** The description goes on the group, because it is about the
+whole code and repeating it on six cells would have a screen reader read it six
+times. `aria-required` and `aria-invalid` go on the cells, because those are
+states of the boxes being typed into and `role="group"` supports neither. The
+code is posted through a hidden input, which is also where the row's id lands —
+clicking a label pointed at it hands focus to the first cell.
+
+**A row's `readonly` is ignored, deliberately.** There is nothing to read in an
+uneditable code box that a line of text would not show better, and the cells
+exist to be typed into.
+
 ## API
 
 <!-- @api OtpInput -->

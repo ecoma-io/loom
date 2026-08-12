@@ -86,6 +86,38 @@ Rendering the first as the second reads as "broken" to a sighted reader and as
   </div>
 </Demo>
 
+## Inside a Field
+
+A [Field](./field.md) publishes what the row knows, and the rating takes it: the
+row's description, `name`, `required` and `invalid` land on the radio group, and
+the `name` mints the hidden input a real `<form>` submits.
+
+```vue
+<Fieldset legend="Overall quality">
+  <Rating v-model="quality" hoverable name="quality" />
+</Fieldset>
+```
+
+**A row's label does not name this control.** `<label for>` names a labelable
+element and both branches render a `div`, so a Field's label resolves to it and
+announces nobody. Name the group with a [Fieldset](./fieldset.md)'s real
+`<legend>`, or with an `aria-label` of its own. A read-only rating already names
+itself, from its score.
+
+A row's **`readonly` is this control's own `readonly`**, not a second dial
+beside it: the row goes read-only and the score becomes the picture described
+above — `role="img"`, not a Tab stop, and not dimmed. That is the one place in
+this family where read-only does not mean "the native control with the native
+attribute set", and it is because there is no native element to set it on: each
+step is a `<button role="radio">`, and `readonly` is as inert on a radio as it
+is on a checkbox. "Still focusable, still submitted" is unreachable here, so the
+picture is what is left that is honest.
+
+`readonly` and `disabled` both still win wherever you set them, in both
+directions, which is why each is `boolean | undefined` and defaults to
+`undefined` rather than `false`. `<Rating :readonly="false" />` inside a
+read-only row says this one score is still the reader's to give, and is obeyed.
+
 ## Clearing and previewing
 
 `clearable` lets a reader take the score back: choosing the star that is already

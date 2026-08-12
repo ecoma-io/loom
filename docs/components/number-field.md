@@ -105,6 +105,50 @@ than flagged.
   <NumberField :model-value="0" unit="s" invalid aria-label="Duration" />
 </Demo>
 
+## Read-only and disabled
+
+`readonly` and `disabled` are different states, not two dials on one, and a
+number is the case that makes the difference obvious. A rate, a computed total
+or a coordinate locked to a parent is a value on show: it stays a Tab stop,
+stays in the form's posted data, and is filled rather than dimmed. A disabled
+field is unavailable — not reachable, not posted, dimmed.
+
+Read-only closes every path into the value rather than only the obvious one:
+typing, the arrow keys, Shift+Arrow, the scrub gesture, and the stepper, which
+is not rendered at all. A control offering a gesture that quietly does nothing
+is worse than one that offers none, so the scrub cursor goes with it.
+
+<Demo title="Read-only against disabled">
+  <div class="flex w-full flex-col gap-3" style="max-width: 20rem">
+    <NumberField :model-value="24" readonly aria-label="Frame rate (read-only)" />
+    <NumberField :model-value="50" unit="px" disabled aria-label="Width (disabled)" />
+  </div>
+</Demo>
+
+## Inside a Field
+
+Wrapped in a [Field](./field), NumberField wires itself: the row's id, the id of
+its hint or error line, `required`, `invalid`, `disabled`, `readonly` and the
+name the value is posted under all arrive from the row, so nothing is written at
+the call site.
+
+```vue
+<Field label="Rotation" name="rotation" hint="Degrees, -180 to 180" required>
+  <NumberField v-model="rotation" :min="-180" :max="180" unit="deg" @commit="checkpoint" />
+</Field>
+```
+
+Every one of those props still wins when you set it, in both directions — which
+is why `invalid`, `disabled` and `readonly` are `boolean | undefined` and
+default to `undefined` rather than `false`. `<NumberField />` says nothing and
+inherits the row; `<NumberField :readonly="false" />` says this one field is
+editable even though its row is not, and it is obeyed.
+
+**`name` posts the number, not the text on screen.** The spinbutton shows a
+formatted value — `1,234` for 1234 — so the name goes to a hidden control
+alongside it rather than onto the input itself. A form reading `width` gets
+`1234`.
+
 ## API
 
 <!-- @api NumberField -->

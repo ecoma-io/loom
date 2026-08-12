@@ -1,7 +1,8 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, type VNode } from "vue";
 import TimePicker from "./TimePicker.vue";
+import { provideFieldContext } from "../../lib/field-context";
 
 // Nothing here is portalled — there is no panel — so the jsdom stubs DatePicker
 // needs for Reka's dismiss layer and floating machinery have nothing to answer
@@ -55,6 +56,48 @@ function pressKey(el: EventTarget, key: string) {
   el.dispatchEvent(
     new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key, code: key }),
   );
+}
+
+/**
+ * The visually-hidden `<input>` Reka puts inside the field group — the element
+ * that carries the control's `id` and `name`, and the one a `<label for>` can
+ * name, a `role="group"` div not being labelable.
+ */
+function getFormInput(): HTMLInputElement {
+  const input = getField().querySelector("input");
+  if (!input) throw new Error("no form input rendered");
+  return input;
+}
+
+// A stand-in for the Field wrapping this control. Field's own behaviour — which
+// id it mints, when it publishes a description — is pinned in `Field.test.ts`;
+// what matters here is the other half, that this control reads a row at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountRow(rowProps: Record<string, unknown>, control: VNode) {
+  return mount(ProbeRow, { props: rowProps, slots: { default: control }, attachTo: document.body });
 }
 
 describe("TimePicker field", () => {
@@ -493,5 +536,152 @@ describe("TimePicker shape changes", () => {
     // re-reads the segments itself, so a field being retyped survives a locale
     // change with its focus intact.
     expect(segmentValues()).toEqual(["13", "30"]);
+  });
+});
+
+describe("TimePicker read-only", () => {
+  it("keeps a read-only field a Tab stop and its segments readable, where a disabled one is neither", async () => {
+    mountPicker({ modelValue: "09:30", hourCycle: 24, readonly: true });
+    await settle();
+
+    // The whole difference between the two states: a read-only time is a value
+    // on show and a reader still arrows across it to read it.
+    expect(getSegments().map((segment) => segment.getAttribute("tabindex"))).toEqual(["0", "-1"]);
+    expect(getField().hasAttribute("data-readonly")).toBe(true);
+    expect(segmentValues()).toEqual(["09", "30"]);
+  });
+
+  it("refuses the edit a read-only field is showing", async () => {
+    const wrapper = mountPicker({ modelValue: "09:30", hourCycle: 24, readonly: true });
+    await settle();
+
+    const minute = getSegment("minute");
+    minute.focus();
+    pressKey(minute, "ArrowUp");
+    await settle();
+
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+    expect(segmentValues()).toEqual(["09", "30"]);
+  });
+
+  it("shows a read-only field as filled rather than dimmed, so it does not read as unavailable", async () => {
+    const readOnly = mountPicker({ modelValue: "09:30", readonly: true });
+    await settle();
+    expect(getField().className).toContain("bg-muted");
+    expect(getField().className).not.toContain("opacity-50");
+    // Off the document before the next mount: `getField()` reads the first
+    // group in it, and two pickers at once would answer for each other.
+    readOnly.unmount();
+
+    mountPicker({ modelValue: "09:30", disabled: true });
+    await settle();
+    expect(getField().className).toContain("opacity-50");
+    expect(getField().className).not.toContain("bg-muted");
+    expect(getField().hasAttribute("data-readonly")).toBe(false);
+  });
+});
+
+describe("TimePicker inside a Field", () => {
+  it("takes its id, description, name, required and invalid state from the row it sits in", async () => {
+    mountRow(
+      {
+        controlId: "starts-at",
+        describedBy: "starts-at-description",
+        name: "startsAt",
+        required: true,
+        invalid: true,
+      },
+      h(TimePicker, { modelValue: "09:30" }),
+    );
+    await settle();
+
+    // `id` and `name` are declared props of Reka's root, so they reach the
+    // hidden input the field submits through — which is what makes the row's
+    // `<label for>` resolve to a labelable element.
+    expect(getFormInput().id).toBe("starts-at");
+    expect(getFormInput().name).toBe("startsAt");
+    // Everything announced belongs on the group, which a screen reader reads
+    // once on entering the field rather than once per segment. These are the
+    // keys Reka does *not* spell itself, so they survive its `$attrs`-first
+    // merge — the same merge that swallows a `data-invalid` passed in here.
+    const field = getField();
+    expect(field.getAttribute("aria-describedby")).toBe("starts-at-description");
+    expect(field.getAttribute("aria-required")).toBe("true");
+    expect(field.getAttribute("aria-invalid")).toBe("true");
+    expect(getSegments().some((segment) => segment.hasAttribute("aria-describedby"))).toBe(false);
+    expect(field.className).toContain("border-destructive");
+  });
+
+  it("takes disabled and readonly from the row, each with its own consequence", async () => {
+    const disabled = mountRow({ disabled: true }, h(TimePicker, { modelValue: "09:30" }));
+    await settle();
+    expect(getSegments().some((segment) => segment.hasAttribute("tabindex"))).toBe(false);
+    expect(getField().className).toContain("opacity-50");
+    disabled.unmount();
+
+    mountRow({ readonly: true }, h(TimePicker, { modelValue: "09:30" }));
+    await settle();
+    expect(getField().hasAttribute("data-readonly")).toBe(true);
+    expect(getSegments().some((segment) => segment.hasAttribute("tabindex"))).toBe(true);
+  });
+
+  it("lets an explicit prop overrule the row in both directions", async () => {
+    const optedOut = mountRow(
+      { invalid: true, required: true, disabled: true, readonly: true },
+      h(TimePicker, {
+        modelValue: "09:30",
+        invalid: false,
+        required: false,
+        disabled: false,
+        readonly: false,
+      }),
+    );
+    await settle();
+    expect(getField().getAttribute("aria-invalid")).toBeNull();
+    expect(getField().getAttribute("aria-required")).toBeNull();
+    expect(getField().hasAttribute("data-readonly")).toBe(false);
+    expect(getSegments().some((segment) => segment.hasAttribute("tabindex"))).toBe(true);
+    optedOut.unmount();
+
+    mountRow({}, h(TimePicker, { modelValue: "09:30", invalid: true, required: true }));
+    await settle();
+    expect(getField().getAttribute("aria-invalid")).toBe("true");
+    expect(getField().getAttribute("aria-required")).toBe("true");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", async () => {
+    mountRow(
+      { describedBy: "starts-at-description" },
+      h(TimePicker, { modelValue: "09:30", "aria-describedby": "shift-rules" }),
+    );
+    await settle();
+
+    expect(getField().getAttribute("aria-describedby")).toBe("shift-rules starts-at-description");
+  });
+
+  it("keeps the caller's own id and name ahead of the row's", async () => {
+    mountRow(
+      { controlId: "row-id", name: "row-name" },
+      h(TimePicker, { modelValue: "09:30", id: "mine", name: "mine" }),
+    );
+    await settle();
+
+    // The row's generated id clobbering the caller's would break their
+    // `<label for>`, their selectors and browser autofill all at once.
+    expect(getFormInput().id).toBe("mine");
+    expect(getFormInput().name).toBe("mine");
+  });
+
+  it("renders exactly what it renders outside a Field when there is no row above it", async () => {
+    mountPicker({ modelValue: "09:30" });
+    await settle();
+
+    const field = getField();
+    expect(field.hasAttribute("aria-describedby")).toBe(false);
+    expect(field.hasAttribute("aria-required")).toBe(false);
+    expect(field.hasAttribute("aria-invalid")).toBe(false);
+    expect(field.hasAttribute("data-readonly")).toBe(false);
+    expect(getFormInput().hasAttribute("id")).toBe(false);
+    expect(getFormInput().hasAttribute("name")).toBe(false);
   });
 });

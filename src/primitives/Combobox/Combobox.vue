@@ -56,7 +56,7 @@ export const comboboxVariants = cva(
 </script>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import {
   ComboboxRoot,
   ComboboxAnchor,
@@ -73,6 +73,7 @@ import { Check, ChevronDown } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { listStaggerDelay } from "../../lib/motion";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
 
 /**
@@ -94,6 +95,20 @@ import { optional } from "../../lib/props";
  * `aria-activedescendant` while real focus stays in the input. That last part
  * is the one genuine behavioural difference from Select, which moves focus
  * onto the row itself — a combobox cannot, because the reader is still typing.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself: the row's id, the id of
+ * its hint or error line, `required`, `invalid`, `disabled` and the name the
+ * chosen value is submitted under all arrive through `useFieldControl()`, so
+ * `<Field label="Country" error="…"><Combobox … /></Field>` needs no attributes
+ * at the call site. Both booleans below still win over the row when they are
+ * set, in both directions — which is why they default to `undefined` rather
+ * than `false`.
+ *
+ * A row's `readonly` is deliberately ignored. The text in the box is not the
+ * value — it is the chosen option's label, rewritten on every choice — so a
+ * `readonly` input here would freeze a caption rather than protect a value,
+ * while the list underneath still opened on click. A choice nobody may change
+ * is a disabled Combobox, or the label rendered as text.
  */
 const props = withDefaults(
   defineProps<{
@@ -105,10 +120,10 @@ const props = withDefaults(
     placeholder?: string;
     /** Shown as a row of its own when the filter matches nothing. */
     emptyMessage?: string;
-    /** Unavailable: dims the control, refuses to open and refuses to take text. */
-    disabled?: boolean;
-    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. */
-    invalid?: boolean;
+    /** Unavailable: dims the control, refuses to open and refuses to take text. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
+    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. Unset defers to a wrapping Field's `error`. */
+    invalid?: boolean | undefined;
     /** Control height. It shares the text input scale so mixed form rows stay aligned. */
     size?: ComboboxSize;
     /**
@@ -125,8 +140,13 @@ const props = withDefaults(
     // reachable, instead of pinning the control to a value nobody chose.
     modelValue: undefined,
     emptyMessage: "No results",
-    disabled: false,
-    invalid: false,
+    // Not `false`, for either. `false` is a caller saying "this control is fine
+    // / enabled even though its row is not"; absent is a caller saying nothing,
+    // and only `undefined` survives to mean that past Vue's
+    // absent-Boolean-casts-to-false rule — see TextField.vue, which carries the
+    // full reasoning.
+    disabled: undefined,
+    invalid: undefined,
     size: "md",
     filter: true,
   },
@@ -192,6 +212,37 @@ function onQuery(text: string): void {
 // happened to emit last.
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: inputAttrs } = useSplitAttrs();
+
+// `id` and `aria-describedby` reach this control as fallthrough attrs rather
+// than props, so they are read off `attrs` and handed in as this caller's own
+// values — a caller who sets either still beats the row, and the row's
+// description is merged into theirs rather than replacing it. `name`,
+// `readonly` and `required` are absent from this object because there is no
+// prop to oppose the row with; the row's answer stands unopposed, which is
+// what is wanted.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  disabled: props.disabled,
+  invalid: props.invalid,
+}));
+
+// `name` is the one resolved key that does not travel with the bag, and here
+// it is a defect rather than a nicety: the bag lands on the input, and what
+// the input holds is the chosen option's *label*. A `name` on it would post
+// "Viet Nam" where the model carries `vn`. Reka submits the value itself
+// through a hidden control it renders from the root's own `name`, so that is
+// where the row's name goes. Everything else in the bag — the id, the merged
+// description, `aria-required`, `aria-invalid` — belongs on the
+// `role="combobox"` node, which is the input.
+const inputFieldAttrs = computed(() => {
+  // Removed from a copy rather than listed positively, so a key added to the
+  // resolved bag later reaches this input without anyone remembering to come
+  // back here.
+  const aria: Record<string, unknown> = { ...field.attrs };
+  delete aria.name;
+  return aria;
+});
 </script>
 
 <template>
@@ -200,32 +251,31 @@ const { attrs, rest: inputAttrs } = useSplitAttrs();
        intent, and a list that unfolds over the next field every time someone
        tabs through a form is an obstruction. Typing opens it either way. -->
   <ComboboxRoot
-    v-bind="optional({ modelValue })"
-    :disabled="disabled"
+    v-bind="optional({ modelValue, name: field.name })"
+    :disabled="field.disabled"
     :ignore-filter="!filter"
     open-on-click
     @update:model-value="$emit('update:modelValue', String($event))"
     @update:open="revealing = true"
   >
     <ComboboxAnchor
-      :data-disabled="disabled || undefined"
-      :data-invalid="invalid || undefined"
+      :data-disabled="field.disabled || undefined"
+      :data-invalid="field.invalid || undefined"
       :class="
         cn(
           comboboxVariants({ size }),
-          !invalid && 'focus-within:shadow-halo',
-          invalid && 'border-destructive focus-within:outline-destructive',
-          disabled && 'cursor-not-allowed opacity-50',
+          !field.invalid && 'focus-within:shadow-halo',
+          field.invalid && 'border-destructive focus-within:outline-destructive',
+          field.disabled && 'cursor-not-allowed opacity-50',
           attrs.class as string,
         )
       "
     >
       <ComboboxInput
-        v-bind="inputAttrs"
+        v-bind="{ ...inputAttrs, ...inputFieldAttrs }"
         :model-value="query"
         :display-value="displayValue"
         :placeholder="placeholder"
-        :aria-invalid="invalid || undefined"
         class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
         @update:model-value="onQuery"
       />

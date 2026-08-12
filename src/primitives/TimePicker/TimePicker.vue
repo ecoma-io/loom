@@ -5,6 +5,7 @@ import { Clock } from "@lucide/vue";
 import { parseTime } from "@internationalized/date";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
 
 /**
@@ -39,6 +40,16 @@ import { optional } from "../../lib/props";
  * pair would quietly call 01:00 out of range for the exact case it was reached
  * for. A window like that belongs to the host, which knows which day each end
  * is on.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself through
+ * `useFieldControl()` — the row's id, the id of its hint or error line, and
+ * `required` / `invalid` / `disabled` / `readonly` / `name` — so `<Field
+ * label="Starts at" error="…"><TimePicker /></Field>` needs no attributes at the
+ * call site. Every prop below still wins over the row when it is set, in both
+ * directions, which is why the four booleans default to `undefined` rather than
+ * `false`. `readonly` and `disabled` are different states: read-only is a time
+ * on show — still a Tab stop, still submitted, filled rather than dimmed —
+ * where disabled is unavailable.
  */
 const props = withDefaults(
   defineProps<{
@@ -61,12 +72,29 @@ const props = withDefaults(
     granularity?: "hour" | "minute" | "second";
     /** BCP 47 tag driving the order of the segments, the separator between them, and the 12-or-24-hour default. */
     locale?: string;
-    /** Unavailable: dims the control and takes the field out of the tab order. */
-    disabled?: boolean;
-    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. */
-    invalid?: boolean;
+    /** Unavailable: dims the control and takes the field out of the tab order. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
+    /** Shows the time without allowing an edit: the field stays a Tab stop, stays submitted, and is filled rather than dimmed. Unset defers to a wrapping Field. */
+    readonly?: boolean | undefined;
+    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. Unset defers to a wrapping Field's `error`. */
+    invalid?: boolean | undefined;
+    /** Marks the field mandatory to assistive tech (`aria-required` on the segment group). Unset defers to a wrapping Field. */
+    required?: boolean | undefined;
+    /** The field name for a native form post or `FormData`, carried on the hidden input Reka submits the time through. Unset defers to a wrapping Field. */
+    name?: string;
   }>(),
-  { granularity: "minute", locale: "en", disabled: false, invalid: false },
+  {
+    granularity: "minute",
+    locale: "en",
+    // Not `false`, for any of the four — TextField.vue carries the full
+    // reasoning: `false` is a caller's decision that must beat the row, absent
+    // is a caller saying nothing, and only `undefined` survives to mean that
+    // past Vue's absent-Boolean-casts-to-false rule.
+    disabled: undefined,
+    readonly: undefined,
+    invalid: undefined,
+    required: undefined,
+  },
 );
 
 const emit = defineEmits<{
@@ -91,6 +119,36 @@ const emit = defineEmits<{
 // and silently do nothing.
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: fieldAttrs } = useSplitAttrs();
+
+// `id` and `aria-describedby` reach this control as fallthrough attrs rather
+// than props, so they are handed in as this caller's own values: a caller who
+// sets either still beats the row, and the row's description is merged into
+// theirs rather than replacing it. `field.attrs` then spreads onto
+// `TimeFieldRoot` **after** `fieldAttrs`, which is the node both were already
+// landing on.
+//
+// **Where each key ends up was checked rather than assumed**, given what the
+// note above says about attributes this node overwrites. The set Reka spells
+// itself is `role`, `aria-disabled`, `data-disabled`, `data-readonly`,
+// `data-invalid` and `dir`, and `field.attrs` spells none of them:
+// `aria-describedby`, `aria-required` and `aria-invalid` are undeclared and land
+// on the `role="group"` as intended, while `id` and `name` are declared props
+// and land on the visually-hidden `<input>` the field submits through — which is
+// the element a `<label for>` can actually name, a `role="group"` div not being
+// labelable.
+//
+// The `:aria-invalid` binding that used to sit on the root is gone with it: an
+// individual attribute written after a `v-bind` wins, so keeping one would
+// overwrite the resolved value with the raw prop.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  name: props.name,
+  disabled: props.disabled,
+  readonly: props.readonly,
+  invalid: props.invalid,
+  required: props.required,
+}));
 
 function fromClock(value: string | undefined): TimeValue | undefined {
   if (!value) return undefined;
@@ -140,7 +198,9 @@ function onTimeChange(time: TimeValue | undefined) {
 const focusedPart = ref<string>();
 
 function segmentTabIndex(part: string, segments: readonly { part: string }[]): number | undefined {
-  if (props.disabled || part === "literal") return undefined;
+  // Read-only keeps every stop it had, unlike disabled: the time is on show and
+  // a reader still arrows across the segments to read it.
+  if (field.disabled || part === "literal") return undefined;
   const editable = segments.filter((segment) => segment.part !== "literal");
   // The remembered segment is dropped when a granularity or locale change takes
   // it away — a field whose only tab stop is a seconds segment that no longer
@@ -195,11 +255,11 @@ function hourAnnouncement(
   <TimeFieldRoot
     :key="shape"
     v-slot="{ segments }"
-    v-bind="{ ...rootValue, ...fieldAttrs }"
+    v-bind="{ ...rootValue, ...fieldAttrs, ...field.attrs }"
     :locale="locale"
     :granularity="granularity"
-    :disabled="disabled"
-    :aria-invalid="invalid || undefined"
+    :disabled="field.disabled"
+    :readonly="field.readonly"
     :class="
       cn(
         // The text input's own height scale, so a time sitting in a form row
@@ -212,9 +272,14 @@ function hourAnnouncement(
         // instead of a second outline, exactly as DatePicker's field does — a
         // ring drawn inside a ring reads as a rendering fault.
         'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
-        !invalid && 'focus-within:shadow-halo',
-        invalid && 'border-destructive focus-within:outline-destructive',
-        disabled && 'cursor-not-allowed opacity-50',
+        !field.invalid && 'focus-within:shadow-halo',
+        field.invalid && 'border-destructive focus-within:outline-destructive',
+        // Filled rather than dimmed, and it keeps its focus ring: a read-only
+        // time is a value on show, not an unavailable control, and the two must
+        // not look alike. Reka's own `data-readonly` on this node carries the
+        // same state to assistive tech, so nothing here rests on colour.
+        field.readonly && 'bg-muted',
+        field.disabled && 'cursor-not-allowed opacity-50',
         attrs.class as string,
       )
     "

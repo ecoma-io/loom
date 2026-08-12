@@ -1,7 +1,40 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import Rating from "./Rating.vue";
+import { provideFieldContext } from "../../lib/field-context";
+
+// A stand-in for the Field wrapping this control. Field's own behaviour is
+// pinned in `Field.test.ts`; what matters here is that the rating reads a row
+// it is inside at all.
+//
+// It renders a real `<form>` because that is the only place Reka mints the
+// hidden input carrying `name`: outside one, a resolved name has nowhere
+// observable to land, and a test that could not see it would pass with the key
+// dropped.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("form", slots.default?.());
+  },
+});
 
 // Reka's roving-focus machinery schedules its own follow-up work on real
 // timers — the focus listener that arms on the *next* arrow keypress, and the
@@ -288,5 +321,99 @@ describe("Rating", () => {
       attrs: { "aria-label": "Average" },
     });
     expect(wrapper.get('[role="img"]').attributes("aria-label")).toBe("4 of 5 stars");
+  });
+});
+
+describe("Rating inside a Field", () => {
+  it("takes its id, description, name, required and invalid state from the row it sits in", () => {
+    const row = mount(ProbeRow, {
+      props: {
+        controlId: "quality",
+        describedBy: "quality-description",
+        name: "quality",
+        required: true,
+        invalid: true,
+      },
+      slots: { default: h(Rating, { modelValue: 3 }) },
+    });
+    const group = row.get('[role="radiogroup"]');
+    expect(group.attributes("id")).toBe("quality");
+    expect(group.attributes("aria-describedby")).toBe("quality-description");
+    expect(group.attributes("aria-required")).toBe("true");
+    expect(group.attributes("aria-invalid")).toBe("true");
+    expect((row.get('input[name="quality"]').element as HTMLInputElement).value).toBe("3");
+  });
+
+  it("lets an explicit disabled overrule the row in both directions", () => {
+    const optedOut = mount(ProbeRow, {
+      props: { disabled: true },
+      slots: { default: h(Rating, { modelValue: 3, disabled: false }) },
+    });
+    expect(optedOut.get('[role="radiogroup"]').attributes("data-disabled")).toBeUndefined();
+
+    const optedIn = mount(ProbeRow, {
+      slots: { default: h(Rating, { modelValue: 3, disabled: true }) },
+    });
+    expect(optedIn.get('[role="radiogroup"]').attributes("data-disabled")).toBeDefined();
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mount(ProbeRow, {
+      props: { describedBy: "quality-description" },
+      slots: { default: h(Rating, { modelValue: 3, "aria-describedby": "quality-caveat" }) },
+    });
+    expect(row.get('[role="radiogroup"]').attributes("aria-describedby")).toBe(
+      "quality-caveat quality-description",
+    );
+  });
+
+  // The row's read-only is this control's own read-only, not a second dial
+  // beside it: the score becomes a picture, and a picture is not dimmed.
+  it("renders the picture, not a dimmed input, for a read-only row", () => {
+    const row = mount(ProbeRow, {
+      props: { readonly: true, controlId: "score", describedBy: "score-description" },
+      slots: { default: h(Rating, { modelValue: 4.2 }) },
+    });
+    const picture = row.get('[role="img"]');
+    expect(picture.attributes("aria-label")).toBe("4.2 of 5 stars");
+    expect(picture.classes()).not.toContain("opacity-50");
+    expect(row.find('[role="radiogroup"]').exists()).toBe(false);
+    expect(row.find('[role="radio"]').exists()).toBe(false);
+
+    // The two keys a picture may carry, and the two it may not: ARIA allows
+    // neither `aria-required` nor a form name on `role="img"`, and axe's
+    // `aria-allowed-attr` fails a page that ships one.
+    expect(picture.attributes("id")).toBe("score");
+    expect(picture.attributes("aria-describedby")).toBe("score-description");
+    expect(picture.attributes("aria-required")).toBeUndefined();
+    expect(picture.attributes("name")).toBeUndefined();
+  });
+
+  it("lets an explicit readonly overrule the row in both directions", () => {
+    const optedOut = mount(ProbeRow, {
+      props: { readonly: true },
+      slots: { default: h(Rating, { modelValue: 3, readonly: false, "aria-label": "Quality" }) },
+    });
+    expect(optedOut.find('[role="radiogroup"]').exists()).toBe(true);
+
+    const optedIn = mount(ProbeRow, {
+      slots: { default: h(Rating, { modelValue: 3, readonly: true }) },
+    });
+    expect(optedIn.find('[role="img"]').exists()).toBe(true);
+  });
+
+  // Every key that resolved to nothing is dropped from the bag, so a rating
+  // with no row above it renders exactly what it rendered before the context
+  // existed.
+  it("outside any Field adds nothing of its own", () => {
+    const wrapper = mount(Rating, { props: { modelValue: 3 }, attrs: { "aria-label": "Quality" } });
+    const group = wrapper.get('[role="radiogroup"]');
+    for (const attribute of ["id", "name", "aria-describedby", "aria-invalid"]) {
+      expect(group.attributes(attribute)).toBeUndefined();
+    }
+    // Reka has always written this one from its own `required` prop, and an
+    // unwrapped rating resolves that prop to `false` exactly as it did before.
+    expect(group.attributes("aria-required")).toBe("false");
+    expect(wrapper.find("input").exists()).toBe(false);
   });
 });

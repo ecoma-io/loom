@@ -44,6 +44,7 @@ import { CloudUpload, File as FileIcon, TriangleAlert, X } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { listStaggerDelay } from "../../lib/motion";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 
 /**
  * FileUpload — choosing files, and nothing else. A drop zone that is also a
@@ -70,6 +71,20 @@ import { useSplitAttrs } from "../../lib/attrs";
  * replacing it: a reader who drops two files and then a third means three, and
  * the native input's replace-everything behaviour is the surprise. Without
  * `multiple` the newest choice replaces the old one, exactly as the input does.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself through
+ * `useFieldControl()`: the row's id lands on the input (and on the `<label>`'s
+ * `for`, so the zone keeps activating it), and the row's `name`, `required`,
+ * `invalid` and the id of its hint or error line arrive with it. The row's
+ * description is **merged** with this control's own refusal message rather than
+ * replacing it — a file turned away for being too large has to keep saying so.
+ *
+ * There is no `readonly`, and a row's is ignored rather than approximated.
+ * `readonly` is inert on `<input type="file">` in every browser, for the reason
+ * it is inert on a checkbox: there is no text to protect, only a dialog to
+ * open. A zone that may be read but not added to is a disabled zone above a
+ * list — and the list, which is where the value actually is, stays readable
+ * either way.
  */
 const props = withDefaults(
   defineProps<{
@@ -81,10 +96,10 @@ const props = withDefaults(
     multiple?: boolean;
     /** Largest file accepted, in bytes. A file over it is refused and named in the message. */
     maxSize?: number;
-    /** Unavailable: dims the zone, refuses the dialog, the drop and every remove button. */
-    disabled?: boolean;
-    /** Error state: paints the destructive border and ring, and sets `aria-invalid` on the input. */
-    invalid?: boolean;
+    /** Unavailable: dims the zone, refuses the dialog, the drop and every remove button. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
+    /** Error state: paints the destructive border and ring, and sets `aria-invalid` on the input. Unset defers to a wrapping Field's `error`. */
+    invalid?: boolean | undefined;
     /** The zone's own line of copy, which is also the input's accessible name. Defaults to wording that matches `multiple`. */
     label?: string;
     /** The smaller line under it. Defaults to the `maxSize` limit, spelled out, when there is one. */
@@ -98,8 +113,13 @@ const props = withDefaults(
     // preserve for the Reka-backed primitives.
     modelValue: undefined,
     multiple: false,
-    disabled: false,
-    invalid: false,
+    // Not `false`, for either. `false` is a caller saying "this zone is fine /
+    // enabled even though its row is not"; absent is a caller saying nothing,
+    // and only `undefined` survives to mean that past Vue's
+    // absent-Boolean-casts-to-false rule — see TextField.vue, which carries the
+    // full reasoning.
+    disabled: undefined,
+    invalid: undefined,
   },
 );
 
@@ -118,10 +138,10 @@ const emit = defineEmits<{
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: inputAttrs } = useSplitAttrs();
 
-// The label's `for` needs the input's id, and a caller passing their own id
-// must not end up with a label pointing at nothing.
+// The label's `for` needs the input's id, and a caller passing their own id —
+// or a Field row publishing one — must not end up with a label pointing at
+// nothing. `inputId` is resolved from `field` at the foot of this block.
 const generatedId = useId();
-const inputId = computed(() => (attrs.id as string | undefined) ?? generatedId);
 const messageId = useId();
 
 const ownFiles = ref<File[]>([]);
@@ -184,7 +204,7 @@ function commit(next: File[]): void {
 
 /** Runs the offered files past every rule, keeping what passes and reporting the rest. */
 function add(incoming: File[]): void {
-  if (props.disabled) return;
+  if (field.disabled) return;
 
   const current = files.value;
   const kept = props.multiple ? [...current] : [];
@@ -215,7 +235,7 @@ function add(incoming: File[]): void {
 }
 
 function remove(index: number): void {
-  if (props.disabled) return;
+  if (field.disabled) return;
   // The message named files from the last selection. Once the reader edits the
   // list themselves it no longer describes anything on screen, and an error
   // sitting under a list somebody is actively fixing reads as an error about
@@ -247,7 +267,7 @@ function onSelect(event: Event): void {
  * drag that began outside the document — which is every drag this zone sees.
  */
 const dragDepth = ref(0);
-const dragging = computed(() => dragDepth.value > 0 && !props.disabled);
+const dragging = computed(() => dragDepth.value > 0 && !field.disabled);
 
 function onDragEnter(): void {
   dragDepth.value += 1;
@@ -262,7 +282,7 @@ function onDragOver(event: DragEvent): void {
   // "navigate to it" — the drop never reaches the zone and the page is gone.
   // Setting dropEffect is what makes the cursor say copy rather than move.
   event.preventDefault();
-  if (event.dataTransfer) event.dataTransfer.dropEffect = props.disabled ? "none" : "copy";
+  if (event.dataTransfer) event.dataTransfer.dropEffect = field.disabled ? "none" : "copy";
 }
 
 function onDrop(event: DragEvent): void {
@@ -318,6 +338,35 @@ const message = computed(() => {
   const limit = props.maxSize === undefined ? "the size limit" : formatBytes(props.maxSize);
   return rejections.value.map((rejection) => describe(rejection, limit)).join(" ");
 });
+
+// The Field wiring sits here, below `message`, because it reads it: this is the
+// one control in the family that already had something of its own to say about
+// itself, so its `describedBy` is a *merge* and not a hand-over. Its refusal
+// message reads first — a file turned away for being too large is the most
+// specific thing there is to say — then whatever the caller pointed at, then
+// the row's hint or error, which `useFieldControl` appends. Replacing rather
+// than merging at either end is how a rejection stops being announced.
+//
+// The condition is `message` itself, not `rejections`, so the id can never
+// point at a `<p>` the template has not rendered.
+//
+// `name` and `required` are absent from the object because this component has
+// no prop for either: the row's answer stands unopposed, and its `name` reaches
+// the real `<input type="file">`, which is what a `<form>` posts. `readonly` is
+// absent for the reason the docblock gives.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: [message.value.length > 0 ? messageId : undefined, attrs["aria-describedby"]]
+    .filter((id): id is string => typeof id === "string" && id.length > 0)
+    .join(" "),
+  disabled: props.disabled,
+  invalid: props.invalid,
+}));
+
+// `field.id` is the caller's own id, then the row's; the generated one is the
+// floor beneath both, because the `<label for>` and the input have to agree on
+// an id whether or not anybody supplied one.
+const inputId = computed(() => field.id ?? generatedId);
 </script>
 
 <template>
@@ -332,8 +381,8 @@ const message = computed(() => {
     <label
       :for="inputId"
       :data-dragging="dragging || undefined"
-      :data-invalid="invalid || undefined"
-      :data-disabled="disabled || undefined"
+      :data-invalid="field.invalid || undefined"
+      :data-disabled="field.disabled || undefined"
       :class="
         cn(
           'flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-6 py-8 text-center',
@@ -345,11 +394,11 @@ const message = computed(() => {
           // nothing. The zone wears the ring on its behalf, the same
           // focus-within arrangement TextField uses for its own inner input.
           'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
-          !invalid && 'focus-within:shadow-halo',
+          !field.invalid && 'focus-within:shadow-halo',
           // The dash going solid is what keeps the drag state off colour alone.
           'data-[dragging]:border-solid data-[dragging]:border-primary data-[dragging]:bg-primary-muted',
-          invalid && 'border-destructive focus-within:outline-destructive',
-          disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-subtle',
+          field.invalid && 'border-destructive focus-within:outline-destructive',
+          field.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-subtle',
         )
       "
       @dragenter="onDragEnter"
@@ -357,15 +406,26 @@ const message = computed(() => {
       @dragover="onDragOver"
       @drop="onDrop"
     >
+      <!-- `field.attrs` spreads **after** the fallthrough attrs, and that
+           position is the contract (see TextField.vue): the bag has already
+           resolved the caller's own id and merged their description with this
+           zone's refusal message and the row's hint, and it drops every key
+           that resolved to nothing, so it can only add. The `:aria-invalid` and
+           `:aria-describedby` bindings that used to sit here went with it — an
+           individual attribute written after a `v-bind` wins, so either one
+           kept would overwrite the resolved value with the raw prop.
+
+           `:id` is the deliberate exception, and not that failure: `inputId` is
+           the bag's own id with the generated one beneath it, so it can only
+           ever restate what the bag holds or supply the id the `<label for>`
+           needs when the bag holds none. -->
       <input
+        v-bind="{ ...inputAttrs, ...field.attrs }"
         :id="inputId"
-        v-bind="inputAttrs"
         type="file"
         :accept="accept"
         :multiple="multiple"
-        :disabled="disabled"
-        :aria-invalid="invalid || undefined"
-        :aria-describedby="message.length > 0 ? messageId : undefined"
+        :disabled="field.disabled"
         class="sr-only"
         @change="onSelect"
       />
@@ -414,7 +474,7 @@ const message = computed(() => {
         <button
           type="button"
           :aria-label="`Remove ${file.name}`"
-          :disabled="disabled"
+          :disabled="field.disabled"
           class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed disabled:opacity-50"
           @click="remove(index)"
         >

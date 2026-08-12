@@ -1,8 +1,36 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { ColorAreaRoot, ColorFieldRoot, ColorSliderRoot, ColorSwatchPickerRoot } from "reka-ui";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import ColorPicker from "./ColorPicker.vue";
+import { provideFieldContext } from "../../lib/field-context";
+
+// A stand-in for the Field wrapping this control. Field's own behaviour is
+// pinned in `Field.test.ts`; what matters here is that the picker reads a row
+// it is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("form", slots.default?.());
+  },
+});
 
 // Reka is the real thing under test here, so the browser APIs it reads are
 // stubbed to the shape it expects rather than mocked around: the hue slider's
@@ -382,5 +410,89 @@ describe("ColorPicker attribute routing", () => {
     const group = wrapper.get('[role="group"]');
     expect(group.attributes("data-testid")).toBe("brand");
     expect(group.attributes("aria-describedby")).toBe("hint");
+  });
+});
+
+describe("ColorPicker inside a Field", () => {
+  function mountRow(props: Record<string, unknown>, pickerProps: Record<string, unknown> = {}) {
+    return mount(ProbeRow, {
+      props,
+      slots: { default: h(ColorPicker, { modelValue: "#3366cc", ...pickerProps }) },
+      attachTo: document.body,
+    });
+  }
+
+  it("takes the row's id and description onto the group, which is what the row is about", () => {
+    const row = mountRow({ controlId: "brand", describedBy: "brand-description" });
+    const group = row.get('[role="group"]');
+    expect(group.attributes("id")).toBe("brand");
+    expect(group.attributes("aria-describedby")).toBe("brand-description");
+  });
+
+  // `aria-required` and a form name are not allowed on `role="group"` — axe's
+  // `aria-allowed-attr` is a WCAG 4.1.2 rule the docs gate runs — so they land
+  // on the hex field, which is the picker's one real form control.
+  it("takes the row's name, required and invalid onto the hex field, never onto the group", () => {
+    const row = mountRow({ name: "brand", required: true, invalid: true });
+    const group = row.get('[role="group"]');
+    for (const attribute of ["name", "aria-required", "aria-invalid"]) {
+      expect(group.attributes(attribute)).toBeUndefined();
+    }
+
+    const hex = row.get<HTMLInputElement>('input[aria-label="Hex value"]');
+    // The field holds exactly the `#rrggbb` this component emits, so the name
+    // posts the model value itself rather than a formatted spelling of it.
+    expect(hex.element.name).toBe("brand");
+    expect(hex.element.value).toBe("#3366cc");
+    expect(hex.attributes("aria-required")).toBe("true");
+    expect(hex.attributes("aria-invalid")).toBe("true");
+  });
+
+  it("lets an explicit disabled overrule the row in both directions", () => {
+    const optedOut = mountRow({ disabled: true }, { disabled: false });
+    expect(optedOut.get('[role="group"]').attributes("aria-disabled")).toBeUndefined();
+    expect(optedOut.get<HTMLInputElement>('input[aria-label="Hex value"]').element.disabled).toBe(
+      false,
+    );
+
+    const optedIn = mountRow({}, { disabled: true });
+    expect(optedIn.get('[role="group"]').attributes("aria-disabled")).toBe("true");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mount(ProbeRow, {
+      props: { describedBy: "brand-description" },
+      slots: {
+        default: h(ColorPicker, { modelValue: "#3366cc", "aria-describedby": "brand-caveat" }),
+      },
+      attachTo: document.body,
+    });
+    expect(row.get('[role="group"]').attributes("aria-describedby")).toBe(
+      "brand-caveat brand-description",
+    );
+  });
+
+  // None of the four parts has a read-only state, so a row's must arrive as
+  // nothing at all — and above all must not quietly become `disabled`.
+  it("ignores a row's readonly rather than approximating it", () => {
+    const row = mountRow({ readonly: true });
+    expect(row.get('[role="group"]').attributes("aria-disabled")).toBeUndefined();
+    expect(row.get('[role="group"]').attributes("aria-readonly")).toBeUndefined();
+    expect(row.get<HTMLInputElement>('input[aria-label="Hex value"]').element.readOnly).toBe(false);
+  });
+
+  // Every key that resolved to nothing is dropped from the bag, so a picker
+  // with no row above it renders exactly what it rendered before the context
+  // existed.
+  it("outside any Field adds nothing of its own", () => {
+    const wrapper = mountPicker({}, { "aria-label": "Label colour" });
+    const group = wrapper.get('[role="group"]');
+    for (const attribute of ["id", "name", "aria-describedby", "aria-required", "aria-invalid"]) {
+      expect(group.attributes(attribute)).toBeUndefined();
+    }
+    const hex = wrapper.get<HTMLInputElement>('input[aria-label="Hex value"]');
+    expect(hex.attributes("name")).toBeUndefined();
+    expect(hex.attributes("aria-required")).toBeUndefined();
+    expect(hex.attributes("aria-invalid")).toBeUndefined();
   });
 });

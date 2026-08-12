@@ -143,6 +143,37 @@ carries `aria-disabled` so the state is announced rather than only seen.
   </div>
 </Demo>
 
+## Inside a Field
+
+A [Field](./field) publishes what the row knows, and the picker takes it —
+across two nodes, because no single one of the four controls _is_ the picker.
+The row's id and the id of its hint or error line land on the group, which is
+what a description is about. Its `name`, `required` and `invalid` land on the
+**hex field**: ARIA allows neither `aria-required` nor a form name on a
+`role="group"`, and the hex field is the picker's one real form control — a
+native input holding exactly the `#rrggbb` this component emits, so the name
+posts the value itself rather than a formatted spelling of it.
+
+```vue
+<Field label="Brand colour" hint="Used on every badge" name="brand">
+  <ColorPicker v-model="brand" :swatches="palette" aria-label="Brand colour" />
+</Field>
+```
+
+**A row's label does not name the picker.** `<label for>` names a labelable
+element and this renders a `div[role="group"]`, so the row's label resolves to
+it and announces nobody. Keep the `aria-label` — or point `aria-labelledby` at
+your own visible text — exactly as you would outside a row.
+
+`disabled` still wins wherever you set it, in both directions, which is why it
+is `boolean | undefined` and defaults to `undefined` rather than `false`.
+
+There is no `readonly`, and a row's is ignored rather than approximated. A
+colour that may be looked at but not changed is a swatch — the one beside the
+hex value already is one — and none of the four parts has a read-only state to
+put it in, so the choice was between a picker that looks live and swallows every
+gesture, and none at all.
+
 ## API
 
 <!-- @api ColorPicker -->

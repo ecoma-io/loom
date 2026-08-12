@@ -30,6 +30,7 @@ const sprint = ref("2026-03-16");
 const shipped = ref("2026-03-18");
 const locked = ref("2026-01-01");
 const overdue = ref("2026-04-02");
+const signed = ref("2026-02-02");
 </script>
 
 ## Usage
@@ -129,6 +130,69 @@ whichever control it holds.
     <DatePicker v-model="overdue" max="2026-03-27" invalid aria-label="Overdue date" />
   </div>
 </Demo>
+
+## Read-only
+
+A date on show that cannot be edited is a genuine state, and it is not the same
+one as disabled. A read-only DatePicker stays a Tab stop, keeps its segments
+readable and arrow-navigable, stays in the form's submitted data, and is filled
+rather than dimmed — Reka marks it `data-readonly` for assistive tech, so the
+state never rests on the fill alone. A disabled one is unavailable: no Tab stop,
+dimmed, nothing submitted. Reaching for `disabled` to show a date nobody may
+change tells a screen reader the field is unavailable when it is simply not
+editable.
+
+The calendar button is **dropped** while read-only rather than disabled beside a
+field that is plainly still alive. A read-only calendar is one where every day
+answers a click with nothing, and a button opening a panel that can choose
+nothing is a dead end wearing the costume of a working control.
+
+<Demo title="Read-only against disabled">
+  <div class="flex w-full max-w-xs flex-col gap-3">
+    <DatePicker v-model="signed" name="signedOn" readonly aria-label="Signed on (read-only)" />
+    <DatePicker v-model="locked" disabled aria-label="Created on (disabled)" />
+  </div>
+</Demo>
+
+## Required and name
+
+`required` sets `aria-required` on the segment group and nothing else. It
+deliberately does not set the native `required` attribute on the input the
+control submits through: that would begin blocking form submissions in
+applications that upgrade without changing a line, and it opens a browser-styled
+validation bubble no design system controls. Telling assistive technology the
+field is mandatory is the accessibility fix; enforcing it stays your form's
+decision.
+
+`name` is the key the date posts under. A segmented field has no single native
+input a browser could submit, so Reka carries the value on a visually hidden one
+inside the group — that is the element `name` lands on, and the element a
+`<label for>` can name.
+
+## Inside a Field
+
+Wrapped in a [Field](./field), DatePicker wires itself: the row's id, the id of
+its hint or error line, and `required`, `invalid`, `disabled`, `readonly` and
+`name` all arrive from the row, so nothing is written at the call site.
+
+```vue
+<Field label="Due date" name="due" error="Pick a day inside the sprint" required>
+  <DatePicker v-model="due" min="2026-03-02" max="2026-03-27" />
+</Field>
+```
+
+Every one of those props still wins when you set it, in both directions — which
+is why `invalid`, `required`, `disabled` and `readonly` are `boolean | undefined`
+and default to `undefined` rather than `false`. `<DatePicker />` says nothing and
+inherits the row; `<DatePicker :invalid="false" />` says this one field is fine
+even though its row is not, and it is obeyed.
+
+Where the row's answers land is worth knowing, because a date field is not one
+element. `id` and `name` reach the hidden input described above; the row's
+description, `aria-required` and `aria-invalid` land on the `role="group"`
+holding the segments, where a screen reader announces them once on entering the
+field rather than once per segment. A description you set yourself is kept and
+the row's is added to it, never replaced.
 
 ## Keyboard and screen readers
 

@@ -17,7 +17,9 @@ import {
   type Color,
 } from "reka-ui";
 import { cn } from "../../lib/cn";
+import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 
 /**
  * ColorPicker — choose one colour, as `#rrggbb`. A saturation/brightness
@@ -55,6 +57,20 @@ import { useSplitAttrs } from "../../lib/attrs";
  * transient — every position a thumb passes through — and `commit` fires once
  * per gesture, so one drag across the area is one undo entry rather than a
  * hundred.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself through
+ * `useFieldControl()`, and the row's answers land on two different nodes — see
+ * the comment above `groupFieldAttrs`, which is where that split is decided.
+ * **A row's label does not name the picker.** `<label for>` names a labelable
+ * element and this renders a `div[role="group"]`, so the row's label resolves
+ * to it and announces nobody; `ariaLabel`/`ariaLabelledby` below are what name
+ * the picker, exactly as they were before.
+ *
+ * There is no `readonly`, and a row's is ignored rather than approximated. A
+ * colour that may be looked at but not changed is a swatch — the `ColorSwatch`
+ * beside the hex value already is one — and none of the four parts has a
+ * read-only state to put it in, so the honest options were a picker that looks
+ * live and swallows every gesture, or none at all.
  */
 const props = withDefaults(
   defineProps<{
@@ -62,14 +78,20 @@ const props = withDefaults(
     modelValue?: string;
     /** Preset colours shown as a row of named swatches. Omit it and no row is rendered. */
     swatches?: string[];
-    /** Unavailable: dims the picker and refuses the pointer, the keyboard and the field. */
-    disabled?: boolean;
+    /** Unavailable: dims the picker and refuses the pointer, the keyboard and the field. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
     /** The accessible name for the picker as a whole, when nothing visible already labels it. */
     ariaLabel?: string;
     /** The id of the visible element that labels the picker (a Field wrapper's label, say). */
     ariaLabelledby?: string;
   }>(),
-  { disabled: false },
+  {
+    // Not `false`: absent has to stay tellable from `false` for a Field above
+    // to disable the row and for `:disabled="false"` to overrule one that does.
+    // Vue casts an absent Boolean prop with no declared default to `false`,
+    // which would leave the context wired and inert.
+    disabled: undefined,
+  },
 );
 
 const emit = defineEmits<{
@@ -166,7 +188,7 @@ const AREA_STEP_KEYS = new Set([
 ]);
 
 function onAreaKeydown(event: KeyboardEvent): void {
-  if (props.disabled || !AREA_STEP_KEYS.has(event.key)) return;
+  if (field.disabled || !AREA_STEP_KEYS.has(event.key)) return;
   void nextTick(commitCurrent);
 }
 
@@ -190,6 +212,40 @@ function onPresetPick(value: unknown): void {
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: groupAttrs } = useSplitAttrs();
 
+// `id` and `aria-describedby` arrive as fallthrough attrs rather than props, so
+// they are handed in as this caller's own values: a caller who sets either
+// still beats the row, and the row's description is merged into theirs rather
+// than replacing it. `name`, `required` and `invalid` are absent because this
+// component has no prop for any of them — the row's answer stands unopposed.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  disabled: props.disabled,
+}));
+
+/**
+ * The half of the resolved bag the group takes, and the reason there are two
+ * halves at all.
+ *
+ * A row describes *the picker*, and no one of the four parts is the picker —
+ * the colour is authored across all of them — so the group around them is what
+ * carries the identity and the description, exactly as a `data-testid` does.
+ *
+ * `name` and `aria-required` cannot follow them there. ARIA allows neither on
+ * `role="group"`, and `aria-allowed-attr` is a WCAG 4.1.2 rule
+ * `e2e/accessibility.e2e.ts` runs over every docs page, so shipping the whole
+ * bag here would turn that gate red. They go to the hex field instead, which is
+ * the picker's one real form control: a native `<input>` holding exactly the
+ * `#rrggbb` this component emits, so — unlike NumberField's spinbutton, which
+ * holds a *formatted* number and would post its grouping separators — a `name`
+ * on it submits the model value itself. `aria-invalid` rides along with them,
+ * because a state announced on entering a group is a state most readers meet
+ * once, while the field is where an error about the value is actually read.
+ */
+const groupFieldAttrs = computed(() =>
+  optional({ id: field.id, "aria-describedby": field.attrs["aria-describedby"] }),
+);
+
 // Both thumbs sit on a surface whose colour is the value being chosen, so they
 // have to read against white, against black and against every hue in between. A
 // single-colour thumb cannot: the light ring vanishes on a pale fill and the
@@ -204,16 +260,16 @@ const THUMB =
 
 <template>
   <div
-    v-bind="groupAttrs"
+    v-bind="{ ...groupAttrs, ...groupFieldAttrs }"
     role="group"
     :aria-label="ariaLabel"
     :aria-labelledby="ariaLabelledby"
-    :aria-disabled="disabled || undefined"
-    :data-disabled="disabled || undefined"
+    :aria-disabled="field.disabled || undefined"
+    :data-disabled="field.disabled || undefined"
     :class="
       cn(
         'flex w-full max-w-xs flex-col gap-3',
-        disabled && 'cursor-not-allowed opacity-50',
+        field.disabled && 'cursor-not-allowed opacity-50',
         attrs.class as string,
       )
     "
@@ -227,7 +283,7 @@ const THUMB =
       color-space="hsb"
       x-channel="saturation"
       y-channel="brightness"
-      :disabled="disabled"
+      :disabled="field.disabled"
       @update:model-value="applyFromPart"
       @change-end="commitCurrent"
     >
@@ -249,7 +305,7 @@ const THUMB =
       :model-value="current"
       channel="hue"
       color-space="hsb"
-      :disabled="disabled"
+      :disabled="field.disabled"
       class="relative flex w-full touch-none items-center py-1"
       @update:model-value="applyFromPart"
       @change-end="commitCurrent"
@@ -266,7 +322,7 @@ const THUMB =
          boundary, which is why the field's update is itself the checkpoint. -->
     <ColorFieldRoot
       :model-value="current"
-      :disabled="disabled"
+      :disabled="field.disabled"
       class="flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm text-foreground transition-[color,background-color,box-shadow] duration-fast ease-out focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring focus-within:shadow-halo data-[disabled]:cursor-not-allowed"
       @update:model-value="onFieldCommit"
     >
@@ -275,8 +331,14 @@ const THUMB =
         :style="{ backgroundColor: current }"
         class="size-5 shrink-0 rounded-sm border border-border"
       />
+      <!-- The row's three form-control answers, which the group cannot hold —
+           see `groupFieldAttrs`. `aria-label` stays: it names the *field*, not
+           the picker, and a row's label never reached this element anyway. -->
       <ColorFieldInput
         aria-label="Hex value"
+        :name="field.name"
+        :aria-required="field.required || undefined"
+        :aria-invalid="field.invalid || undefined"
         class="tabular min-w-0 flex-1 bg-transparent outline-none disabled:cursor-not-allowed"
       />
     </ColorFieldRoot>
@@ -291,8 +353,8 @@ const THUMB =
     <ColorSwatchPickerRoot
       v-if="presets.length > 0"
       :model-value="current"
-      :disabled="disabled"
-      :aria-disabled="disabled || undefined"
+      :disabled="field.disabled"
+      :aria-disabled="field.disabled || undefined"
       selection-behavior="replace"
       aria-label="Presets"
       class="flex flex-wrap gap-2"
@@ -302,7 +364,7 @@ const THUMB =
         v-for="preset in presets"
         :key="preset"
         :value="preset"
-        :disabled="disabled"
+        :disabled="field.disabled"
         :style="{ backgroundColor: preset }"
         class="size-6 cursor-pointer rounded-sm border border-border transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo aria-selected:ring-2 aria-selected:ring-primary aria-selected:ring-offset-2 aria-selected:ring-offset-background data-[disabled]:pointer-events-none"
       />

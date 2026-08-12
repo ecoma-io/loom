@@ -232,6 +232,34 @@ speaks, so a field reporting an error looks the same whichever control it holds.
   </div>
 </Demo>
 
+## Inside a Field
+
+Wrapped in a [Field](./field), Combobox wires itself: the row's id, the id of
+its hint or error line, `required`, `invalid`, `disabled` and the name the
+chosen value is posted under all arrive from the row, so nothing is written at
+the call site.
+
+```vue
+<Field label="Country" name="country" error="Pick a country to continue" required>
+  <Combobox v-model="country" :options="countries" placeholder="Search countries" />
+</Field>
+```
+
+`disabled` and `invalid` still win when you set them, in both directions — which
+is why both are `boolean | undefined` and default to `undefined` rather than
+`false`. `<Combobox />` says nothing and inherits the row; `<Combobox :invalid="false" />`
+says this one control is fine even though its row is not, and it is obeyed.
+
+**`name` posts the value, never the text in the box.** The input holds the
+chosen option's _label_ — "Viet Nam" — while the model carries `vn`, so the name
+goes to a hidden control alongside it rather than onto the input itself. A form
+reading `country` gets `vn`.
+
+**A row's `readonly` is ignored, deliberately.** The text in the box is a
+caption rewritten on every choice rather than the value, so making it read-only
+would freeze the caption while the list underneath still opened on a click. A
+choice nobody may change is a disabled Combobox, or the label rendered as text.
+
 ## API
 
 <!-- @api Combobox -->

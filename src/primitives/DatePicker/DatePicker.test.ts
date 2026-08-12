@@ -1,8 +1,9 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, type VNode } from "vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import DatePicker from "./DatePicker.vue";
+import { provideFieldContext } from "../../lib/field-context";
 import { attachToBody } from "../../testing/attach-to-body";
 
 // The calendar is portalled to `document.body` and Reka drives it with real
@@ -90,6 +91,48 @@ function getTrigger(): HTMLButtonElement {
   const trigger = document.querySelector<HTMLButtonElement>('[aria-label="Open calendar"]');
   if (!trigger) throw new Error("no trigger rendered");
   return trigger;
+}
+
+/**
+ * The visually-hidden `<input>` Reka puts inside the field group — the element
+ * that carries the control's `id` and `name`, and the one a `<label for>` can
+ * name, a `role="group"` div not being labelable.
+ */
+function getFormInput(): HTMLInputElement {
+  const input = getField().querySelector("input");
+  if (!input) throw new Error("no form input rendered");
+  return input;
+}
+
+// A stand-in for the Field wrapping this control. Field's own behaviour — which
+// id it mints, when it publishes a description — is pinned in `Field.test.ts`;
+// what matters here is the other half, that this control reads a row at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountRow(rowProps: Record<string, unknown>, control: VNode) {
+  return mount(ProbeRow, { props: rowProps, slots: { default: control }, attachTo: document.body });
 }
 
 function getGrid(): HTMLElement | null {
@@ -514,5 +557,165 @@ describe("DatePicker attribute routing", () => {
     const field = getField();
     expect(field.getAttribute("aria-describedby")).toBe("due-hint");
     expect(field.getAttribute("data-testid")).toBe("due-date");
+  });
+});
+
+describe("DatePicker read-only", () => {
+  it("keeps a read-only field a Tab stop and its segments readable, where a disabled one is neither", async () => {
+    mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+
+    // The whole difference between the two states: a read-only date is a value
+    // on show and a reader still arrows across it to read it.
+    expect(getSegments().map((segment) => segment.getAttribute("tabindex"))).toEqual([
+      "0",
+      "-1",
+      "-1",
+    ]);
+    expect(getField().hasAttribute("data-readonly")).toBe(true);
+    expect(getSegments().map((segment) => segment.textContent.trim())).toEqual(["3", "14", "2026"]);
+  });
+
+  it("refuses the edit a read-only field is showing", async () => {
+    const wrapper = mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+
+    const [, day] = getSegments();
+    if (!day) throw new Error("expected a day segment");
+    day.focus();
+    pressKey(day, "ArrowUp");
+    await settle();
+
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+    expect(getSegments().map((segment) => segment.textContent.trim())).toEqual(["3", "14", "2026"]);
+  });
+
+  it("drops the calendar button while read-only rather than offering a panel that can choose nothing", async () => {
+    mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+
+    expect(document.querySelector('[aria-label="Open calendar"]')).toBeNull();
+  });
+
+  it("shows a read-only field as filled rather than dimmed, so it does not read as unavailable", async () => {
+    const readOnly = mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+    expect(getField().className).toContain("bg-muted");
+    expect(getField().className).not.toContain("opacity-50");
+    // Off the document before the next mount: `getField()` reads the first
+    // group in it, and two pickers at once would answer for each other.
+    readOnly.unmount();
+
+    mountPicker({ modelValue: ISO, disabled: true });
+    await settle();
+    expect(getField().className).toContain("opacity-50");
+    expect(getField().className).not.toContain("bg-muted");
+    expect(getField().hasAttribute("data-readonly")).toBe(false);
+  });
+});
+
+describe("DatePicker inside a Field", () => {
+  it("takes its id, description, name, required and invalid state from the row it sits in", async () => {
+    mountRow(
+      {
+        controlId: "due",
+        describedBy: "due-description",
+        name: "due",
+        required: true,
+        invalid: true,
+      },
+      h(DatePicker, { modelValue: ISO }),
+    );
+    await settle();
+
+    // `id` and `name` reach the hidden input the field submits through, which is
+    // what makes the row's `<label for>` resolve to a labelable element.
+    expect(getFormInput().id).toBe("due");
+    expect(getFormInput().name).toBe("due");
+    // Everything announced belongs on the group, which a screen reader reads
+    // once on entering the field rather than once per segment.
+    const field = getField();
+    expect(field.getAttribute("aria-describedby")).toBe("due-description");
+    expect(field.getAttribute("aria-required")).toBe("true");
+    expect(field.getAttribute("aria-invalid")).toBe("true");
+    expect(getSegments().some((segment) => segment.hasAttribute("aria-describedby"))).toBe(false);
+    expect(getAnchor().hasAttribute("data-invalid")).toBe(true);
+  });
+
+  it("takes disabled and readonly from the row, each with its own consequence", async () => {
+    mountRow({ disabled: true }, h(DatePicker, { modelValue: ISO }));
+    await settle();
+    expect(getSegments().some((segment) => segment.hasAttribute("tabindex"))).toBe(false);
+    expect(getTrigger().disabled).toBe(true);
+
+    const readOnly = mountRow({ readonly: true }, h(DatePicker, { modelValue: ISO }));
+    await settle();
+    expect(readOnly.find("[data-readonly]").exists()).toBe(true);
+    expect(readOnly.find('[aria-label="Open calendar"]').exists()).toBe(false);
+  });
+
+  it("lets an explicit prop overrule the row in both directions", async () => {
+    const optedOut = mountRow(
+      { invalid: true, required: true, disabled: true, readonly: true },
+      h(DatePicker, {
+        modelValue: ISO,
+        invalid: false,
+        required: false,
+        disabled: false,
+        readonly: false,
+      }),
+    );
+    await settle();
+    const optedOutField = optedOut.get('[role="group"]');
+    expect(optedOutField.attributes("aria-invalid")).toBeUndefined();
+    expect(optedOutField.attributes("aria-required")).toBeUndefined();
+    expect(optedOut.find('[aria-label="Open calendar"]').exists()).toBe(true);
+    expect(
+      optedOut.findAll('[role="spinbutton"]').some((segment) => segment.attributes("tabindex")),
+    ).toBe(true);
+    optedOut.unmount();
+
+    const optedIn = mountRow({}, h(DatePicker, { modelValue: ISO, invalid: true, required: true }));
+    await settle();
+    const optedInField = optedIn.get('[role="group"]');
+    expect(optedInField.attributes("aria-invalid")).toBe("true");
+    expect(optedInField.attributes("aria-required")).toBe("true");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", async () => {
+    mountRow(
+      { describedBy: "due-description" },
+      h(DatePicker, { modelValue: ISO, "aria-describedby": "sprint-rules" }),
+    );
+    await settle();
+
+    expect(getField().getAttribute("aria-describedby")).toBe("sprint-rules due-description");
+  });
+
+  it("keeps the caller's own id and name ahead of the row's", async () => {
+    mountRow(
+      { controlId: "row-id", name: "row-name" },
+      h(DatePicker, { modelValue: ISO, id: "mine", name: "mine" }),
+    );
+    await settle();
+
+    // The row's generated id clobbering the caller's would break their
+    // `<label for>`, their selectors and browser autofill all at once.
+    expect(getFormInput().id).toBe("mine");
+    expect(getFormInput().name).toBe("mine");
+  });
+
+  it("renders exactly what it renders outside a Field when there is no row above it", async () => {
+    mountPicker({ modelValue: ISO });
+    await settle();
+
+    const field = getField();
+    expect(field.hasAttribute("aria-describedby")).toBe(false);
+    expect(field.hasAttribute("aria-required")).toBe(false);
+    expect(field.hasAttribute("aria-invalid")).toBe(false);
+    expect(field.hasAttribute("data-readonly")).toBe(false);
+    expect(getFormInput().hasAttribute("id")).toBe(false);
+    expect(getFormInput().hasAttribute("name")).toBe(false);
+    expect(getAnchor().hasAttribute("data-invalid")).toBe(false);
   });
 });

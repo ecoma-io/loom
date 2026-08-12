@@ -1,6 +1,40 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { defineComponent, h } from "vue";
 import Switch from "./Switch.vue";
+import { provideFieldContext } from "../../lib/field-context";
+
+// A stand-in for the Field wrapping this control. Field's own behaviour is
+// pinned in `Field.test.ts`; what matters here is that the switch reads a row
+// it is inside at all.
+//
+// It renders a real `<form>` because that is the only place Reka mints the
+// hidden input carrying `name`: outside one, a resolved name has nowhere
+// observable to land, and a test that could not see it would pass with the key
+// dropped.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("form", slots.default?.());
+  },
+});
 
 describe("Switch", () => {
   it("carries role=switch with aria-checked so assistive tech reads it as a boolean setting, not a plain button", () => {
@@ -99,5 +133,78 @@ describe("Switch", () => {
 
     await wrapper.get('[role="switch"]').trigger("click");
     expect(wrapper.get('[role="switch"]').attributes("aria-checked")).toBe("true");
+  });
+
+  it("takes its id, description, name, required and invalid state from the row it sits in", () => {
+    const row = mount(ProbeRow, {
+      props: {
+        controlId: "autosave",
+        describedBy: "autosave-description",
+        name: "autosave",
+        required: true,
+        invalid: true,
+      },
+      slots: { default: h(Switch) },
+    });
+    const control = row.get('[role="switch"]');
+
+    // The id is the whole point for this control: it renders a button with no
+    // label of its own, and the row's `<label for>` can only name it once the
+    // id it points at is on that button.
+    expect(control.attributes("id")).toBe("autosave");
+    expect(control.attributes("aria-describedby")).toBe("autosave-description");
+    expect(control.attributes("aria-required")).toBe("true");
+    expect(control.attributes("aria-invalid")).toBe("true");
+    expect((row.get("input").element as HTMLInputElement).name).toBe("autosave");
+  });
+
+  it("lets an explicit disabled overrule the row in both directions", () => {
+    const optedOut = mount(ProbeRow, {
+      props: { disabled: true },
+      slots: { default: h(Switch, { "aria-label": "Autosave", disabled: false }) },
+    });
+    expect((optedOut.get('[role="switch"]').element as HTMLButtonElement).disabled).toBe(false);
+
+    const optedIn = mount(ProbeRow, {
+      slots: { default: h(Switch, { "aria-label": "Autosave", disabled: true }) },
+    });
+    expect((optedIn.get('[role="switch"]').element as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mount(ProbeRow, {
+      props: { describedBy: "autosave-description" },
+      slots: { default: h(Switch, { "aria-describedby": "autosave-caveat" }) },
+    });
+    expect(row.get('[role="switch"]').attributes("aria-describedby")).toBe(
+      "autosave-caveat autosave-description",
+    );
+  });
+
+  // Every key that resolved to nothing is dropped from the bag, so a switch
+  // with no row above it renders exactly what it rendered before the context
+  // existed.
+  it("outside any Field adds nothing of its own", () => {
+    const wrapper = mount(Switch, { attrs: { "aria-label": "Autosave" } });
+    const control = wrapper.get('[role="switch"]');
+    for (const attribute of ["id", "name", "aria-describedby", "aria-invalid"]) {
+      expect(control.attributes(attribute)).toBeUndefined();
+    }
+    // Reka has always written this one from its own `required` prop, and an
+    // unwrapped switch resolves that prop to `false` exactly as it did before.
+    expect(control.attributes("aria-required")).toBe("false");
+  });
+
+  // A setting that may be read but not flipped is a disabled setting. Painting
+  // one as live and then refusing the flip is the state worse than either, so a
+  // row's `readonly` must arrive as nothing at all.
+  it("ignores a row's readonly rather than approximating it", () => {
+    const row = mount(ProbeRow, {
+      props: { readonly: true },
+      slots: { default: h(Switch, { "aria-label": "Autosave" }) },
+    });
+    const control = row.get('[role="switch"]');
+    expect((control.element as HTMLButtonElement).disabled).toBe(false);
+    expect(control.attributes("aria-readonly")).toBeUndefined();
   });
 });

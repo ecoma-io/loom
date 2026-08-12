@@ -130,6 +130,38 @@ looks the same whichever control it holds.
   </div>
 </Demo>
 
+## Inside a Field
+
+Wrapped in a [Field](./field), Select wires itself: the row's id, the id of its
+hint or error line, `required`, `invalid`, `disabled` and the name the chosen
+value is posted under all arrive from the row, so nothing is written at the call
+site.
+
+```vue
+<Field label="Language" name="language" error="Pick a language to continue" required>
+  <Select v-model="language" :options="languages" />
+</Field>
+```
+
+`disabled` and `invalid` still win when you set them, in both directions — which
+is why both are `boolean | undefined` and default to `undefined` rather than
+`false`. `<Select />` says nothing and inherits the row; `<Select :invalid="false" />`
+says this one control is fine even though its row is not, and it is obeyed.
+
+Two things are worth knowing about what the row's other answers do here.
+
+**`name` posts through a hidden input, not the trigger.** A trigger is a
+button, and a button's `name` is never part of a submission. Reach for the row's
+`name` and the chosen value — exactly the value, or the empty string while the
+placeholder is showing — is posted under it. Nothing about `v-model` changes;
+the input exists only for a surrounding `<form>`.
+
+**A row's `readonly` is ignored, deliberately.** A read-only value is one a
+reader may see and copy but not change, and a closed list shows nothing the
+trigger is not already showing — so a read-only Select would be a disabled
+Select that lies about being reachable. Use `disabled`, or render the chosen
+label as text.
+
 ## API
 
 <!-- @api Select -->

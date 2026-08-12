@@ -9,6 +9,7 @@ import {
 import { ChevronUp, ChevronDown } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
 
 /**
@@ -27,6 +28,22 @@ import { optional } from "../../lib/props";
  * fires once per gesture boundary — drag release, Enter, or focus leaving the
  * field. One long drag is therefore one undo checkpoint rather than one per
  * pixel, and a gesture that ends where it started produces none at all.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself: the row's id, the id of
+ * its hint or error line, `required`, `invalid`, `disabled`, `readonly` and the
+ * name the value is submitted under all arrive through `useFieldControl()`, so
+ * `<Field label="Rotation" error="…"><NumberField … /></Field>` needs no
+ * attributes at the call site. Every prop below still wins over the row when it
+ * is set, in both directions — which is why the three booleans default to
+ * `undefined` rather than `false`.
+ *
+ * `readonly` and `disabled` are different states here for the same reason they
+ * are on a text input, and a number is the case that makes it obvious: a rate,
+ * a computed total or a locked coordinate is a value on show. It stays a Tab
+ * stop, stays in the form's submitted data, and is filled rather than dimmed —
+ * and every path that would change it is closed, the stepper included, because
+ * a control offering a gesture that does nothing is worse than one that offers
+ * none.
  */
 const props = withDefaults(
   defineProps<{
@@ -40,12 +57,24 @@ const props = withDefaults(
     step?: number;
     /** A presentational suffix such as `px` or `deg`. It is never part of the value. */
     unit?: string;
-    /** Unavailable: dims the field and refuses every edit path. */
-    disabled?: boolean;
-    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. */
-    invalid?: boolean;
+    /** Unavailable: dims the field and refuses every edit path. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
+    /** Shows the value without allowing an edit — typing, arrows, stepper and scrub all closed — while staying focusable and still submitted. Unset defers to a wrapping Field. */
+    readonly?: boolean | undefined;
+    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. Unset defers to a wrapping Field's `error`. */
+    invalid?: boolean | undefined;
   }>(),
-  { step: 1, disabled: false, invalid: false },
+  {
+    step: 1,
+    // Not `false`, for any of the three. `false` is a caller saying "this field
+    // is fine / enabled / editable even though its row is not"; absent is a
+    // caller saying nothing, and only `undefined` survives to mean that past
+    // Vue's absent-Boolean-casts-to-false rule — see TextField.vue, which
+    // carries the full reasoning.
+    disabled: undefined,
+    readonly: undefined,
+    invalid: undefined,
+  },
 );
 
 const emit = defineEmits<{
@@ -65,10 +94,48 @@ const emit = defineEmits<{
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: inputAttrs } = useSplitAttrs();
 
-// `optional()` drops the absent bounds rather than forwarding `undefined`,
-// which Reka would read as "a bound that is undefined" rather than "no bound".
-const rootBounds = computed(() =>
-  optional({ modelValue: lastValue.value, min: props.min, max: props.max }),
+// `id` and `aria-describedby` reach this control as fallthrough attrs rather
+// than props, so they are read off `attrs` and handed in as this caller's own
+// values — a caller who sets either still beats the row, and the row's
+// description is merged into theirs rather than replacing it. `name` and
+// `required` are absent from this object because there is no prop to oppose
+// the row with; the row's answer stands unopposed, which is what is wanted.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  disabled: props.disabled,
+  readonly: props.readonly,
+  invalid: props.invalid,
+}));
+
+// `name` is the one resolved key that does not travel with the bag, and here
+// it is a defect rather than a nicety: the bag lands on the spinbutton, and
+// what the spinbutton holds is the *formatted* number — `1,234` for 1234. A
+// `name` on it would post the grouping separators along with the digits. Reka
+// submits the model value itself through a hidden input it renders from the
+// root's own `name`, so that is where the row's name goes. Everything else in
+// the bag — the id, the merged description, `aria-required`, `aria-invalid` —
+// belongs on the `role="spinbutton"` node, which is that input.
+const inputFieldAttrs = computed(() => {
+  // Removed from a copy rather than listed positively, so a key added to the
+  // resolved bag later reaches this input without anyone remembering to come
+  // back here.
+  const aria: Record<string, unknown> = { ...field.attrs };
+  delete aria.name;
+  return aria;
+});
+
+// `optional()` drops the absent bounds and an absent name rather than
+// forwarding `undefined`, which Reka would read as "a bound that is undefined"
+// rather than "no bound" — and, for the name, would have it render a hidden
+// form input for a field nothing is submitting.
+const rootProps = computed(() =>
+  optional({
+    modelValue: lastValue.value,
+    min: props.min,
+    max: props.max,
+    name: field.name,
+  }),
 );
 
 function clampValue(value: number): number {
@@ -140,7 +207,11 @@ function commitLastValue() {
 // event reaches the input — and fully replaces the default ×1 tick for this
 // one case. Letting both run would double-step.
 function onKeydownCapture(event: KeyboardEvent) {
-  if (props.disabled) return;
+  // Read-only closes this path as firmly as disabled does. Reka's own arrow
+  // handling already bails on `readonly`, and this override replaces it — so
+  // without the guard Shift+Arrow would be the one way to edit a field that
+  // says it cannot be edited.
+  if (field.disabled || field.readonly) return;
   if (!event.shiftKey || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
   event.preventDefault();
   event.stopPropagation();
@@ -187,7 +258,9 @@ let removeDragListeners: (() => void) | undefined;
 onUnmounted(() => removeDragListeners?.());
 
 function onPointerDown(event: PointerEvent) {
-  if (props.disabled || event.button !== 0) return;
+  // A read-only field still places the caret and still selects text, which is
+  // the whole point of it — it simply never starts a scrub.
+  if (field.disabled || field.readonly || event.button !== 0) return;
   const startX = event.clientX;
   const startValue = lastValue.value ?? props.min ?? 0;
   const step = props.step || 1;
@@ -244,19 +317,25 @@ function onPointerDown(event: PointerEvent) {
 
 <template>
   <NumberFieldRoot
-    v-bind="rootBounds"
+    v-bind="rootProps"
     :step="step"
-    :disabled="disabled"
-    :aria-disabled="disabled || undefined"
-    :data-invalid="invalid || undefined"
+    :disabled="field.disabled"
+    :readonly="field.readonly"
+    :aria-disabled="field.disabled || undefined"
+    :data-invalid="field.invalid || undefined"
     :class="
       cn(
         'group relative inline-flex h-9 w-full items-center rounded-md border border-input bg-background',
         'transition-[color,background-color,box-shadow] duration-fast ease-out',
         // Rim-lit at rest; the ring blooms on focus.
         'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
-        !invalid && 'focus-within:shadow-halo',
-        invalid && 'border-destructive focus-within:outline-destructive',
+        !field.invalid && 'focus-within:shadow-halo',
+        field.invalid && 'border-destructive focus-within:outline-destructive',
+        // Filled rather than dimmed, and it keeps its focus ring: a read-only
+        // value is on show, not an unavailable control, and the two must not
+        // look alike. Reka's native `readonly` on the input carries the same
+        // state to assistive tech, so nothing here rests on colour.
+        field.readonly && 'bg-muted',
         'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
         attrs.class as string,
       )
@@ -269,13 +348,17 @@ function onPointerDown(event: PointerEvent) {
     @pointerdown="onPointerDown"
   >
     <NumberFieldInput
-      v-bind="inputAttrs"
-      :aria-invalid="invalid || undefined"
+      v-bind="{ ...inputAttrs, ...inputFieldAttrs }"
       :class="
         cn(
           'tabular h-full w-full flex-1 rounded-md bg-transparent px-3 text-sm text-foreground outline-none',
           unit ? 'pr-9' : 'pr-3',
-          disabled ? 'cursor-not-allowed' : 'cursor-ew-resize',
+          field.disabled && 'cursor-not-allowed',
+          // The scrub cursor is a promise the field makes about the gesture it
+          // takes. Read-only takes no gesture, so it must not make the promise
+          // — the caret cursor is the honest one for a value you may select
+          // and copy but not change.
+          !field.disabled && !field.readonly && 'cursor-ew-resize',
         )
       "
     />
@@ -290,8 +373,15 @@ function onPointerDown(event: PointerEvent) {
     </span>
     <!-- The stepper is hidden until hover: a column of these is read as a
          column of numbers, and a permanent pair of chevrons on every row turns
-         that into a column of controls. -->
+         that into a column of controls.
+
+         It is not rendered at all on a read-only field. Reka's own
+         `handleChangingValue` bails on `readonly` *after* focusing the input,
+         so a rendered stepper would be two named buttons that a pointer or a
+         screen reader can still reach and press, and that answer by moving
+         focus and changing nothing. Absent is the honest state. -->
     <div
+      v-if="!field.readonly"
       class="absolute right-1 flex flex-col opacity-0 transition-opacity duration-fast group-hover:opacity-100"
     >
       <NumberFieldIncrement

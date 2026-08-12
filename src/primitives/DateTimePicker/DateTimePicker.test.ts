@@ -1,8 +1,9 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, type VNode } from "vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import DateTimePicker from "./DateTimePicker.vue";
+import { provideFieldContext } from "../../lib/field-context";
 import { attachToBody } from "../../testing/attach-to-body";
 
 // The calendar is portalled to `document.body` and Reka drives it with real
@@ -147,6 +148,48 @@ function pressKey(el: EventTarget, key: string) {
   el.dispatchEvent(
     new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key, code: key }),
   );
+}
+
+/**
+ * The visually-hidden `<input>` Reka puts inside the field group — the element
+ * that carries the control's `id` and `name`, and the one a `<label for>` can
+ * name, a `role="group"` div not being labelable.
+ */
+function getFormInput(): HTMLInputElement {
+  const input = getField().querySelector("input");
+  if (!input) throw new Error("no form input rendered");
+  return input;
+}
+
+// A stand-in for the Field wrapping this control. Field's own behaviour — which
+// id it mints, when it publishes a description — is pinned in `Field.test.ts`;
+// what matters here is the other half, that this control reads a row at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountRow(rowProps: Record<string, unknown>, control: VNode) {
+  return mount(ProbeRow, { props: rowProps, slots: { default: control }, attachTo: document.body });
 }
 
 const ISO = "2026-03-14T09:30";
@@ -812,5 +855,182 @@ describe("DateTimePicker shape changes", () => {
     // Rebuilding on a change Reka already handles would throw away focus
     // mid-edit, which is why `locale` is not in the field's key.
     expect(getField()).toBe(before);
+  });
+});
+
+describe("DateTimePicker read-only", () => {
+  it("keeps a read-only field a Tab stop and its segments readable, where a disabled one is neither", async () => {
+    mountPicker({ modelValue: ISO, hourCycle: 24, readonly: true });
+    await settle();
+
+    // The whole difference between the two states: a read-only instant is a
+    // value on show and a reader still arrows across it to read it.
+    expect(getSegments().map((segment) => segment.getAttribute("tabindex"))).toEqual([
+      "0",
+      "-1",
+      "-1",
+      "-1",
+      "-1",
+    ]);
+    expect(getField().hasAttribute("data-readonly")).toBe(true);
+    expect(segmentValues()).toEqual(["3", "14", "2026", "09", "30"]);
+  });
+
+  it("refuses the edit a read-only field is showing", async () => {
+    const wrapper = mountPicker({ modelValue: ISO, hourCycle: 24, readonly: true });
+    await settle();
+
+    const minute = getSegment("minute");
+    minute.focus();
+    pressKey(minute, "ArrowUp");
+    await settle();
+
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+    expect(segmentValues()).toEqual(["3", "14", "2026", "09", "30"]);
+  });
+
+  it("drops the calendar button while read-only rather than offering a panel that can choose nothing", async () => {
+    mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+
+    expect(document.querySelector('[aria-label="Open calendar"]')).toBeNull();
+  });
+
+  it("shows a read-only field as filled rather than dimmed, so it does not read as unavailable", async () => {
+    const readOnly = mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+    expect(getField().className).toContain("bg-muted");
+    expect(getField().className).not.toContain("opacity-50");
+    // Off the document before the next mount: `getField()` reads the first
+    // group in it, and two pickers at once would answer for each other.
+    readOnly.unmount();
+
+    mountPicker({ modelValue: ISO, disabled: true });
+    await settle();
+    expect(getField().className).toContain("opacity-50");
+    expect(getField().className).not.toContain("bg-muted");
+    expect(getField().hasAttribute("data-readonly")).toBe(false);
+  });
+});
+
+describe("DateTimePicker inside a Field", () => {
+  it("takes its id, description, name, required and invalid state from the row it sits in", async () => {
+    mountRow(
+      {
+        controlId: "send-at",
+        describedBy: "send-at-description",
+        name: "sendAt",
+        required: true,
+        invalid: true,
+      },
+      h(DateTimePicker, { modelValue: ISO }),
+    );
+    await settle();
+
+    expect(getFormInput().id).toBe("send-at");
+    expect(getFormInput().name).toBe("sendAt");
+    // Everything announced belongs on the group, which a screen reader reads
+    // once on entering the field rather than once per segment.
+    const field = getField();
+    expect(field.getAttribute("aria-describedby")).toBe("send-at-description");
+    expect(field.getAttribute("aria-required")).toBe("true");
+    expect(field.getAttribute("aria-invalid")).toBe("true");
+    expect(getSegments().some((segment) => segment.hasAttribute("aria-describedby"))).toBe(false);
+    expect(getAnchor().hasAttribute("data-invalid")).toBe(true);
+  });
+
+  it("takes disabled and readonly from the row, each with its own consequence", async () => {
+    const disabled = mountRow({ disabled: true }, h(DateTimePicker, { modelValue: ISO }));
+    await settle();
+    expect(getSegments().some((segment) => segment.hasAttribute("tabindex"))).toBe(false);
+    expect(getTrigger().disabled).toBe(true);
+    disabled.unmount();
+
+    mountRow({ readonly: true }, h(DateTimePicker, { modelValue: ISO }));
+    await settle();
+    expect(getField().hasAttribute("data-readonly")).toBe(true);
+    expect(document.querySelector('[aria-label="Open calendar"]')).toBeNull();
+  });
+
+  it("lets an explicit prop overrule the row in both directions", async () => {
+    const optedOut = mountRow(
+      { invalid: true, required: true, disabled: true, readonly: true },
+      h(DateTimePicker, {
+        modelValue: ISO,
+        invalid: false,
+        required: false,
+        disabled: false,
+        readonly: false,
+      }),
+    );
+    await settle();
+    expect(getField().getAttribute("aria-invalid")).toBeNull();
+    expect(getField().getAttribute("aria-required")).toBeNull();
+    expect(getTrigger().disabled).toBe(false);
+    expect(getSegments().some((segment) => segment.hasAttribute("tabindex"))).toBe(true);
+    optedOut.unmount();
+
+    mountRow({}, h(DateTimePicker, { modelValue: ISO, invalid: true, required: true }));
+    await settle();
+    expect(getField().getAttribute("aria-invalid")).toBe("true");
+    expect(getField().getAttribute("aria-required")).toBe("true");
+  });
+
+  it("keeps an out-of-range instant invalid even where the row and the caller both say otherwise", async () => {
+    // The two markers stay separate claims: `data-invalid` is the row's or the
+    // caller's, `data-out-of-range` is the measurement, and only the error
+    // presentation is shared.
+    mountRow(
+      { invalid: false },
+      h(DateTimePicker, {
+        modelValue: "2026-03-16T18:30",
+        min: "2026-03-16T09:00",
+        max: "2026-03-16T17:00",
+        invalid: false,
+      }),
+    );
+    await settle();
+
+    expect(getField().getAttribute("aria-invalid")).toBe("true");
+    expect(getField().className).toContain("border-destructive");
+    expect(getAnchor().hasAttribute("data-out-of-range")).toBe(true);
+    expect(getAnchor().hasAttribute("data-invalid")).toBe(false);
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", async () => {
+    mountRow(
+      { describedBy: "send-at-description" },
+      h(DateTimePicker, { modelValue: ISO, "aria-describedby": "schedule-rules" }),
+    );
+    await settle();
+
+    expect(getField().getAttribute("aria-describedby")).toBe("schedule-rules send-at-description");
+  });
+
+  it("keeps the caller's own id and name ahead of the row's", async () => {
+    mountRow(
+      { controlId: "row-id", name: "row-name" },
+      h(DateTimePicker, { modelValue: ISO, id: "mine", name: "mine" }),
+    );
+    await settle();
+
+    // The row's generated id clobbering the caller's would break their
+    // `<label for>`, their selectors and browser autofill all at once.
+    expect(getFormInput().id).toBe("mine");
+    expect(getFormInput().name).toBe("mine");
+  });
+
+  it("renders exactly what it renders outside a Field when there is no row above it", async () => {
+    mountPicker({ modelValue: ISO });
+    await settle();
+
+    const field = getField();
+    expect(field.hasAttribute("aria-describedby")).toBe(false);
+    expect(field.hasAttribute("aria-required")).toBe(false);
+    expect(field.hasAttribute("aria-invalid")).toBe(false);
+    expect(field.hasAttribute("data-readonly")).toBe(false);
+    expect(getFormInput().hasAttribute("id")).toBe(false);
+    expect(getFormInput().hasAttribute("name")).toBe(false);
+    expect(getAnchor().hasAttribute("data-invalid")).toBe(false);
   });
 });

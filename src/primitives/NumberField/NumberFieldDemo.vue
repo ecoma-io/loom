@@ -6,6 +6,7 @@ const x = ref(120);
 const rotation = ref(45);
 const opacity = ref(80);
 const locked = ref(50);
+const rate = ref(24);
 
 // The last committed value of each field, so the transient/committed split is
 // visible on the page rather than only described by it.
@@ -65,6 +66,13 @@ function record(label: string, value: number) {
         disabled
         aria-labelledby="number-field-demo-locked"
       />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <span id="number-field-demo-readonly" class="text-xs text-muted-foreground">
+        rate — read-only, still focusable and still submitted
+      </span>
+      <NumberField :model-value="rate" readonly aria-labelledby="number-field-demo-readonly" />
     </div>
 
     <div class="flex flex-col gap-2">

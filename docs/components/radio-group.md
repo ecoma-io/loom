@@ -70,6 +70,33 @@ supplies the accessible name, so no separate `aria-label` is needed per row.
 Set `name` when the group posts inside a real, plain HTML `<form>` submit —
 it becomes the submitted field name.
 
+## Inside a Field or a Fieldset
+
+**A row's label cannot name this group.** `<label for>` names a labelable
+element, and RadioGroup renders a `div[role="radiogroup"]` — a [Field](./field)'s
+label resolves to it and announces nobody. Name the group with a
+[Fieldset](./fieldset), whose real `<legend>` does the job natively, or give the
+group an `aria-label`/`aria-labelledby` of its own.
+
+```vue
+<Fieldset legend="Plan" hint="Change it at any time.">
+  <RadioGroup v-model="plan" :options="options" name="plan" />
+</Fieldset>
+```
+
+Everything else a Field publishes does reach the group: its description, its
+`name`, `required` and `invalid` land on the group element as
+`aria-describedby`, `aria-required` and `aria-invalid`. `name` is the one key
+both this component and the row can answer, and this component wins when it is
+set — one concept, not two that can disagree.
+
+`disabled` still wins wherever you set it, in both directions, which is why it
+is `boolean | undefined` and defaults to `undefined` rather than `false`.
+
+There is no `readonly` here, and a row's is ignored rather than approximated.
+Each option is a `<button role="radio">` with no native read-only state to put
+it in, and a group whose options cannot be picked is a disabled group.
+
 ## Keyboard
 
 The group is a single Tab stop, not one per option — this is roving

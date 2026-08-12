@@ -1,7 +1,8 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, type VNode } from "vue";
 import Combobox, { type ComboboxOption } from "./Combobox.vue";
+import { provideFieldContext } from "../../lib/field-context";
 import { LIST_STAGGER_STEP_MS, listStaggerDelay } from "../../lib/motion";
 import { attachToBody } from "../../testing/attach-to-body";
 
@@ -501,6 +502,136 @@ describe("Combobox size", () => {
   it("falls back to the middle of the scale when no size is asked for", () => {
     mountCombobox();
     expect(getAnchor().className).toContain("h-9");
+  });
+});
+
+// A stand-in for the Field wrapping this control. Field itself is a
+// project-internal collaborator, and its own behaviour — which id it mints,
+// when it publishes a description — is pinned in `Field.test.ts`. What matters
+// here is the other half: that this control reads a row it is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+// Only the listbox is portalled, so the input and the anchor are inside the
+// mounted row — which is what lets one test mount two rows and compare them
+// instead of reaching for whichever the document happens to hold first.
+function mountRow(
+  rowProps: Partial<InstanceType<typeof ProbeRow>["$props"]> = {},
+  control: VNode = h(Combobox, { options }),
+  into: Element = document.body,
+) {
+  return mount(ProbeRow, {
+    props: rowProps,
+    slots: { default: control },
+    attachTo: into,
+  });
+}
+
+const ROW_INPUT = 'input[role="combobox"]';
+
+describe("Combobox inside a Field", () => {
+  it("takes its id, description, required and invalid state from the row it sits in", () => {
+    const row = mountRow({
+      controlId: "country",
+      describedBy: "country-description",
+      required: true,
+      invalid: true,
+    });
+    const input = row.get(ROW_INPUT);
+
+    expect(input.attributes("id")).toBe("country");
+    expect(input.attributes("aria-describedby")).toBe("country-description");
+    expect(input.attributes("aria-required")).toBe("true");
+    expect(input.attributes("aria-invalid")).toBe("true");
+    // The border is painted on the box around the input, so the row's error
+    // has to reach that node too rather than only the input inside it.
+    expect(row.find("[data-invalid]").exists()).toBe(true);
+  });
+
+  it("refuses to open inside a disabled row, the same as it does for its own prop", async () => {
+    const row = mountRow({ disabled: true });
+    expect(row.get(ROW_INPUT).attributes("disabled")).toBeDefined();
+
+    await openList();
+    expect(getListbox()).toBeNull();
+  });
+
+  it("lets an explicit prop overrule the row in both directions", () => {
+    const optedOut = mountRow(
+      { invalid: true, disabled: true },
+      h(Combobox, { options, invalid: false, disabled: false }),
+    );
+    expect(optedOut.get(ROW_INPUT).attributes("aria-invalid")).toBeUndefined();
+    expect(optedOut.get(ROW_INPUT).attributes("disabled")).toBeUndefined();
+    expect(optedOut.find("[data-invalid]").exists()).toBe(false);
+
+    const optedIn = mountRow({}, h(Combobox, { options, invalid: true }));
+    expect(optedIn.get(ROW_INPUT).attributes("aria-invalid")).toBe("true");
+  });
+
+  it("keeps a caller's own id, so the row never moves a label or a selector they published", () => {
+    const row = mountRow(
+      { controlId: "country" },
+      h(Combobox, { options, id: "chosen-by-the-host" }),
+    );
+    expect(row.get(ROW_INPUT).attributes("id")).toBe("chosen-by-the-host");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mountRow(
+      { describedBy: "country-description" },
+      h(Combobox, { options, "aria-describedby": "search-hint" }),
+    );
+    expect(row.get(ROW_INPUT).attributes("aria-describedby")).toBe(
+      "search-hint country-description",
+    );
+  });
+
+  it("posts the chosen value under the row's name, never the label the input is showing", async () => {
+    const form = attachToBody(document.createElement("form"));
+    const row = mountRow({ name: "language" }, h(Combobox, { options, modelValue: "vi" }), form);
+    await settle();
+
+    // The whole reason the row's name is given to the root rather than spread
+    // onto the input with the rest of the resolved bag: the input holds the
+    // *label*, so a `name` on it would post "Tiếng Việt" where the model
+    // carries `vi`.
+    expect(row.get(ROW_INPUT).attributes("name")).toBeUndefined();
+    expect((row.get(ROW_INPUT).element as HTMLInputElement).value).toBe("Tiếng Việt");
+    const submitted = form.querySelector<HTMLInputElement>('input[name="language"]');
+    expect(submitted?.value).toBe("vi");
+  });
+
+  it("adds nothing at all when there is no row above it", () => {
+    const bare = mount(Combobox, { props: { options }, attachTo: document.body });
+    const input = bare.get(ROW_INPUT);
+
+    expect(input.attributes("id")).toBeUndefined();
+    expect(input.attributes("name")).toBeUndefined();
+    expect(input.attributes("aria-describedby")).toBeUndefined();
+    expect(input.attributes("aria-required")).toBeUndefined();
+    expect(input.attributes("aria-invalid")).toBeUndefined();
   });
 });
 

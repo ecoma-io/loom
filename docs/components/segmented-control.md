@@ -80,6 +80,33 @@ controls.
   />
 </Demo>
 
+## Inside a Field or a Fieldset
+
+**A row's label cannot name this control.** `<label for>` names a labelable
+element, and SegmentedControl renders a `div[role="radiogroup"]` — a
+[Field](./field)'s label resolves to it and announces nobody. Name it with the
+`aria-label` every example here already carries, or with a
+[Fieldset](./fieldset), whose real `<legend>` does the job natively.
+
+```vue
+<Fieldset legend="Density">
+  <SegmentedControl v-model="density" :options="options" aria-label="Density" />
+</Fieldset>
+```
+
+Everything else a Field publishes does reach the control: its description,
+`name`, `required` and `invalid` land on the group element as
+`aria-describedby`, `aria-required` and `aria-invalid`, and the `name` mints the
+hidden input a real `<form>` submits.
+
+`disabled` still wins wherever you set it, in both directions, which is why it
+is `boolean | undefined` and defaults to `undefined` rather than `false`.
+
+There is no `readonly` here, and a row's is ignored rather than approximated.
+Each segment is a `<button role="radio">` with no native read-only state to put
+it in, and one segment is always active — so a read-only segmented control
+would only ever be a disabled one showing an answer.
+
 ## Keyboard
 
 The group is a single Tab stop, not one per segment — this is roving

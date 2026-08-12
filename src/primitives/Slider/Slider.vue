@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { SliderRoot, SliderTrack, SliderRange, SliderThumb } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 
 /**
  * Slider — one continuous value inside a bounded range. Reach for it when the
@@ -34,6 +35,26 @@ import { useSplitAttrs } from "../../lib/attrs";
  * bail-out mirrors NumberField's: reset `lastValue` to the committed value, so
  * Reka's own comparison sees no change and never commits, and swallow the
  * still-captured pointer's remaining ticks until it releases.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself through
+ * `useFieldControl()`: the row's id, the id of its hint or error line,
+ * `required` and `invalid` all reach the thumb — which is the `role="slider"`
+ * element, and therefore the thing the row is talking about — and the row's
+ * `name` reaches a hidden input, so
+ * `<Field label="Volume" error="…"><Slider /></Field>` needs no attributes at
+ * the call site. `disabled` still wins wherever it is set, in both directions,
+ * which is why it defaults to `undefined` rather than `false`.
+ *
+ * **A row's label does not name it.** `<label for>` names a labelable element
+ * and the thumb is a `span[role="slider"]`, so the row's label resolves to it
+ * and announces nobody. `aria-label`/`aria-labelledby` are still what name this
+ * control, exactly as they were before — and they were always routed to the
+ * thumb for the same reason the rest of this bag is.
+ *
+ * There is no `readonly`, and a row's is ignored rather than approximated. The
+ * whole control is the drag: a track that shows a value and refuses to move is
+ * a [Progress](../Progress/Progress.vue) bar wearing a thumb, and painting one
+ * as live while swallowing every gesture is the state worse than either.
  */
 const props = withDefaults(
   defineProps<{
@@ -45,10 +66,19 @@ const props = withDefaults(
     max?: number;
     /** The granularity of one arrow-key step and of the drag's own snapping. */
     step?: number;
-    /** Unavailable: dims the track and refuses both the pointer and the keyboard. */
-    disabled?: boolean;
+    /** Unavailable: dims the track and refuses both the pointer and the keyboard. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
   }>(),
-  { min: 0, max: 1, step: 0.01, disabled: false },
+  {
+    min: 0,
+    max: 1,
+    step: 0.01,
+    // Not `false`: absent has to stay tellable from `false` for a Field above
+    // to disable the row and for `:disabled="false"` to overrule one that does.
+    // Vue casts an absent Boolean prop with no declared default to `false`,
+    // which would leave the context wired and inert.
+    disabled: undefined,
+  },
 );
 
 const emit = defineEmits<{
@@ -66,6 +96,33 @@ const emit = defineEmits<{
 // around it.
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: thumbAttrs } = useSplitAttrs();
+
+// `id` and `aria-describedby` reach this control as fallthrough attrs rather
+// than props, so they are read off `attrs` and handed in as this caller's own
+// values — a caller who sets either still beats the row, and the row's
+// description is merged into theirs rather than replacing it. `name`,
+// `required` and `invalid` are absent from the object because there is no prop
+// to oppose the row with; the row's answer stands unopposed, which is what
+// wrapping the slider in a Field asked for.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  disabled: props.disabled,
+}));
+
+// The resolved bag lands on the thumb for the same reason every other
+// fallthrough attribute does — it is the `role="slider"` element, and an id, a
+// description or an `aria-invalid` describes that, not the box around it.
+//
+// `name` is the one key that goes the other way: a name on a thumb submits
+// nothing, so it drives the hidden input inside the root instead. Removed from
+// a copy rather than listed positively, so a key added to the resolved bag
+// later reaches the thumb without anyone remembering to come back here.
+const thumbFieldAttrs = computed(() => {
+  const aria: Record<string, unknown> = { ...field.attrs };
+  delete aria.name;
+  return aria;
+});
 
 // What the Reka root is fed as its own model value: seeded from the prop, then
 // advanced on every tick Reka emits, so its release-time check sees the drag's
@@ -105,7 +162,7 @@ function resetToCommitted() {
 }
 
 function onRootPointerDown() {
-  if (props.disabled) return;
+  if (field.disabled) return;
   aborted = false;
   const onDragKeydown = (keyEvent: KeyboardEvent) => {
     if (keyEvent.key !== "Escape" || aborted) return;
@@ -147,7 +204,7 @@ onBeforeUnmount(() => teardownDrag?.());
     :min="min"
     :max="max"
     :step="step"
-    :disabled="disabled"
+    :disabled="field.disabled"
     :class="
       cn(
         'relative flex w-full touch-none items-center py-2 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
@@ -158,13 +215,29 @@ onBeforeUnmount(() => teardownDrag?.());
     @update:model-value="onUpdate"
     @value-commit="onCommit"
   >
+    <!-- Reka would mint this itself from a `name` on the root, but it models
+         the value as an array and posts it as `volume[0]`. This control
+         exposes a scalar and a row's `name` has to post one: a field that
+         spells itself differently depending on which control its row holds is
+         exactly the surprise the Field context exists to remove.
+
+         `lastValue` and not `modelValue`, so what is submitted is what the
+         thumb is showing: a host that withholds transient values until commit
+         leaves the prop behind for the length of a gesture. -->
+    <input
+      v-if="field.name !== undefined"
+      type="hidden"
+      :name="field.name"
+      :value="lastValue"
+      :disabled="field.disabled"
+    />
     <SliderTrack class="relative h-1.5 w-full grow rounded-full bg-muted">
       <!-- The filled range is a value a person set, so it is painted flat in
            the human force's colour rather than in a gradient. -->
       <SliderRange class="absolute h-full rounded-full bg-primary" />
     </SliderTrack>
     <SliderThumb
-      v-bind="thumbAttrs"
+      v-bind="{ ...thumbAttrs, ...thumbFieldAttrs }"
       class="block h-4 w-4 rounded-full border-2 border-primary bg-background shadow-sm transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[disabled]:pointer-events-none"
     />
   </SliderRoot>

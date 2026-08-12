@@ -1,7 +1,8 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, type VNode } from "vue";
 import OtpInput from "./OtpInput.vue";
+import { provideFieldContext } from "../../lib/field-context";
 import { attachToBody } from "../../testing/attach-to-body";
 
 // Reka moves real focus between the cells, and focus only works for a tree
@@ -358,6 +359,154 @@ describe("OtpInput states", () => {
   it("renders exactly as many cells as the code is long", () => {
     expect(cells(mountOtp())).toHaveLength(6);
     expect(cells(mountOtp({ length: 4 }))).toHaveLength(4);
+  });
+});
+
+// A stand-in for the Field wrapping this control. Field itself is a
+// project-internal collaborator, and its own behaviour — which id it mints,
+// when it publishes a description — is pinned in `Field.test.ts`. What matters
+// here is the other half: that this control reads a row it is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+function mountRow(
+  rowProps: Partial<InstanceType<typeof ProbeRow>["$props"]> = {},
+  control: VNode = h(OtpInput, { length: 4, ariaLabel: "Verification code" }),
+) {
+  return mount(ProbeRow, {
+    props: rowProps,
+    slots: { default: control },
+    attachTo: document.body,
+  });
+}
+
+describe("OtpInput inside a Field", () => {
+  it("gives the group what describes the whole code and the cells what is a state of each box", () => {
+    const row = mountRow({
+      controlId: "code",
+      describedBy: "code-description",
+      required: true,
+      invalid: true,
+    });
+    const group = row.get('[role="group"]');
+
+    // The description is a fact about the whole code, and repeating it on four
+    // cells would have a screen reader read it four times.
+    expect(group.attributes("aria-describedby")).toBe("code-description");
+    expect(group.attributes("data-invalid")).toBe("true");
+
+    // `aria-required` is not supported on `role="group"` — it is not one of
+    // the global states — so putting it there would be an `aria-allowed-attr`
+    // violation announcing nothing. It belongs on the textboxes the claim is
+    // about.
+    expect(group.attributes("aria-required")).toBeUndefined();
+    for (const cell of row.findAll('input:not([aria-hidden="true"])')) {
+      expect(cell.attributes("aria-required")).toBe("true");
+      expect(cell.attributes("aria-invalid")).toBe("true");
+    }
+  });
+
+  it("disables every cell inside a disabled row", () => {
+    const row = mountRow({ disabled: true });
+    for (const cell of row.findAll('input:not([aria-hidden="true"])')) {
+      expect((cell.element as HTMLInputElement).disabled).toBe(true);
+    }
+  });
+
+  it("lets an explicit prop overrule the row in both directions", () => {
+    const optedOut = mountRow(
+      { invalid: true, disabled: true },
+      h(OtpInput, { length: 2, ariaLabel: "Code", invalid: false, disabled: false }),
+    );
+    for (const cell of optedOut.findAll('input:not([aria-hidden="true"])')) {
+      expect(cell.attributes("aria-invalid")).toBeUndefined();
+      expect((cell.element as HTMLInputElement).disabled).toBe(false);
+    }
+
+    const optedIn = mountRow({}, h(OtpInput, { length: 2, ariaLabel: "Code", invalid: true }));
+    expect(optedIn.get('input:not([aria-hidden="true"])').attributes("aria-invalid")).toBe("true");
+  });
+
+  it("adopts the row's id on the one node a `<label for>` can usefully reach", () => {
+    // `id` is a declared prop of Reka's root, not a fallthrough attr, and Reka
+    // puts it on the hidden input rather than on the group. That is the better
+    // target anyway: `<label for>` associates only with a labelable element,
+    // which a `role="group"` div is not, and this input hands focus to the
+    // first cell when it receives it — so clicking the row's label lands the
+    // caret where the code is typed.
+    const row = mountRow({ controlId: "code" });
+    expect(row.get('input[aria-hidden="true"]').attributes("id")).toBe("code");
+    expect(row.get('[role="group"]').attributes("id")).toBeUndefined();
+  });
+
+  it("keeps a caller's own id, so the row never moves a selector they published", () => {
+    const row = mountRow(
+      { controlId: "code" },
+      h(OtpInput, { length: 2, ariaLabel: "Code", id: "chosen-by-the-host" }),
+    );
+    expect(row.get('input[aria-hidden="true"]').attributes("id")).toBe("chosen-by-the-host");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mountRow(
+      { describedBy: "code-description" },
+      h(OtpInput, { length: 2, ariaLabel: "Code", "aria-describedby": "resend-hint" }),
+    );
+    expect(row.get('[role="group"]').attributes("aria-describedby")).toBe(
+      "resend-hint code-description",
+    );
+  });
+
+  it("posts the code under the row's name, through the hidden input rather than the group", async () => {
+    const row = mountRow(
+      { name: "otp" },
+      h(OtpInput, { length: 4, modelValue: "4839", ariaLabel: "Code" }),
+    );
+    await nextTick();
+
+    // A `name` on the group would be a `name` on a `<div>`, which no form
+    // reads; Reka's own hidden input is the node a submission sees.
+    expect(row.get('[role="group"]').attributes("name")).toBeUndefined();
+    const submitted = row.get('input[aria-hidden="true"]').element as HTMLInputElement;
+    expect(submitted.name).toBe("otp");
+    expect(submitted.value).toBe("4839");
+  });
+
+  it("adds nothing at all when there is no row above it", () => {
+    const bare = mountOtp({ length: 2, ariaLabel: "Code" });
+    const group = bare.get('[role="group"]');
+
+    expect(bare.get('input[aria-hidden="true"]').attributes("id")).toBeUndefined();
+    expect(group.attributes("aria-describedby")).toBeUndefined();
+    expect(group.attributes("data-invalid")).toBeUndefined();
+    for (const cell of cellsOf(bare)) {
+      expect(cell.attributes("aria-required")).toBeUndefined();
+      expect(cell.attributes("aria-invalid")).toBeUndefined();
+    }
+    // Reka renders its hidden input unconditionally and names it `""` when
+    // nothing has named it, which is a control no submission includes.
+    expect((bare.get('input[aria-hidden="true"]').element as HTMLInputElement).name).toBe("");
   });
 });
 

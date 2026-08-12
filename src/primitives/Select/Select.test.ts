@@ -1,7 +1,8 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, type VNode } from "vue";
 import Select, { type SelectOption } from "./Select.vue";
+import { provideFieldContext } from "../../lib/field-context";
 import { LIST_STAGGER_STEP_MS, listStaggerDelay } from "../../lib/motion";
 import { attachToBody } from "../../testing/attach-to-body";
 
@@ -327,6 +328,149 @@ describe("Select size", () => {
   it("falls back to the middle of the scale when no size is asked for", () => {
     mountSelect();
     expect(getTrigger().className).toContain("h-9");
+  });
+});
+
+// A stand-in for the Field wrapping this control. Field itself is a
+// project-internal collaborator, and its own behaviour — which id it mints,
+// when it publishes a description — is pinned in `Field.test.ts`. What matters
+// here is the other half: that this control reads a row it is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("div", slots.default?.());
+  },
+});
+
+// The trigger is the only part of this control that is not portalled, so every
+// assertion below is scoped to the mounted row rather than to `document` —
+// which is what lets one test mount two rows and compare them.
+function mountRow(
+  rowProps: Partial<InstanceType<typeof ProbeRow>["$props"]> = {},
+  control: VNode = h(Select, { options }),
+  into: Element = document.body,
+) {
+  return mount(ProbeRow, {
+    props: rowProps,
+    slots: { default: control },
+    attachTo: into,
+  });
+}
+
+describe("Select inside a Field", () => {
+  it("takes its id, description, required and invalid state from the row it sits in", () => {
+    const row = mountRow({
+      controlId: "language",
+      describedBy: "language-description",
+      required: true,
+      invalid: true,
+    });
+    const trigger = row.get(TRIGGER);
+
+    expect(trigger.attributes("id")).toBe("language");
+    expect(trigger.attributes("aria-describedby")).toBe("language-description");
+    expect(trigger.attributes("aria-required")).toBe("true");
+    expect(trigger.attributes("aria-invalid")).toBe("true");
+    expect(trigger.attributes("data-invalid")).toBeDefined();
+  });
+
+  it("refuses to open inside a disabled row, the same as it does for its own prop", async () => {
+    const row = mountRow({ disabled: true });
+    expect(row.get(TRIGGER).attributes("disabled")).toBeDefined();
+
+    await openList();
+    expect(getListbox()).toBeNull();
+  });
+
+  it("lets an explicit prop overrule the row in both directions", () => {
+    const optedOut = mountRow(
+      { invalid: true, disabled: true },
+      h(Select, { options, invalid: false, disabled: false }),
+    );
+    const optedOutTrigger = optedOut.get(TRIGGER);
+    expect(optedOutTrigger.attributes("aria-invalid")).toBeUndefined();
+    expect(optedOutTrigger.attributes("data-invalid")).toBeUndefined();
+    expect(optedOutTrigger.attributes("disabled")).toBeUndefined();
+
+    const optedIn = mountRow({}, h(Select, { options, invalid: true }));
+    expect(optedIn.get(TRIGGER).attributes("aria-invalid")).toBe("true");
+  });
+
+  it("keeps a caller's own id, so the row never moves a label or a selector they published", () => {
+    const row = mountRow(
+      { controlId: "language" },
+      h(Select, { options, id: "chosen-by-the-host" }),
+    );
+    expect(row.get(TRIGGER).attributes("id")).toBe("chosen-by-the-host");
+  });
+
+  it("adds the row's description to one the caller already set rather than replacing it", () => {
+    const row = mountRow(
+      { describedBy: "language-description" },
+      h(Select, { options, "aria-describedby": "shortcut-hint" }),
+    );
+    expect(row.get(TRIGGER).attributes("aria-describedby")).toBe(
+      "shortcut-hint language-description",
+    );
+  });
+
+  it("posts the chosen value under the row's name, and nothing under it while nothing is chosen", async () => {
+    const form = attachToBody(document.createElement("form"));
+    const row = mountRow({ name: "language" }, h(Select, { options, modelValue: "vi" }), form);
+    await settle();
+
+    // A trigger is a `<button type="button">`, whose `name` no submission has
+    // ever included, so the value travels in a hidden input instead.
+    const submitted = form.querySelector<HTMLInputElement>('input[name="language"]');
+    expect(submitted?.value).toBe("vi");
+    expect(row.get(TRIGGER).attributes("name")).toBeUndefined();
+
+    // The empty case is the one a native `<select>` gets wrong: it always
+    // resolves to one of its options, so it would post "en" here.
+    row.unmount();
+    mountRow({ name: "language" }, h(Select, { options, placeholder: "Choose" }), form);
+    await settle();
+    expect(form.querySelector<HTMLInputElement>('input[name="language"]')?.value).toBe("");
+  });
+
+  it("publishes the row's required state on the trigger, which is the node a reader lands on", () => {
+    // Reka pins `aria-required` to the root's own prop and its as-child merge
+    // lets that declaration beat any attribute passed in, so this is the one
+    // resolved value that has to travel as a prop rather than in the bag —
+    // spread onto the trigger it would be dropped without a word.
+    const required = mountRow({ required: true });
+    expect(required.get(TRIGGER).attributes("aria-required")).toBe("true");
+
+    const optional = mountRow({});
+    expect(optional.get(TRIGGER).attributes("aria-required")).toBe("false");
+  });
+
+  it("adds nothing at all when there is no row above it", () => {
+    const bare = mount(Select, { props: { options }, attachTo: document.body });
+    const trigger = bare.get(TRIGGER);
+
+    expect(trigger.attributes("id")).toBeUndefined();
+    expect(trigger.attributes("name")).toBeUndefined();
+    expect(trigger.attributes("aria-describedby")).toBeUndefined();
+    expect(trigger.attributes("aria-invalid")).toBeUndefined();
+    expect(trigger.attributes("data-invalid")).toBeUndefined();
   });
 });
 

@@ -130,6 +130,41 @@ region, which is reserved for what the zone itself refused.
   </div>
 </Demo>
 
+## Inside a Field
+
+A [Field](/components/field) publishes what the row knows and the zone takes it, and this
+is the one control in the family that had something of its own to say first.
+The row's id lands on the input **and** on the `<label>`'s `for`, so the zone
+keeps activating it; the row's `name`, `required` and `invalid` land on the
+input beside them; and the row's hint or error line is **added** to the zone's
+own refusal message rather than replacing it. A file turned away for being too
+large keeps saying why, and the reader hears both — the refusal first, because
+it is the more specific thing to say.
+
+```vue
+<Field label="Attachments" hint="PDFs only" name="attachments" required>
+  <FileUpload v-model="attachments" multiple accept=".pdf,application/pdf" />
+</Field>
+```
+
+Unlike the other bare controls here, a row's label really does name this one:
+the zone is a real `<input type="file">`, so a `<label for>` resolves to it. It
+does not _replace_ the zone's copy, though — the zone is itself a `<label>`
+around that input, so what a reader hears is both, in order: "Attachments,
+choose files or drag them here". Keep the row's label the field's **name** and
+the `label` prop its **instruction**, and the pair reads as one sentence instead
+of as the same words twice.
+
+`disabled` and `invalid` both still win wherever you set them, in both
+directions, which is why each is `boolean | undefined` and defaults to
+`undefined` rather than `false`.
+
+There is no `readonly`, and a row's is ignored rather than approximated.
+`readonly` is inert on `<input type="file">` in every browser, for the reason it
+is inert on a checkbox: there is no text to protect, only a dialog to open. A
+zone that may be read but not added to is a disabled zone — and the list beneath
+it, which is where the value actually is, stays readable either way.
+
 ## Keyboard and screen readers
 
 **Drag and drop is a shortcut here, never the path.** The zone is a `<label>`

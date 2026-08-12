@@ -17,12 +17,29 @@ import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { RadioGroupRoot, RadioGroupItem } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
+import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 
 /**
  * SegmentedControl — pick one of 2-5 mutually exclusive options, all visible
  * at once; one is always active. Built on Reka UI's RadioGroup (single
  * choice, roving tabindex — the group is one Tab stop, not N — with
  * arrow-key navigation). Styled with Loom tokens.
+ *
+ * Inside a [Field](../Field/Field.vue) the row's description, `name`,
+ * `required` and `invalid` reach the group through `useFieldControl()`.
+ *
+ * **A row's label does not name this group.** `<label for>` names a labelable
+ * element and this renders a `div[role="radiogroup"]`, so the row's label
+ * resolves to the element and names nobody. Name it with a
+ * [Fieldset](../Fieldset/Fieldset.vue)'s real `<legend>`, or with an
+ * `aria-label`/`aria-labelledby` of its own — which is what every example
+ * already does, because the control carries no label text.
+ *
+ * There is no `readonly`, and a row's is ignored rather than approximated: each
+ * segment is a `<button role="radio">` with no native read-only state to put it
+ * in, and one segment is always active, so a read-only control here would be a
+ * disabled one showing an answer.
  */
 const props = withDefaults(
   defineProps<{
@@ -30,15 +47,47 @@ const props = withDefaults(
     modelValue?: string;
     /** The segments to render, in order. */
     options: SegmentedControlOption[];
-    /** Disables every segment at once, distinct from a single option's own `disabled`. */
-    disabled?: boolean;
+    /** Disables every segment at once, distinct from a single option's own `disabled`. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
     /** `"sm"` is the compressed form for dense chrome — e.g. a status bar density level. */
     size?: "default" | "sm";
   }>(),
-  { disabled: false, size: "default" },
+  {
+    // Not `false`: absent has to stay tellable from `false` for a Field above
+    // to disable the control and for `:disabled="false"` to overrule one that
+    // does. Vue casts an absent Boolean prop with no declared default to
+    // `false`, which would leave the context wired and inert.
+    disabled: undefined,
+    size: "default",
+  },
 );
 
 defineEmits<{ "update:modelValue": [value: string] }>();
+
+defineOptions({ inheritAttrs: false });
+const { attrs, rest: groupAttrs } = useSplitAttrs();
+
+// One rendered node, so the split is only about `class` — a caller's class
+// needs a Tailwind-aware merge rather than Vue's concatenating fallthrough.
+//
+// `id` and `aria-describedby` arrive as fallthrough attrs rather than props, so
+// they are handed in as this caller's own values; `field.attrs` then spreads
+// **after** `groupAttrs`, and that position is the contract (see TextField.vue).
+//
+// `name`, `required` and `invalid` are omitted because this component has no
+// prop for any of them — the row's answer stands unopposed, and its `name`
+// reaches RadioGroupRoot's own prop, which mints the hidden input a `<form>`
+// submits. `readonly` is omitted for the reason the docblock gives.
+//
+// The resolved `required` then reaches the group through Reka's own prop rather
+// than the `aria-required` in `field.attrs`: RadioGroupRoot writes that
+// attribute itself, so leaving it to the bag is a race with a `false` — see
+// Checkbox.vue, where the merge order makes the same race a certainty.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  disabled: props.disabled,
+}));
 
 // Shared sliding indicator behind the checked segment. Measured off the live
 // DOM (offsetLeft/offsetWidth of the [data-state=checked] item), not derived
@@ -88,10 +137,16 @@ watch(
 
 <template>
   <RadioGroupRoot
-    v-bind="optional({ modelValue })"
-    :disabled="disabled"
+    v-bind="{ ...optional({ modelValue }), ...groupAttrs, ...field.attrs }"
+    :disabled="field.disabled"
+    :required="field.required"
     orientation="horizontal"
-    class="relative inline-flex items-center gap-0.5 rounded-md border border-input bg-muted p-0.5"
+    :class="
+      cn(
+        'relative inline-flex items-center gap-0.5 rounded-md border border-input bg-muted p-0.5',
+        attrs.class as string,
+      )
+    "
     @update:model-value="$emit('update:modelValue', String($event))"
   >
     <span

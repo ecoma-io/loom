@@ -55,6 +55,7 @@ import {
 } from "@internationalized/date";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
 
 /** The range as Reka models it, which is the same shape carrying calendar objects. */
@@ -94,6 +95,16 @@ type SegmentType = "start" | "end";
  * DateTimePicker. Two DatePickers side by side are two values and two
  * validations, and nothing between them knows that the second must not fall
  * before the first — which is the whole reason this control exists.
+ *
+ * Inside a [Field](../Field/Field.vue) it wires itself through
+ * `useFieldControl()` — the row's id, the id of its hint or error line, and
+ * `required` / `invalid` / `disabled` / `readonly` / `name` — so `<Field
+ * label="Report period" error="…"><DateRangePicker /></Field>` needs no
+ * attributes at the call site. Every prop below still wins over the row when it
+ * is set, in both directions, which is why the four booleans default to
+ * `undefined` rather than `false`. The row describes the field as a whole and
+ * not either half: a description repeated onto both ends would be read out
+ * twice for one span.
  */
 const props = withDefaults(
   defineProps<{
@@ -112,12 +123,29 @@ const props = withDefaults(
     locale?: string;
     /** How many months the calendar shows at once. Two is the default because a range is usually read across a month boundary; one is for a host that knows it is rendering into a narrow shell. */
     months?: 1 | 2;
-    /** Unavailable: dims the control, refuses the calendar, and takes the field out of the tab order. */
-    disabled?: boolean;
-    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. */
-    invalid?: boolean;
+    /** Unavailable: dims the control, refuses the calendar, and takes the field out of the tab order. Unset defers to a wrapping Field. */
+    disabled?: boolean | undefined;
+    /** Shows the span without allowing an edit: the field stays a Tab stop and stays submitted, and the calendar button is dropped because nothing in the calendar could be chosen. Unset defers to a wrapping Field. */
+    readonly?: boolean | undefined;
+    /** Error state: paints the destructive border and ring, and sets `aria-invalid`. Unset defers to a wrapping Field's `error`. */
+    invalid?: boolean | undefined;
+    /** Marks the field mandatory to assistive tech (`aria-required` on the group holding both halves). Unset defers to a wrapping Field. */
+    required?: boolean | undefined;
+    /** The field name for a native form post or `FormData`. Reka submits the whole span through one hidden input, as `start - end`. Unset defers to a wrapping Field. */
+    name?: string;
   }>(),
-  { locale: "en", months: 2, disabled: false, invalid: false },
+  {
+    locale: "en",
+    months: 2,
+    // Not `false`, for any of the four — TextField.vue carries the full
+    // reasoning: `false` is a caller's decision that must beat the row, absent
+    // is a caller saying nothing, and only `undefined` survives to mean that
+    // past Vue's absent-Boolean-casts-to-false rule.
+    disabled: undefined,
+    readonly: undefined,
+    invalid: undefined,
+    required: undefined,
+  },
 );
 
 const emit = defineEmits<{
@@ -132,6 +160,27 @@ const SEGMENT_TYPES: readonly SegmentType[] = ["start", "end"];
 // or describes the value, so it lands on the `role="group"` field.
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: fieldAttrs } = useSplitAttrs();
+
+// `id` and `aria-describedby` reach this control as fallthrough attrs rather
+// than props, so they are handed in as this caller's own values: a caller who
+// sets either still beats the row, and the row's description is merged into
+// theirs. `field.attrs` then spreads onto `DateRangePickerField` **after**
+// `fieldAttrs`, which is the node both were already landing on — DatePicker.vue
+// carries the full account of that position and of where Reka then puts each
+// key. It is the outer field group and not either half's own group, which is
+// the point: a description repeated onto the start and the end is read out
+// twice for one span. The `:aria-invalid` binding that used to sit there went
+// with it — an individual attribute after a `v-bind` wins, so keeping one would
+// overwrite the resolved value.
+const field = useFieldControl(() => ({
+  id: attrs.id as string | undefined,
+  describedBy: attrs["aria-describedby"] as string | undefined,
+  name: props.name,
+  disabled: props.disabled,
+  readonly: props.readonly,
+  invalid: props.invalid,
+  required: props.required,
+}));
 
 function fromIso(value: string | undefined): DateValue | undefined {
   if (!value) return undefined;
@@ -198,7 +247,9 @@ function segmentTabIndex(
   part: string,
   segments: Record<SegmentType, readonly { part: string }[]>,
 ): number | undefined {
-  if (props.disabled || part === "literal") return undefined;
+  // Read-only keeps every stop it had, unlike disabled: the span is on show and
+  // a reader still arrows across the segments to read it.
+  if (field.disabled || part === "literal") return undefined;
   const editable = SEGMENT_TYPES.flatMap((each) =>
     segments[each]
       .filter((segment) => segment.part !== "literal")
@@ -326,7 +377,8 @@ function onOpenAutoFocus(event: Event) {
     v-model:open="open"
     v-bind="rootValue"
     :locale="locale"
-    :disabled="disabled"
+    :disabled="field.disabled"
+    :readonly="field.readonly"
     :number-of-months="months"
     granularity="day"
     prevent-deselect
@@ -337,21 +389,26 @@ function onOpenAutoFocus(event: Event) {
          there it means that the *typed* range is out of bounds or runs
          backwards. Same reasoning as DatePicker. -->
     <DateRangePickerAnchor
-      :data-invalid="invalid || undefined"
+      :data-invalid="field.invalid || undefined"
+      :data-readonly="field.readonly || undefined"
       :class="cn('block w-full', attrs.class as string)"
     >
       <DateRangePickerField
         v-slot="{ segments }"
-        v-bind="fieldAttrs"
-        :aria-invalid="invalid || undefined"
+        v-bind="{ ...fieldAttrs, ...field.attrs }"
         :class="
           cn(
             'flex h-9 w-full items-center rounded-md border border-input bg-background px-3 text-sm text-foreground',
             'transition-[color,background-color,border-color,box-shadow] duration-fast ease-out',
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
-            !invalid && 'focus-within:shadow-halo',
-            invalid && 'border-destructive focus-within:outline-destructive',
-            disabled && 'cursor-not-allowed opacity-50',
+            !field.invalid && 'focus-within:shadow-halo',
+            field.invalid && 'border-destructive focus-within:outline-destructive',
+            // Filled rather than dimmed, and it keeps its focus ring — a
+            // read-only span is a value on show, not an unavailable control.
+            // Reka's own `data-readonly` on this group says the same thing to
+            // assistive tech, so nothing here rests on colour.
+            field.readonly && 'bg-muted',
+            field.disabled && 'cursor-not-allowed opacity-50',
           )
         "
       >
@@ -393,7 +450,12 @@ function onOpenAutoFocus(event: Event) {
           </div>
         </template>
 
+        <!-- Dropped entirely while read-only, as in DatePicker: Reka's
+             `readonly` reaches the calendar and makes every cell's click a
+             no-op, so the button would open a panel in which no range can be
+             chosen. The segments are still there to read the span off. -->
         <DateRangePickerTrigger
+          v-if="!field.readonly"
           aria-label="Open calendar"
           class="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed"
         >

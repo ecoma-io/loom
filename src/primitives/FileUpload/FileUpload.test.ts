@@ -1,7 +1,35 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import FileUpload from "./FileUpload.vue";
+import { provideFieldContext } from "../../lib/field-context";
+
+// A stand-in for the Field wrapping this control. Field's own behaviour is
+// pinned in `Field.test.ts`; what matters here is that the zone reads a row it
+// is inside at all.
+const ProbeRow = defineComponent({
+  props: {
+    controlId: { type: String, default: undefined },
+    describedBy: { type: String, default: undefined },
+    name: { type: String, default: undefined },
+    required: { type: Boolean, default: undefined },
+    invalid: { type: Boolean, default: undefined },
+    disabled: { type: Boolean, default: undefined },
+    readonly: { type: Boolean, default: undefined },
+  },
+  setup(props, { slots }) {
+    provideFieldContext({
+      controlId: () => props.controlId,
+      describedBy: () => props.describedBy,
+      name: () => props.name,
+      required: () => props.required,
+      invalid: () => props.invalid,
+      disabled: () => props.disabled,
+      readonly: () => props.readonly,
+    });
+    return () => h("form", slots.default?.());
+  },
+});
 
 enableAutoUnmount(afterEach);
 
@@ -497,5 +525,103 @@ describe("FileUpload", () => {
     const wrapper = mount(FileUpload, { attrs: { class: "w-64" } });
     expect(wrapper.classes()).toContain("w-64");
     expect(wrapper.classes()).not.toContain("w-full");
+  });
+});
+
+describe("FileUpload inside a Field", () => {
+  it("takes its id, description, name, required and invalid state from the row it sits in", () => {
+    const row = mount(ProbeRow, {
+      props: {
+        controlId: "attachments",
+        describedBy: "attachments-description",
+        name: "attachments",
+        required: true,
+        invalid: true,
+      },
+      slots: { default: h(FileUpload) },
+    });
+    const input = row.get('input[type="file"]');
+    expect(input.attributes("id")).toBe("attachments");
+    // The zone activates the input through the label, so the row's id has to
+    // reach both or the click target and the control come apart.
+    expect(row.get("label").attributes("for")).toBe("attachments");
+    expect(input.attributes("aria-describedby")).toBe("attachments-description");
+    expect(input.attributes("name")).toBe("attachments");
+    expect(input.attributes("aria-required")).toBe("true");
+    expect(input.attributes("aria-invalid")).toBe("true");
+    expect(row.get("label").attributes("data-invalid")).toBeDefined();
+  });
+
+  // The live case for merging rather than replacing: this control points
+  // `aria-describedby` at its own refusal message, and a row's hint arriving
+  // must not stop a file explaining why it was turned away.
+  it("keeps announcing its own refusal alongside the row's description", async () => {
+    const row = mount(ProbeRow, {
+      props: { describedBy: "attachments-description" },
+      slots: { default: h(FileUpload, { maxSize: KB }) },
+    });
+    await dropOn(row.get("label").element, [makeFile("scan.tiff", { size: 2 * KB })]);
+
+    const described = row.get('input[type="file"]').attributes("aria-describedby") ?? "";
+    const [own, fromRow] = described.split(" ");
+    // The control's own message reads first: it is the more specific thing to
+    // say, and a screen reader reads the list in order.
+    expect(row.get(`#${own ?? ""}`).text()).toBe("scan.tiff is larger than 1 KB.");
+    expect(fromRow).toBe("attachments-description");
+  });
+
+  it("lets an explicit disabled and invalid overrule the row in both directions", () => {
+    const optedOut = mount(ProbeRow, {
+      props: { disabled: true, invalid: true },
+      slots: { default: h(FileUpload, { disabled: false, invalid: false }) },
+    });
+    expect((optedOut.get('input[type="file"]').element as HTMLInputElement).disabled).toBe(false);
+    expect(optedOut.get('input[type="file"]').attributes("aria-invalid")).toBeUndefined();
+
+    const optedIn = mount(ProbeRow, {
+      slots: { default: h(FileUpload, { disabled: true, invalid: true }) },
+    });
+    expect((optedIn.get('input[type="file"]').element as HTMLInputElement).disabled).toBe(true);
+    expect(optedIn.get('input[type="file"]').attributes("aria-invalid")).toBe("true");
+  });
+
+  it("keeps a caller's own id and description ahead of the row's", () => {
+    const row = mount(ProbeRow, {
+      props: { controlId: "generated", describedBy: "attachments-description" },
+      slots: { default: h(FileUpload, { id: "mine", "aria-describedby": "my-caveat" }) },
+    });
+    const input = row.get('input[type="file"]');
+    expect(input.attributes("id")).toBe("mine");
+    expect(row.get("label").attributes("for")).toBe("mine");
+    expect(input.attributes("aria-describedby")).toBe("my-caveat attachments-description");
+  });
+
+  // `readonly` is inert on `<input type="file">`, so a row's must arrive as
+  // nothing at all — and above all must not quietly become `disabled`.
+  it("ignores a row's readonly rather than approximating it", () => {
+    const row = mount(ProbeRow, {
+      props: { readonly: true },
+      slots: { default: h(FileUpload) },
+    });
+    const input = row.get('input[type="file"]');
+    expect((input.element as HTMLInputElement).disabled).toBe(false);
+    expect(input.attributes("readonly")).toBeUndefined();
+    expect(row.get("label").attributes("data-readonly")).toBeUndefined();
+  });
+
+  // Every key that resolved to nothing is dropped from the bag, so a zone with
+  // no row above it renders exactly what it rendered before the context
+  // existed.
+  it("outside any Field adds nothing of its own", () => {
+    const wrapper = mount(FileUpload);
+    const input = wrapper.get('input[type="file"]');
+    for (const attribute of ["name", "aria-describedby", "aria-required", "aria-invalid"]) {
+      expect(input.attributes(attribute)).toBeUndefined();
+    }
+    // The generated id is still the floor under both, so the label keeps
+    // pointing at the input.
+    const id = input.attributes("id");
+    expect(id).toBeDefined();
+    expect(wrapper.get("label").attributes("for")).toBe(id);
   });
 });

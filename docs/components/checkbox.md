@@ -58,6 +58,35 @@ Two ways to name the control, and exactly one applies per usage:
 - No visible label in the layout (a row-selection checkbox in a table cell,
   say) — pass `ariaLabel` or `ariaLabelledby` directly instead.
 
+## Inside a Field
+
+Wrapped in a [Field](./field), Checkbox wires itself. The row's id lands on the
+box — the underlying control is a labelable `<button role="checkbox">`, so the
+row's `<label for>` names it — and the row's description, `name`, `required`
+and `invalid` arrive with it.
+
+```vue
+<Field label="I agree to the terms" error="Accept the terms to continue" required>
+  <Checkbox v-model="agreed" name="terms" />
+</Field>
+```
+
+**Name it in one place.** `<Field label="Terms"><Checkbox label="I agree" /></Field>`
+gives one control two accessible names, read one after the other. Nothing
+reports it — axe has no rule for a name that is merely doubled — so it is worth
+saying plainly: either let the row label the box, as above, or pass `label`
+here and leave the row's off.
+
+`disabled` still wins wherever you set it, in both directions, which is why it
+is `boolean | undefined` and defaults to `undefined` rather than `false`.
+`<Checkbox />` says nothing and takes the row's answer; `<Checkbox :disabled="false" />`
+says this one box is available even though its row is not, and is obeyed.
+
+There is no `readonly` here, and a row's is ignored rather than approximated. A
+checkbox that may be read but not toggled is a disabled checkbox — the native
+`readonly` attribute is a no-op on `<input type="checkbox">` for that same
+reason — so a `readonly` row leaves the box exactly as it found it.
+
 ## Motion
 
 The tick or dash pops in with a scale-in entrance on every state change, and
