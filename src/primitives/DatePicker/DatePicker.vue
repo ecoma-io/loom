@@ -20,7 +20,7 @@ export type DatePickerLabels = DateSegmentLabels & CalendarPanelLabels;
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useId } from "vue";
+import { computed, ref, useId, useTemplateRef } from "vue";
 import {
   DatePickerRoot,
   DatePickerAnchor,
@@ -51,6 +51,7 @@ import {
 } from "@internationalized/date";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
 import { useLabels, type LabelOverrides } from "../../lib/labels";
@@ -204,6 +205,19 @@ function segmentValueText(part: string, value: string): { "aria-valuetext"?: str
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: fieldAttrs } = useSplitAttrs();
 
+/**
+ * The date segments are `<div role="spinbutton" tabindex="0">`, and
+ * `<fieldset disabled>` reaches only `<input>`, `<button>`, `<select>` and
+ * `<textarea>` — so the calendar trigger inside a disabled group went inert
+ * while the segments beside it still typed a date on an arrow key. Measured in
+ * jsdom: an empty `mm` segment became `8`.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const anchor = useTemplateRef<{ $el?: Element }>("anchor");
+const groupDisabled = useAncestorDisabled(() => anchor.value?.$el);
+
 // `id` and `aria-describedby` reach this control as fallthrough attrs rather
 // than props, so they are read off `attrs` and handed in as this caller's own
 // values — a caller who sets either still beats the row, and the row's
@@ -227,7 +241,9 @@ const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
   name: props.name,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // trigger button inside this very control.
+  disabled: groupDisabled.value ? true : props.disabled,
   readonly: props.readonly,
   invalid: props.invalid,
   required: props.required,
@@ -354,6 +370,7 @@ function onOpenAutoFocus(event: Event) {
          `max`. Two markers spelled the same on one element is how a style rule
          starts answering a question nobody asked it. -->
     <DatePickerAnchor
+      ref="anchor"
       :data-invalid="field.invalid || undefined"
       :data-readonly="field.readonly || undefined"
       :class="cn('block w-full', attrs.class as string)"

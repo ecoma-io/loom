@@ -165,6 +165,14 @@ read is worse than one nobody can edit.
   </div>
 </Demo>
 
+The same treatment answers a [Fieldset](./fieldset) that disables its group.
+`<fieldset disabled>` disables the preview `<button>` and the `<input>` behind
+it inside this control natively — no prop travels, and nothing is walked — so
+the drained appearance is painted off the fieldset's own attribute rather than
+off anything a row passed down. One fact, written in one place, read by the
+browser and by the stylesheet alike; a raw `<fieldset disabled>` you wrote
+yourself works exactly as one of ours does.
+
 ## Inside a Field
 
 Wrapped in a [Field](./field), Editable wires itself: the row's id, the id of its

@@ -141,6 +141,16 @@ region, which is reserved for what the zone itself refused.
   </div>
 </Demo>
 
+The same treatment answers a [Fieldset](./fieldset) that disables its group, and
+here it takes a little help. `<fieldset disabled>` makes the nested `<input
+type="file">` inert on its own, which closes the click and the keyboard — but a
+`drop` lands on the `<label>`, and a label is not a form control. So the zone
+looked available, refused every other way in, and still accepted a dragged file.
+It now reads the enclosing fieldset's own `disabled` attribute and resolves it
+into the same state its own prop feeds. That is a _read_ of the attribute rather
+than a second copy of it, which is why Fieldset still publishes nothing through
+the [Field](./field) context — see [Fieldset](./fieldset#disabling-the-group).
+
 ## Inside a Field
 
 A [Field](/components/field) publishes what the row knows and the zone takes it, and this

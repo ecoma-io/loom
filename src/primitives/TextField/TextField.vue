@@ -426,6 +426,28 @@ const field = useFieldControl(() => ({
         // which also carries it to the counter and the adornments in the same
         // box.
         field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+        // The same appearance, reached from the other direction: a
+        // `<fieldset disabled>` above this field disables the `<input>` inside
+        // it natively and never touches `field.disabled`, so the rule above
+        // cannot fire and the field rendered byte-identical to an editable one.
+        //
+        // `in-[fieldset:disabled]:` is a *read* of the attribute that did the
+        // disabling, so the fill and the native inertness cannot disagree — the
+        // fieldset element is still the only place the fact is written. It is
+        // preferred to `has-[:disabled]:` (a wrapper reading its own contents)
+        // because that proxy is wrong wherever a control holds a part that
+        // disables itself: measured on this branch, NumberField's increment
+        // button goes `:disabled` at `max`, so a `has-` rule would drain a
+        // perfectly editable field the moment its value reached the top.
+        // Nothing about this field is a proxy — the fieldset either disabled it
+        // or it did not.
+        'in-[fieldset:disabled]:cursor-not-allowed in-[fieldset:disabled]:bg-muted in-[fieldset:disabled]:text-muted-foreground',
+        // Gated where the two rules below are ordered, and for the same reason.
+        // Tailwind emits the ancestor half of `in-*` inside `:where()`, so this
+        // carries no more specificity than `border-destructive` and would win
+        // on emission order alone — an unavailable field that is also in error
+        // would quietly lose its destructive rim.
+        !field.invalid && 'in-[fieldset:disabled]:border-border',
         // Last of the three rules that name a border colour, and the order is
         // load-bearing: `cn()` resolves a border colour by whichever class it
         // saw last, so a field that is both in error and unavailable would lose

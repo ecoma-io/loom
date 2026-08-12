@@ -113,11 +113,12 @@ export const FILE_UPLOAD_LABELS: FileUploadLabels = {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useId } from "vue";
+import { computed, ref, useId, useTemplateRef } from "vue";
 import { CloudUpload, File as FileIcon, TriangleAlert, X } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { listStaggerDelay } from "../../lib/motion";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 import { useLabels, type LabelOverrides } from "../../lib/labels";
 
@@ -415,6 +416,23 @@ const message = computed(() =>
     : text.value.rejected({ rejections: rejections.value, maxSize: props.maxSize }),
 );
 
+/**
+ * The drop is the reason this control cannot be left to the platform.
+ *
+ * `<fieldset disabled>` makes the nested `<input type="file">` inert, which
+ * closes the click and the keyboard, and it makes each file's remove button
+ * inert too. It does nothing at all to the `drop` handler, because that sits on
+ * a `<label>` — not a form control, and never disabled by a fieldset. `add()`
+ * bails on `field.disabled`, which is exactly the value a disabled fieldset
+ * does not reach, so a zone inside a disabled group accepted a dragged file
+ * while refusing every other way in.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const root = useTemplateRef<HTMLElement>("root");
+const groupDisabled = useAncestorDisabled(() => root.value);
+
 // The Field wiring sits here, below `message`, because it reads it: this is the
 // one control in the family that already had something of its own to say about
 // itself, so its `describedBy` is a *merge* and not a hand-over. Its refusal
@@ -435,7 +453,9 @@ const field = useFieldControl(() => ({
   describedBy: [message.value.length > 0 ? messageId : undefined, attrs["aria-describedby"]]
     .filter((id): id is string => typeof id === "string" && id.length > 0)
     .join(" "),
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // `<input type="file">` inside this very control.
+  disabled: groupDisabled.value ? true : props.disabled,
   invalid: props.invalid,
 }));
 
@@ -446,7 +466,7 @@ const inputId = computed(() => field.id ?? generatedId);
 </script>
 
 <template>
-  <div :class="cn('flex w-full flex-col', attrs.class as string)">
+  <div ref="root" :class="cn('flex w-full flex-col', attrs.class as string)">
     <!-- The drag handlers sit on a <label>, which the rule reads as a static
          element — and it is usually right to: a box with a drop handler and
          nothing else is a control no keyboard can reach. Here the keyboard

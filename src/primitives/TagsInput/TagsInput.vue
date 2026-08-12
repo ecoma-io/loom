@@ -531,6 +531,22 @@ function onPasteCapture(event: ClipboardEvent): void {
           // it is for a block that must **assert** its edge, and an unavailable
           // field is the one thing that must not.
           field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+          // The same appearance, reached from the other direction: a
+          // `<fieldset disabled>` above this field disables the `<input>` and
+          // every token's remove button natively and never touches
+          // `field.disabled`, so the rule above cannot fire and the box
+          // rendered byte-identical to an editable one.
+          //
+          // `in-[fieldset:disabled]:` reads the attribute that did the
+          // disabling, so the fill and the native inertness cannot disagree.
+          // See TextField.vue for why it is preferred to a `has-[:disabled]:`
+          // rule reading this box's own contents.
+          'in-[fieldset:disabled]:cursor-not-allowed in-[fieldset:disabled]:bg-muted in-[fieldset:disabled]:text-muted-foreground',
+          // Gated for the reason the two rules below are ordered: Tailwind
+          // emits the ancestor half of `in-*` inside `:where()`, so this
+          // carries no more specificity than `border-destructive` and would
+          // win on emission order alone.
+          !field.invalid && 'in-[fieldset:disabled]:border-border',
           // Last of the rules that name a border colour, and the order is
           // load-bearing: `cn()` resolves a border colour by whichever class it
           // saw last, so a field that is both in error and unavailable would

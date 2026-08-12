@@ -70,12 +70,13 @@ const rowVariants = cva("inline-flex items-center", {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { RatingRoot, RatingItem, RatingItemIndicator } from "reka-ui";
 import { Star } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 import { useLabels, type LabelOverrides } from "../../lib/labels";
 
@@ -199,6 +200,25 @@ const text = useLabels("rating", RATING_LABELS, () => props.labels);
 defineOptions({ inheritAttrs: false });
 const { attrs, rest } = useSplitAttrs();
 
+/**
+ * Each step is a real `<button>`, so a `<fieldset disabled>` above this row
+ * already makes the score unsettable — measured on this branch, a click and an
+ * arrow key both left the value where it was. What it does not reach is Reka's
+ * roving focus, which is driven by the row's own `disabled`: every step went
+ * `:disabled` while the `role="radiogroup"` container kept `tabindex="0"`, so
+ * Tab still stopped on an unavailable control. Its own `disabled` prop sets
+ * that to `-1`.
+ *
+ * Reading the state here rather than painting it with a CSS variant is what
+ * makes the two disabled renderings the same rendering, `data-disabled` and
+ * all, instead of two class lists that have to be kept in step by hand.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const root = useTemplateRef<{ $el?: Element }>("root");
+const groupDisabled = useAncestorDisabled(() => root.value?.$el);
+
 // `id` and `aria-describedby` arrive as fallthrough attrs rather than props, so
 // they are handed in as this caller's own values: a caller who sets either
 // still beats the row, and the row's description is merged into theirs rather
@@ -212,7 +232,9 @@ const { attrs, rest } = useSplitAttrs();
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // step buttons themselves.
+  disabled: groupDisabled.value ? true : props.disabled,
   readonly: props.readonly,
 }));
 
@@ -283,6 +305,7 @@ function fillOf(star: number): string {
 
   <RatingRoot
     v-else
+    ref="root"
     v-slot="{ items }"
     v-bind="{ ...rest, ...optional({ modelValue }), ...field.attrs }"
     :length="length"

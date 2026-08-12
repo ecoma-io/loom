@@ -18,7 +18,7 @@ or in a Fieldset only when they sit alongside other controls that share the
 group's fate.
 
 <script setup lang="ts">
-import { Checkbox, Field, Fieldset, TextField } from "@ecoma-io/loom";
+import { Checkbox, Field, Fieldset, Slider, TextField } from "@ecoma-io/loom";
 import FieldsetDemo from "../../src/primitives/Fieldset/FieldsetDemo.vue";
 import fieldsetDemoSource from "../../src/primitives/Fieldset/FieldsetDemo.vue?raw";
 </script>
@@ -75,7 +75,7 @@ it natively — no prop is passed down, nothing is walked, the browser does it �
 and that reaches controls Fieldset never rendered and holds no reference to:
 anything a caller put in the default slot, however deeply nested.
 
-<Demo title="One disabled group, three disabled controls">
+<Demo title="One disabled group, four disabled controls">
   <div class="w-full max-w-sm">
     <Fieldset id="docs-notify" legend="Email notifications" hint="Available once a workspace owner enables email delivery" disabled>
       <Checkbox label="Weekly digest" />
@@ -83,9 +83,19 @@ anything a caller put in the default slot, however deeply nested.
       <Field label="Send to" name="docs-notify-to">
         <TextField type="email" placeholder="you@example.com" />
       </Field>
+      <Field label="Daily cap" name="docs-notify-cap">
+        <Slider :model-value="0.4" aria-label="Daily cap" />
+      </Field>
     </Fieldset>
   </div>
 </Demo>
+
+One disabling, and three different routes to it: the Checkboxes are form
+controls the browser disables outright, the TextField's drained fill is painted
+from the fieldset's own attribute, and the Slider has to read that attribute
+because nothing native reaches a `<span role="slider">`. Not one of the four was
+told by a prop, and the Slider's thumb is out of the tab order rather than merely
+dimmed — press Tab through the group and nothing inside it answers.
 
 Nothing in that group is disabled in its own right. A `div` with an ARIA role
 cannot do this: a wrapper cannot pass a `disabled` prop to a control it never
@@ -98,6 +108,12 @@ two ways is one fact that can disagree with itself: a control written
 `:disabled="false"` would beat the context by the usual precedence rule and
 still be disabled by the element, leaving a live-looking control that silently
 refuses input. The element reaches further anyway.
+
+Some controls do have to be _told_, and being told is not the same as being
+handed a second copy. Where the platform cannot disable a control — see below —
+that control reads this element's own `disabled` attribute out of the DOM. There
+is nothing for it to disagree with, because there is no second declaration to
+beat: the answer is recomputed from the same markup the browser is reading.
 
 The group does **not** dim as a unit, and it used to. Opacity composites, so a
 dim on the group multiplied against the dim a control applies to itself: a
@@ -112,6 +128,57 @@ that silently stops accepting input would indeed read as a broken form, and this
 still reads as one inactive block. Nothing the group does reduces the contrast of
 anything inside it. The native `disabled` attribute carries the same state to
 assistive technology, so the state is never colour alone.
+
+### Each control's own treatment, and how it gets here
+
+"Each control's own disabled treatment" is doing real work in that sentence, and
+for a while it was not true. Removing the group dim left eleven of the library's
+controls rendering **byte-identical to their available selves** inside a disabled
+group — a TextField sat on `--color-background` with its value at 14.15:1 and an
+`--color-input` rim, pixel for pixel an editable field. The dim had been the only
+"unavailable" signal they had, and nothing replaced it.
+
+The cause was mechanical rather than an oversight in any one component. A control
+whose root **is** a form control — Switch, Checkbox, Select, Textarea, OtpInput,
+Combobox, RadioGroup — matches `:disabled` under a disabled fieldset and its
+`disabled:` styling simply fires. A control that paints its unavailable state on
+a `<div>` or on a Reka root has nothing to key off, because that state was keyed
+off the Field context and Fieldset deliberately publishes nothing there.
+
+Both halves of the fix read the fieldset's own attribute, so the fact is still
+written in exactly one place:
+
+- **TextField, TagsInput and Editable** get it in CSS. Everything a reader can
+  reach inside them is an `<input>` or a `<button>`, so the platform had already
+  disabled them properly and only the paint was missing; a variant scoped to a
+  disabled fieldset supplies it.
+- **NumberField, SegmentedControl, Slider, Rating, ColorPicker, FileUpload and
+  all five date and time pickers** get it in the control. Reka builds them
+  around a `<span role="slider">`, a `<div role="spinbutton">` or a
+  roving-focus container, and `<fieldset disabled>` reaches `<input>`,
+  `<button>`, `<select>` and `<textarea>` and stops. Each reads the enclosing
+  fieldset's `disabled` attribute and resolves it into the same state its own
+  `disabled` prop feeds.
+
+That second list is longer than the eleven the sweep measured. DateRangePicker,
+DateTimePicker and DateTimeRangePicker were not in it and carry the identical
+defect for the identical reason; they are fixed here rather than left for the
+next sweep to find.
+
+That second half turned out to matter for more than appearance, and it is the
+reason the fix is not purely a stylesheet change. Measured before it: a Slider in
+a disabled group still moved its value on **Home** and **End**; a DatePicker, a
+TimePicker and all three range pickers still typed a segment on an arrow key; a
+ColorPicker still moved the colour; a NumberField still scrubbed under a drag,
+because that gesture is a `pointerdown` on a `<div>`; and a FileUpload still
+accepted a dropped file, because a `drop` lands on a `<label>` and a label is not
+a form control. A control that looks unavailable and answers the keyboard anyway
+is a worse defect than one that looks available, so painting them without this
+would have made the page wrong in a more expensive way.
+
+A control's own `disabled` prop does not beat the group, in either direction, and
+that is deliberate: `<input :disabled="false">` inside a disabled fieldset is
+disabled too, and a Loom control that escaped would be the surprising one.
 
 The group takes **no fill** either, in any state, and that is the other half of
 the same answer rather than an omission. Every unavailable control in the library

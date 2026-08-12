@@ -86,6 +86,16 @@ Rendering the first as the second reads as "broken" to a sighted reader and as
   </div>
 </Demo>
 
+The same treatment answers a [Fieldset](./fieldset) that disables its group, and
+here it takes a little help. Each step is a real `<button>`, so a `<fieldset
+disabled>` already made the score unsettable — but Reka's roving focus is driven
+by the row's own `disabled`, which the fieldset never reaches, so the row
+rendered exactly as a settable one and Tab still stopped on it. It now reads the
+enclosing fieldset's own `disabled` attribute and resolves it into the same
+state its own prop feeds. That is a _read_ of the attribute rather than a second
+copy of it, which is why Fieldset still publishes nothing through the
+[Field](./field) context — see [Fieldset](./fieldset#disabling-the-group).
+
 ## Inside a Field
 
 A [Field](./field.md) publishes what the row knows, and the rating takes it: the

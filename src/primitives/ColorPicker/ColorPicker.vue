@@ -84,7 +84,7 @@ export const COLOR_PICKER_LABELS: ColorPickerLabels = {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import {
   ColorAreaRoot,
   ColorAreaArea,
@@ -106,6 +106,7 @@ import {
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 import { useLabels, type LabelOverrides } from "../../lib/labels";
 
@@ -342,6 +343,20 @@ function onPresetPick(value: unknown): void {
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: groupAttrs } = useSplitAttrs();
 
+/**
+ * Two of this control's four parts are Reka roots that the platform cannot
+ * disable: the saturation area and the hue slider render `<span role="slider"
+ * tabindex="0">`, and `<fieldset disabled>` reaches only `<input>`, `<button>`,
+ * `<select>` and `<textarea>`. Measured in jsdom, both still took an arrow key
+ * inside a disabled group and moved the colour — while the hex `<input>` beside
+ * them went properly inert, so the picker was half unavailable and half not.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const root = useTemplateRef<HTMLElement>("root");
+const groupDisabled = useAncestorDisabled(() => root.value);
+
 // `id` and `aria-describedby` arrive as fallthrough attrs rather than props, so
 // they are handed in as this caller's own values: a caller who sets either
 // still beats the row, and the row's description is merged into theirs rather
@@ -350,7 +365,9 @@ const { attrs, rest: groupAttrs } = useSplitAttrs();
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // hex input inside this very control.
+  disabled: groupDisabled.value ? true : props.disabled,
 }));
 
 /**
@@ -390,6 +407,7 @@ const THUMB =
 
 <template>
   <div
+    ref="root"
     v-bind="{ ...groupAttrs, ...groupFieldAttrs }"
     role="group"
     :aria-label="ariaLabel"

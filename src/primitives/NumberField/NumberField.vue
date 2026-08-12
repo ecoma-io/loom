@@ -43,7 +43,7 @@ export const NUMBER_FIELD_LABELS: NumberFieldLabels = {
 </script>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from "vue";
+import { computed, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import {
   NumberFieldRoot,
   NumberFieldInput,
@@ -53,6 +53,7 @@ import {
 import { ChevronUp, ChevronDown } from "@lucide/vue";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 import { useLabels, type LabelOverrides } from "../../lib/labels";
 import { optional } from "../../lib/props";
@@ -156,6 +157,23 @@ const text = useLabels("numberField", NUMBER_FIELD_LABELS, () => props.labels);
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: inputAttrs } = useSplitAttrs();
 
+/**
+ * The scrub is the reason this control cannot be left to the platform.
+ *
+ * `<fieldset disabled>` makes the inner `<input>` and the two stepper buttons
+ * inert on its own, which covers the keyboard and the two clicks — but the
+ * drag-to-change gesture is a `pointerdown` on the **root**, and a `<div>` is
+ * not a form control, so nothing native stops it. `onPointerDown` bails on
+ * `field.disabled`, and that is exactly the value a disabled fieldset does not
+ * reach. Without this, a field inside a disabled group looked unavailable,
+ * refused the keyboard, and still changed its number under a drag.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const root = useTemplateRef<{ $el?: Element }>("root");
+const groupDisabled = useAncestorDisabled(() => root.value?.$el);
+
 // `id` and `aria-describedby` reach this control as fallthrough attrs rather
 // than props, so they are read off `attrs` and handed in as this caller's own
 // values — a caller who sets either still beats the row, and the row's
@@ -165,7 +183,9 @@ const { attrs, rest: inputAttrs } = useSplitAttrs();
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // `<input>` inside this very control.
+  disabled: groupDisabled.value ? true : props.disabled,
   readonly: props.readonly,
   invalid: props.invalid,
 }));
@@ -379,6 +399,7 @@ function onPointerDown(event: PointerEvent) {
 
 <template>
   <NumberFieldRoot
+    ref="root"
     v-bind="rootProps"
     :step="step"
     :disabled="field.disabled"

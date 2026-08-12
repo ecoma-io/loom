@@ -149,7 +149,7 @@ export type DateTimeRangePickerLabels = DateSegmentLabels &
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useId, watch } from "vue";
+import { computed, ref, useId, useTemplateRef, watch } from "vue";
 import {
   DateRangePickerRoot,
   DateRangePickerAnchor,
@@ -183,6 +183,7 @@ import {
 } from "@internationalized/date";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 import { useLabels, type LabelOverrides } from "../../lib/labels";
 import {
@@ -443,6 +444,20 @@ const backwards = computed(() => {
   return !!start && !!end && end.compare(start) < 0;
 });
 
+/**
+ * The segments are `<div role="spinbutton" tabindex="0">`, and
+ * `<fieldset disabled>` reaches only `<input>`, `<button>`, `<select>` and
+ * `<textarea>` — so the trigger button inside a disabled group went inert while
+ * the segments beside it still typed. Measured on this branch: an empty `mm`
+ * segment became `8` on an arrow key. Exactly the defect DatePicker carries,
+ * and fixed exactly the way DatePicker fixes it.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const anchor = useTemplateRef<{ $el?: Element }>("anchor");
+const groupDisabled = useAncestorDisabled(() => anchor.value?.$el);
+
 // `id` and `aria-describedby` reach this control as fallthrough attrs rather
 // than props, so they are handed in as this caller's own values: a caller who
 // sets either still beats the row, and the row's description is merged into
@@ -461,7 +476,9 @@ const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
   name: props.name,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // trigger button inside this very control.
+  disabled: groupDisabled.value ? true : props.disabled,
   readonly: props.readonly,
   invalid: props.invalid,
   required: props.required,
@@ -739,6 +756,7 @@ function onOpenAutoFocus(event: Event) {
          spells a fourth meaning `data-invalid` on the field group below, which
          is why none of these lives there. -->
     <DateRangePickerAnchor
+      ref="anchor"
       :data-invalid="field.invalid || undefined"
       :data-out-of-range="outOfRange || undefined"
       :data-backwards="backwards || undefined"

@@ -13,11 +13,12 @@ export interface SegmentedControlOption {
 </script>
 
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { RadioGroupRoot, RadioGroupItem } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { optional } from "../../lib/props";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 
 /**
@@ -67,6 +68,27 @@ defineEmits<{ "update:modelValue": [value: string] }>();
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: groupAttrs } = useSplitAttrs();
 
+/**
+ * The segments are real `<button>`s, so a `<fieldset disabled>` above this
+ * control already makes each of them inert — but Reka's roving focus is what
+ * decides where Tab lands, and it is driven by the group's own `disabled`,
+ * which the fieldset never reaches. Measured on this branch: every segment went
+ * `:disabled` while the `role="radiogroup"` container kept `tabindex="0"`, so
+ * Tab still stopped on an unavailable control and left the reader nowhere. Its
+ * own `disabled` prop sets that to `-1`.
+ *
+ * Reading the group state here rather than painting it with a CSS variant is
+ * also what keeps the appearance honest, and this is the control where the
+ * distinction bites: one option may carry `disabled` of its own, so "a
+ * `:disabled` button is inside this track" and "this track is unavailable" are
+ * different facts. Only the fieldset says the second.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const root = useTemplateRef<{ $el?: Element }>("root");
+const groupDisabled = useAncestorDisabled(() => root.value?.$el);
+
 // One rendered node, so the split is only about `class` — a caller's class
 // needs a Tailwind-aware merge rather than Vue's concatenating fallthrough.
 //
@@ -86,7 +108,9 @@ const { attrs, rest: groupAttrs } = useSplitAttrs();
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // segments themselves.
+  disabled: groupDisabled.value ? true : props.disabled,
 }));
 
 // Shared sliding indicator behind the checked segment. Measured off the live
@@ -137,6 +161,7 @@ watch(
 
 <template>
   <RadioGroupRoot
+    ref="root"
     v-bind="{ ...optional({ modelValue }), ...groupAttrs, ...field.attrs }"
     :disabled="field.disabled"
     :required="field.required"

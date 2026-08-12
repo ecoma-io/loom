@@ -141,6 +141,17 @@ is worse than one that offers none, so the scrub cursor goes with it.
   </div>
 </Demo>
 
+The same treatment answers a [Fieldset](./fieldset) that disables its group, and
+here it takes a little help. `<fieldset disabled>` makes the `<input>` and both
+stepper buttons inert on its own, which closes the keyboard and the two clicks —
+but the scrub is a `pointerdown` on a `<div>`, and a `<div>` is not a form
+control. So the field looked available, refused every key, and still ran its
+number under a drag. It now reads the enclosing fieldset's own `disabled`
+attribute and resolves it into the same state its own prop feeds. That is a
+_read_ of the attribute rather than a second copy of it, which is why Fieldset
+still publishes nothing through the [Field](./field) context — see
+[Fieldset](./fieldset#disabling-the-group).
+
 ## Inside a Field
 
 Wrapped in a [Field](./field), NumberField wires itself: the row's id, the id of

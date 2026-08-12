@@ -143,6 +143,17 @@ whichever control it holds.
   </div>
 </Demo>
 
+The same treatment answers a [Fieldset](./fieldset) that disables its group, and
+here it takes a little help. `<fieldset disabled>` reaches `<input>`,
+`<button>`, `<select>` and `<textarea>` and stops there, and this control is
+built around `<div role="spinbutton">` segments — so the platform left it
+looking available, keeping its tab stop and still typing a date on an arrow key.
+It now reads the enclosing fieldset's own `disabled` attribute and resolves it
+into the same state its own prop feeds: the same appearance, the same lost tab
+stop, the same refused gesture. That is a _read_ of the attribute rather than a
+second copy of it, which is why Fieldset still publishes nothing through the
+[Field](./field) context — see [Fieldset](./fieldset#disabling-the-group).
+
 ## Read-only
 
 A date on show that cannot be edited is a genuine state, and it is not the same

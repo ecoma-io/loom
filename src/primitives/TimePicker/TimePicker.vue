@@ -18,12 +18,13 @@ export type TimePickerLabels = TimeSegmentLabels;
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
 import { TimeFieldInput, TimeFieldRoot, type TimeValue } from "reka-ui";
 import { Clock } from "@lucide/vue";
 import { parseTime } from "@internationalized/date";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 import { optional } from "../../lib/props";
 import { useLabels, type LabelOverrides } from "../../lib/labels";
@@ -179,6 +180,19 @@ function segmentValueText(part: string, value: string): { "aria-valuetext"?: str
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: fieldAttrs } = useSplitAttrs();
 
+/**
+ * The time segments are `<div role="spinbutton" tabindex="0">`, and
+ * `<fieldset disabled>` reaches only `<input>`, `<button>`, `<select>` and
+ * `<textarea>` — so Reka's hidden input went inert inside a disabled group
+ * while the segments a reader actually uses still typed. Measured in jsdom: an
+ * empty hour segment became `12` on an arrow key.
+ *
+ * Read off the DOM rather than taken from the Field context, which publishes no
+ * `disabled` on purpose — see `../../lib/ancestor-disabled.ts`.
+ */
+const root = useTemplateRef<{ $el?: Element }>("root");
+const groupDisabled = useAncestorDisabled(() => root.value?.$el);
+
 // `id` and `aria-describedby` reach this control as fallthrough attrs rather
 // than props, so they are handed in as this caller's own values: a caller who
 // sets either still beats the row, and the row's description is merged into
@@ -203,7 +217,9 @@ const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
   name: props.name,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for the
+  // native input Reka renders inside this very control.
+  disabled: groupDisabled.value ? true : props.disabled,
   readonly: props.readonly,
   invalid: props.invalid,
   required: props.required,
@@ -314,6 +330,7 @@ function hourAnnouncement(
 
 <template>
   <TimeFieldRoot
+    ref="root"
     :key="shape"
     v-slot="{ segments }"
     v-bind="{ ...rootValue, ...fieldAttrs, ...field.attrs }"

@@ -489,6 +489,22 @@ const areaClass = computed(() =>
     // colour alone — a distinction made in hue and nothing else, which is the
     // one a reader with a colour deficiency does not receive.
     field.disabled && "cursor-not-allowed border-border bg-muted text-muted-foreground",
+    // The same appearance, reached from the other direction: a
+    // `<fieldset disabled>` above this control disables the preview `<button>`
+    // and the `<input>` behind it natively — both are on the list a fieldset
+    // reaches — and never touches `field.disabled`, so the rule above cannot
+    // fire and the value rendered byte-identical to an editable one.
+    //
+    // `in-[fieldset:disabled]:` reads the attribute that did the disabling, so
+    // the fill and the native inertness cannot disagree. See TextField.vue for
+    // why it is preferred to a `has-[:disabled]:` rule reading this box's own
+    // contents.
+    "in-[fieldset:disabled]:cursor-not-allowed in-[fieldset:disabled]:bg-muted in-[fieldset:disabled]:text-muted-foreground",
+    // Gated for the reason the rule below is ordered: Tailwind emits the
+    // ancestor half of `in-*` inside `:where()`, so this carries no more
+    // specificity than `border-destructive` and would win on emission order
+    // alone.
+    !field.invalid && "in-[fieldset:disabled]:border-border",
     // Last of the rules naming a border colour: `cn()` resolves one by
     // whichever class it saw last, so a control both in error and unavailable
     // would lose its destructive rim if this sat above them.

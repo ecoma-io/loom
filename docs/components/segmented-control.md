@@ -119,6 +119,22 @@ hidden input a real `<form>` submits.
 `disabled` still wins wherever you set it, in both directions, which is why it
 is `boolean | undefined` and defaults to `undefined` rather than `false`.
 
+A `<Fieldset disabled>` is the exception, and it wins over the prop the way the
+platform does: an `<input :disabled="false">` inside a disabled fieldset is
+disabled too, so a segmented control that said the same must not be the one
+control that escapes. Each segment is a real `<button>`, so the fieldset already
+made the choice unsettable — what it could not reach is Reka's roving focus,
+which kept `tabindex="0"` on the `role="radiogroup"` container and left Tab
+stopping on an unavailable control. The control now reads the enclosing
+fieldset's own attribute and resolves it into the same state its prop feeds.
+
+That read is also what keeps the _appearance_ honest here, and this is the
+control where the difference bites: one option may carry `disabled` of its own,
+so "a disabled button is inside this track" and "this track is unavailable" are
+different facts, and only the fieldset says the second. A rule keyed off the
+first would slacken the whole group's rim because one segment of five is
+unavailable.
+
 There is no `readonly` here, and a row's is ignored rather than approximated.
 Each segment is a `<button role="radio">` with no native read-only state to put
 it in, and one segment is always active — so a read-only segmented control

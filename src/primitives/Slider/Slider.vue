@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { SliderRoot, SliderTrack, SliderRange, SliderThumb } from "reka-ui";
 import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
+import { useAncestorDisabled } from "../../lib/ancestor-disabled";
 import { useFieldControl } from "../../lib/field-context";
 
 /**
@@ -97,6 +98,25 @@ const emit = defineEmits<{
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: thumbAttrs } = useSplitAttrs();
 
+/**
+ * The one control in the library the platform cannot disable for us.
+ *
+ * `<fieldset disabled>` reaches `<input>`, `<button>`, `<select>` and
+ * `<textarea>` and stops there, and Reka renders this thumb as a
+ * `<span role="slider" tabindex="0">`. Measured in jsdom, a Slider inside a
+ * disabled group kept its tab stop and still moved its value on Home and End —
+ * identical behaviour to an available one. Painting it unavailable without
+ * this would produce the worse defect rather than fix the visible one: a
+ * control that looks unreachable and answers the keyboard anyway.
+ *
+ * It is read off the DOM rather than taken from the Field context because
+ * `Fieldset.vue` deliberately publishes no `disabled` there — see
+ * `../../lib/ancestor-disabled.ts` for why a read cannot drift from the
+ * attribute the way a second declaration would.
+ */
+const root = useTemplateRef<{ $el?: Element }>("root");
+const groupDisabled = useAncestorDisabled(() => root.value?.$el);
+
 // `id` and `aria-describedby` reach this control as fallthrough attrs rather
 // than props, so they are read off `attrs` and handed in as this caller's own
 // values — a caller who sets either still beats the row, and the row's
@@ -107,7 +127,10 @@ const { attrs, rest: thumbAttrs } = useSplitAttrs();
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
-  disabled: props.disabled,
+  // The fieldset beats the prop in both directions, exactly as it does for a
+  // native control: an `<input :disabled="false">` inside a disabled group is
+  // disabled too, so a Slider that said the same must not be the one exception.
+  disabled: groupDisabled.value ? true : props.disabled,
 }));
 
 // The resolved bag lands on the thumb for the same reason every other
@@ -200,6 +223,7 @@ onBeforeUnmount(() => teardownDrag?.());
 
 <template>
   <SliderRoot
+    ref="root"
     :model-value="values"
     :min="min"
     :max="max"
