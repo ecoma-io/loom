@@ -87,6 +87,30 @@ describe("Fieldset", () => {
     expect(wrapper.get("input").classes()).toEqual(["disabled:opacity-50"]);
   });
 
+  // The other half of the same answer, and it is a claim about a fill rather
+  // than about an alpha. Every unavailable control in the library drains to
+  // `bg-muted`, so a `bg-muted` at group scale would be that exact colour
+  // running edge-to-edge behind them: the two fills meet at 1:1 and a row of
+  // disabled controls reads as one grey slab with no controls in it. The group
+  // is a grouping, not a surface — it paints no fill in any state, and the
+  // legend, the native attribute and each control's own treatment carry the
+  // fact instead.
+  it("paints no fill of its own, in any state, so a nested control's own fill still reads", async () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Notifications", disabled: true, readonly: true },
+    });
+    const fills = (): string[] =>
+      wrapper
+        .get("fieldset")
+        .classes()
+        .filter((c) => /(^|:)bg-/.test(c));
+
+    expect(fills()).toEqual([]);
+
+    await wrapper.setProps({ disabled: false, readonly: false });
+    expect(fills()).toEqual([]);
+  });
+
   it("mutes the legend to say the group is unavailable, rather than fading the whole block", async () => {
     const wrapper = mount(Fieldset, { props: { legend: "Notifications", disabled: true } });
     // 14.09:1 available, 5.25:1 not — `group-disabled:` reads the real

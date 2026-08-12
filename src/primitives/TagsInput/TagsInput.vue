@@ -141,6 +141,10 @@ import { useLabels, type LabelOverrides } from "../../lib/labels";
  * control, while staying a tab stop and staying in the submitted data. A
  * disabled field is unavailable: not a tab stop, not submitted, and its tokens
  * drain to the neutral fill.
+ *
+ * That makes **three** resting appearances rather than two, and each is three
+ * changes rather than one — fill, text colour and border weight together. See
+ * the box's class list for why one channel is not enough.
  */
 const props = withDefaults(
   defineProps<{
@@ -501,19 +505,37 @@ function onPasteCapture(event: ClipboardEvent): void {
           // should not have two focus languages in it.
           'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
           !field.invalid && 'focus-within:shadow-halo',
+          // Lifted rather than dimmed, and it keeps its focus ring: a read-only
+          // field is a value **on show**, not an unavailable control. The fill
+          // rises off `background` to `subtle` so the box reads as settled, and
+          // the text stays full strength — 13.45:1 over that fill — because
+          // being read is the entire purpose of the state. The border does not
+          // move, because nothing about the field's reach has: it is still a
+          // tab stop and still submitted.
+          field.readonly && 'bg-subtle',
+          // Unavailable is a step further down all three channels: the fill
+          // drains to `muted`, the text follows to `muted-foreground` (4.67:1
+          // over it) and the rim slackens from `input` to the lighter `border`.
+          //
+          // Read-only and disabled used to share `bg-muted` and part on the
+          // text colour alone, which is a distinction made in hue and nothing
+          // else — the one thing a reader with a colour deficiency does not
+          // receive. Three channels is what makes available → on show →
+          // unavailable legible without it.
+          //
+          // No `opacity-50` anywhere in that, and that is the point. Every
+          // token inside is a Chip that has already drained itself to a
+          // measured unavailable fill; halving the alpha over the top of that
+          // takes its label below the contrast floor. `border-border` and not
+          // the strong weight, for the reason `theme.css` gives the strong one:
+          // it is for a block that must **assert** its edge, and an unavailable
+          // field is the one thing that must not.
+          field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+          // Last of the rules that name a border colour, and the order is
+          // load-bearing: `cn()` resolves a border colour by whichever class it
+          // saw last, so a field that is both in error and unavailable would
+          // lose its destructive rim to the disabled one if this sat above it.
           field.invalid && 'border-destructive focus-within:outline-destructive',
-          // Filled rather than dimmed, and it keeps its focus ring: a read-only
-          // field is a value on show, not an unavailable control.
-          field.readonly && 'bg-muted',
-          // No `opacity-50` here, and that is the point. Every token inside is
-          // a Chip that has already drained itself to a measured unavailable
-          // fill; halving the alpha over the top of that takes its label below
-          // the contrast floor. The container states the same fact in colours
-          // instead — and the state does not rest on any of them, since a
-          // disabled field is not a tab stop and its tokens have no remove
-          // control at all.
-          field.disabled &&
-            'cursor-not-allowed border-border-strong bg-muted text-muted-foreground',
         )
       "
     >

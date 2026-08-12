@@ -125,12 +125,13 @@ hands back `2026-…`.
 
 ## Disabled and invalid
 
-A disabled DatePicker drains to a grey fill with muted segments, refuses the
-calendar, and leaves nothing of itself in the tab order. The state is carried by
-colour rather than by opacity, deliberately: fading the field fades the date
-inside it, and the date is the whole content of the control — 14.09:1 becomes
-2.99:1 at half alpha, and the separators between the segments 2.02:1. Drained,
-every segment measures 4.67:1 and the field still plainly reads as unavailable. An invalid one still works: it takes the destructive border
+A disabled DatePicker drains to a grey fill with muted segments and a slackened
+border, refuses the calendar, and leaves nothing of itself in the tab order. The
+state is carried by colour and weight rather than by opacity, deliberately:
+fading the field fades the date inside it, and the date is the whole content of
+the control — 14.09:1 becomes 2.99:1 at half alpha, and the separators between
+the segments 2.02:1. Drained, every segment measures 4.68:1 and the field still
+plainly reads as unavailable. An invalid one still works: it takes the destructive border
 and focus ring and sets `aria-invalid`, which is the same error language every
 other form control here speaks, so a field reporting an error looks the same
 whichever control it holds.
@@ -149,19 +150,33 @@ one as disabled. A read-only DatePicker stays a Tab stop, keeps its segments
 readable and arrow-navigable, stays in the form's submitted data, and keeps its
 date at full strength — Reka marks it `data-readonly` for assistive tech, so the
 state never rests on the fill alone. A disabled one is unavailable: no Tab stop,
-muted text, nothing submitted. Both take the same grey fill and the text colour
-is what separates them, which is the right way round — a read-only value is
-there to be read. Reaching for `disabled` to show a date nobody may
+muted text, nothing submitted. Reaching for `disabled` to show a date nobody may
 change tells a screen reader the field is unavailable when it is simply not
 editable.
+
+The two are told apart on three channels, not on one. Read-only lifts the fill
+one step off an editable field's and stops there — full-strength segments,
+`--color-input` still on the rim, because the field is still reachable and still
+posted. Disabled drains the fill a step further, mutes the segments with it, and
+slackens the rim to `--color-border`. Read-only and disabled used to share a
+fill and part on the text colour alone; that is a distinction in hue, and hue is
+the channel a reader with a colour deficiency does not have.
+
+All three fills belong to the **segment group**, never to the segments. Every
+separator between two segments — the slashes here, the colon in a
+[TimePicker](./time-picker), the dash between the halves of a
+[DateRangePicker](./date-range-picker) — is a segment of its own, so a fill
+painted per segment would leave the separators on the resting colour and write
+the date as lozenges on a stripe.
 
 The calendar button is **dropped** while read-only rather than disabled beside a
 field that is plainly still alive. A read-only calendar is one where every day
 answers a click with nothing, and a button opening a panel that can choose
 nothing is a dead end wearing the costume of a working control.
 
-<Demo title="Read-only against disabled">
+<Demo title="Available, read-only and disabled">
   <div class="flex w-full max-w-xs flex-col gap-3">
+    <DatePicker v-model="due" name="dueOn" aria-label="Due on (available)" />
     <DatePicker v-model="signed" name="signedOn" readonly aria-label="Signed on (read-only)" />
     <DatePicker v-model="locked" disabled aria-label="Created on (disabled)" />
   </div>

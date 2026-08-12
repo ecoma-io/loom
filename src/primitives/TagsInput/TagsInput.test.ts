@@ -356,6 +356,60 @@ describe("TagsInput", () => {
     expect(fieldBox(wrapper.element).getAttribute("data-readonly")).toBeNull();
   });
 
+  // The three resting appearances, and the reason they are pinned as a set
+  // rather than one by one: read-only and disabled used to share `bg-muted` and
+  // part on the text colour alone, which is a distinction carried in hue and
+  // nothing else. Each state now moves the fill, and the disabled one moves the
+  // border weight too, so the progression survives a reader who cannot separate
+  // two greys.
+  it("tells available, read-only and disabled apart on the fill and the border, not on hue alone", () => {
+    const paint = (props: Record<string, unknown>): string[] => [
+      ...fieldBox(
+        mount(TagsInput, { props: { modelValue: ["design"], ariaLabel: "Keywords", ...props } })
+          .element,
+      ).classList,
+    ];
+
+    const available = paint({});
+    const readonly = paint({ readonly: true });
+    const disabled = paint({ disabled: true });
+
+    expect(available).toContain("bg-background");
+    expect(available).toContain("border-input");
+
+    // Lifted, and the text stays where it was: 13.45:1 over this fill, because
+    // being read is the whole purpose of the state. The rim does not move —
+    // nothing about the field's reach has.
+    expect(readonly).toContain("bg-subtle");
+    expect(readonly).toContain("border-input");
+    expect(readonly).not.toContain("text-muted-foreground");
+
+    // Drained one step further, on all three channels at once.
+    expect(disabled).toContain("bg-muted");
+    expect(disabled).toContain("text-muted-foreground");
+    expect(disabled).toContain("border-border");
+    expect(disabled).not.toContain("border-input");
+
+    // No fill is shared between the two, which is what the old treatment got
+    // wrong, and no alpha has come back over the box that holds the tokens.
+    expect(readonly).not.toContain("bg-muted");
+    for (const state of [available, readonly, disabled]) {
+      expect(state.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+    }
+  });
+
+  // A field that is both in error and unavailable keeps the destructive rim.
+  // `cn()` resolves a border colour by whichever class it saw last, so this is
+  // a claim about the order of the class list and it fails silently if that
+  // order is ever tidied.
+  it("keeps the destructive border on a field that is unavailable as well as invalid", () => {
+    const wrapper = mount(TagsInput, {
+      props: { invalid: true, disabled: true, ariaLabel: "Keywords" },
+    });
+
+    expect([...fieldBox(wrapper.element).classList]).toContain("border-destructive");
+  });
+
   // Reka's clear control refuses to fire while the root is disabled, but it
   // stays a `<button>` — and a control that is a tab stop and does nothing is
   // exactly what "disabled" is supposed to stop being.

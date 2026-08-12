@@ -156,11 +156,15 @@ case it was reached for.
 
 ## Disabled, read-only and invalid
 
-A disabled TimePicker dims, refuses the keyboard, and leaves nothing of itself
-in the tab order. An invalid one still works: it takes the destructive border
-and focus ring and sets `aria-invalid`, the same error language every other form
-control here speaks, so a field reporting an error looks the same whichever
-control it holds.
+A disabled TimePicker drains to a grey fill with muted segments and a slackened
+border, refuses the keyboard, and leaves nothing of itself in the tab order. It
+is colour and weight rather than opacity: fading the field fades the time inside
+it, and the segments are the whole content of the control — the hour reads
+3.08:1 at half alpha and the colon 2.07:1, where the drained pair measures
+4.68:1. An invalid one still works: it takes the destructive border and focus
+ring and sets `aria-invalid`, the same error language every other form control
+here speaks, so a field reporting an error looks the same whichever control it
+holds.
 
 `readonly` is a third state and not a dial on either. A read-only time is a
 value on show: the field stays a Tab stop, its segments stay readable and
@@ -169,10 +173,23 @@ dimmed — Reka marks it `data-readonly`, so the state never rests on the fill
 alone. Reaching for `disabled` to show a time nobody may change tells a screen
 reader the field is unavailable when it is simply not editable.
 
-<Demo title="Disabled, read-only and invalid">
+The three rest on three channels apiece. Available is the page's own background
+with a `--color-input` rim; read-only lifts the fill one step and moves nothing
+else, because the field is still reachable and still posted; disabled drains it
+a step further, mutes the segments with it, and slackens the rim to
+`--color-border`. Read-only and disabled used to share a fill and part on the
+text colour alone — a distinction in hue, and hue is the one channel a reader
+with a colour deficiency does not have.
+
+The fill belongs to the **segment group**, never to the segments: the colon
+between the hour and the minute is a segment itself, so a per-segment fill would
+leave it on the resting colour and write the time as two lozenges on a stripe.
+
+<Demo title="Available, read-only, disabled and invalid">
   <div class="flex w-full max-w-xs flex-col gap-3">
-    <TimePicker v-model="closed" disabled aria-label="Closes at, disabled" />
+    <TimePicker v-model="standup" aria-label="Standup at, available" />
     <TimePicker v-model="doors" readonly aria-label="Doors open, read-only" />
+    <TimePicker v-model="closed" disabled aria-label="Closes at, disabled" />
     <TimePicker v-model="overrun" invalid aria-label="Overrunning finish time" />
   </div>
 </Demo>

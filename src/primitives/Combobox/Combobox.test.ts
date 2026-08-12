@@ -514,6 +514,18 @@ describe("Combobox unavailable state", () => {
     expect(getAnchor().className).toContain("bg-muted");
     expect(getAnchor().className).not.toContain("opacity-50");
     expect(getInput().className).toContain("disabled:text-muted-foreground");
+    // The hairline is the second channel. A fill and a text colour are both
+    // hue, and a reader who cannot resolve `muted` from `background` is left
+    // with nothing; the border weight is a difference in shape.
+    expect(getAnchor().className).toContain("border-border");
+  });
+
+  it("keeps the resting hairline and the plain fill while it is available", async () => {
+    mountCombobox({ modelValue: "vi" });
+    await settle();
+
+    expect(getAnchor().className).toContain("border-input");
+    expect(getAnchor().className).not.toContain("bg-muted");
   });
 
   it("dims no text anywhere, including on the row nobody can choose", async () => {
@@ -537,6 +549,250 @@ describe("Combobox unavailable state", () => {
 
     const label = [...row.querySelectorAll("*")].find((el) => el.textContent === "日本語");
     expect(label?.className).toContain("text-muted-foreground");
+  });
+});
+
+/**
+ * What the box *shows*: the tokens and the overflow summary, in order. Direct
+ * children of the anchor only, and the screen-reader count is left out on
+ * purpose — the whole point of these assertions is that the visible row and the
+ * announced total say different things.
+ */
+function getTokens(): string[] {
+  return [...getAnchor().children]
+    .filter((el) => el.tagName !== "INPUT" && el.tagName !== "BUTTON")
+    .filter((el) => !el.classList.contains("sr-only"))
+    .map((el) => el.textContent.trim());
+}
+
+async function choose(index: number) {
+  const row = getRows()[index];
+  if (!row) throw new Error(`no row at ${String(index)}`);
+  firePointer(row, "pointermove");
+  row.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  await settle();
+}
+
+describe("Combobox multi-select", () => {
+  it("tells a screen reader the list takes more than one value", async () => {
+    mountCombobox({ multiple: true });
+    await openList();
+
+    expect(getListbox()?.getAttribute("aria-multiselectable")).toBe("true");
+  });
+
+  it("says the opposite while single-select, so the two modes are distinguishable", async () => {
+    mountCombobox();
+    await openList();
+
+    expect(getListbox()?.getAttribute("aria-multiselectable")).toBe("false");
+  });
+
+  it("keeps the list open on a choice and toggles the row rather than closing behind it", async () => {
+    const wrapper = mountCombobox({ multiple: true });
+    await openList();
+
+    await choose(1);
+    expect(getListbox()).not.toBeNull();
+    expect(getRows()[1]?.getAttribute("aria-selected")).toBe("true");
+
+    // The same row again takes it back out — the whole reason the list stays
+    // open is that a chosen row is still a control.
+    await choose(1);
+    expect(getListbox()).not.toBeNull();
+    expect(getRows()[1]?.getAttribute("aria-selected")).toBe("false");
+
+    expect(wrapper.emitted("update:modelValue")).toEqual([[["vi"]], [[]]]);
+  });
+
+  it("emits the whole selection every time, never a delta", async () => {
+    const wrapper = mountCombobox({ multiple: true });
+    await openList();
+    await choose(0);
+    await choose(1);
+
+    expect(wrapper.emitted("update:modelValue")).toEqual([[["en"]], [["en", "vi"]]]);
+  });
+
+  it("emits a bare string in single-select, so a host bound to one value is unaffected", async () => {
+    const wrapper = mountCombobox();
+    await openList();
+    await choose(1);
+
+    expect(wrapper.emitted("update:modelValue")).toEqual([["vi"]]);
+  });
+
+  it("still closes on Escape and on a pointer landing outside it", async () => {
+    mountCombobox({ multiple: true, modelValue: ["en"] });
+    await openList();
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key: "Escape" }),
+    );
+    await settle();
+    expect(getListbox()).toBeNull();
+
+    await openList();
+    const outside = attachToBody(document.createElement("button"));
+    firePointer(outside, "pointerdown");
+    await settle();
+    expect(getListbox()).toBeNull();
+  });
+
+  it("shows the chosen values as tokens in the box, by label rather than by value", async () => {
+    mountCombobox({ multiple: true, modelValue: ["en", "vi"] });
+    await settle();
+
+    expect(getTokens()).toContain("English");
+    expect(getTokens()).toContain("Tiếng Việt");
+    // The input is a search box in this mode, not a display of the choice.
+    expect(getInput().value).toBe("");
+  });
+
+  it("shows the tokens for a choice it is managing itself, with no v-model bound", async () => {
+    mountCombobox({ multiple: true });
+    await openList();
+    await choose(1);
+
+    expect(getTokens()).toContain("Tiếng Việt");
+  });
+
+  it("falls back to the value when the host's narrowed list no longer describes it", async () => {
+    // A host-driven search hands back only the rows matching the current
+    // query, so a value chosen from an earlier one has no label to look up. A
+    // token that vanished while the value was still in the model would be the
+    // control lying about what it holds.
+    mountCombobox({ multiple: true, modelValue: ["en"], options: [], filter: false });
+    await settle();
+
+    expect(getTokens()).toContain("en");
+  });
+
+  it("collapses the tail into a count rather than growing the box, at five and at fifty", async () => {
+    const many = Array.from({ length: 50 }, (_, index) => ({
+      value: `v${String(index)}`,
+      label: `Option ${String(index)}`,
+    }));
+
+    const five = mountCombobox({
+      multiple: true,
+      options: many,
+      modelValue: ["v0", "v1", "v2", "v3", "v4"],
+    });
+    await settle();
+    expect(getTokens()).toContain("Option 0");
+    expect(getTokens()).toContain("Option 2");
+    expect(getTokens()).not.toContain("Option 3");
+    expect(getTokens()).toContain("+2 more");
+    five.unmount();
+
+    mountCombobox({
+      multiple: true,
+      options: many,
+      modelValue: many.map((option) => option.value),
+    });
+    await settle();
+    // Three tokens either way: the box sits in a form row on a fixed height
+    // scale, so the selection may not size it.
+    expect(getTokens().filter((token) => token.startsWith("Option "))).toHaveLength(3);
+    expect(getTokens()).toContain("+47 more");
+  });
+
+  it("lets a caller set how many tokens the box shows before the count takes over", async () => {
+    mountCombobox({ multiple: true, visibleValues: 2, modelValue: ["en", "vi", "ja"] });
+    await settle();
+
+    expect(getTokens()).toEqual(["English", "Tiếng Việt", "+1 more"]);
+  });
+
+  it("publishes the size of the selection to a screen reader, describing the input with it", async () => {
+    mountCombobox({ multiple: true, modelValue: ["en", "vi"] });
+    await settle();
+
+    const described = getInput().getAttribute("aria-describedby");
+    expect(described).not.toBeNull();
+    const count = document.getElementById(described ?? "");
+    expect(count?.textContent.trim()).toBe("2 selected");
+    // Neither the tokens nor the overflow count is announced on its own, so
+    // this is the only thing that carries the total.
+    expect(count?.className).toContain("sr-only");
+  });
+
+  it("says nothing of the sort while single-select", async () => {
+    mountCombobox({ modelValue: "vi" });
+    await settle();
+
+    expect(getInput().getAttribute("aria-describedby")).toBeNull();
+  });
+
+  it("stays one Tab stop: the token row holds no control of its own", async () => {
+    mountCombobox({ multiple: true, modelValue: ["en", "vi"] });
+    await settle();
+
+    // Deliberately unlike TagsInput, whose tokens carry a remove button. Here
+    // the list is where a value is unchosen, which is also what keeps a value
+    // behind the overflow count reachable by the same gesture as a visible one.
+    const buttons = [...getAnchor().querySelectorAll("button")];
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]?.getAttribute("aria-haspopup")).toBe("listbox");
+  });
+
+  it("drops the placeholder once a value is chosen, where it would claim the box is empty", async () => {
+    mountCombobox({ multiple: true, placeholder: "Search languages" });
+    await settle();
+    expect(getInput().getAttribute("placeholder")).toBe("Search languages");
+
+    await openList();
+    await choose(0);
+    expect(getInput().getAttribute("placeholder")).toBeNull();
+  });
+
+  it("keeps the typed query through a toggle, so one search can pick several rows", async () => {
+    mountCombobox({ multiple: true });
+    await openList();
+    await type("ti");
+    expect(labels()).toEqual(["Tiếng Việt"]);
+
+    await choose(0);
+    expect(getInput().value).toBe("ti");
+    expect(getListbox()).not.toBeNull();
+  });
+
+  it("names the count and the overflow from the labels prop, taking the numbers rather than a string", async () => {
+    mountCombobox({
+      multiple: true,
+      modelValue: ["en", "vi", "ja"],
+      visibleValues: 1,
+      labels: {
+        count: ({ count }) => `đã chọn ${String(count)}`,
+        overflow: ({ hidden }) => `còn ${String(hidden)}`,
+      },
+    });
+    await settle();
+
+    expect(getTokens()).toContain("còn 2");
+    const described = getInput().getAttribute("aria-describedby");
+    expect(document.getElementById(described ?? "")?.textContent.trim()).toBe("đã chọn 3");
+  });
+
+  it("drains its tokens with the box rather than dimming them, while disabled", async () => {
+    mountCombobox({ multiple: true, modelValue: ["en"], disabled: true });
+    await settle();
+
+    expect(getTokens()).toContain("English");
+    expect(getAnchor().className).toContain("bg-muted");
+    expect(getAnchor().className).toContain("border-border");
+    expect(textNodesCarryingOpacity(getAnchor())).toEqual([]);
+  });
+
+  it("keeps the box on the shared height scale, as a floor rather than a fixed height", async () => {
+    mountCombobox({ multiple: true, modelValue: ["en", "vi"] });
+    await settle();
+
+    // `min-h-9` and not `h-9`: tokens are content and content sizes the box —
+    // TagsInput's call. What bounds it is `visibleValues`, since the token row
+    // never wraps.
+    expect(getAnchor().className).toContain("min-h-9");
+    expect(getAnchor().className).not.toMatch(/(^|\s)h-9(\s|$)/);
   });
 });
 

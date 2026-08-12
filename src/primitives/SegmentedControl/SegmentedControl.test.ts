@@ -126,6 +126,20 @@ describe("SegmentedControl", () => {
     expect(
       wrapper.findAll('[role="radio"]').every((s) => (s.element as HTMLButtonElement).disabled),
     ).toBe(true);
+
+    // The track's own channel, and the only one it has left: its fill is
+    // already `bg-muted` — the well every unavailable control drains to — so
+    // the state is told at the group's edge instead, by the rim slackening from
+    // `input` to the lighter `border`. Without it a wholly unavailable control
+    // was tellable only cell by cell.
+    expect(wrapper.classes()).toContain("border-border");
+    expect(wrapper.classes()).not.toContain("border-input");
+    expect(
+      mount(SegmentedControl, {
+        props: { options: OPTIONS, modelValue: "compact" },
+        attrs: { "aria-label": "Density" },
+      }).classes(),
+    ).toContain("border-input");
   });
 
   it("drains an unavailable segment to a fill instead of dimming the label it is made of", () => {

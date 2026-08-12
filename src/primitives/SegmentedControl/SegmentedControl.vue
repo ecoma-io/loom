@@ -144,6 +144,13 @@ watch(
     :class="
       cn(
         'relative inline-flex items-center gap-0.5 rounded-md border border-input bg-muted p-0.5',
+        // The one thing the *track* has left to say. Its fill is already
+        // `bg-muted` — the well every other unavailable control drains to — so
+        // the fill channel is spent before the state arrives, and the segments
+        // inside carry the rest. The rim slackening from `input` to the lighter
+        // `border` is what makes a wholly unavailable control tellable from an
+        // available one at the group's own edge rather than only cell by cell.
+        field.disabled && 'cursor-not-allowed border-border',
         attrs.class as string,
       )
     "

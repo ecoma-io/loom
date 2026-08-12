@@ -275,6 +275,15 @@ function mirrorArrows(event: KeyboardEvent): void {
                 // has plainly given up its card-white surface. The elevation
                 // goes with it, because a shadow is depth and an unavailable
                 // action is not lifted off the page.
+                //
+                // The rim is the one place this pill diverges from the library's
+                // disabled row, which slackens `input` to the lighter `border`
+                // — and it has to. Every other control drains against a surface
+                // that stays behind it; this one floats, so once the shadow
+                // goes the rim is the only thing delimiting it, and `muted` on
+                // the page ground is 1.12:1. Tightening to the strong weight is
+                // what keeps an unavailable action locatable at all, which is
+                // the prior question to it reading as unavailable.
                 'data-[disabled]:pointer-events-none data-[disabled]:border-border-strong data-[disabled]:bg-muted data-[disabled]:text-muted-foreground data-[disabled]:shadow-none',
                 // The actions fan out one after another, which is what makes
                 // this read as a fan opening rather than a block appearing. The

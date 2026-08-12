@@ -127,11 +127,20 @@ depth — a long list never turns into a slow one.
 ## Disabled and invalid
 
 A disabled Select drains and refuses to open: the trigger takes the neutral
-fill, its chosen label moves to the muted foreground colour, and the cursor says
-not-allowed. What it does **not** do is fade — the trigger is the one node
-carrying the chosen value, and what a reader needs from a control they cannot
-change is exactly that value. Half opacity took the label to 3.06:1; the drained
-pair measures 4.67:1.
+fill, its chosen label moves to the muted foreground colour, its border slackens
+from `--color-input` to the lighter `--color-border`, and the cursor says
+not-allowed. Three channels rather than one — a state told in hue alone is a
+state a reader with a colour deficiency does not receive.
+
+What it does **not** do is fade — the trigger is the one node carrying the
+chosen value, and what a reader needs from a control they cannot change is
+exactly that value. Half opacity took the label to 3.06:1; the drained pair
+measures 4.68:1.
+
+Because Select has no read-only state (see below), it rests in two appearances
+rather than the three a [TextField](./text-field) has: the trigger goes straight
+from available to unavailable, and the lifted fill that marks a value on show
+never appears on it.
 
 An invalid one still works: it takes
 the destructive border and focus ring and sets `aria-invalid`, which is the same
@@ -175,7 +184,8 @@ the input exists only for a surrounding `<form>`.
 reader may see and copy but not change, and a closed list shows nothing the
 trigger is not already showing — so a read-only Select would be a disabled
 Select that lies about being reachable. Use `disabled`, or render the chosen
-label as text.
+label as text. It follows that a row's `readonly` moves neither the trigger's
+fill nor its behaviour: the trigger has two resting appearances, not three.
 
 ## API
 

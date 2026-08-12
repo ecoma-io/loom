@@ -93,13 +93,26 @@ colour.
 
 ## Disabled and invalid
 
-A disabled row drains to a grey fill with muted characters, and refuses every
-cell. It is a colour rather than an opacity, and the reason is sharper here than
-anywhere else in the library: a cell holds one character and nothing else, so
-fading the row does not dim a code so much as erase it. `--color-foreground`
-measures 14.09:1 on the resting fill and 2.99:1 once composited at half alpha;
-drained, each character keeps a measured 4.67:1 and the row still plainly reads
-as unavailable.
+A disabled row drains to a grey fill with muted characters and a slackened
+border, and refuses every cell. Three channels rather than one: fading a single
+one would leave the state resting on hue, which is the distinction a reader with
+a colour deficiency never receives.
+
+None of it is an opacity, and the reason is sharper here than anywhere else in
+the library: a cell holds one character and nothing else, so fading the row does
+not dim a code so much as erase it. `--color-foreground` measures 14.09:1 on the
+resting fill and 2.99:1 once composited at half alpha; drained, each character
+keeps a measured 4.68:1 and the row still plainly reads as unavailable.
+
+The fill sits on the **cells**, not on the row around them. The cells are what
+hold the characters and carry the borders, and the row spaces them apart — a
+fill painted on the group would colour the gaps as well and read as one bar
+rather than as boxes a code is typed into.
+
+Because the row has no read-only state (see below), it rests in two appearances
+rather than the three most form controls here have: it goes straight from
+available to unavailable, and the lifted fill that marks a value on show never
+appears on it.
 
 An invalid row still works: every cell takes the destructive border and focus
 ring and sets `aria-invalid`, and whatever was typed stays put so it can be
@@ -190,7 +203,10 @@ clicking a label pointed at it hands focus to the first cell.
 
 **A row's `readonly` is ignored, deliberately.** There is nothing to read in an
 uneditable code box that a line of text would not show better, and the cells
-exist to be typed into.
+exist to be typed into. That is why the row has two resting appearances where a
+[TextField](./text-field) has three: no cell ever takes the lifted fill that
+marks a value on show, and a row's `readonly` changes neither the fill nor the
+behaviour.
 
 ## Labels
 

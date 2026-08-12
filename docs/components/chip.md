@@ -135,13 +135,20 @@ unlike ones.
 A disabled chip disables both of its controls, so neither takes focus and
 neither responds to a press.
 
-It is drawn in a **colour** rather than behind an opacity: the pill drains to the
-neutral well and gains the hairline its coloured variants hide, and the label
-moves to `--color-muted-foreground` — 4.67:1 against that fill. Fading the pill
-instead would fade the label with it, and a half-alpha label measures 2.78:1
-against its own chip, which is a WCAG 1.4.3 failure on the token's only name. A
-chip that is switched on keeps its selected wash while disabled: being on is
-information, and the muted label clears the bar over that fill too.
+It is drawn in a **colour and a weight** rather than behind an opacity: the pill
+drains to the neutral well, the label moves to `--color-muted-foreground` —
+4.67:1 against that fill — and the hairline the coloured variants hide comes out
+at `--color-border`, the same slackened rim every other unavailable control in
+the library takes. Fading the pill instead would fade the label with it, and a
+half-alpha label measures 2.78:1 against its own chip, which is a WCAG 1.4.3
+failure on the token's only name. A chip that is switched on keeps its selected
+wash while disabled: being on is information, and the muted label clears the bar
+over that fill too.
+
+A chip has no read-only state. It is a control a reader acts on, and a token
+they may only look at is a [Badge](./badge) — so `disabled` is the whole of the
+unavailable story here, and the lifted fill that marks a value on show never
+appears on a chip.
 
 ## Motion
 

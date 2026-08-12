@@ -588,26 +588,71 @@ describe("TimePicker read-only", () => {
     expect(segmentValues()).toEqual(["09", "30"]);
   });
 
-  it("shows a read-only field as filled rather than dimmed, so it does not read as unavailable", async () => {
-    const readOnly = mountPicker({ modelValue: "09:30", readonly: true });
+  it("tells available, read-only and disabled apart on fill, text colour and border weight", async () => {
+    // Three resting appearances, and each pair differs on more than hue.
+    // Read-only and disabled used to share one fill and part on the text colour
+    // alone, which is the one distinction a reader with a colour deficiency
+    // never receives.
+    const available = mountPicker({ modelValue: "09:30" });
     await settle();
-    expect(getField().className).toContain("bg-muted");
-    // A read-only time is a value on show, so its text stays at full strength.
-    expect(getField().className).not.toContain("text-muted-foreground");
-    expect(getField().className).not.toContain("opacity-50");
+    expect(getField().classList.contains("bg-background")).toBe(true);
+    expect(getField().classList.contains("border-input")).toBe(true);
     // Off the document before the next mount: `getField()` reads the first
     // group in it, and two pickers at once would answer for each other.
+    available.unmount();
+
+    const readOnly = mountPicker({ modelValue: "09:30", readonly: true });
+    await settle();
+    expect(getField().classList.contains("bg-subtle")).toBe(true);
+    expect(getField().classList.contains("bg-muted")).toBe(false);
+    // A read-only time is a value on show, so its text stays at full strength
+    // and its rim stays where an editable field's is — it is still a Tab stop
+    // and still submitted.
+    expect(getField().className).not.toContain("text-muted-foreground");
+    expect(getField().classList.contains("border-input")).toBe(true);
+    expect(getField().className).not.toContain("opacity-50");
     readOnly.unmount();
 
     mountPicker({ modelValue: "09:30", disabled: true });
     await settle();
-    // Disabled shares read-only's drained fill and parts from it on the text
-    // colour and the cursor. Never on an alpha: dimming the field takes the
-    // time it is showing down with it, which is the whole point of the state.
-    expect(getField().className).toContain("bg-muted");
+    // Disabled drains a step past read-only and moves all three channels with
+    // it. Never an alpha: dimming the field takes the time it is showing down
+    // with it, which is the whole point of the state.
+    expect(getField().classList.contains("bg-muted")).toBe(true);
+    expect(getField().classList.contains("bg-subtle")).toBe(false);
     expect(getField().className).toContain("text-muted-foreground");
+    expect(getField().classList.contains("border-border")).toBe(true);
+    expect(getField().classList.contains("border-input")).toBe(false);
     expect(getField().className).not.toContain("opacity-50");
     expect(getField().hasAttribute("data-readonly")).toBe(false);
+  });
+
+  it("gives the fill to the field group so the segments do not come out striped", async () => {
+    // The colon between the hour and the minute is a segment like any other. A
+    // fill declared per segment would leave it on the resting colour and write
+    // the time as two lozenges on a stripe, so no segment may carry a resting
+    // fill of its own — `focus:bg-primary-muted`, which marks the segment under
+    // the cursor, is prefixed and therefore not one.
+    mountPicker({ modelValue: "09:30", readonly: true });
+    await settle();
+    expect(getField().classList.contains("bg-subtle")).toBe(true);
+    expect(
+      [...getField().querySelectorAll<HTMLElement>("*")]
+        .filter((node) => [...node.classList].some((name) => name.startsWith("bg-")))
+        .map((node) => node.className),
+    ).toEqual([]);
+  });
+
+  it("keeps the destructive rim on a field that is both invalid and unavailable", async () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order: an error that
+    // stops being visible the moment the field goes unavailable is an error
+    // nobody can act on.
+    mountPicker({ modelValue: "09:30", disabled: true, invalid: true });
+    await settle();
+    expect(getField().classList.contains("border-destructive")).toBe(true);
+    expect(getField().classList.contains("border-border")).toBe(false);
+    expect(getField().classList.contains("bg-muted")).toBe(true);
   });
 });
 

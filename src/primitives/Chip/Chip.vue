@@ -199,7 +199,14 @@ const { attrs, rest: containerAttrs } = useSplitAttrs();
         // A *selected* one keeps the warp wash — `data-[selected]:bg-primary-muted`
         // outranks a plain class — which is right: switched-on is information,
         // and the label is muted over either fill.
-        disabled && 'border-border-strong bg-muted',
+        //
+        // `border-border` and not the strong weight it used to take.
+        // `theme.css` reserves the strong hairline for a block that must
+        // *assert* its edge, which is the opposite of what this state says, and
+        // the lighter rim is the same one every other unavailable control in
+        // the library slackens to — so a disabled chip in a row of disabled
+        // controls is one treatment rather than a second.
+        disabled && 'border-border bg-muted',
         removable && 'pr-1',
         attrs.class as string,
       )

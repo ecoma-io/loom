@@ -194,15 +194,29 @@ browser-styled validation bubble no design system controls. Telling assistive
 technology the field is mandatory is the accessibility fix; enforcing it stays
 your form's decision.
 
-`readonly` and `disabled` are different states, not two dials on one. A
-read-only field is a value on show: it stays a Tab stop, stays in the form's
-submitted data, and is filled rather than dimmed. A disabled field is
-unavailable: no Tab stop, not submitted, dimmed. Reaching for `disabled` to
-render a value nobody may edit tells a screen reader the field is unavailable
-when it is simply not editable.
+`readonly` and `disabled` are different states, not two dials on one, so the
+field rests in three appearances rather than two. A read-only field is a value
+on show: it stays a Tab stop, stays in the form's submitted data, and is filled
+rather than dimmed. A disabled field is unavailable: no Tab stop, not submitted,
+drained. Reaching for `disabled` to render a value nobody may edit tells a
+screen reader the field is unavailable when it is simply not editable.
 
-<Demo title="Read-only against disabled">
+The three are told apart on three channels, and that is the design rather than a
+flourish. The fill steps down — the page's own background, then the lifted
+neutral, then the drained one. The text follows only on the last step, because a
+read-only value exists to be read and keeps its full 13.46:1. The border weight
+moves with them, from `--color-input` to the lighter `--color-border`, and a
+change in _shape_ is the one a reader who cannot separate two greys still
+receives. Before this, read-only and disabled shared a fill and parted on the
+text colour alone, which is a distinction made in hue and nothing else.
+
+None of it is an `opacity`. Half alpha over the box takes the value to 3.08:1
+and the placeholder — already the muted colour before the fade — to 2.07:1, so
+the state that exists to show a value would be the state that hides it.
+
+<Demo title="Available, read-only and disabled">
   <div class="flex w-full flex-col gap-3" style="max-width: 20rem">
+    <TextField aria-label="Display name (available)" name="displayName" model-value="Ada Lovelace" />
     <TextField aria-label="Workspace (read-only)" name="workspace" readonly model-value="Loom Studio" />
     <TextField aria-label="Invite code (disabled)" disabled placeholder="Not available yet" />
   </div>

@@ -109,28 +109,41 @@ as soon as the tokens beside it change.
   </div>
 </Demo>
 
-## Disabled and read-only
+## Available, read-only and disabled
 
-These are two states, not two dials on one, and this control is where the
+These are three states, not two dials on one, and this control is where the
 difference shows most.
 
 **Read-only** shows the tokens and takes nothing: the box accepts no typing and
 no paste, every remove control goes away, and the field stays a tab stop and
-stays in the submitted data. It is a value on show.
+stays in the submitted data. It is a value on show — so the box lifts off the
+page's own background onto `--color-subtle` and its text stays at full strength,
+13.45:1, because being read is the entire purpose of the state. The border does
+not move, because nothing about the field's reach has.
 
 **Disabled** is unavailable: not a tab stop, not submitted. The tokens keep
 their remove controls so the row does not reflow on its way to unavailable, but
 each one is inert, and both the box and the chips drain to measured unavailable
 colours rather than being dimmed with opacity — halving the alpha of a chip that
-has already drained takes its label below the contrast floor.
+has already drained takes its label below the contrast floor. The box steps down
+all three channels together: the fill to `--color-muted`, the text to
+`--color-muted-foreground` at 4.67:1 over it, and the rim from `--color-input` to
+the lighter `--color-border`.
+
+Three channels rather than one, and that is the design rather than a flourish.
+Read-only and disabled used to share a fill and part on the text colour alone,
+which is a distinction made in hue and nothing else — the one a reader with a
+colour deficiency, a low-quality display or forced-colors mode does not receive.
+A change in _shape_ survives where a change in hue does not.
 
 **Invalid** still works. It takes the destructive border and focus ring and sets
 `aria-invalid` on the box, which is the same error language
 [TextField](/components/text-field) and [Select](/components/select) speak, so a
 row reporting an error looks the same whichever control it holds.
 
-<Demo title="Disabled and read-only">
+<Demo title="Available, read-only and disabled">
   <div class="flex w-full max-w-sm flex-col gap-4">
+    <TagsInput :model-value="['invoice', 'q3']" aria-label="Editable filters" />
     <TagsInput :model-value="['invoice', 'q3']" readonly aria-label="Applied filters" />
     <TagsInput :model-value="['invoice', 'q3']" disabled aria-label="Archived filters" />
     <TagsInput :model-value="['invoice']" invalid aria-label="Filters with an error" />

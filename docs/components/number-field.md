@@ -110,24 +110,32 @@ than flagged.
 `readonly` and `disabled` are different states, not two dials on one, and a
 number is the case that makes the difference obvious. A rate, a computed total
 or a coordinate locked to a parent is a value on show: it stays a Tab stop,
-stays in the form's posted data, and keeps its number at full strength. A
-disabled field is unavailable — not reachable, not posted, and drained to a grey
-fill with the number muted to match.
+stays in the form's posted data, keeps its number at full strength, and takes a
+fill lifted one step off an editable field's. A disabled field is unavailable —
+not reachable, not posted, and drained a step further still, with the number
+muted and the border slackened to match.
 
-Both are colours rather than opacities, and for a measured reason. `opacity-50`
-on the box fades the value inside it: 14.09:1 becomes 2.99:1 at half alpha, and
-a unit suffix beside it falls to 2.02:1. Drained, the number measures 4.67:1
-against its own fill and the field still plainly reads as unavailable. The two
-stepper chevrons keep their fade — a glyph can be dimmed without costing anyone
-a value they need to read.
+Three appearances, and each pair of them differs on three channels: the fill,
+the text colour and the border weight. That redundancy is the point. A
+distinction carried by hue alone is the one a reader with a colour deficiency
+never receives, and read-only and disabled used to be exactly that — one fill,
+two text colours.
+
+All of it is colour and weight rather than opacity, and for a measured reason.
+`opacity-50` on the box fades the value inside it: 14.09:1 becomes 2.99:1 at
+half alpha, and a unit suffix beside it falls to 2.02:1. Drained, the number
+measures 4.68:1 against its own fill and the field still plainly reads as
+unavailable. The two stepper chevrons keep their fade — a glyph can be dimmed
+without costing anyone a value they need to read.
 
 Read-only closes every path into the value rather than only the obvious one:
 typing, the arrow keys, Shift+Arrow, the scrub gesture, and the stepper, which
 is not rendered at all. A control offering a gesture that quietly does nothing
 is worse than one that offers none, so the scrub cursor goes with it.
 
-<Demo title="Read-only against disabled">
+<Demo title="Available, read-only and disabled">
   <div class="flex w-full flex-col gap-3" style="max-width: 20rem">
+    <NumberField :model-value="16" unit="px" aria-label="Radius (available)" />
     <NumberField :model-value="24" readonly aria-label="Frame rate (read-only)" />
     <NumberField :model-value="50" unit="px" disabled aria-label="Width (disabled)" />
   </div>

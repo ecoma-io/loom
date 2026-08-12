@@ -477,17 +477,25 @@ const inputId = computed(() => field.id ?? generatedId);
           !field.invalid && 'focus-within:shadow-halo',
           // The dash going solid is what keeps the drag state off colour alone.
           'data-[dragging]:border-solid data-[dragging]:border-primary data-[dragging]:bg-primary-muted',
-          field.invalid && 'border-destructive focus-within:outline-destructive',
           // Drained, not dimmed. The zone is a large blank region whose whole
           // purpose is the two lines of text in the middle of it, and
           // `opacity-50` took the headline to 3.06:1 and the hint below it to
           // 2.05:1 — the reader least able to guess what a drop zone wants is
           // the one it stopped telling. The fill falls to the neutral well
           // instead, which is where every other unavailable surface in the
-          // library goes, and both lines land at 4.67:1 over it. The dashed
-          // border stays, because the dash is what marks this out as a drop
-          // target even while nothing may be dropped on it.
-          field.disabled ? 'cursor-not-allowed bg-muted' : 'cursor-pointer hover:bg-subtle',
+          // library goes, and both lines land at 4.67:1 over it. The dash stays,
+          // because it is what marks this out as a drop target even while
+          // nothing may be dropped on it; only its colour slackens, from
+          // `input` to the lighter `border`, so the state is told in a weight
+          // as well as in two fills rather than in hue alone.
+          field.disabled
+            ? 'cursor-not-allowed border-border bg-muted'
+            : 'cursor-pointer hover:bg-subtle',
+          // Last of the rules naming a border colour, and the order is
+          // load-bearing: `cn()` resolves one by whichever class it saw last,
+          // so a zone both refusing a file and unavailable would lose its
+          // destructive rim to the disabled one if this sat above it.
+          field.invalid && 'border-destructive focus-within:outline-destructive',
         )
       "
       @dragenter="onDragEnter"

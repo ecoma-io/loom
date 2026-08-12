@@ -149,6 +149,15 @@ const { attrs, rest: fieldsetAttrs } = useSplitAttrs();
         // legend below mutes, and every control in it wears its own disabled
         // state — and the native `disabled` attribute carries the fact to
         // assistive tech, so none of it rests on colour alone.
+        //
+        // And no fill either, which is the other half of the same answer. Every
+        // control in the library drains to `bg-muted` when it is unavailable,
+        // so a `bg-muted` on the group would be that exact colour running
+        // edge-to-edge behind them: the fills would meet at 1:1 and a row of
+        // disabled controls would read as one grey slab with no controls in it.
+        // The group is a grouping, not a surface — it has no fill available and
+        // no `readonly` appearance either, because a read-only group is a group
+        // of read-only controls, each of which now says so on its own.
         'disabled:cursor-not-allowed',
         'group',
         attrs.class as string,

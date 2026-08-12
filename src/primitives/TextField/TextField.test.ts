@@ -173,23 +173,61 @@ describe("TextField", () => {
     expect(document.activeElement).not.toBe(disabledInput);
   });
 
-  it("shows a readonly field as filled rather than dimmed, so it does not read as unavailable", () => {
+  it("tells available, read-only and disabled apart on fill, text colour and border weight", () => {
+    // Three resting appearances, and the pairwise difference is the assertion.
+    // Read-only and disabled used to share `bg-muted` and part on the text
+    // colour alone — a distinction in hue, which is the one a reader with a
+    // colour deficiency never receives.
+    const available = mount(TextField, { props: { ariaLabel: "Email" } });
+    expect(available.classes()).toEqual(
+      expect.arrayContaining(["bg-background", "text-foreground", "border-input"]),
+    );
+
+    // A value on show: the fill lifts, and the text and the rim stay exactly
+    // where an editable field's are, because the field is still a Tab stop and
+    // still submitted.
     const readOnly = mount(TextField, { props: { ariaLabel: "Email", readonly: true } });
     expect(readOnly.attributes("data-readonly")).toBe("true");
-    expect(readOnly.classes()).toContain("bg-muted");
-    // A read-only value is on show, so its text stays at full strength.
+    expect(readOnly.classes()).toEqual(
+      expect.arrayContaining(["bg-subtle", "text-foreground", "border-input"]),
+    );
+    expect(readOnly.classes()).not.toContain("bg-muted");
     expect(readOnly.classes()).not.toContain("text-muted-foreground");
-    expect(readOnly.classes()).not.toContain("opacity-50");
 
-    // Disabled shares the drained fill and parts from read-only on the text
-    // colour and the cursor — never on an alpha, which took the value down to
-    // 3.08:1 and is the defect this pins shut.
+    // Unavailable moves all three: the fill one step further down, the text to
+    // the muted colour, the rim from `input` to the lighter `border`.
     const disabled = mount(TextField, { props: { ariaLabel: "Email", disabled: true } });
     expect(disabled.classes()).toEqual(
-      expect.arrayContaining(["bg-muted", "text-muted-foreground", "cursor-not-allowed"]),
+      expect.arrayContaining([
+        "bg-muted",
+        "text-muted-foreground",
+        "border-border",
+        "cursor-not-allowed",
+      ]),
     );
-    expect(disabled.classes()).not.toContain("opacity-50");
+    expect(disabled.classes()).not.toContain("bg-subtle");
+    expect(disabled.classes()).not.toContain("border-input");
     expect(disabled.attributes("data-readonly")).toBeUndefined();
+
+    // And on none of the three is any of it carried by an alpha. `opacity-50`
+    // over this box took the value to 3.08:1 and the placeholder to 2.07:1,
+    // which is the defect the whole treatment exists to keep out.
+    for (const state of [available, readOnly, disabled]) {
+      expect(state.classes().some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+    }
+  });
+
+  it("keeps the destructive rim on a field that is both invalid and unavailable", () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order rather than the
+    // colours: an error that stops being visible the moment the row goes
+    // unavailable is an error nobody can act on.
+    const wrapper = mount(TextField, {
+      props: { ariaLabel: "Email", disabled: true, invalid: true },
+    });
+    expect(wrapper.classes()).toContain("border-destructive");
+    expect(wrapper.classes()).not.toContain("border-border");
+    expect(wrapper.classes()).toContain("bg-muted");
   });
 
   it("takes its id, description, name, required and invalid state from the row it sits in", () => {

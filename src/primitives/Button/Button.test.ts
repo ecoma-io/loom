@@ -80,9 +80,16 @@ describe("Button", () => {
     expect(wrapper.get("button").classes()).not.toContain("opacity-50");
 
     await wrapper.setProps({ loading: false, disabled: true });
+    // The three the library's disabled row names: the drained fill, the muted
+    // label, and a rim that *slackens* to `border` rather than tightening to
+    // the strong weight. `theme.css` reserves that one for a block asserting
+    // its edge, which an unavailable control is precisely not — and the
+    // slackened rim is the same step every other control in the library makes,
+    // so a disabled Button beside a disabled TextField is one treatment.
     expect(wrapper.get("button").classes()).toEqual(
-      expect.arrayContaining(["bg-muted", "text-muted-foreground", "border-border-strong"]),
+      expect.arrayContaining(["bg-muted", "text-muted-foreground", "border-border"]),
     );
+    expect(wrapper.get("button").classes()).not.toContain("border-border-strong");
     // The regression this guards: the label has to stay readable, so nothing
     // may put an alpha over it again.
     expect(wrapper.get("button").classes()).not.toContain("opacity-50");

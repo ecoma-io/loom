@@ -155,28 +155,41 @@ reads by.
 
 ## Disabled, read-only and invalid
 
-A disabled DateRangePicker drains to a grey fill with muted segments, refuses
-the calendar, and leaves nothing of itself in the tab order. Colour rather than
-opacity, deliberately: fading the field fades the span inside it, and the span
-is the whole content of the control — 14.09:1 becomes 2.99:1 at half alpha, and
-the dash between the two halves 2.02:1. Drained, every segment measures 4.67:1
-and the field still plainly reads as unavailable. An invalid one still works: it takes the destructive
+A disabled DateRangePicker drains to a grey fill with muted segments and a
+slackened border, refuses the calendar, and leaves nothing of itself in the tab
+order. Colour and weight rather than opacity, deliberately: fading the field
+fades the span inside it, and the span is the whole content of the control —
+14.09:1 becomes 2.99:1 at half alpha, and the dash between the two halves
+2.02:1. Drained, every segment measures 4.68:1 and the field still plainly reads
+as unavailable. An invalid one still works: it takes the destructive
 border and focus ring and sets `aria-invalid`, which is the same error language
 every other form control here speaks.
 
 `readonly` is a third state and not a dial on either. A read-only span is a
 value on show: the field stays a Tab stop, both halves stay readable and
 copyable, it stays in the form's submitted data, and it keeps its text at full
-strength. Both states take the same grey fill and the text colour is what
-separates them, which is the right way round — a read-only value is there to be
-read. The calendar button is dropped outright — Reka's `readonly` reaches the
-calendar and makes every cell's click a no-op, so the button would open a panel
-in which nothing can be chosen.
+strength. The calendar button is dropped outright — Reka's `readonly` reaches
+the calendar and makes every cell's click a no-op, so the button would open a
+panel in which nothing can be chosen.
 
-<Demo title="Disabled, read-only and invalid">
+The three appearances part on three channels apiece. Read-only lifts the fill
+one step off an editable field's and moves nothing else, because the field is
+still reachable and still posted; disabled drains it a step further, mutes the
+segments with it, and slackens the rim from `--color-input` to `--color-border`.
+Read-only and disabled used to share a fill and part on the text colour alone —
+a distinction in hue, and hue is the one channel a reader with a colour
+deficiency does not have.
+
+The fill belongs to the **segment group**, never to the segments or to either
+half: the slashes inside each date and the dash between the two are all nodes of
+their own, so a per-segment fill would leave them on the resting colour and
+write the span as a row of lozenges on a stripe.
+
+<Demo title="Available, read-only, disabled and invalid">
   <div class="flex w-full max-w-md flex-col gap-3">
-    <DateRangePicker v-model="locked" disabled aria-label="Financial year, disabled" />
+    <DateRangePicker v-model="report" aria-label="Report period, available" />
     <DateRangePicker v-model="trip" readonly aria-label="Booked trip, read-only" />
+    <DateRangePicker v-model="locked" disabled aria-label="Financial year, disabled" />
     <DateRangePicker v-model="overrun" max="2026-03-27" invalid aria-label="Overrunning window" />
   </div>
 </Demo>

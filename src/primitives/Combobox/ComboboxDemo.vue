@@ -42,6 +42,10 @@ const found = computed(() => {
   );
 });
 const byCode = ref("");
+
+// Multi-select. The model is an array here and a string above, which is the
+// whole `multiple` contract: the mode decides which side of the union arrives.
+const visited = ref<string[]>(["br", "jp", "se", "th", "vn"]);
 </script>
 
 <template>
@@ -86,6 +90,19 @@ const byCode = ref("");
     </div>
 
     <div class="flex flex-col gap-2">
+      <span id="combobox-demo-visited" class="text-xs text-muted-foreground">
+        several at once — five chosen, three shown and a count for the rest
+      </span>
+      <Combobox
+        v-model="visited"
+        multiple
+        :options="countries"
+        placeholder="Add a country"
+        aria-labelledby="combobox-demo-visited"
+      />
+    </div>
+
+    <div class="flex flex-col gap-2">
       <span id="combobox-demo-sizes" class="text-xs text-muted-foreground">
         the three heights, on the same scale as a text input
       </span>
@@ -121,6 +138,7 @@ const byCode = ref("");
 
     <p class="text-xs text-muted-foreground">
       Chosen country: <span class="tabular">{{ country }}</span> — the value, not the label.
+      Visited: <span class="tabular">{{ visited.join(", ") || "none" }}</span>
     </p>
   </div>
 </template>

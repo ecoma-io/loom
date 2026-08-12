@@ -766,19 +766,31 @@ function onOpenAutoFocus(event: Event) {
             'transition-[color,background-color,border-color,box-shadow] duration-fast ease-out',
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
             !errored && 'focus-within:shadow-halo',
-            errored && 'border-destructive focus-within:outline-destructive',
-            // Read-only keeps its focus ring and its full-strength text — a
-            // read-only span is a value on show, not an unavailable control.
-            // Reka's own `data-readonly` on this group says the same thing to
-            // assistive tech, so nothing here rests on colour.
-            field.readonly && 'bg-muted',
+            // Three resting appearances, all three painted on this group rather
+            // than on the segments: ten segments and their separators, so a
+            // per-segment fill would leave every slash, comma, colon and the
+            // dash between the halves on `background` — a striped control.
+            //
+            // Read-only lifts to `subtle` and keeps its focus ring and its
+            // full-strength text — a read-only span is a value on show, not an
+            // unavailable control — with the rim left at `input`, because the
+            // field is still a Tab stop and still submitted. Reka's own
+            // `data-readonly` on this group says the same thing to assistive
+            // tech, so nothing here rests on colour.
+            field.readonly && 'bg-subtle',
             // Drained rather than faded, for the reason DatePicker writes out:
             // `opacity-50` took all ten segments and the dash between the halves
             // down with the box, from 14.09:1 to 2.99:1 and the dash to 2.02:1.
-            // Muted text on the drained fill is 4.67:1 and still reads
-            // unavailable. The dash declares its own colour and the segments
-            // declare none, so this one line covers both by inheritance.
-            field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
+            // The fill drains one step past read-only, the muted text over it is
+            // 4.68:1, and the rim slackens from `input` to `border` — three
+            // channels, so the two states do not part on hue alone. The dash
+            // declares its own colour and the segments declare none, so this one
+            // line covers both by inheritance.
+            field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+            // Last of the rules that name a border colour: `cn()` resolves one
+            // by whichever class it saw last, so a field both in error and
+            // unavailable would otherwise lose its destructive rim.
+            errored && 'border-destructive focus-within:outline-destructive',
           )
         "
       >

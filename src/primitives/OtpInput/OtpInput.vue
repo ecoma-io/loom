@@ -97,7 +97,10 @@ import { optional } from "../../lib/props";
  *
  * A row's `readonly` is deliberately ignored. There is nothing to read in an
  * uneditable code box that a line of text would not show better, and the cells
- * exist to be typed into.
+ * exist to be typed into. So the library's three resting appearances collapse
+ * to two here: a cell goes straight from `background` to the disabled row's
+ * drained fill, muted character and slackened rim, and the lifted `subtle` fill
+ * that marks a value on show never appears on this control.
  */
 const props = withDefaults(
   defineProps<{
@@ -302,22 +305,36 @@ function onUpdate(next: (string | number)[]) {
           // Rim-lit at rest; the ring blooms on the cell being typed into.
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
           !field.invalid && 'focus-visible:shadow-halo',
-          field.invalid && 'border-destructive focus-visible:outline-destructive',
           // A filled cell is legible as filled from its character — or its
           // mask dot — alone. The heavier border is a second, redundant cue,
           // and a weight rather than a hue, so it survives both a colour
           // deficiency and forced-colors.
-          'data-[filled]:border-border-strong',
-          // Unavailable is a *colour*, never an opacity. A cell holds one
-          // character — or one mask dot — and that is the entire content of the
-          // control, so `opacity-50` here did not dim a code so much as erase
-          // it: `--color-foreground` measures 14.09:1 on the resting fill and
-          // 2.99:1 once composited at half alpha. The drained fill carries the
-          // state instead, and the character stays at a measured 4.67:1. Both
-          // are `disabled:` variants rather than plain classes, so each
-          // outranks the resting `bg-background text-foreground` above on
-          // specificity rather than on where Tailwind happened to emit it.
+          //
+          // Withheld from an unavailable row, and only because the border is
+          // also the third channel of the disabled state below: two rules
+          // moving the same rim in opposite directions would leave a
+          // half-filled disabled row with a heavier edge than an empty one,
+          // which reads as the more available of the two. The cue is redundant
+          // by construction, so the state wins it.
+          !field.disabled && 'data-[filled]:border-border-strong',
+          // Unavailable is a *colour* and a *weight*, never an opacity. A cell
+          // holds one character — or one mask dot — and that is the entire
+          // content of the control, so `opacity-50` here did not dim a code so
+          // much as erase it: `--color-foreground` measures 14.09:1 on the
+          // resting fill and 2.99:1 once composited at half alpha. The drained
+          // fill carries the state instead, the character stays at a measured
+          // 4.68:1, and the rim slackens from `input` to `border` so the state
+          // is not told in hue alone.
+          //
+          // The fill and the text colour are `disabled:` variants rather than
+          // plain classes, so each outranks the resting `bg-background
+          // text-foreground` above on specificity rather than on where Tailwind
+          // happened to emit it. The border cannot join them: a `disabled:`
+          // variant would outrank the plain `border-destructive` below, and a
+          // row that is both in error and unavailable has to keep saying so.
           'disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
+          field.disabled && 'border-border',
+          field.invalid && 'border-destructive focus-visible:outline-destructive',
         )
       "
     />

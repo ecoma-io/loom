@@ -140,7 +140,13 @@ describe("Chip", () => {
     });
 
     expect(wrapper.html()).not.toContain("opacity-50");
-    expect(wrapper.classes()).toEqual(expect.arrayContaining(["bg-muted", "border-border-strong"]));
+    // `border-border`, and the weight is the assertion rather than the mere
+    // presence of a hairline: `theme.css` reserves the strong one for a block
+    // that must assert its edge, which is the opposite of what this state says,
+    // and every other unavailable control in the library slackens to this same
+    // rim. A disabled chip beside a disabled field wears one treatment.
+    expect(wrapper.classes()).toEqual(expect.arrayContaining(["bg-muted", "border-border"]));
+    expect(wrapper.classes()).not.toContain("border-border-strong");
 
     // On the label itself, never on the pill: a colour on the container is only
     // inherited here, and a selected chip's container outranks it.

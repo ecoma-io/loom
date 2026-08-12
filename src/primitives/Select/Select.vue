@@ -30,13 +30,19 @@ export const selectVariants = cva(
     // composited `text-foreground` down to 3.06:1 on this fill — halving the
     // alpha more than halves the contrast. Unavailability is painted in
     // measured colours instead: the fill drains to the neutral well and the
-    // label lands on `--color-muted-foreground`, 4.67:1 over it.
+    // label lands on `--color-muted-foreground`, 4.68:1 over it.
     //
     // Both survive their neighbours on this element. `hover:` sorts *before*
     // `disabled:` in Tailwind's variant order, so the disabled fill wins over
     // `hover:bg-subtle` rather than flickering under a pointer; and
     // `data-[placeholder]:text-muted-foreground` names the same colour, so the
     // two colour rules agree whatever the sort puts last.
+    //
+    // The third channel — the rim slackening from `input` to `border` — is
+    // **not** here, and cannot be: a `disabled:` variant outranks a plain
+    // `border-destructive` on specificity, so a Select that was both in error
+    // and unavailable would lose its destructive rim to it. It is written as a
+    // plain conditional in the template, where `cn()` can order the two.
     "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
     "data-[placeholder]:text-muted-foreground",
   ],
@@ -105,6 +111,12 @@ import { useFieldControl } from "../../lib/field-context";
  * the trigger is not already showing — so a read-only Select is a disabled
  * Select that lies about being reachable. Rows holding a value nobody may edit
  * want a disabled Select, or no control at all.
+ *
+ * The consequence is that the library's three resting appearances collapse to
+ * two here. A TextField rests available, on show, or unavailable; this control
+ * has no middle state, so the lifted `subtle` fill never appears on it and the
+ * trigger goes straight from `background` to the drained fill, muted label and
+ * slackened rim of the disabled row.
  */
 const props = withDefaults(
   defineProps<{
@@ -202,6 +214,12 @@ const triggerFieldAttrs = computed(() => {
         cn(
           selectVariants({ size }),
           !field.invalid && 'focus-visible:shadow-halo',
+          // The border half of the disabled treatment, and it lives here rather
+          // than beside the fill in the variant map for the reason written
+          // there. Read as a pair with the line below: `cn()` resolves a border
+          // colour by whichever class it saw last, so an unavailable trigger
+          // that is also in error still shows the destructive rim.
+          field.disabled && 'border-border',
           field.invalid && 'border-destructive focus-visible:outline-destructive',
           attrs.class as string,
         )

@@ -418,27 +418,42 @@ describe("NumberField read-only", () => {
     expect((disabled.get(SPINBUTTON).element as HTMLInputElement).disabled).toBe(true);
   });
 
-  it("is filled rather than dimmed, so it does not read as unavailable", () => {
+  it("lifts its fill where an editable field's rests, and keeps the number and the rim", () => {
+    // The middle of three resting appearances. Read-only used to share the
+    // disabled fill and part from it on the text colour alone, which is a
+    // distinction in hue and nothing else.
     const readOnly = mountField({ readonly: true });
-    expect(readOnly.get(ROOT).classes()).toContain("bg-muted");
+    expect(readOnly.get(ROOT).classes()).toEqual(
+      expect.arrayContaining(["bg-subtle", "border-input"]),
+    );
+    expect(readOnly.get(ROOT).classes()).not.toContain("bg-muted");
     expect(readOnly.get(ROOT).classes()).not.toContain("opacity-50");
     // A read-only value is on show: its text stays where an editable one is.
     expect(readOnly.get(SPINBUTTON).classes()).toContain("text-foreground");
     expect(readOnly.get(ROOT).attributes("data-readonly")).toBeDefined();
 
     const editable = mountField();
-    expect(editable.get(ROOT).classes()).not.toContain("bg-muted");
+    expect(editable.get(ROOT).classes()).toEqual(
+      expect.arrayContaining(["bg-background", "border-input"]),
+    );
+    expect(editable.get(ROOT).classes()).not.toContain("bg-subtle");
     expect(editable.get(ROOT).attributes("data-readonly")).toBeUndefined();
   });
 
   // The defect this pins: `opacity-50` on the box faded the value inside it —
   // `--color-foreground` is 14.09:1 on the resting fill and 2.99:1 once
   // composited at half alpha, with the unit suffix beside it down at 2.02:1.
-  // The state is a drained fill now, and the number keeps a measured 4.67:1.
-  it("drains an unavailable field in colour rather than fading its value", () => {
+  // The state is a drained fill now, and the number keeps a measured 4.68:1.
+  it("drains an unavailable field in colour and weight rather than fading its value", () => {
     const disabled = mountField({ disabled: true, unit: "px" });
     expect(disabled.get(ROOT).classes()).not.toContain("opacity-50");
-    expect(disabled.get(ROOT).classes()).toContain("bg-muted");
+    // All three channels move together, and the fill lands a step past the one
+    // read-only takes rather than on it.
+    expect(disabled.get(ROOT).classes()).toEqual(
+      expect.arrayContaining(["bg-muted", "border-border"]),
+    );
+    expect(disabled.get(ROOT).classes()).not.toContain("bg-subtle");
+    expect(disabled.get(ROOT).classes()).not.toContain("border-input");
 
     // On the input rather than inherited from the box: the input names
     // `text-foreground` itself, and a colour set on an ancestor is only
@@ -448,6 +463,18 @@ describe("NumberField read-only", () => {
     expect(input.classes()).toContain("text-muted-foreground");
     expect(input.classes()).not.toContain("text-foreground");
     expect(input.classes()).toContain("cursor-not-allowed");
+    expect(input.classes().some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+  });
+
+  it("keeps the destructive rim on a field that is both invalid and unavailable", () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order: an error that
+    // stops being visible the moment the row goes unavailable is an error
+    // nobody can act on.
+    const wrapper = mountField({ disabled: true, invalid: true });
+    expect(wrapper.get(ROOT).classes()).toContain("border-destructive");
+    expect(wrapper.get(ROOT).classes()).not.toContain("border-border");
+    expect(wrapper.get(ROOT).classes()).toContain("bg-muted");
   });
 
   it("takes no scrub: the pointer places a caret instead of running the value", () => {
@@ -536,7 +563,10 @@ describe("NumberField inside a Field", () => {
     const input = readOnly.get(SPINBUTTON).element as HTMLInputElement;
     expect(input.readOnly).toBe(true);
     expect(input.disabled).toBe(false);
-    expect(readOnly.get(ROOT).classes()).toContain("bg-muted");
+    // The row's read-only reaches the fill as the field's own prop would: the
+    // lifted one, not the drained one a disabled row takes.
+    expect(readOnly.get(ROOT).classes()).toContain("bg-subtle");
+    expect(readOnly.get(ROOT).classes()).not.toContain("bg-muted");
   });
 
   it("lets an explicit prop overrule the row in both directions", () => {

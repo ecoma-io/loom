@@ -63,6 +63,12 @@ When it is the chosen segment that is disabled, the drained cell covers the
 raised white thumb, which is the whole signal in one move — the value is still
 shown, and it is visibly no longer settable.
 
+Disabling the **whole** control says it once more at the group's own edge: the
+track's rim slackens from `--color-input` to the lighter `--color-border`. The
+track has no fill left to spend — it already sits on `--color-muted`, the well
+every unavailable control in the library drains to — so without the rim a wholly
+unavailable control was tellable only cell by cell.
+
 ## Size
 
 `size="sm"` is the compressed form for dense chrome — a status bar, a toolbar

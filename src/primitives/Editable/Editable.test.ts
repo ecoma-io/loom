@@ -481,6 +481,60 @@ describe("Editable", () => {
     expect(wrapper.get("input").attributes("hidden")).toBe("");
   });
 
+  // The three resting appearances, pinned as a set rather than one by one:
+  // read-only and disabled used to share `bg-muted` and part on the text colour
+  // alone, which is a distinction carried in hue and nothing else. Each state
+  // now moves the fill, and both non-available ones move the border weight too,
+  // so the progression survives a reader who cannot separate two greys.
+  it("tells available, read-only and disabled apart on the fill and the border, not on hue alone", () => {
+    // The padded box both states live in — `EditableArea`, which is what the
+    // three appearances are painted on.
+    const paint = (props: Record<string, unknown>): string[] => {
+      const wrapper = mountEditable(props);
+      const area = wrapper.get("input").element.parentElement;
+      if (area === null) throw new Error("no editable area rendered");
+      return [...area.classList];
+    };
+
+    const available = paint({});
+    const readonly = paint({ readonly: true });
+    const disabled = paint({ disabled: true });
+
+    // At rest this control is deliberately just text: no fill, and a border
+    // that reserves its width without spending its colour.
+    expect(available).toContain("border-transparent");
+    expect(available).not.toContain("bg-subtle");
+    expect(available).not.toContain("bg-muted");
+
+    // Lifted, and the value stays at full strength — 13.45:1 over this fill,
+    // because being read is the whole purpose of the state.
+    expect(readonly).toContain("bg-subtle");
+    expect(readonly).toContain("border-input");
+    expect(readonly).not.toContain("text-muted-foreground");
+
+    // Drained one step further, on all three channels at once.
+    expect(disabled).toContain("bg-muted");
+    expect(disabled).toContain("text-muted-foreground");
+    expect(disabled).toContain("border-border");
+
+    // No fill is shared between the two, which is what the old treatment got
+    // wrong, and no alpha has come back over the box that holds the value.
+    expect(readonly).not.toContain("bg-muted");
+    for (const state of [available, readonly, disabled]) {
+      expect(state.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+    }
+  });
+
+  // `cn()` resolves a border colour by whichever class it saw last, so this is
+  // a claim about the order of the class list and it fails silently if that
+  // order is ever tidied.
+  it("keeps the destructive border on a control that is unavailable as well as invalid", () => {
+    const wrapper = mountEditable({ invalid: true, disabled: true });
+    const area = wrapper.get("input").element.parentElement;
+
+    expect([...(area?.classList ?? [])]).toContain("border-destructive");
+  });
+
   it("holds the preview and the editor in one box, so the swap cannot move the row", () => {
     // The layout answer is structural rather than a pair of matched heights:
     // both states are children of the same padded, bordered element, both are

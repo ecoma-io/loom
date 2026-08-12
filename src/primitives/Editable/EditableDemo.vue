@@ -70,13 +70,15 @@ const lastEvent = ref("nothing yet");
 
     <div class="flex flex-col gap-2">
       <span id="editable-demo-sku" class="text-xs text-muted-foreground">
-        read-only — reachable and copyable, never editable
+        read-only — reachable and copyable, never editable, and lifted onto a fill of its own
       </span>
       <Editable v-model="sku" readonly aria-labelledby="editable-demo-sku" />
     </div>
 
     <div class="flex flex-col gap-2">
-      <span id="editable-demo-locked" class="text-xs text-muted-foreground">disabled</span>
+      <span id="editable-demo-locked" class="text-xs text-muted-foreground">
+        disabled — a step further down the fill, the text colour and the border weight together
+      </span>
       <Editable model-value="Archived record" disabled aria-labelledby="editable-demo-locked" />
     </div>
 

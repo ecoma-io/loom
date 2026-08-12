@@ -72,9 +72,12 @@ function onReject(rejections: TagsInputRejection[]): void {
 
     <div class="flex flex-col gap-2">
       <p class="text-xs text-muted-foreground">
-        Read-only shows the tokens and takes nothing: still focusable, still submitted, with no
-        remove control at all. Disabled is unavailable — not a tab stop, and drained.
+        Three resting appearances, each parting from the last on the fill, the text colour and the
+        border weight rather than on hue alone. Read-only shows the tokens and takes nothing: still
+        focusable, still submitted, with no remove control at all. Disabled is unavailable — not a
+        tab stop, and drained a step further.
       </p>
+      <TagsInput :model-value="locked" aria-label="Editable filters" />
       <TagsInput :model-value="locked" readonly aria-label="Applied filters" />
       <TagsInput :model-value="locked" disabled aria-label="Archived filters" />
     </div>

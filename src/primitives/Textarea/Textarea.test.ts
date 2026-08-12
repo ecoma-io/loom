@@ -1,8 +1,9 @@
-import { enableAutoUnmount, mount } from "@vue/test-utils";
+import { enableAutoUnmount, mount, type DOMWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { defineComponent, h } from "vue";
+import { defineComponent, h, type PropType } from "vue";
 import Textarea from "./Textarea.vue";
 import { provideFieldContext } from "../../lib/field-context";
+import { provideLoomLabels, type LoomLabelOverrides } from "../../lib/labels";
 
 // The focus assertions below need the textarea in the real document, so the
 // mounted tree has to come back off it afterwards.
@@ -34,6 +35,32 @@ const ProbeRow = defineComponent({
     return () => h("div", slots.default?.());
   },
 });
+
+/** A host declaring an application-wide vocabulary above the control. */
+const LabelHost = defineComponent({
+  props: {
+    vocabulary: { type: Function as PropType<() => LoomLabelOverrides>, required: true },
+  },
+  setup(props, { slots }) {
+    provideLoomLabels(() => props.vocabulary());
+    return () => h("div", slots.default?.());
+  },
+});
+
+/**
+ * The counter, located by the one class only it carries. A locator rather than
+ * an assertion: every expectation below reads its text or its state marker,
+ * which is what the component promises — nothing here cares how it is painted.
+ */
+function counterOf(wrapper: Queryable): Found {
+  return wrapper.get("span.tabular");
+}
+
+/** What `mount()` and a slotted probe row have in common, for the helper above. */
+type Found = Omit<DOMWrapper<Element>, "exists">;
+interface Queryable {
+  get: (selector: string) => Found;
+}
 
 describe("Textarea", () => {
   it("emits the raw string on input so v-model tracks each keystroke", async () => {
@@ -119,29 +146,41 @@ describe("Textarea", () => {
     expect(document.activeElement).not.toBe(disabledEl);
   });
 
-  it("shows a readonly textarea as filled rather than dimmed, so it does not read as unavailable", () => {
+  it("shows a readonly textarea on the subtle fill, at full text strength and on the input hairline", () => {
     const readOnly = mount(Textarea, { props: { ariaLabel: "Notes", readonly: true } });
+    const classes = readOnly.get("textarea").classes();
+
     expect(readOnly.get("textarea").attributes("data-readonly")).toBe("true");
-    expect(readOnly.get("textarea").classes()).toContain("bg-muted");
-    // The half that keeps the two states apart now that they share a fill. The
-    // muted label colour rides the `disabled:` variant, which a read-only
-    // element never matches, so the value stays on `text-foreground` — and it
-    // is still focusable, which the test above pins.
-    expect(readOnly.get("textarea").classes()).toContain("text-foreground");
+    // The lighter of the two neutrals, and it is what separates this state from
+    // the disabled one on the fill rather than on the text colour alone — a
+    // difference a sighted reader can see without resolving a hue.
+    expect(classes).toContain("bg-subtle");
+    expect(classes).not.toContain("bg-muted");
+    // Full strength: the muted colour rides the `disabled:` variant, which a
+    // read-only element never matches, so the value stays on `text-foreground`.
+    expect(classes).toContain("text-foreground");
+    // The hairline is the third channel, and read-only keeps the resting one.
+    expect(classes).toContain("border-input");
+    expect(classes).not.toContain("border-border");
+    expect(classes.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
     expect((readOnly.get("textarea").element as HTMLTextAreaElement).disabled).toBe(false);
   });
 
   // The defect this pins. The element *is* the text: `disabled:opacity-50` took
   // a filed answer from 14.09:1 to 3.06:1 and its placeholder from 5.25:1 to
-  // 2.05:1. Drained instead, to the same well and the same measured label
-  // colour Select and OtpInput wear, at 4.67:1.
-  it("drains a disabled textarea rather than fading the text written in it", () => {
+  // 2.05:1. Drained instead, to the deeper neutral with the muted label colour
+  // over it — 12.58:1 and 4.68:1 measured.
+  it("drains a disabled textarea on all three channels rather than fading the text written in it", () => {
     const wrapper = mount(Textarea, { props: { ariaLabel: "Notes", disabled: true } });
     const classes = wrapper.get("textarea").classes();
 
-    expect(classes.some((c) => c.includes("opacity"))).toBe(false);
+    expect(classes.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
     expect(classes).toContain("disabled:bg-muted");
     expect(classes).toContain("disabled:text-muted-foreground");
+    // The hairline recedes with the fill. Two states that parted only on the
+    // text colour were a colour-only distinction; the border makes it a
+    // difference in shape as well.
+    expect(classes).toContain("disabled:border-border");
   });
 
   it("takes its id, description, name, required and invalid state from the row it sits in", () => {
@@ -197,5 +236,178 @@ describe("Textarea", () => {
       slots: { default: h(Textarea, { ariaLabel: "Bio", "aria-describedby": "bio-format" }) },
     });
     expect(row.get("textarea").attributes("aria-describedby")).toBe("bio-format bio-description");
+  });
+
+  describe("character count", () => {
+    it("renders neither the counter nor its live region when no count is asked for", () => {
+      const wrapper = mount(Textarea, { props: { ariaLabel: "Notes" } });
+      expect(wrapper.findAll("span")).toHaveLength(0);
+      expect(wrapper.get("textarea").attributes("aria-describedby")).toBeUndefined();
+    });
+
+    it("shows the counter as soon as a maximum is set, and lets showCount overrule that either way", () => {
+      const limited = mount(Textarea, { props: { ariaLabel: "Bio", maxLength: 200 } });
+      expect(counterOf(limited).text()).toBe("0/200");
+
+      const suppressed = mount(Textarea, {
+        props: { ariaLabel: "Bio", maxLength: 200, showCount: false },
+      });
+      expect(suppressed.find("span.tabular").exists()).toBe(false);
+
+      const unlimited = mount(Textarea, { props: { ariaLabel: "Bio", showCount: true } });
+      expect(counterOf(unlimited).text()).toBe("0");
+    });
+
+    it("counts what the reader typed with no v-model, without wiping the field to do it", async () => {
+      // Uncontrolled: `modelValue` stays undefined while the counter forces a
+      // re-render on every keystroke, and Vue's `value` patch coerces an
+      // undefined binding to "". Counting the typed value is what keeps the
+      // text in the box.
+      const wrapper = mount(Textarea, { props: { ariaLabel: "Bio", maxLength: 200 } });
+      const textarea = wrapper.get("textarea");
+      await textarea.setValue("hello\nworld");
+
+      expect((textarea.element as HTMLTextAreaElement).value).toBe("hello\nworld");
+      expect(counterOf(wrapper).text()).toBe("11/200");
+    });
+
+    it("counts the value a controlled host actually applied, not the keystroke it declined", async () => {
+      const wrapper = mount(Textarea, {
+        props: { ariaLabel: "Bio", maxLength: 200, modelValue: "ok" },
+      });
+      await wrapper.get("textarea").setValue("rejected");
+      expect(counterOf(wrapper).text()).toBe("2/200");
+    });
+
+    it("describes the textarea with the counter, after the caller's own description and before the row's", () => {
+      const row = mount(ProbeRow, {
+        props: { describedBy: "bio-hint" },
+        slots: {
+          default: h(Textarea, {
+            ariaLabel: "Bio",
+            maxLength: 200,
+            modelValue: "hello",
+            "aria-describedby": "bio-rules",
+          }),
+        },
+      });
+      const ids = (row.get("textarea").attributes("aria-describedby") ?? "").split(" ");
+
+      expect(ids).toHaveLength(3);
+      expect(ids[0]).toBe("bio-rules");
+      expect(ids[2]).toBe("bio-hint");
+      expect(row.get(`[id="${String(ids[1])}"]`).text()).toBe("5/200");
+    });
+
+    it("reports the limit rather than enforcing it, leaving the native maxlength to the caller", () => {
+      const wrapper = mount(Textarea, { props: { ariaLabel: "Bio", maxLength: 200 } });
+      expect(wrapper.get("textarea").attributes("maxlength")).toBeUndefined();
+
+      const enforced = mount(Textarea, {
+        props: { ariaLabel: "Bio", maxLength: 200 },
+        attrs: { maxlength: 200 },
+      });
+      expect(enforced.get("textarea").attributes("maxlength")).toBe("200");
+    });
+
+    it("says the limit is passed in words, not only in red", async () => {
+      const wrapper = mount(Textarea, {
+        props: { ariaLabel: "Bio", maxLength: 5, modelValue: "ab" },
+      });
+      const counter = counterOf(wrapper);
+      expect(counter.text()).toBe("2/5");
+      expect(counter.attributes("data-over-limit")).toBeUndefined();
+
+      await wrapper.setProps({ modelValue: "abcdefg" });
+      expect(counter.text()).toBe("7/5 over limit");
+      expect(counter.attributes("data-over-limit")).toBe("true");
+    });
+
+    it("announces the limit once as it is neared and once as it is passed, never per keystroke", async () => {
+      const wrapper = mount(Textarea, {
+        props: { ariaLabel: "Bio", maxLength: 20, modelValue: "" },
+      });
+      const live = wrapper.get('[role="status"]');
+      expect(live.text()).toBe("");
+
+      await wrapper.setProps({ modelValue: "a".repeat(10) });
+      expect(live.text()).toBe("");
+
+      await wrapper.setProps({ modelValue: "a".repeat(15) });
+      expect(live.text()).toBe("5 characters left");
+
+      // Still inside the warning band: the counter moves, the announcement does
+      // not. A region that re-spoke here would read a number on every keystroke.
+      await wrapper.setProps({ modelValue: "a".repeat(16) });
+      expect(counterOf(wrapper).text()).toBe("16/20");
+      expect(live.text()).toBe("5 characters left");
+
+      await wrapper.setProps({ modelValue: "a".repeat(21) });
+      expect(live.text()).toBe("1 character over the limit of 20");
+
+      await wrapper.setProps({ modelValue: "a" });
+      expect(live.text()).toBe("");
+    });
+
+    it("keeps the counter below the box, where a drag-resize moves it rather than covering the value", () => {
+      // The layout claim, pinned structurally: the counter is a sibling that
+      // follows the textarea inside the control's own outer element, so the
+      // native resize grabber in the box's bottom-right corner is never under
+      // it. `resize` changes the box, not where the readout sits.
+      const wrapper = mount(Textarea, { props: { ariaLabel: "Bio", maxLength: 200 } });
+      expect(counterOf(wrapper).element.previousElementSibling?.tagName).toBe("TEXTAREA");
+
+      const locked = mount(Textarea, {
+        props: { ariaLabel: "Bio", maxLength: 200, resize: "none" },
+      });
+      expect(counterOf(locked).element.previousElementSibling?.tagName).toBe("TEXTAREA");
+      expect(locked.get("textarea").classes()).toContain("resize-none");
+    });
+
+    it("takes the counter wording from the labels prop, key by key", async () => {
+      const wrapper = mount(Textarea, {
+        props: {
+          ariaLabel: "Bio",
+          maxLength: 20,
+          modelValue: "hello",
+          labels: { countOfMax: ({ count, max }) => `còn ${String(max - count)}` },
+        },
+      });
+      expect(counterOf(wrapper).text()).toBe("còn 15");
+
+      // The override said nothing about the over-limit wording, so Loom's
+      // English stands there rather than the slot falling back whole.
+      await wrapper.setProps({ modelValue: "a".repeat(21) });
+      expect(counterOf(wrapper).text()).toBe("21/20 over limit");
+    });
+
+    it("takes its counter wording from a host's vocabulary, and lets one instance correct one key", () => {
+      const host = mount(LabelHost, {
+        props: {
+          vocabulary: () => ({
+            textarea: {
+              countOfMax: ({ count, max }) => `${String(count)} trên ${String(max)}`,
+              count: ({ count }) => `${String(count)} ký tự`,
+            },
+          }),
+        },
+        slots: {
+          default: () => [
+            h(Textarea, { ariaLabel: "Bio", maxLength: 20, modelValue: "hello" }),
+            h(Textarea, {
+              ariaLabel: "Notes",
+              showCount: true,
+              modelValue: "hi",
+              labels: { count: ({ count }) => `${String(count)} chữ` },
+            }),
+          ],
+        },
+      });
+      const counters = host.findAll("span.tabular");
+
+      expect(counters[0]?.text()).toBe("5 trên 20");
+      // The instance corrects one key; the vocabulary still reaches the other.
+      expect(counters[1]?.text()).toBe("2 chữ");
+    });
   });
 });

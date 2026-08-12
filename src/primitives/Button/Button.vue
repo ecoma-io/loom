@@ -118,7 +118,15 @@ withDefaults(
         // in — the two filled ones give up their hue, the three transparent ones
         // gain a fill — and the native `disabled` attribute carries the fact to
         // assistive tech, so none of it rests on colour alone.
-        disabled && 'border-border-strong bg-muted text-muted-foreground shadow-none',
+        //
+        // `border-border` and not the strong weight, which is what `outline`
+        // used to take here. `theme.css` reserves the strong hairline for a
+        // block that must *assert* its edge, and an unavailable control is the
+        // one thing that must not; slackening from `input` to the lighter
+        // `border` is also the same step every other unavailable control in the
+        // library now makes, so a disabled Button beside a disabled TextField
+        // wears the same rim rather than a heavier one.
+        disabled && 'border-border bg-muted text-muted-foreground shadow-none',
       )
     "
   >

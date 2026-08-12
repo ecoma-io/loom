@@ -102,10 +102,12 @@ import {
  * prop below still wins over the row when it is set, in both directions — which
  * is why the four booleans default to `undefined` rather than `false`.
  *
- * `readonly` and `disabled` are different states, not two dials on one. A
- * read-only date is a value on show: the field stays a Tab stop, its segments
- * stay readable and copyable, and it is filled rather than dimmed. A disabled
- * one is unavailable: no Tab stop, dimmed, nothing submitted.
+ * `readonly` and `disabled` are different states, not two dials on one, so the
+ * field has three resting appearances rather than two. A read-only date is a
+ * value on show: the field stays a Tab stop, its segments stay readable and
+ * copyable at full strength, and it takes a lifted fill. A disabled one is
+ * unavailable: no Tab stop, nothing submitted, and drained a step further in
+ * fill, text colour and border weight together.
  */
 const props = withDefaults(
   defineProps<{
@@ -372,27 +374,41 @@ function onOpenAutoFocus(event: Event) {
             // outline — a ring drawn inside a ring reads as a rendering fault.
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
             !field.invalid && 'focus-within:shadow-halo',
-            field.invalid && 'border-destructive focus-within:outline-destructive',
+            // Three resting appearances, and every one of them belongs to this
+            // group rather than to the segments inside it. A fill painted per
+            // segment leaves the literal separators between them on
+            // `background`, and the control comes out striped.
+            //
             // Read-only keeps its focus ring and its full-strength text: a
             // read-only date is a value on show, not an unavailable control,
-            // and the two must not look alike. Reka's own `data-readonly` on
-            // this group carries the same state to assistive tech, so nothing
-            // here rests on colour.
-            field.readonly && 'bg-muted',
-            // Unavailable is a *colour*, never an opacity. `opacity-50` here
-            // faded the segments along with the box, and the segments are the
-            // whole content of the control: `--color-foreground` measures
-            // 14.09:1 on this fill and 2.99:1 once composited at half alpha,
-            // with the literal separators and any placeholder segment down at
-            // 2.02:1. The drained fill and the muted text below are a measured
-            // 4.67:1 and still read as unavailable — grey text where read-only
-            // keeps black, and a cursor that says so.
+            // and the two must not look alike. The fill lifts off `background`
+            // to `subtle`, which holds the segments at 13.46:1, and the rim
+            // stays `input` because nothing about the field's reach has moved —
+            // it is still a Tab stop and still submitted. Reka's own
+            // `data-readonly` on this group carries the same state to assistive
+            // tech, so nothing here rests on colour.
+            field.readonly && 'bg-subtle',
+            // Unavailable is a *colour* and a *weight*, never an opacity.
+            // `opacity-50` here faded the segments along with the box, and the
+            // segments are the whole content of the control: `--color-foreground`
+            // measures 14.09:1 on the resting fill and 2.99:1 once composited at
+            // half alpha, with the literal separators and any placeholder
+            // segment down at 2.02:1. The fill drains one step past read-only,
+            // the text follows it to a measured 4.68:1, and the rim slackens
+            // from `input` to `border` — so the two unavailable-looking states
+            // part on three channels rather than on hue alone, which is what a
+            // reader who cannot separate two greys has to have.
             //
             // The colour is set here rather than on each segment because no
             // segment declares one of its own in the resting state, so each
             // inherits this; `focus:text-primary` below is unreachable on a
             // control that cannot take focus.
-            field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
+            field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+            // Last of the rules that name a border colour, and the order is
+            // load-bearing: `cn()` resolves a border colour by whichever class
+            // it saw last, so a field that is both in error and unavailable
+            // would otherwise lose its destructive rim to the disabled one.
+            field.invalid && 'border-destructive focus-within:outline-destructive',
           )
         "
       >

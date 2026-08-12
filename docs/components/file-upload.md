@@ -119,9 +119,12 @@ the rows beside it change.
 A disabled zone refuses the file dialog, the drop and every remove button
 together, and drains to the neutral fill rather than dimming — the zone is a
 large blank region whose whole purpose is the two lines of copy in the middle of
-it, and an opacity takes those with it. The dashed border stays, because the
-dash is what marks the region out as a drop target even while nothing may be
-dropped on it. The remove buttons beside each row do keep the dim: their content
+it, and an opacity takes those with it. The dash itself stays, because it is what
+marks the region out as a drop target even while nothing may be dropped on it;
+only its colour slackens, from `--color-input` to the lighter `--color-border`,
+so the state is told in a border weight as well as in a fill and a text colour
+rather than in hue alone. The remove buttons beside each row do keep the dim:
+their content
 is a glyph named by an `aria-label`, so there is no text on them for an opacity
 to make unreadable. An invalid zone still works: it takes the destructive border
 and focus ring and sets `aria-invalid` on the input, which is the same error

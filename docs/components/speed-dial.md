@@ -78,6 +78,14 @@ fading. Each action floats over the page with nothing behind it, so an opacity
 composites the label against whatever happens to be underneath — the words that
 name the unavailable action are the last thing that can afford to go.
 
+Its rim is the one place a Loom control does **not** follow the library's
+disabled row, which slackens the border from `--color-input` to the lighter
+`--color-border`. Every other control drains against a surface that stays behind
+it; this one does not, so once the elevation goes the rim is all that delimits
+the pill, and `--color-muted` on the page ground is 1.12:1. The rim tightens to
+`--color-border-strong` instead — an unavailable action still has to be findable
+before it can read as unavailable.
+
 `select` carries the action itself and its index in `actions`. The index is the
 stable identity — a label is display text and gets translated, so matching on one
 is a bug waiting for the first locale.

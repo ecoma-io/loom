@@ -330,25 +330,47 @@ describe("OtpInput states", () => {
   // cell holds one character or one mask dot and nothing else — so a disabled
   // code did not dim so much as vanish. `--color-foreground` is 14.09:1 on the
   // resting fill and 2.99:1 once composited at half alpha; the drained fill
-  // carries the state now and the character stays at a measured 4.67:1.
-  it("drains an unavailable row in colour rather than fading the code out of it", () => {
+  // carries the state now and the character stays at a measured 4.68:1.
+  it("drains an unavailable row in colour and weight rather than fading the code out of it", () => {
     const wrapper = mountOtp({ disabled: true, modelValue: "4839" });
     for (const cell of cellsOf(wrapper)) {
-      expect(cell.classes()).not.toContain("opacity-50");
+      expect(cell.classes().some((name) => /(^|:)opacity-/.test(name))).toBe(false);
       expect(cell.classes()).toEqual(
         expect.arrayContaining([
           "disabled:bg-muted",
           "disabled:text-muted-foreground",
           "disabled:cursor-not-allowed",
+          // The third channel: the rim slackens with the fill and the text, so
+          // the state is not told in hue alone. Plain rather than a `disabled:`
+          // variant, because it has to lose to `border-destructive` — see the
+          // invalid-and-unavailable case below.
+          "border-border",
         ]),
       );
+      expect(cell.classes()).not.toContain("border-input");
     }
-    // Both are `disabled:` variants rather than plain classes: each has to
-    // outrank the resting `bg-background text-foreground` on specificity rather
-    // than on where Tailwind happened to emit it.
+    // The fill and the text colour are `disabled:` variants rather than plain
+    // classes: each has to outrank the resting `bg-background text-foreground`
+    // on specificity rather than on where Tailwind happened to emit it.
     expect(cellsOf(wrapper)[0]!.classes()).toEqual(
       expect.arrayContaining(["bg-background", "text-foreground"]),
     );
+    // The filled cue is withheld while the row is unavailable: two rules moving
+    // the same rim would leave a half-filled disabled row with a heavier edge
+    // than an empty one, which reads as the more available of the two.
+    expect(cellsOf(wrapper)[0]!.classes()).not.toContain("data-[filled]:border-border-strong");
+  });
+
+  it("keeps the destructive rim on a row that is both invalid and unavailable", () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order: an error that
+    // stops being visible the moment the row goes unavailable is an error
+    // nobody can act on.
+    const wrapper = mountOtp({ disabled: true, invalid: true, modelValue: "4839" });
+    for (const cell of cellsOf(wrapper)) {
+      expect(cell.classes()).toContain("border-destructive");
+      expect(cell.classes()).not.toContain("border-border");
+    }
   });
 
   it("sets aria-invalid on every cell and paints the destructive border", () => {
@@ -472,6 +494,20 @@ describe("OtpInput inside a Field", () => {
 
     const optedIn = mountRow({}, h(OtpInput, { length: 2, ariaLabel: "Code", invalid: true }));
     expect(optedIn.get('input:not([aria-hidden="true"])').attributes("aria-invalid")).toBe("true");
+  });
+
+  it("ignores the row's read-only, so no cell takes the fill that marks a value on show", () => {
+    // The documented decision, pinned from both sides. There is nothing to read
+    // in an uneditable code box that a line of text would not show better, so
+    // the library's three resting appearances collapse to two here: the cells
+    // stay editable, and the lifted `subtle` fill that marks a read-only value
+    // never appears on them.
+    const row = mountRow({ readonly: true });
+    for (const cell of row.findAll('input:not([aria-hidden="true"])')) {
+      expect((cell.element as HTMLInputElement).readOnly).toBe(false);
+      expect(cell.classes()).toContain("bg-background");
+      expect(cell.classes()).not.toContain("bg-subtle");
+    }
   });
 
   it("adopts the row's id on the one node a `<label for>` can usefully reach", () => {

@@ -337,13 +337,45 @@ describe("Select unavailable state", () => {
     // The chosen value is the one thing a reader still needs from a control
     // they cannot change, so it has to survive the unavailable state legibly.
     expect(trigger.textContent).toContain("Tiếng Việt");
+    // Three channels rather than one: the fill drains, the label goes to the
+    // muted colour, and the rim slackens from `input` to the lighter `border`.
+    // Two of the three are `disabled:` variants so they outrank the resting
+    // colours on specificity; the border is plain so `cn()` can order it under
+    // the destructive rim, which the invalid case below pins.
     expect(trigger.className).toContain("disabled:bg-muted");
     expect(trigger.className).toContain("disabled:text-muted-foreground");
+    expect(trigger.classList.contains("border-border")).toBe(true);
+    expect(trigger.classList.contains("border-input")).toBe(false);
 
     // The whole tree, not just the trigger: the fix is worthless if the dim
     // simply moved to an ancestor of the same words.
     expect(textNodesCarryingOpacity(document.body)).toEqual([]);
     wrapper.unmount();
+  });
+
+  it("keeps the destructive rim on a trigger that is both invalid and unavailable", () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order: an error that
+    // stops being visible the moment the control goes unavailable is an error
+    // nobody can act on.
+    mountSelect({ modelValue: "vi", disabled: true, invalid: true });
+    const trigger = getTrigger();
+    expect(trigger.classList.contains("border-destructive")).toBe(true);
+    expect(trigger.classList.contains("border-border")).toBe(false);
+    expect(trigger.className).toContain("disabled:bg-muted");
+  });
+
+  it("never lifts the trigger to the fill that marks a value on show", () => {
+    // The documented decision, pinned: a row's `readonly` is ignored here,
+    // because a closed list has nothing to show that the trigger is not already
+    // showing. So the library's three resting appearances collapse to two, and
+    // the middle fill must never reach this control from any direction.
+    mountSelect({ modelValue: "vi" });
+    const trigger = getTrigger();
+    expect(trigger.classList.contains("bg-background")).toBe(true);
+    // `hover:bg-subtle` is a pointer state and is expected; a resting or a
+    // read-only-driven `bg-subtle` is not.
+    expect(trigger.classList.contains("bg-subtle")).toBe(false);
   });
 
   it("dims no text on any row of the open list, including the one nobody can choose", async () => {
@@ -453,6 +485,20 @@ describe("Select inside a Field", () => {
 
     await openList();
     expect(getListbox()).toBeNull();
+  });
+
+  it("ignores the row's read-only, leaving the trigger open-able and unlifted", async () => {
+    // The documented decision, pinned from both sides: a read-only Select would
+    // be a disabled Select that lies about being reachable, so a row's
+    // `readonly` changes neither the behaviour nor the fill. Rows holding a
+    // value nobody may edit want `disabled`, or no control at all.
+    const row = mountRow({ readonly: true });
+    const trigger = row.get(TRIGGER);
+    expect(trigger.classes()).toContain("bg-background");
+    expect(trigger.classes()).not.toContain("bg-subtle");
+
+    await openList();
+    expect(getListbox()).not.toBeNull();
   });
 
   it("lets an explicit prop overrule the row in both directions", () => {

@@ -432,6 +432,33 @@ describe("ColorPicker disabled", () => {
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
     expect(wrapper.emitted("commit")).toBeUndefined();
   });
+
+  // The defect this pins, and it is the last one of its kind in the library.
+  // `opacity-50` on the group ran over everything inside it, the hex among it:
+  // measured on the built site, the value read 3.06:1. The dim now sits only on
+  // the three surfaces whose content *is* the colour being picked, and the hex
+  // field takes the drained fill, muted text and slackened rim every other
+  // control wears — 4.68:1 measured, the same as a disabled TextField.
+  it("drains the hex field rather than dimming it, and keeps the dim on the colour surfaces", () => {
+    const wrapper = mountPicker({ disabled: true, swatches: ["#ff0000"] });
+
+    const group = wrapper.get('[role="group"]');
+    expect(group.classes().some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+
+    const hexField = wrapper.getComponent(ColorFieldRoot).classes();
+    expect(hexField.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+    expect(hexField).toContain("data-[disabled]:bg-muted");
+    expect(hexField).toContain("data-[disabled]:text-muted-foreground");
+    // The hairline is the third channel, so the two states differ in more than
+    // hue — the same three-channel treatment TextField and Textarea carry.
+    expect(hexField).toContain("data-[disabled]:border-border");
+
+    // A colour a token cannot drain: the gradient area, the hue track and the
+    // preset row keep the dim, because a picker that stops looking unavailable
+    // is the other half of this defect.
+    expect(wrapper.get('[role="application"]').classes()).toContain("data-[disabled]:opacity-50");
+    expect(wrapper.get('[role="listbox"]').classes()).toContain("data-[disabled]:opacity-50");
+  });
 });
 
 describe("ColorPicker attribute routing", () => {

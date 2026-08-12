@@ -628,28 +628,46 @@ describe("DatePicker read-only", () => {
     expect(document.querySelector('[aria-label="Open calendar"]')).toBeNull();
   });
 
-  it("keeps a read-only date at full strength and drains a disabled one in colour rather than fading it", async () => {
-    const readOnly = mountPicker({ modelValue: ISO, readonly: true });
+  it("tells available, read-only and disabled apart on fill, text colour and border weight", async () => {
+    // Three resting appearances, and each pair differs on more than hue.
+    // Read-only and disabled used to share `bg-muted` and part on the text
+    // colour alone, which is the one distinction a reader with a colour
+    // deficiency never receives.
+    const available = mountPicker({ modelValue: ISO });
     await settle();
-    expect(getField().classList.contains("bg-muted")).toBe(true);
-    expect(getField().classList.contains("text-foreground")).toBe(true);
-    expect(getField().className).not.toContain("opacity-50");
+    expect(getField().classList.contains("bg-background")).toBe(true);
+    expect(getField().classList.contains("border-input")).toBe(true);
     // Off the document before the next mount: `getField()` reads the first
     // group in it, and two pickers at once would answer for each other.
+    available.unmount();
+
+    const readOnly = mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+    expect(getField().classList.contains("bg-subtle")).toBe(true);
+    expect(getField().classList.contains("bg-muted")).toBe(false);
+    // A value on show keeps full-strength segments and the crisp rim of a
+    // control that is still a Tab stop and still submitted.
+    expect(getField().classList.contains("text-foreground")).toBe(true);
+    expect(getField().classList.contains("border-input")).toBe(true);
+    expect(getField().className).not.toContain("opacity-50");
     readOnly.unmount();
 
     // The defect this pins: `opacity-50` on the group faded the segments along
     // with the box, and the segments are the whole content of the control —
     // `--color-foreground` is 14.09:1 on the field's fill and 2.99:1 once
     // composited at half alpha, with the separators down at 2.02:1. The state
-    // is a measured pair of colours now, 4.67:1, and the two states stay apart:
-    // read-only keeps black text, disabled goes grey.
+    // is a measured set of colours now, 4.68:1, and all three channels move:
+    // the fill drains a step past read-only, the text goes grey, the rim
+    // slackens from `input` to `border`.
     mountPicker({ modelValue: ISO, disabled: true });
     await settle();
     expect(getField().className).not.toContain("opacity-50");
     expect(getField().classList.contains("bg-muted")).toBe(true);
+    expect(getField().classList.contains("bg-subtle")).toBe(false);
     expect(getField().classList.contains("text-muted-foreground")).toBe(true);
     expect(getField().classList.contains("text-foreground")).toBe(false);
+    expect(getField().classList.contains("border-border")).toBe(true);
+    expect(getField().classList.contains("border-input")).toBe(false);
     expect(getField().hasAttribute("data-readonly")).toBe(false);
     // Inheritance is what carries that colour down to the segments, so a
     // segment declaring `text-foreground` of its own would quietly take the
@@ -657,6 +675,34 @@ describe("DatePicker read-only", () => {
     expect(getSegments().some((segment) => segment.classList.contains("text-foreground"))).toBe(
       false,
     );
+  });
+
+  it("gives the fill to the field group so the segments do not come out striped", async () => {
+    // The literal separators between the segments are segments themselves. A
+    // fill declared per segment would leave the slashes on the resting colour
+    // and write the date as three lozenges on a stripe, so no segment may carry
+    // a resting fill of its own — `focus:bg-primary-muted`, which marks the
+    // segment under the cursor, is prefixed and therefore not one.
+    mountPicker({ modelValue: ISO, readonly: true });
+    await settle();
+    expect(getField().classList.contains("bg-subtle")).toBe(true);
+    expect(
+      [...getField().querySelectorAll<HTMLElement>("*")]
+        .filter((node) => [...node.classList].some((name) => name.startsWith("bg-")))
+        .map((node) => node.className),
+    ).toEqual([]);
+  });
+
+  it("keeps the destructive rim on a field that is both invalid and unavailable", async () => {
+    // The disabled rule and the invalid rule both name a border colour and
+    // `cn()` resolves that by order, so this pins the order: an error that
+    // stops being visible the moment the field goes unavailable is an error
+    // nobody can act on.
+    mountPicker({ modelValue: ISO, disabled: true, invalid: true });
+    await settle();
+    expect(getField().classList.contains("border-destructive")).toBe(true);
+    expect(getField().classList.contains("border-border")).toBe(false);
+    expect(getField().classList.contains("bg-muted")).toBe(true);
   });
 });
 

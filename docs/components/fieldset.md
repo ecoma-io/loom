@@ -113,6 +113,20 @@ still reads as one inactive block. Nothing the group does reduces the contrast o
 anything inside it. The native `disabled` attribute carries the same state to
 assistive technology, so the state is never colour alone.
 
+The group takes **no fill** either, in any state, and that is the other half of
+the same answer rather than an omission. Every unavailable control in the library
+drains to `--color-muted`, so a `--color-muted` at group scale would be that
+exact colour running edge-to-edge behind them: the two fills would meet at 1:1
+and a row of disabled controls would read as one grey slab with no controls in
+it. A Fieldset is a grouping, not a surface — and it has no read-only appearance
+of its own for the same reason, since a read-only group is a group of read-only
+controls and each of those now says so on its own.
+
+Measured after the change: a control inside a disabled group computes 4.67:1 for
+its own label, which is what it computes standing alone. Under the old group dim
+that same control landed at 1.93:1 when it added no dim of its own, and at
+1.36:1 when it did.
+
 ## Hint and error
 
 <Demo title="A message that belongs to the group">
@@ -149,7 +163,10 @@ group carries a message.
 `readonly` is the one thing the group hands down through the
 [Field](./field) context, because it is the one state no native `<fieldset>`
 attribute can carry. Every Loom control inside renders read-only: focusable,
-still in the tab order, still submitted, and filled rather than dimmed.
+still in the tab order, still submitted, and lifted onto `--color-subtle` with
+its text at full strength rather than dimmed — a fill of its own, one step short
+of the `--color-muted` an unavailable control drains to, so a group of values on
+show never looks like a group that has been switched off.
 
 <Demo title="A group of values on show">
   <div class="w-full max-w-sm">

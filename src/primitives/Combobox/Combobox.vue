@@ -1,5 +1,6 @@
 <script lang="ts">
 import { cva } from "class-variance-authority";
+import type { LabelOf } from "../../lib/labels";
 
 /**
  * Everything this control says that does not come from the host's own options.
@@ -16,12 +17,28 @@ import { cva } from "class-variance-authority";
  * `empty` is Loom's own, and it is the default beneath the `emptyMessage`
  * prop rather than a competitor to it: the prop is the wording for one box —
  * "No country by that name" — and this is what every other box says.
+ *
+ * The two multi-select keys take the **number**, never a formatted string, for
+ * the reason `src/lib/labels.ts` gives at length: "3 selected" has one plural
+ * form in Vietnamese, two in English and six in Arabic, and `+47` is a
+ * punctuation choice made in one language. A host handed the integer reaches
+ * `Intl.PluralRules` for the category and `Intl.NumberFormat` for the digits.
  */
 export interface ComboboxLabels {
   /** The chevron that opens the list. It is not a Tab stop; this is what a screen reader reads on it. */
   readonly trigger: string;
   /** The row shown in place of the list when the filter matches nothing, unless `emptyMessage` says otherwise. */
   readonly empty: string;
+  /**
+   * How many options are chosen, read out when the box takes focus.
+   *
+   * Multi-select only, and the only thing that tells a reader the size of a
+   * selection without walking the list: the trigger shows the first few tokens
+   * and a count for the rest, and neither is announced on its own.
+   */
+  readonly count: LabelOf<{ count: number }>;
+  /** The visible summary standing in for the tokens the trigger did not have room for. */
+  readonly overflow: LabelOf<{ hidden: number }>;
 }
 
 /**
@@ -31,6 +48,8 @@ export interface ComboboxLabels {
 export const COMBOBOX_LABELS: ComboboxLabels = {
   trigger: "Show options",
   empty: "No results",
+  count: ({ count }) => `${String(count)} selected`,
+  overflow: ({ hidden }) => `+${String(hidden)} more`,
 };
 
 /**
@@ -85,10 +104,28 @@ export const comboboxVariants = cva(
     defaultVariants: { size: "md" },
   },
 );
+
+/**
+ * The same three numbers as a floor rather than as a fixed height, for the
+ * multi-select box only.
+ *
+ * A box holding tokens is sized by its content, which is TagsInput's call and
+ * the reason its field is `min-h-9`. What keeps that from turning into an
+ * unbounded control here is `visibleValues`: the token row never wraps, so in
+ * practice the box resolves to exactly the height above and a multi-select
+ * still lines up with the single-select beside it. The `h-auto` that goes with
+ * it in the template is what releases the fixed height `comboboxVariants`
+ * already set — Tailwind's merge resolves the two, `min-h-*` does not.
+ */
+const multiSelectHeights = {
+  sm: "min-h-8",
+  md: "min-h-9",
+  lg: "min-h-11",
+} satisfies Record<ComboboxSize, string>;
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, useId, watch } from "vue";
 import {
   ComboboxRoot,
   ComboboxAnchor,
@@ -102,6 +139,7 @@ import {
   ComboboxEmpty,
 } from "reka-ui";
 import { Check, ChevronDown } from "@lucide/vue";
+import Chip from "../Chip/Chip.vue";
 import { cn } from "../../lib/cn";
 import { listStaggerDelay } from "../../lib/motion";
 import { useSplitAttrs } from "../../lib/attrs";
@@ -142,13 +180,46 @@ import { optional } from "../../lib/props";
  * `readonly` input here would freeze a caption rather than protect a value,
  * while the list underneath still opened on click. A choice nobody may change
  * is a disabled Combobox, or the label rendered as text.
+ *
+ * `multiple` turns it into a many-of-many picker. The chosen values render as
+ * tokens in the box — the same `Chip` a
+ * [TagsInput](../TagsInput/TagsInput.vue) commits its values to, so a selection
+ * looks the same wherever a form shows one — and the input goes back to being
+ * only a search box. The tokens are **inert**, deliberately: the list is where
+ * a choice is made and where it is unmade, so the control stays the single Tab
+ * stop it is in single-select, and a value hidden behind the overflow count is
+ * reachable by exactly the same gesture as a visible one. That is the one place
+ * this diverges from TagsInput, whose tokens carry their own remove control
+ * because it has no list to send a reader back to.
  */
 const props = withDefaults(
   defineProps<{
-    /** The chosen option's `value`. Leave it unset and the combobox owns its own choice. */
-    modelValue?: string | undefined;
+    /**
+     * The chosen option's `value`, or every chosen value when `multiple`.
+     *
+     * The union is one prop rather than a generic component, and the invariant
+     * is the mode: single-select emits and accepts a `string` and never an
+     * array, multi-select an array and never a bare string. A generic would
+     * express that in the type system and cost more than it buys — it would
+     * print a conditional type in the generated API table below, and it would
+     * break `InstanceType<typeof Combobox>`, which is how a consumer types a
+     * template ref.
+     */
+    modelValue?: string | string[] | undefined;
     /** The rows, in the order they are shown. */
     options: ComboboxOption[];
+    /** Lets several rows be chosen at once: chosen rows toggle instead of closing the list, and the box shows the selection as tokens. */
+    multiple?: boolean;
+    /**
+     * How many tokens the box shows before the rest collapse into a count.
+     *
+     * The box must not grow with the selection — it sits in a form row beside
+     * controls on a fixed height scale — so past this many the tail becomes one
+     * `labels.overflow` summary: five chosen shows three and "+2 more", fifty
+     * shows three and "+47 more". Raise it for a wide box; the row never wraps,
+     * so a number the box has no room for is a number that truncates.
+     */
+    visibleValues?: number;
     /** Shown in the empty input, before anything is typed or chosen. */
     placeholder?: string;
     /** Shown as a row of its own when the filter matches nothing. Defaults to `labels.empty`, so say what was searched for rather than restating the default in a second language. */
@@ -182,6 +253,13 @@ const props = withDefaults(
     // with `optional()` below it is what keeps the uncontrolled third state
     // reachable, instead of pinning the control to a value nobody chose.
     modelValue: undefined,
+    multiple: false,
+    // Three, and the number is a judgement rather than a measurement: two
+    // tokens plus a count reads as a control that shows almost nothing, and
+    // four leaves a `md` box no room to type in at the default width. It is a
+    // prop because the right answer is the box's width, which only the caller
+    // knows.
+    visibleValues: 3,
     // No English default here any more. The wording moved into `COMBOBOX_LABELS`
     // so a host can set it once for the whole application rather than on every
     // box, and an absent prop is what lets the resolved label through.
@@ -199,8 +277,8 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  /** The chosen option's `value`. Fires once per choice; the list closes with it. */
-  "update:modelValue": [value: string];
+  /** The chosen option's `value` — or the whole chosen list, when `multiple`. Single-select fires once per choice and the list closes with it; multi-select fires once per toggle and the list stays open. */
+  "update:modelValue": [value: string | string[]];
   /** The text now in the input — as the reader types, and again when a choice puts its label there. */
   "update:query": [query: string];
 }>();
@@ -228,13 +306,77 @@ const query = ref("");
  */
 const revealing = ref(true);
 
+const countId = useId();
+
+/**
+ * The multi-select's own copy of the selection, and the reason it keeps one:
+ * the tokens have to render whether or not the host bound `v-model`.
+ *
+ * Left uncontrolled, `modelValue` stays `undefined` while Reka manages the
+ * choice internally — which is the third state `optional()` exists to preserve
+ * — so a trigger reading the prop would sit empty while the list showed three
+ * checked rows. This mirrors rather than drives: it is never fed back into
+ * Reka, so nothing about the uncontrolled control changes.
+ *
+ * Seeded from the prop rather than sanitised, for TagsInput's reason: a list
+ * the host already holds is the host's to hold.
+ */
+const selected = ref<string[]>(Array.isArray(props.modelValue) ? [...props.modelValue] : []);
+watch(
+  () => props.modelValue,
+  (next) => {
+    if (Array.isArray(next)) selected.value = [...next];
+  },
+  { deep: true },
+);
+
+/**
+ * The chosen values as the box shows them, and the fallback is the point: a
+ * host driving `options` from a search hands back only the rows matching the
+ * current query, so a value chosen from an earlier one has no option to look
+ * its label up in. Falling back to the value keeps the token on screen — a
+ * chosen value that vanished from the trigger while it was still in the model
+ * would be the control lying about what it holds.
+ */
+const tokens = computed(() =>
+  selected.value.map((value) => ({
+    value,
+    label: props.options.find((option) => option.value === value)?.label ?? value,
+  })),
+);
+
+const visibleTokens = computed(() => tokens.value.slice(0, Math.max(0, props.visibleValues)));
+const hiddenTokens = computed(() => tokens.value.length - visibleTokens.value.length);
+
 /**
  * What the input shows once a row is chosen. Without this Reka falls back to
  * the model value's own `toString()`, which would leave `en` in the box where
  * the reader picked "English".
+ *
+ * A multi-select shows nothing: the tokens are the selection, and the input
+ * beside them is a search box. Reka calls this on close rather than on choose,
+ * so the query the reader typed survives every toggle and one search can pick
+ * several rows — which is the whole reason the list stays open.
  */
 function displayValue(value: unknown): string {
+  if (props.multiple) return "";
   return props.options.find((option) => option.value === value)?.label ?? "";
+}
+
+/**
+ * Reka hands back the whole selection on every toggle, never a delta, so the
+ * emitted array is always the complete list — the same contract TagsInput's
+ * `update:modelValue` carries, and the reason a host can assign it straight
+ * back.
+ */
+function onChoice(value: unknown): void {
+  if (!props.multiple) {
+    emit("update:modelValue", String(value));
+    return;
+  }
+  const values = Array.isArray(value) ? value.map(String) : [];
+  selected.value = values;
+  emit("update:modelValue", values);
 }
 
 function onQuery(text: string): void {
@@ -271,9 +413,20 @@ const { attrs, rest: inputAttrs } = useSplitAttrs();
 // `readonly` and `required` are absent from this object because there is no
 // prop to oppose the row with; the row's answer stands unopposed, which is
 // what is wanted.
+//
+// The multi-select's count joins that list rather than replacing anything: it
+// is one more thing this control says about itself, and it reads after the
+// caller's own description and before the row's message — the same
+// most-specific-first order `useFieldControl` applies one layer out. Wired
+// through `aria-describedby` rather than announced, which is TagsInput's call
+// for the same fact: it is heard on focus and on every return to the box, which
+// is when the question is asked, and a live region would speak the whole total
+// over the top of the `aria-selected` change the row itself already announces.
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
-  describedBy: attrs["aria-describedby"] as string | undefined,
+  describedBy: [attrs["aria-describedby"] as string | undefined, props.multiple ? countId : ""]
+    .filter((id): id is string => typeof id === "string" && id.length > 0)
+    .join(" "),
   disabled: props.disabled,
   invalid: props.invalid,
 }));
@@ -303,10 +456,11 @@ const inputFieldAttrs = computed(() => {
        tabs through a form is an obstruction. Typing opens it either way. -->
   <ComboboxRoot
     v-bind="optional({ modelValue, name: field.name })"
+    :multiple="multiple"
     :disabled="field.disabled"
     :ignore-filter="!filter"
     open-on-click
-    @update:model-value="$emit('update:modelValue', String($event))"
+    @update:model-value="onChoice"
     @update:open="revealing = true"
   >
     <ComboboxAnchor
@@ -315,6 +469,11 @@ const inputFieldAttrs = computed(() => {
       :class="
         cn(
           comboboxVariants({ size }),
+          // A box holding tokens is sized by them — see `multiSelectHeights`.
+          // `h-auto` is what releases the fixed height the variant just set;
+          // Tailwind's merge resolves two `h-*` utilities and leaves a `min-h-*`
+          // beside either of them alone.
+          multiple && ['h-auto', multiSelectHeights[size], 'gap-1.5'],
           !field.invalid && 'focus-within:shadow-halo',
           field.invalid && 'border-destructive focus-within:outline-destructive',
           // The box holds the chosen value, so it is drained rather than
@@ -323,16 +482,46 @@ const inputFieldAttrs = computed(() => {
           // what it is set to. The neutral well says unavailable on its own —
           // the input's own `disabled:text-muted-foreground` below carries the
           // text to 4.67:1 over it.
-          field.disabled && 'cursor-not-allowed bg-muted',
+          //
+          // The hairline recedes with the fill, and that second channel is the
+          // point: unavailable is a difference in *shape* as well as in colour,
+          // so it survives a reader who cannot resolve `muted` from
+          // `background`. This control has no read-only state to be told apart
+          // from — see the docblock — so it takes the unavailable row alone.
+          field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
           attrs.class as string,
         )
       "
     >
+      <!-- The selection, as the tokens a TagsInput commits its values to, so a
+           chosen set looks the same wherever a form shows one. Inert on
+           purpose: the list is where a value is chosen and where it is
+           unchosen, which keeps the whole control one Tab stop and keeps a
+           value behind the overflow count reachable by the same gesture as a
+           visible one. -->
+      <template v-if="multiple">
+        <Chip
+          v-for="token in visibleTokens"
+          :key="token.value"
+          size="sm"
+          :disabled="field.disabled"
+          class="min-w-0 animate-fade-rise"
+        >
+          {{ token.label }}
+        </Chip>
+        <!-- Not a token: it stands for values rather than being one, and a
+             fourth pill saying "+47 more" would read as a forty-eighth
+             choice. -->
+        <span v-if="hiddenTokens > 0" class="tabular shrink-0 text-small text-muted-foreground">
+          {{ text.overflow({ hidden: hiddenTokens }) }}
+        </span>
+      </template>
+
       <ComboboxInput
         v-bind="{ ...inputAttrs, ...inputFieldAttrs }"
         :model-value="query"
         :display-value="displayValue"
-        :placeholder="placeholder"
+        :placeholder="multiple && tokens.length > 0 ? undefined : placeholder"
         class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-muted-foreground"
         @update:model-value="onQuery"
       />
@@ -352,6 +541,15 @@ const inputFieldAttrs = computed(() => {
           class="h-4 w-4 transition-transform duration-fast ease-out group-data-[state=open]:rotate-180"
         />
       </ComboboxTrigger>
+
+      <!-- The size of the selection, and the only thing that carries it to a
+           reader who cannot see the tokens: the visible row shows the first few
+           and a count for the rest, and neither is announced. Reka publishes
+           nothing of the sort — the listbox's `aria-multiselectable` says the
+           control takes several values, never how many it holds. -->
+      <span v-if="multiple" :id="countId" class="sr-only">
+        {{ text.count({ count: tokens.length }) }}
+      </span>
     </ComboboxAnchor>
 
     <ComboboxPortal>

@@ -152,6 +152,13 @@ import { useLabels, type LabelOverrides } from "../../lib/labels";
  * Every prop below still wins over the row when it is set, in both directions
  * — which is why the four booleans default to `undefined` rather than `false`.
  *
+ * `readonly` and `disabled` are different states, so the box has **three**
+ * resting appearances rather than two. Read-only is a value on show: still
+ * focusable, still copyable, still submitted, and lifted onto a fill with its
+ * text at full strength. Disabled is unavailable, and drained a step further in
+ * fill, in text colour and in border weight together. Three channels rather
+ * than one is the point — see `areaClass`.
+ *
  * Built on Reka UI's Editable, which owns the state machine — what is showing,
  * what the editor holds before it is committed, and what a dismiss means under
  * each submit mode.
@@ -465,14 +472,27 @@ const areaClass = computed(() =>
     // can be typed into. Never the only signal — the preview announces itself,
     // and carries a glyph.
     !editing.value && !field.disabled && !field.readonly && "cursor-text hover:bg-subtle",
-    field.invalid && "border-destructive focus-within:outline-destructive",
-    // Filled rather than dimmed, exactly as a read-only text field is: the
+    // Lifted rather than dimmed, exactly as a read-only text field is: the
     // value is the whole reason the control is on the page, so it stays at
-    // full contrast whether or not it can be changed.
-    field.readonly && "bg-muted",
-    // Drained, not faded. Half-opacity text on this box measures under 4.5:1,
-    // and a value nobody can read is worse than one nobody can edit.
-    field.disabled && "cursor-not-allowed bg-muted text-muted-foreground",
+    // full contrast — 13.45:1 over this fill — whether or not it can be
+    // changed. The rim comes up with it, from the resting `transparent` to
+    // `input`: at rest this control is deliberately just text, so without a
+    // border there is nothing but hue to say the value is on show, and the box
+    // was already reserving the width for one.
+    field.readonly && "border-input bg-subtle",
+    // Drained, not faded, and a step further down all three channels: the fill
+    // to `muted`, the text to `muted-foreground` (4.67:1 over it) and the rim
+    // to the lighter `border`. Half-opacity text on this box measures under
+    // 4.5:1, and a value nobody can read is worse than one nobody can edit.
+    //
+    // Read-only and disabled used to share `bg-muted` and part on the text
+    // colour alone — a distinction made in hue and nothing else, which is the
+    // one a reader with a colour deficiency does not receive.
+    field.disabled && "cursor-not-allowed border-border bg-muted text-muted-foreground",
+    // Last of the rules naming a border colour: `cn()` resolves one by
+    // whichever class it saw last, so a control both in error and unavailable
+    // would lose its destructive rim if this sat above them.
+    field.invalid && "border-destructive focus-within:outline-destructive",
   ),
 );
 

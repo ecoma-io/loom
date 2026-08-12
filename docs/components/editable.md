@@ -135,22 +135,33 @@ can legitimately start unset.
   </div>
 </Demo>
 
-## Disabled and read-only
+## Available, read-only and disabled
 
-A disabled Editable drops out of the tab order and refuses to open. It drains
-rather than fades — the neutral fill and the muted foreground colour, never half
-opacity — because the value is the entire reason the control is on the page, and
-a value nobody can read is worse than one nobody can edit.
+At rest an Editable is deliberately just text: no fill, and a border that
+reserves its width without spending its colour, so an editable page title looks
+like a page title. The other two states are where the box appears — and each is
+three changes rather than one, because a state told in hue alone is a state a
+reader with a colour deficiency does not receive.
 
-A read-only one is a different state, not a milder version of the same one. It
-stays reachable and copyable, keeps its value at full contrast, and is not
-rendered as a button at all: a button that refuses to act is worse than plain
-text.
+A **read-only** one is a different state, not a milder version of disabled. It
+stays reachable and copyable, is not rendered as a button at all — a button that
+refuses to act is worse than plain text — and it is a value **on show**: the box
+lifts onto `--color-subtle` with its text at full strength, 13.45:1, and the rim
+comes up to `--color-input`. Without that rim there would be nothing but a fill
+to say the value is on show, and the box was already reserving the width for one.
 
-<Demo title="Disabled and read-only">
+A **disabled** one drops out of the tab order and refuses to open, and steps down
+all three channels together: the fill to `--color-muted`, the text to
+`--color-muted-foreground` at 4.67:1 over it, and the rim to the lighter
+`--color-border`. It drains rather than fades — never half opacity — because the
+value is the entire reason the control is on the page, and a value nobody can
+read is worse than one nobody can edit.
+
+<Demo title="Available, read-only and disabled">
   <div class="flex w-full max-w-sm flex-col gap-3">
-    <Editable model-value="Archived record" disabled aria-label="Record title, disabled" />
+    <Editable model-value="Quarterly report" aria-label="Report title, editable" />
     <Editable model-value="LM-4471-A" readonly aria-label="SKU, read only" />
+    <Editable model-value="Archived record" disabled aria-label="Record title, disabled" />
   </div>
 </Demo>
 

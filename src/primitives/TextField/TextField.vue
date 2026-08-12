@@ -129,11 +129,13 @@ import { useLabels, type LabelOverrides } from "../../lib/labels";
  * both directions — which is why the four booleans default to `undefined`
  * rather than `false`.
  *
- * `readonly` and `disabled` are different states, not two dials on one. A
- * read-only field is a value the reader may see and copy but not change: it
- * stays a Tab stop, stays in the form's submitted data, and is filled rather
- * than dimmed. A disabled field is unavailable: no Tab stop, not submitted,
- * dimmed.
+ * `readonly` and `disabled` are different states, not two dials on one, so the
+ * field has **three** resting appearances rather than two. A read-only field
+ * is a value the reader may see and copy but not change: it stays a Tab stop,
+ * stays in the form's submitted data, and takes a lifted fill with its text at
+ * full strength. A disabled field is unavailable: no Tab stop, not submitted,
+ * and drained a step further, in fill, in text colour and in border weight
+ * together. Three channels rather than one is the point — see the class list.
  */
 const props = withDefaults(
   defineProps<{
@@ -393,21 +395,42 @@ const field = useFieldControl(() => ({
         size === 'sm' && 'h-8 px-2.5 text-xs',
         size === 'md' && 'h-9 px-3 text-sm',
         size === 'lg' && 'h-11 px-4 text-base',
+        // The three resting appearances, and each is three changes rather than
+        // one. Read-only and disabled used to share `bg-muted` and part only on
+        // the text colour, which is a distinction carried by hue alone — the
+        // one thing a reader with a colour deficiency, or a low-quality
+        // display, or forced-colors, does not get. The fill separates them and
+        // the border weight separates them again, so the progression
+        // available → on show → unavailable is legible on three channels.
+        //
+        // Read-only is a value **on show**: the fill lifts off `background` to
+        // `subtle` so the row reads as settled rather than editable, and the
+        // text stays full strength — 13.46:1 over that fill — because being
+        // read is the entire purpose of the state. The border does not move,
+        // because nothing about the control's reach has: it is still a Tab stop
+        // and still submitted. The native `readonly` attribute below carries
+        // the same fact to assistive tech, so nothing here rests on colour.
+        field.readonly && 'bg-subtle',
+        // Disabled is **unavailable**: the fill drains one step further to
+        // `muted`, the text follows it down to `muted-foreground` (4.68:1 over
+        // it, still AA), and the rim slackens from `input` to the lighter
+        // `border`.
+        //
+        // Drained rather than faded, and `opacity` is never the mechanism. The
+        // element a dim would sit on is the box, and the box is wrapped around
+        // the one thing a reader still needs: measured on the built site,
+        // `opacity-50` put a disabled field's value at 3.08:1 and its
+        // placeholder — already the muted colour before the fade — at 2.07:1.
+        // The text colour is declared here rather than on the `<input>` because
+        // the input sets no resting colour of its own and inherits this one,
+        // which also carries it to the counter and the adornments in the same
+        // box.
+        field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+        // Last of the three rules that name a border colour, and the order is
+        // load-bearing: `cn()` resolves a border colour by whichever class it
+        // saw last, so a field that is both in error and unavailable would lose
+        // its destructive rim to the disabled one if this sat above it.
         field.invalid && 'border-destructive focus-within:outline-destructive',
-        // Filled rather than dimmed, and it keeps its focus ring: a read-only
-        // field is a value on show, not an unavailable control, and the two
-        // must not look alike. The native `readonly` attribute below carries
-        // the same state to assistive tech, so nothing here rests on colour.
-        field.readonly && 'bg-muted',
-        // Drained rather than faded, the same treatment the date family
-        // arrived at. The element the dim sat on is the box, and the box is
-        // wrapped around the one thing a reader still needs: measured on the
-        // built site, `opacity-50` put a disabled field's value at 3.08:1 and
-        // its placeholder — already the muted colour before the fade — at
-        // 2.07:1. Declared here rather than on the `<input>` because the input
-        // sets no resting colour of its own and inherits this one, which also
-        // carries it to the counter and the adornments in the same box.
-        field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
         attrs.class as string,
       )
     "

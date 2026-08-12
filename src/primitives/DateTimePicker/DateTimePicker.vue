@@ -100,9 +100,11 @@ import {
  * label="Send at" error="…"><DateTimePicker /></Field>` needs no attributes at
  * the call site. Every prop below still wins over the row when it is set, in
  * both directions, which is why the four booleans default to `undefined` rather
- * than `false`. `readonly` and `disabled` are different states: read-only is an
- * instant on show — still a Tab stop, still submitted, filled rather than
- * dimmed — where disabled is unavailable.
+ * than `false`. `readonly` and `disabled` are different states, so the field
+ * rests in three appearances rather than two: read-only is an instant on show —
+ * still a Tab stop, still submitted, a lifted fill with the segments at full
+ * strength — where disabled is unavailable and drained a step further, in fill,
+ * text colour and border weight together.
  */
 const props = withDefaults(
   defineProps<{
@@ -438,19 +440,31 @@ function onOpenAutoFocus(event: Event) {
             'transition-[color,background-color,border-color,box-shadow] duration-fast ease-out',
             'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
             !errored && 'focus-within:shadow-halo',
-            errored && 'border-destructive focus-within:outline-destructive',
-            // Read-only keeps its focus ring and its full-strength text — a
-            // read-only instant is a value on show, not an unavailable control.
-            // Reka's own `data-readonly` on this group says the same thing to
-            // assistive tech, so nothing here rests on colour.
-            field.readonly && 'bg-muted',
+            // Three resting appearances, all three painted on this group rather
+            // than on the segments: a per-segment fill leaves the slashes, the
+            // comma and the colon on `background`, and the instant comes out
+            // striped.
+            //
+            // Read-only lifts to `subtle` and keeps its focus ring and its
+            // full-strength text — a read-only instant is a value on show, not
+            // an unavailable control — with the rim left at `input`, because the
+            // field is still a Tab stop and still submitted. Reka's own
+            // `data-readonly` on this group says the same thing to assistive
+            // tech, so nothing here rests on colour.
+            field.readonly && 'bg-subtle',
             // Drained rather than faded, for the reason DatePicker writes out:
             // `opacity-50` here took the five segments down with the box, from
-            // 14.09:1 to 2.99:1, and the segments are the whole value. Muted
-            // text on the drained fill is 4.67:1 and still reads unavailable.
-            // Set on the group because no segment declares a resting colour of
-            // its own, so each inherits this one.
-            field.disabled && 'cursor-not-allowed bg-muted text-muted-foreground',
+            // 14.09:1 to 2.99:1, and the segments are the whole value. The fill
+            // drains one step past read-only, the muted text over it is 4.68:1,
+            // and the rim slackens from `input` to `border` — three channels, so
+            // the two states do not part on hue alone. Set on the group because
+            // no segment declares a resting colour of its own, so each inherits
+            // this one.
+            field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+            // Last of the rules that name a border colour: `cn()` resolves one
+            // by whichever class it saw last, so a field both in error and
+            // unavailable would otherwise lose its destructive rim.
+            errored && 'border-destructive focus-within:outline-destructive',
           )
         "
       >

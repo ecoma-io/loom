@@ -85,10 +85,11 @@ import { optional } from "../../lib/props";
  * `readonly` and `disabled` are different states here for the same reason they
  * are on a text input, and a number is the case that makes it obvious: a rate,
  * a computed total or a locked coordinate is a value on show. It stays a Tab
- * stop, stays in the form's submitted data, and is filled rather than dimmed —
- * and every path that would change it is closed, the stepper included, because
- * a control offering a gesture that does nothing is worse than one that offers
- * none.
+ * stop, stays in the form's submitted data, and takes a lifted fill with the
+ * number at full strength, one step short of the disabled state's drained fill,
+ * muted number and slackened rim — and every path that would change it is
+ * closed, the stepper included, because a control offering a gesture that does
+ * nothing is worse than one that offers none.
  */
 const props = withDefaults(
   defineProps<{
@@ -391,23 +392,31 @@ function onPointerDown(event: PointerEvent) {
         // Rim-lit at rest; the ring blooms on focus.
         'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
         !field.invalid && 'focus-within:shadow-halo',
-        field.invalid && 'border-destructive focus-within:outline-destructive',
+        // Three resting appearances, three channels — the same treatment
+        // TextField carries at length. Read-only and disabled used to share one
+        // fill and part only on the text colour, which is a distinction made in
+        // hue alone; the fill and the border weight now part them twice more.
+        //
         // Read-only keeps its focus ring and its full-strength number: a
-        // read-only value is on show, not an unavailable control, and the two
-        // must not look alike. They share this fill and the text colour below is
-        // what tells them apart, which is the right way round — the state that
-        // exists to be read is the one that keeps its contrast. Reka's native
-        // `readonly` on the input carries the state to assistive tech, so
-        // nothing here rests on colour.
-        field.readonly && 'bg-muted',
-        // Unavailable is a *colour*, never an opacity. `opacity-50` on this box
-        // faded the value inside it: `--color-foreground` measures 14.09:1 on
-        // the resting fill and 2.99:1 once composited at half alpha, and the
-        // unit suffix beside it — muted, and smaller — fell to 2.02:1. The
-        // drained fill is the state; the input below takes the matching text
-        // colour, which has to be declared there rather than inherited from
+        // read-only value is on show, not an unavailable control. The fill lifts
+        // to `subtle`, the rim stays `input` because the field's reach has not
+        // changed, and Reka's native `readonly` on the input carries the state
+        // to assistive tech, so nothing here rests on colour.
+        field.readonly && 'bg-subtle',
+        // Unavailable is a *colour* and a *weight*, never an opacity.
+        // `opacity-50` on this box faded the value inside it:
+        // `--color-foreground` measures 14.09:1 on the resting fill and 2.99:1
+        // once composited at half alpha, and the unit suffix beside it — muted,
+        // and smaller — fell to 2.02:1. The fill drains a step past read-only
+        // and the rim slackens to `border`; the input below takes the matching
+        // text colour, which has to be declared there rather than inherited from
         // here because the input names `text-foreground` itself.
-        field.disabled && 'bg-muted',
+        field.disabled && 'border-border bg-muted',
+        // Last of the rules that name a border colour: `cn()` resolves one by
+        // whichever class it saw last, so a field that is both in error and
+        // unavailable would otherwise lose its destructive rim to the disabled
+        // one.
+        field.invalid && 'border-destructive focus-within:outline-destructive',
         'data-[disabled]:cursor-not-allowed',
         attrs.class as string,
       )
@@ -433,7 +442,7 @@ function onPointerDown(event: PointerEvent) {
         cn(
           'tabular h-full w-full flex-1 rounded-md bg-transparent px-3 text-sm text-foreground outline-none',
           unit ? 'pr-9' : 'pr-3',
-          // 4.67:1 against the drained fill the root takes, and two steps back
+          // 4.68:1 against the drained fill the root takes, and two steps back
           // from the black an editable value keeps — the state stays plain to
           // see and the number stays plain to read. `cn()` is what makes the
           // pair work: it drops the `text-foreground` above rather than leaving

@@ -140,7 +140,9 @@ import { useLabels, type LabelOverrides } from "../../lib/labels";
  * the hex value is always on screen as text and is itself the edit surface;
  * every swatch is named rather than left a bare square — by its hex unless
  * `labels.swatch` gives it words; and the disabled state is carried by
- * `aria-disabled` as well as by the dimming.
+ * `aria-disabled` as well as by the appearance. It is also why the hex is the
+ * one part of an unavailable picker that is drained rather than dimmed — see
+ * the root's class list.
  *
  * The event contract matches Slider and NumberField. `update:modelValue` is
  * transient — every position a thumb passes through — and `commit` fires once
@@ -397,7 +399,20 @@ const THUMB =
     :class="
       cn(
         'flex w-full max-w-xs flex-col gap-3',
-        field.disabled && 'cursor-not-allowed opacity-50',
+        // No `opacity` on the group, and the split below is the whole reason.
+        // A dim here ran over everything the picker holds, the hex among it:
+        // measured on the built site, `opacity-50` put the hex value at 3.06:1
+        // — the same 3.08:1 the text input's own dim produced before it was
+        // drained, and the same failure axe does not raise because it exempts
+        // a disabled control under 1.4.3.
+        //
+        // So the two halves part. The three surfaces whose whole content is
+        // the colour being picked keep the dim, because that is what
+        // unavailable looks like for a surface a token cannot drain; the hex
+        // field takes the same drained fill, muted text and slackened rim
+        // every other control in the library wears, because it is text and it
+        // is the one thing a reader still needs from a picker they cannot use.
+        field.disabled && 'cursor-not-allowed',
         attrs.class as string,
       )
     "
@@ -435,7 +450,7 @@ const THUMB =
         :style="style"
         :aria-label="text.area"
         :aria-roledescription="text.areaRoleDescription"
-        class="relative h-40 w-full rounded-md border border-border"
+        class="relative h-40 w-full rounded-md border border-border data-[disabled]:opacity-50"
         @keydown="onAreaKeydown"
       >
         <ColorAreaThumb
@@ -456,7 +471,9 @@ const THUMB =
       @update:model-value="applyFromPart"
       @change-end="commitCurrent"
     >
-      <ColorSliderTrack class="relative h-3 w-full grow rounded-full border border-border" />
+      <ColorSliderTrack
+        class="relative h-3 w-full grow rounded-full border border-border data-[disabled]:opacity-50"
+      />
       <!-- Reka names this from its channel — "Hue" — so the binding replaces
            that rather than adding to it. -->
       <ColorSliderThumb :aria-label="text.hue" :class="THUMB" />
@@ -471,7 +488,7 @@ const THUMB =
     <ColorFieldRoot
       :model-value="current"
       :disabled="field.disabled"
-      class="flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm text-foreground transition-[color,background-color,box-shadow] duration-fast ease-out focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring focus-within:shadow-halo data-[disabled]:cursor-not-allowed"
+      class="flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm text-foreground transition-[color,background-color,border-color,box-shadow] duration-fast ease-out focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring focus-within:shadow-halo data-[disabled]:cursor-not-allowed data-[disabled]:border-border data-[disabled]:bg-muted data-[disabled]:text-muted-foreground"
       @update:model-value="onFieldCommit"
     >
       <!-- `label` is Reka's own documented prop for this, so it is set rather
@@ -512,7 +529,7 @@ const THUMB =
       :aria-disabled="field.disabled || undefined"
       selection-behavior="replace"
       :aria-label="text.presets"
-      class="flex flex-wrap gap-2"
+      class="flex flex-wrap gap-2 data-[disabled]:opacity-50"
       @update:model-value="onPresetPick"
     >
       <!-- Each item names itself from Reka's English `getColorName` unless this

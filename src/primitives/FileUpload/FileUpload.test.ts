@@ -410,6 +410,12 @@ describe("FileUpload", () => {
     expect(zone.classes().some((c) => c.includes("opacity"))).toBe(false);
     expect(zone.classes()).toContain("bg-muted");
     expect(zone.classes()).toContain("group");
+    // The second channel, so the state is not told in fill and text colour
+    // alone: the dash stays — it is what marks the zone as a drop target at all
+    // — and only slackens from `input` to the lighter `border`.
+    expect(zone.classes()).toContain("border-dashed");
+    expect(zone.classes()).toContain("border-border");
+    expect(mount(FileUpload).get("label").classes()).toContain("border-input");
     expect(wrapper.findAll("label span").some((s) => s.text() === "PDF up to 10 MB")).toBe(true);
     expect(
       wrapper
@@ -446,6 +452,14 @@ describe("FileUpload", () => {
     // The halo is the non-error focus bloom; an invalid zone keeps the crisp
     // destructive outline instead, never both at once.
     expect(wrapper.get("label").classes()).not.toContain("focus-within:shadow-halo");
+  });
+
+  // `cn()` resolves a border colour by whichever class it saw last, so this is
+  // a claim about the order of the zone's class list: the disabled rim sits
+  // above the destructive one, and it fails silently if that order is tidied.
+  it("keeps the destructive border on a zone that is unavailable as well as invalid", () => {
+    const wrapper = mount(FileUpload, { props: { invalid: true, disabled: true } });
+    expect(wrapper.get("label").classes()).toContain("border-destructive");
   });
 
   it("holds the drag state while the pointer crosses onto a child of the zone", async () => {

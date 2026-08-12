@@ -26,6 +26,7 @@ import type { StepperLabels } from "../primitives/Stepper/Stepper.vue";
 import type { ToastLabels } from "../primitives/Toast/Toast.vue";
 import type { TagsInputLabels } from "../primitives/TagsInput/TagsInput.vue";
 import type { TextFieldLabels } from "../primitives/TextField/TextField.vue";
+import type { TextareaLabels } from "../primitives/Textarea/Textarea.vue";
 
 /**
  * Every slot a host can localise, and nothing else. One line per component that
@@ -73,6 +74,11 @@ export interface LoomLabels {
   readonly tagsInput: TagsInputLabels;
   readonly editable: EditableLabels;
   readonly textField: TextFieldLabels;
+  // Two slots for one counter vocabulary, and the keys match on purpose so a
+  // host's bag copies across. Not one slot, because `textField` also carries
+  // `reveal` — a password toggle a textarea has no use for, and a key its
+  // translator would be asked to fill in for nothing.
+  readonly textarea: TextareaLabels;
   // The overlays and the flow. `SpeedDial` is deliberately absent for the same
   // reason `Select` is: its trigger name, its action labels and its glyphs all
   // arrive from the host, so it has no slot rather than an empty one.

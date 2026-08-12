@@ -47,6 +47,9 @@ const countries = [
   { value: "za", label: "South Africa", disabled: true },
 ];
 
+const visited = ref(["br", "jp", "se", "th", "vn"]);
+const everywhere = ref(countries.map((option) => option.value));
+
 const query = ref("");
 const found = computed(() => {
   const needle = query.value.trim().toLowerCase();
@@ -112,6 +115,62 @@ rows around it.
     <Combobox :model-value="'vn'" :options="countries" placeholder="Search countries" aria-label="Country" />
   </div>
 </Demo>
+
+## Choosing several
+
+`multiple` turns the control into a many-of-many picker. Three things change,
+and nothing else does.
+
+**The list stops closing.** A chosen row stays where it is and toggles: pressing
+it again takes the value back out, and the typed query survives the toggle, so
+one search can pick several rows. `Esc` and a click outside still close, exactly
+as they do in single-select.
+
+**The input goes back to being only a search box.** In single-select it shows
+the chosen option's label; here it shows nothing, because the selection is
+shown beside it as tokens — the same [Chip](./chip) a
+[TagsInput](./tags-input) commits its values to, so a chosen set looks the same
+wherever a form shows one.
+
+**The tokens are inert**, and deliberately. TagsInput gives each of its tokens a
+remove control because it has no list to send a reader back to; this control
+does, so the list is where a value is chosen and where it is unchosen. That
+keeps the whole thing the single Tab stop it is in single-select, and it keeps a
+value hidden behind the overflow count reachable by exactly the same gesture as
+a visible one.
+
+**The box does not grow.** It sits in a form row beside controls on a fixed
+height scale, so past `visibleValues` — three by default — the tail collapses
+into one summary. Five chosen shows three tokens and "+2 more"; fifty shows
+three and "+47 more". Raise `visibleValues` for a wider box; the token row never
+wraps, so a number the box has no room for is a number that truncates.
+
+<Demo title="Several at once">
+  <div class="flex w-full max-w-xs flex-col gap-3">
+    <Combobox v-model="visited" multiple :options="countries" placeholder="Add a country" aria-label="Countries visited" />
+    <Combobox v-model="everywhere" multiple :options="countries" aria-label="Countries visited, all of them" />
+  </div>
+</Demo>
+
+`modelValue` is `string | string[]`, one prop rather than a generic component,
+and the mode is the invariant: single-select emits and accepts a `string` and
+never an array, multi-select an array and never a bare string. A generic would
+say that in the type system and cost more than it buys — it would print a
+conditional type in the API table below, and it would break
+`InstanceType<typeof Combobox>`, which is how a consumer types a template ref.
+Existing single-select code compiles unchanged.
+
+**The size of the selection reaches a screen reader**, which neither the tokens
+nor the overflow count does on its own. It is published as
+[`labels.count`](#labels) and wired into the input's `aria-describedby`, so it
+is heard on focus and on every return to the box — which is when the question is
+asked. Each individual toggle is already announced by the row's own
+`aria-selected`, and the listbox carries `aria-multiselectable` to say the
+control takes more than one value in the first place.
+
+```vue
+<Combobox v-model="visited" multiple :options="countries" aria-label="Countries visited" />
+```
 
 ## The empty state
 
@@ -190,10 +249,15 @@ name, so a keyboard reader never lands on it separately.
 | `↓`            | Opens the list, then moves the active row down          |
 | `↑`            | Moves the active row up                                 |
 | `Home` / `End` | Jumps to the first or last row                          |
-| `Enter`        | Chooses the active row and closes                       |
+| `Enter`        | Chooses the active row — and closes, unless `multiple`  |
 | `Esc`          | Closes, leaving focus and the typed text where they are |
 | `Tab`          | Leaves the control, which closes                        |
 | Click outside  | Closes                                                  |
+
+With `multiple`, `Enter` toggles the active row and the list stays open, so the
+same keystroke run picks several values. Nothing else in the table changes, and
+neither does the number of Tab stops: the tokens the box grows are text, not
+controls.
 
 Focus never leaves the input, because the reader is still typing: the active row
 is pointed at with `aria-activedescendant` rather than focused. This is the one
@@ -230,10 +294,18 @@ not re-animated at all — they are the same elements, still where they were.
 ## Disabled and invalid
 
 A disabled Combobox drains, takes no text and refuses to open: the box takes the
-neutral fill and the value inside it moves to the muted foreground colour. It
-does not fade — the box is what shows the chosen value, and that value is the
-one thing a reader still needs from a control they cannot change. Half opacity
-took it to 3.06:1; the drained pair measures 4.67:1.
+neutral fill, the value inside it moves to the muted foreground colour, and the
+hairline recedes from `border-input` to `border-border`. It does not fade — the
+box is what shows the chosen value, and that value is the one thing a reader
+still needs from a control they cannot change. Half opacity took it to 3.06:1;
+the drained pair measures 4.68:1.
+
+The border is the second channel on purpose. A fill and a text colour are both
+hue, and unavailability carried by hue alone is unavailability a reader who
+cannot resolve `muted` from `background` never learns about; a change in the
+edge is a change in shape. This control has no read-only state to be told apart
+from — see below — so it takes that one row of the treatment rather than all
+three.
 
 An invalid one still works: it takes the destructive border and focus ring and
 sets
@@ -277,17 +349,26 @@ choice nobody may change is a disabled Combobox, or the label rendered as text.
 
 ## Labels
 
-Two of the strings on this control are its own rather than yours. The chevron is
-a real button and Reka UI names it `Show popup`, in English, inside its own
-render function with no prop to reach it by; and the empty row needs wording
-when `emptyMessage` gives it none.
+The strings on this control that are its own rather than yours. The chevron is a
+real button and Reka UI names it `Show popup`, in English, inside its own render
+function with no prop to reach it by; the empty row needs wording when
+`emptyMessage` gives it none; and a multi-select says two things about the size
+of its selection.
 
 ```ts
 interface ComboboxLabels {
   trigger: string; // the chevron that opens the list
   empty: string; // the row shown when the filter matches nothing
+  count: (args: { count: number }) => string; // how many are chosen, for a screen reader
+  overflow: (args: { hidden: number }) => string; // the visible "+2 more"
 }
 ```
+
+**The last two take the number, never a formatted string**, for the reason
+[Localisation](/foundations/localisation) sets out: "3 selected" has one plural
+form in Vietnamese, two in English and six in Arabic, and `+47` is a punctuation
+choice made in one language. Handed the integer, your own `Intl.PluralRules`
+picks the category and `Intl.NumberFormat` shapes the digits.
 
 `emptyMessage` and `labels.empty` are not rivals. The prop is one box's wording
 — "No country by that name" — and the label is what every other box says, so the
