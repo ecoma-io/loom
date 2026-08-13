@@ -191,8 +191,26 @@ function segmentLabel(part: string): string | undefined {
 // hard-coded "Empty" only while the segment holds nothing, so this replaces
 // that case and leaves the filled one — a number, and the locale's own month
 // name — exactly as Reka wrote it.
-function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
-  return emptySegmentValueText(part, value, segmentText.value.empty);
+//
+// The month is the exception. Reka writes `"5 - May"`, with the month name from
+// `Intl.DateTimeFormat` but the separator and order hard-coded. `filledMonth`
+// lets a host compose the string their language needs (Japanese `"5月"`,
+// Vietnamese `"tháng 5"`). The numeric month arrives from the parsed model value
+// rather than from the segment's displayed text, because `item.value` is the
+// locale-formatted display and may not contain a parseable number.
+function segmentValueText(
+  part: string,
+  value: string,
+  monthValue?: number,
+): { "aria-valuetext"?: string } {
+  const empty = emptySegmentValueText(part, value, segmentText.value.empty);
+  if (empty["aria-valuetext"]) return empty;
+  if (part === "month" && monthValue !== undefined) {
+    return {
+      "aria-valuetext": segmentText.value.filledMonth({ value: monthValue, locale: props.locale }),
+    };
+  }
+  return {};
 }
 
 // `class` sizes the whole control, so it lands on the anchor — the element the
@@ -454,7 +472,7 @@ function onOpenAutoFocus(event: Event) {
           :part="item.part"
           :tabindex="segmentTabIndex(item.part, segments)"
           :aria-label="segmentLabel(item.part)"
-          v-bind="segmentValueText(item.part, item.value)"
+          v-bind="segmentValueText(item.part, item.value, fromIso(props.modelValue)?.month)"
           :class="
             cn(
               'tabular rounded-sm px-0.5 outline-none',

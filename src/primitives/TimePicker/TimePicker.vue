@@ -156,10 +156,20 @@ function segmentLabel(part: string): string | undefined {
 // The companion to `segmentLabel`, and the reason it returns an object rather
 // than a string is in `emptySegmentValueText`: Reka's `aria-valuetext` is a
 // hard-coded "Empty" only while the segment holds nothing, so this replaces
-// that case and leaves the filled one — a number, and the locale's own month
-// name — exactly as Reka wrote it.
+// that case and leaves the filled one — a number — exactly as Reka wrote it.
+//
+// The dayPeriod is the exception. Reka writes `"AM"` or `"PM"` from its own
+// hour-cycle logic, not from `Intl.DateTimeFormat`, so a localised field
+// still announces the period in English. `filledDayPeriod` lets a host replace
+// those with the locale's own period names (Arabic `"ص"`/`"م"`, Japanese
+// `"午前"`/`"午後"`).
 function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
-  return emptySegmentValueText(part, value, text.value.empty);
+  const empty = emptySegmentValueText(part, value, text.value.empty);
+  if (empty["aria-valuetext"]) return empty;
+  if (part === "dayPeriod") {
+    return { "aria-valuetext": text.value.filledDayPeriod({ dayPeriod: value }) };
+  }
+  return {};
 }
 
 // One rendered node, so both halves of the fallthrough land on it — the split

@@ -74,13 +74,22 @@ const VIETNAMESE = {
     restore: "Khôi phục",
     close: "Đóng",
   },
-  dateSegments: { month: "Tháng", day: "Ngày", year: "Năm", era: "Kỷ nguyên", empty: "Chưa đặt" },
+  dateSegments: {
+    month: "Tháng",
+    day: "Ngày",
+    year: "Năm",
+    era: "Kỷ nguyên",
+    empty: "Chưa đặt",
+    filledMonth: ({ value }: { value: number; locale: string }) => `Tháng ${String(value)}`,
+  },
   timeSegments: {
     hour: "Giờ",
     minute: "Phút",
     second: "Giây",
     dayPeriod: "Sáng hoặc chiều",
     empty: "Chưa đặt",
+    filledDayPeriod: ({ dayPeriod }: { dayPeriod: string }) =>
+      dayPeriod === "AM" ? "Sáng" : dayPeriod === "PM" ? "Chiều" : dayPeriod,
   },
   calendarPanel: {
     calendar: "Lịch",
@@ -256,11 +265,28 @@ function spoken(root: Element): string[] {
  * result are what is wanted — the digits are not words and are ignored below.
  */
 function vocabularyWords(): Set<string> {
-  const anyArgs = new Proxy({}, { get: () => 1 }) as never;
+  // The proxy answers `1` to every numeric field, `"en"` to any field whose
+  // name looks like a locale, and `"AM"` to `dayPeriod`. A `LabelOf` that
+  // calls `Intl.DateTimeFormat` needs a real locale string, and one that
+  // branches on a string literal needs a matching string. The words in the
+  // result are what is wanted — the digits and "AM" are not words and are
+  // ignored below.
+  const anyArgs = new Proxy(
+    {},
+    {
+      get: (_target, prop) => {
+        const key = String(prop);
+        if (key === "locale") return "en";
+        if (key === "dayPeriod") return "AM";
+        return 1;
+      },
+    },
+  ) as never;
   const words = new Set<string>();
   for (const slot of Object.values(VIETNAMESE)) {
     for (const label of Object.values(slot as Record<string, string | ((a: never) => string)>)) {
       const text = typeof label === "function" ? label(anyArgs) : label;
+      if (typeof text !== "string") continue;
       for (const word of text.split(/[^\p{L}]+/u)) if (word) words.add(word.toLowerCase());
     }
   }
@@ -278,7 +304,9 @@ function vocabularyWords(): Set<string> {
  *     *locale's* output rather than a hard-coded literal: they come from `Intl`
  *     and Reka's per-locale placeholder table, and they follow the `locale`
  *     prop that Loom hands straight through. A host wanting them in another
- *     language sets the locale, not the vocabulary.
+ *     language sets the locale, not the vocabulary. "AM"/"PM" appear only as
+ *     text nodes (the visible segment content); the `aria-valuetext` is now
+ *     set by `filledDayPeriod` and does not contain them.
  */
 const HOST_SUPPLIED = ["Kim", "Lê", "Ánh", "Bưu", "Một", "Hai", "Ba", "Đã", "lưu"];
 const LOCALE_OUTPUT = ["mm", "dd", "yyyy", "AM", "PM"];
@@ -414,11 +442,25 @@ describe("Reka UI's own English is replaced rather than competed with", () => {
     }
   });
 
-  it("leaves a filled date segment's own value text alone", async () => {
-    // The empty case is the only hard-coded one. Reka's filled value text is
-    // the number, and the month's is the number plus the *locale's* month name
-    // — replacing those would be Loom overriding the host's own locale, and
-    // binding `aria-valuetext` unconditionally would erase them.
+  it("localises a filled month segment from the vocabulary, not Reka's format", async () => {
+    // Reka writes `"3 - March"` — number, hard-coded hyphen, locale's month
+    // name. The separator and word order are English, and `filledMonth` exists
+    // so a host can compose the string their language needs (Vietnamese puts
+    // the word before the number and has no separator).
+    const wrapper = render(DatePicker, { modelValue: "2026-03-09" });
+    await nextTick();
+    const month = Array.from(wrapper.querySelectorAll('[role="spinbutton"]')).find(
+      (el) => el.getAttribute("aria-label") === "Tháng",
+    );
+
+    expect(month?.getAttribute("aria-valuetext")).toBe("Tháng 3");
+  });
+
+  it("leaves a filled non-month segment's value text alone", async () => {
+    // `filledMonth` and `filledDayPeriod` are the two overrides for filled
+    // segments; every other filled segment's `aria-valuetext` is a number
+    // written by Reka, and replacing those would be Loom overriding the host's
+    // own locale. Binding `aria-valuetext` unconditionally would erase them.
     const wrapper = render(DatePicker, { modelValue: "2026-03-09" });
     await nextTick();
     const values = Array.from(wrapper.querySelectorAll('[role="spinbutton"]')).map((el) =>
@@ -427,6 +469,19 @@ describe("Reka UI's own English is replaced rather than competed with", () => {
 
     expect(values).not.toContain("Chưa đặt");
     expect(values.some((value) => value?.includes("9"))).toBe(true);
+  });
+
+  it("localises a filled dayPeriod segment from the vocabulary, not Reka's AM/PM", async () => {
+    // Reka writes `segmentValues.dayPeriod ?? "AM"` — always the Latin-script
+    // "AM" or "PM" from its own hour-cycle logic. `filledDayPeriod` lets a host
+    // return their language's period names: Arabic "ص"/"م", Vietnamese "Sáng"/"Chiều".
+    const wrapper = render(TimePicker, { modelValue: "14:30", hourCycle: 12 });
+    await nextTick();
+    const dayPeriod = Array.from(wrapper.querySelectorAll('[role="spinbutton"]')).find(
+      (el) => el.getAttribute("aria-label") === "Sáng hoặc chiều",
+    );
+
+    expect(dayPeriod?.getAttribute("aria-valuetext")).toBe("Chiều");
   });
 
   it("reports ColorPicker's area thumb from the vocabulary on every axis change", async () => {
