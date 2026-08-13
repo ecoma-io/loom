@@ -99,6 +99,27 @@
   display: none;
 }
 
+/* ---- PWA window controls overlay ------------------------------------------
+ * When a PWA is installed and the `window-controls-overlay` feature is visible,
+ * the browser draws native minimize/maximize/close buttons over the app's title
+ * bar. The app must leave space for them. This is a PWA concern (not Electron
+ * or Tauri, which handle their own chrome), and it is CSS-only — no JavaScript
+ * runtime dependency.
+ *
+ * The overlay region is exposed through `env(titlebar-area-x)` and friends.
+ * The `[data-loom-titlebar]` attribute is set by TitleBar, which knows its own
+ * layout. When the overlay is active, the brand cluster's left padding expands
+ * to clear the native controls on the left edge (same corner as macOS), and
+ * the drag region continues to work over the full bar width. */
+@supports (window-controls-overlay: visible) {
+  [data-loom-titlebar] {
+    /* Narrow the drag spacer so the title text is not pushed too far right.
+     * The brand cluster already handles its own left offset via the platform
+     * prop; this rule is for PWA installs where the host did not set macOS. */
+    padding-left: env(titlebar-area-x, 0px);
+  }
+}
+
 /* ---- The motion keyframe library ------------------------------------------
  * Named and reusable; `theme.css` maps each to an `animate-*` utility. All of
  * them are short and purposeful, and nothing loops for decoration except the

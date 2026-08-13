@@ -3,14 +3,24 @@
  * TitleBar — a desktop app's custom window chrome (a block: composed from
  * primitives, domain-aware, but still presentational). Layout:
  *
+ *   Windows / Linux:
  *   [ ⬡ brand ] [ File View Help ]  ····· drag / title ····· [ – ▢ ✕ ]
+ *
+ *   macOS (native traffic-lights on the left):
+ *   [ 🔴🟡🟢   ⬡ brand ] [ File View Help ]  ····· drag / title ·····
  *
  * The whole bar is a drag region (`-webkit-app-region: drag`); the interactive
  * clusters (Menubar, WindowControls) opt back out. It owns NO app logic — it
  * re-emits `select` from the menu and the window intents, so the desktop host
  * wires the window bridge around it.
+ *
+ * `platform` is the host's declaration, not a runtime sniff: a Tauri/Electron
+ * host already knows its OS, and a PWA has no native window controls. On macOS
+ * the brand cluster shifts right to leave room for the native traffic-light
+ * buttons, and WindowControls renders nothing (the OS owns those buttons).
  */
 import type { MenubarMenu } from "../../primitives/Menubar/Menubar.vue";
+import type { WindowPlatform } from "../../primitives/WindowControls/WindowControls.vue";
 </script>
 
 <script setup lang="ts">
@@ -28,6 +38,13 @@ withDefaults(
     title?: string;
     menus?: MenubarMenu[];
     isMaximized?: boolean;
+    /**
+     * The desktop platform the window runs on. Controls whether WindowControls
+     * renders (hidden on macOS) and how the brand cluster is spaced (shifted
+     * right on macOS to avoid the native traffic-light buttons). The host
+     * decides — Loom never sniffs the OS at runtime.
+     */
+    platform?: WindowPlatform;
     /** Passed through to WindowControls (host-side i18n); omit for its English defaults. */
     windowControlsLabels?: WindowControlsLabels;
   }>(),
@@ -35,6 +52,7 @@ withDefaults(
     title: "",
     menus: () => [],
     isMaximized: false,
+    platform: "windows",
   },
 );
 
@@ -48,6 +66,7 @@ const emit = defineEmits<{
 
 <template>
   <header
+    data-loom-titlebar
     class="flex h-9 select-none items-center border-b border-border bg-card text-foreground"
     style="-webkit-app-region: drag"
   >
@@ -55,8 +74,16 @@ const emit = defineEmits<{
          logo corner is the spot people reach for to move a window — opting it
          out of the drag region would take that away and give nothing back.
          Only the clusters that actually take clicks (Menubar, WindowControls)
-         opt out. -->
-    <div class="flex shrink-0 items-center gap-2 pl-3 pr-1.5">
+         opt out.
+
+         On macOS the brand cluster shifts right to leave room for the native
+         traffic-light buttons. The 4.5rem (72px) covers the three 12px
+         buttons plus their 8px left margin and 4px inter-button gap, matching
+         what macOS draws at the default window scale. -->
+    <div
+      class="flex shrink-0 items-center gap-2 pr-1.5"
+      :class="platform === 'macos' ? 'pl-[4.5rem]' : 'pl-3'"
+    >
       <!-- @slot Brand icon — the consumer provides their own mark. Rendered
            inside a 16px coloured tile, `aria-hidden` by the container. -->
       <slot name="brandIcon">
@@ -79,8 +106,9 @@ const emit = defineEmits<{
       <span v-if="title" class="truncate text-xs text-muted-foreground">{{ title }}</span>
     </div>
 
-    <!-- Window controls -->
+    <!-- Window controls (hidden on macOS — the OS draws its own) -->
     <WindowControls
+      :platform="platform"
       :is-maximized="isMaximized"
       v-bind="optional({ labels: windowControlsLabels })"
       @minimize="emit('minimize')"

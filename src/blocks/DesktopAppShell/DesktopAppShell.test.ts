@@ -113,4 +113,14 @@ describe("DesktopAppShell", () => {
     // TitleBar is mocked, so the slots land in its stub's template output
     expect(tb.exists()).toBe(true);
   });
+
+  it("forwards the platform prop to TitleBar so it can adjust for native window controls", () => {
+    const wrapper = shell({ platform: "macos" });
+    expect(wrapper.findComponent(TitleBar).props("platform")).toBe("macos");
+  });
+
+  it("defaults to windows platform, which shows the Loom window-control cluster", () => {
+    const wrapper = shell();
+    expect(wrapper.findComponent(TitleBar).props("platform")).toBe("windows");
+  });
 });

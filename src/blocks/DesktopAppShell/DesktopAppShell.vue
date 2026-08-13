@@ -21,6 +21,7 @@
  * the shell itself owns no IPC.
  */
 import type { MenubarMenu } from "../../primitives/Menubar/Menubar.vue";
+import type { WindowPlatform } from "../../primitives/WindowControls/WindowControls.vue";
 </script>
 
 <script setup lang="ts">
@@ -38,6 +39,12 @@ withDefaults(
     menus?: MenubarMenu[];
     /** Whether the window is maximized — controls the TitleBar's middle window-control glyph. */
     isMaximized?: boolean;
+    /**
+     * The desktop platform the window runs on. Passed through to TitleBar, which
+     * adjusts layout for native traffic-lights on macOS. The host decides —
+     * Loom never sniffs the OS at runtime.
+     */
+    platform?: WindowPlatform;
     /** Names for the window-control buttons, as any subset of `WindowControlsLabels`. */
     windowControlsLabels?: WindowControlsLabels;
     /** Sidebar rail width. Maps to 12/16/20 rem — the three widths SidebarNav's label/labelless
@@ -50,6 +57,7 @@ withDefaults(
     title: "",
     menus: () => [],
     isMaximized: false,
+    platform: "windows",
     sidebarWidth: "md",
     sidebarAriaLabel: "Sidebar",
   },
@@ -76,6 +84,7 @@ const SIDEBAR_WIDTH = {
       :title="title"
       :menus="menus"
       :is-maximized="isMaximized"
+      :platform="platform"
       v-bind="optional({ windowControlsLabels })"
       @select="emit('select', $event)"
       @minimize="emit('minimize')"

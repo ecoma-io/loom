@@ -4,9 +4,11 @@ import DesktopAppShell from "./DesktopAppShell.vue";
 import SidebarNav from "../SidebarNav/SidebarNav.vue";
 import { Hexagon, Home, Settings, Bell, Search } from "@lucide/vue";
 import type { SidebarNavSection } from "../SidebarNav/SidebarNav.vue";
+import type { WindowPlatform } from "../../primitives/WindowControls/WindowControls.vue";
 
 const isMaximized = ref(false);
 const last = ref("—");
+const platform = ref<WindowPlatform>("windows");
 
 const sections: SidebarNavSection[] = [
   {
@@ -25,12 +27,47 @@ const sections: SidebarNavSection[] = [
 
 <template>
   <div class="flex flex-col gap-4">
+    <fieldset class="flex items-center gap-2 text-xs text-muted-foreground">
+      <legend class="sr-only">Platform</legend>
+      <label for="das-platform-windows" class="flex items-center gap-1">
+        <input
+          id="das-platform-windows"
+          v-model="platform"
+          type="radio"
+          value="windows"
+          class="accent-primary"
+        />
+        Windows
+      </label>
+      <label for="das-platform-macos" class="flex items-center gap-1">
+        <input
+          id="das-platform-macos"
+          v-model="platform"
+          type="radio"
+          value="macos"
+          class="accent-primary"
+        />
+        macOS
+      </label>
+      <label for="das-platform-linux" class="flex items-center gap-1">
+        <input
+          id="das-platform-linux"
+          v-model="platform"
+          type="radio"
+          value="linux"
+          class="accent-primary"
+        />
+        Linux
+      </label>
+    </fieldset>
+
     <div class="overflow-hidden rounded-lg border border-border shadow-sm">
       <DesktopAppShell
         app-name="MyApp"
         title="project-alpha — MyApp"
         sidebar-width="md"
         sidebar-aria-label="Primary navigation"
+        :platform="platform"
         :is-maximized="isMaximized"
         @select="last = $event"
         @minimize="last = 'window.minimize'"

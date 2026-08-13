@@ -96,4 +96,26 @@ describe("WindowControls", () => {
       "hover:bg-destructive",
     );
   });
+
+  it("renders the button cluster by default (windows platform), since the OS does not draw its own", () => {
+    const wrapper = mount(WindowControls);
+    expect(wrapper.find('[data-testid="win-minimize"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="win-maximize"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="win-close"]').exists()).toBe(true);
+  });
+
+  it("renders nothing when platform is macos — the OS draws its own traffic-light buttons", () => {
+    const wrapper = mount(WindowControls, { props: { platform: "macos" } });
+    expect(wrapper.find('[data-testid="win-minimize"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="win-maximize"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="win-close"]').exists()).toBe(false);
+    expect(wrapper.find("button").exists()).toBe(false);
+  });
+
+  it("renders the cluster when platform is linux — most Linux desktops do not draw native window buttons", () => {
+    const wrapper = mount(WindowControls, { props: { platform: "linux" } });
+    expect(wrapper.find('[data-testid="win-minimize"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="win-maximize"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="win-close"]').exists()).toBe(true);
+  });
 });

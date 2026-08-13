@@ -111,4 +111,23 @@ describe("TitleBar", () => {
     expect(wrapper.emitted("minimize")).toHaveLength(1);
     expect(wrapper.emitted("close")).toHaveLength(1);
   });
+
+  it("shifts the brand cluster right on macOS to leave room for the native traffic-light buttons", () => {
+    const wrapper = mount(TitleBar, { props: { appName: "MyApp", platform: "macos" } });
+    const brand = wrapper.get("header").element.firstElementChild as HTMLElement;
+    // macOS: pl-[4.5rem] (left padding for traffic-light clearance)
+    expect(brand.classList.toString()).toContain("pl-[4.5rem]");
+  });
+
+  it("uses the standard left padding on Windows — no native controls to clear", () => {
+    const wrapper = mount(TitleBar, { props: { appName: "MyApp", platform: "windows" } });
+    const brand = wrapper.get("header").element.firstElementChild as HTMLElement;
+    expect(brand.classList.toString()).toContain("pl-3");
+    expect(brand.classList.toString()).not.toContain("pl-[4.5rem]");
+  });
+
+  it("marks the header with data-loom-titlebar so PWA overlay styles can target it", () => {
+    const wrapper = mount(TitleBar, { props: { appName: "MyApp" } });
+    expect(wrapper.get("header").attributes("data-loom-titlebar")).toBe("");
+  });
 });
