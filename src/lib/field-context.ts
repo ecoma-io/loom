@@ -5,6 +5,7 @@ import {
   provide,
   reactive,
   ref,
+  watchEffect,
   type ComputedRef,
   type InjectionKey,
 } from "vue";
@@ -257,6 +258,22 @@ export function useFieldControl(own: () => FieldControlProps): FieldControl {
   const invalid = computed(() => own().invalid ?? field?.invalid.value ?? false);
   const disabled = computed(() => own().disabled ?? field?.disabled.value ?? false);
   const readonly = computed(() => own().readonly ?? field?.readonly.value ?? false);
+
+  // A development-mode safety net for the one context key a control can
+  // deliberately decline. When a wrapper sets `readonly` but the control did
+  // not pass that key in its `FieldControlProps`, the wrapper's instruction is
+  // silently dropped — and without this warning the consumer has no signal
+  // that it was. The `"readonly" in own()` check distinguishes "I defer to the
+  // wrapper" (key present, value `undefined`) from "I don't participate" (key
+  // absent), which is the same distinction `exactOptionalPropertyTypes` makes
+  // at the type level.
+  if (import.meta.env.DEV && field) {
+    watchEffect(() => {
+      if (field.readonly.value && !("readonly" in own())) {
+        console.warn("[Loom] readonly was set on the Field, but this control does not claim it.");
+      }
+    });
+  }
 
   const attrs = computed<FieldControlAttrs>(() =>
     optional({

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, useAttrs } from "vue";
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { provideFieldContext, useFieldControl } from "./field-context";
@@ -85,6 +85,19 @@ const GroupControl = defineComponent({
         role: "group",
         "aria-labelledby": field.labelledBy,
       });
+  },
+});
+
+// A control that declines `readonly` — the key is absent from the object
+// passed to `useFieldControl()`, exactly as Switch, Checkbox and the other
+// deliberate decliners do.
+const DecliningControl = defineComponent({
+  inheritAttrs: false,
+  setup() {
+    const field = useFieldControl(() => ({
+      // No `readonly` key — this control does not participate in it.
+    }));
+    return () => h("div", { "data-readonly": field.readonly || undefined });
   },
 });
 
@@ -264,5 +277,47 @@ describe("useFieldControl", () => {
 
       expect(group.attributes("aria-labelledby")).toBeUndefined();
     });
+  });
+});
+
+describe("development-mode warning for unclaimed readonly", () => {
+  it("warns when a control that declines readonly is inside a Field that sets it", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+
+    mount(Wrapper, {
+      props: { readonly: true },
+      slots: { default: h(DecliningControl) },
+    });
+
+    expect(warn).toHaveBeenCalledWith(
+      "[Loom] readonly was set on the Field, but this control does not claim it.",
+    );
+
+    warn.mockRestore();
+  });
+
+  it("does not warn when a control claims readonly inside a Field that sets it", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+
+    mount(Wrapper, {
+      props: { readonly: true },
+      slots: { default: h(Control) },
+    });
+
+    expect(warn).not.toHaveBeenCalled();
+
+    warn.mockRestore();
+  });
+
+  it("does not warn when the control declines readonly but the Field does not set it", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(vi.fn());
+
+    mount(Wrapper, {
+      slots: { default: h(DecliningControl) },
+    });
+
+    expect(warn).not.toHaveBeenCalled();
+
+    warn.mockRestore();
   });
 });
