@@ -240,16 +240,29 @@ describe("Slider accessibility contract", () => {
     expect(thumb.attributes("tabindex")).not.toBe("0");
   });
 
-  it("keeps the dim on a track, a range and a thumb, none of which hold text", () => {
+  it("paints unavailability in measured greys, not an alpha, keeping the range and the rim readable", () => {
     // The library-wide rule is that an `opacity` may drain a border, a fill or
-    // a glyph and may never drain text, because compositing at 50% more than
-    // halves the contrast of whatever is underneath. The root's dim is correct
-    // and stays: everything under it is geometry, and the value the control
-    // stands for is announced through `aria-valuenow` rather than drawn. This
-    // test is what stops a later value bubble or tick label from being added
-    // under a dim that would take it to roughly 2:1.
+    // a glyph and may never drain text. The root's old `opacity-50` followed
+    // that rule and was still wrong: the range and the thumb's rim *are* the
+    // value, and `aria-valuenow` announces the number while the pixels are
+    // what a sighted reader reads — composited at half alpha, the range fell
+    // from 7.53:1 to 2.36:1 on the page ground, below the 3:1 floor of WCAG
+    // 1.4.11 for a graphical object required to understand the control.
+    // Both parts drain to the neutral well instead, keyed off Reka's own
+    // `data-disabled` on each child so the prop and the enclosing fieldset
+    // paint the same picture, and nothing under them is text.
     const wrapper = mountSlider({ disabled: true });
-    expect(wrapper.classes()).toContain("data-[disabled]:opacity-50");
+    expect(wrapper.classes().some((cls) => cls.includes("opacity"))).toBe(false);
+    expect(wrapper.classes()).toContain("data-[disabled]:cursor-not-allowed");
+
+    const range = wrapper.find('[class*="bg-primary"]');
+    expect(range.attributes("data-disabled")).toBeDefined();
+    expect(range.classes()).toContain("data-[disabled]:bg-muted-foreground");
+
+    const thumb = wrapper.get('[role="slider"]');
+    expect(thumb.attributes("data-disabled")).toBeDefined();
+    expect(thumb.classes()).toContain("data-[disabled]:border-muted-foreground");
+    expect(thumb.classes()).toContain("data-[disabled]:pointer-events-none");
     expect(wrapper.text().trim()).toBe("");
   });
 });
