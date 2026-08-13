@@ -231,7 +231,14 @@ onBeforeUnmount(() => teardownDrag?.());
     :disabled="field.disabled"
     :class="
       cn(
-        'relative flex w-full touch-none items-center py-2 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
+        // Unavailability is painted in measured greys, never as an alpha over
+        // the available state: the filled range and the thumb's rim *are* the
+        // value, and `opacity-50` here took the range from 7.53:1 to 2.36:1
+        // on the page ground — below WCAG 1.4.11's 3:1 floor for a graphical
+        // object required to understand the control. The two parts drain to
+        // their own tokens below; `aria-valuenow` announces the number, but
+        // nothing re-paints it for a sighted reader, so the pixels stay.
+        'relative flex w-full touch-none items-center py-2 data-[disabled]:cursor-not-allowed',
         attrs.class as string,
       )
     "
@@ -257,12 +264,21 @@ onBeforeUnmount(() => teardownDrag?.());
     />
     <SliderTrack class="relative h-1.5 w-full grow rounded-full bg-muted">
       <!-- The filled range is a value a person set, so it is painted flat in
-           the human force's colour rather than in a gradient. -->
-      <SliderRange class="absolute h-full rounded-full bg-primary" />
+           the human force's colour rather than in a gradient. Unavailable, it
+           falls to the neutral well like every other control's value, keyed
+           off Reka's own `data-disabled` on this node: `muted-foreground` is
+           5.25:1 on the page ground and 4.67:1 against the `bg-muted` track
+           it sits on, both measured. -->
+      <SliderRange
+        class="absolute h-full rounded-full bg-primary data-[disabled]:bg-muted-foreground"
+      />
     </SliderTrack>
+    <!-- The thumb's position is the value, so its rim drains with the range —
+         `muted-foreground` at 5.25:1 on the page ground — while its fill,
+         which is the page's own ground, needs no dim. -->
     <SliderThumb
       v-bind="{ ...thumbAttrs, ...thumbFieldAttrs }"
-      class="block h-4 w-4 rounded-full border-2 border-primary bg-background shadow-sm transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[disabled]:pointer-events-none"
+      class="block h-4 w-4 rounded-full border-2 border-primary bg-background shadow-sm transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[disabled]:pointer-events-none data-[disabled]:border-muted-foreground"
     />
   </SliderRoot>
 </template>
