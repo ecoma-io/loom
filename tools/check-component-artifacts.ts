@@ -24,6 +24,7 @@ const TIERS = [
   { noun: "primitive", source: "src/primitives", docs: "docs/components" },
   { noun: "composition", source: "src/composition", docs: "docs/composition" },
   { noun: "block", source: "src/blocks", docs: "docs/blocks" },
+  { noun: "layout", source: "src/layouts", docs: "docs/layouts" },
 ] as const;
 
 /** `PressableCard` → `pressable-card`, the docs page's filename. */
