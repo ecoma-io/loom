@@ -1,16 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-template-expressions --
- * ESLint's program cannot resolve a *named* export from a `.vue` module — only
- * `vue-tsc` can, which is what `pnpm typecheck` runs — so the map and the
- * union imported from Button.vue below arrive here as error-typed values and
- * every expression naming a variant reads as unsafe. Button.test.ts never
- * trips this because it imports only the default export, whose type
- * `vite/client` declares; a named import has no declaration to resolve
- * against, which is the same statement about the linter that
- * `Field.integration.test.ts`'s own scoped disable makes about its component
- * imports. The rules turned off are the ones that fire solely on
- * error-typed values, and the assertions themselves stay fully typed under
- * `vue-tsc` — a wrong token name or a missing variant still fails the build.
- */
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { buttonVariantClasses, buttonVariants, type ButtonVariant } from "./Button.vue";
@@ -192,7 +179,7 @@ describe("Button palette", () => {
       // this test refuses to guess at.
       expect(
         contrastRatio(colorOf(tokens, label[0] ?? ""), colorOf(tokens, fill[0] ?? "")),
-        `${variant}: "text-${label[0]}" on "bg-${fill[0]}"`,
+        `${variant}: "text-${label[0] ?? ""}" on "bg-${fill[0] ?? ""}"`,
       ).toBeGreaterThanOrEqual(TEXT_FLOOR);
     }
   });
@@ -216,7 +203,7 @@ describe("Button palette", () => {
       // starts measuring against it without being told.
       expect(
         contrastRatio(colorOf(tokens, label[0] ?? ""), ground),
-        `${variant}: "text-${label[0]}" on the lightest ground`,
+        `${variant}: "text-${label[0] ?? ""}" on the lightest ground`,
       ).toBeGreaterThanOrEqual(TEXT_FLOOR);
     }
   });

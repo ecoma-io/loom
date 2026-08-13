@@ -148,17 +148,13 @@ export function provideLoomLabels(source: () => LoomLabelOverrides): void {
  * The result is typed from `defaults` rather than from `LoomLabels[K]`, with
  * the registry entry as a constraint on it. Structurally that is the same
  * check — a bag that does not match its registered slot does not compile — but
- * it keeps the resolved type nameable from the module that declared it, and
- * that is not cosmetic. ESLint's TypeScript program is configured for `.vue`
- * only on `.vue` files, so a `.ts` file resolving a type declared inside an
- * SFC gets an error type and every read off it becomes an `no-unsafe-*`
- * violation. Returning `T` keeps `labels.test.ts` able to say what it means.
+ * it keeps the resolved type nameable from the module that declared it.
  */
 export function useLabels<K extends keyof LoomLabels, T extends LoomLabels[K]>(
   slot: K,
   defaults: T,
   own?: () => LabelOverrides<T> | undefined,
-): ComputedRef<T> {
+): ComputedRef<LoomLabels[K]> {
   const provided = inject(LOOM_LABELS, undefined);
   // Read inside the `computed`, never above it: that is what puts the host's
   // getter and this component's props inside the render effect, and it is the
