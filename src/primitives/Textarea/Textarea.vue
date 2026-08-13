@@ -1,5 +1,10 @@
 <script lang="ts">
-import type { LabelOf } from "../../lib/labels";
+import {
+  COUNT_LABELS,
+  warningWindow,
+  type CountBand,
+  type CountLabels,
+} from "../../lib/count-labels";
 
 export type TextareaResize = "none" | "vertical";
 
@@ -8,72 +13,22 @@ export type TextareaResize = "none" | "vertical";
  * a bare `<textarea>` renders no English of anybody else's, so a dropped key
  * here falls back to nothing rather than to a stray untranslated string.
  *
- * **These are TextField's five counter keys, by name and by argument shape**,
- * and deliberately so: a host that has already worded a character counter
- * should be able to copy that bag across unchanged. They are a slot of their
- * own rather than a share of `textField`'s because that slot also carries
- * `reveal`, and handing a textarea's translator a password-toggle key to fill
- * in is asking a question the control cannot answer.
- *
- * The four counting keys take the **numbers**, never a formatted string, for
- * the reason `src/lib/labels.ts` gives at length: `${count}/${max}` is a
- * punctuation choice made in one language, and "3 characters left" has one
- * plural form in Vietnamese, two in English and six in Arabic.
+ * These are TextField's five counter keys, by name and by argument shape, and
+ * deliberately so: a host that has already worded a character counter should be
+ * able to copy that bag across unchanged. They come from
+ * `src/lib/count-labels.ts` rather than being declared a second time. They are
+ * a slot of their own rather than a share of `textField`'s because that slot
+ * also carries `reveal`, and handing a textarea's translator a password-toggle
+ * key to fill in is asking a question the control cannot answer.
  */
-export interface TextareaLabels {
-  /** The counter when the field has no maximum: a running total, nothing more. */
-  readonly count: LabelOf<{ count: number }>;
-  /** The counter when the field has a maximum and is within it. */
-  readonly countOfMax: LabelOf<{ count: number; max: number }>;
-  /**
-   * The counter once the value is past the maximum.
-   *
-   * Loom's English adds words rather than only digits, and that is the
-   * accessibility requirement rather than a flourish: over-limit is painted
-   * `text-destructive`, and a state carried by colour alone fails WCAG 1.4.1.
-   * An override that returns the same shape as `countOfMax` puts that failure
-   * back.
-   */
-  readonly countOverMax: LabelOf<{ count: number; max: number; over: number }>;
-  /**
-   * Announced **once**, as the value crosses into the last stretch of its
-   * allowance — not on every keystroke after it. The numbers are true at the
-   * moment it is spoken; the visible counter is what carries them afterwards.
-   */
-  readonly approachingLimit: LabelOf<{ remaining: number; max: number }>;
-  /** Announced once, as the value crosses the maximum. */
-  readonly limitExceeded: LabelOf<{ over: number; max: number }>;
-}
+export type TextareaLabels = CountLabels;
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and
  * exported so a host can build a partial vocabulary against the real thing
  * rather than a transcription of it.
  */
-export const TEXTAREA_LABELS: TextareaLabels = {
-  count: ({ count }) => String(count),
-  countOfMax: ({ count, max }) => `${String(count)}/${String(max)}`,
-  countOverMax: ({ count, max }) => `${String(count)}/${String(max)} over limit`,
-  approachingLimit: ({ remaining }) =>
-    `${String(remaining)} ${remaining === 1 ? "character" : "characters"} left`,
-  limitExceeded: ({ over, max }) =>
-    `${String(over)} ${over === 1 ? "character" : "characters"} over the limit of ${String(max)}`,
-};
-
-/**
- * How close to the maximum the warning fires — TextField's rule, restated
- * rather than imported, because a `.vue` module exports only what its
- * script block exports and hoisting a shared helper into `src/lib/` is a change
- * to a file this component does not own. The two must move together: the last
- * quarter of a short allowance, or the last ten characters of a long one,
- * whichever is smaller.
- */
-function warningWindow(max: number): number {
-  return Math.min(10, Math.ceil(max / 4));
-}
-
-/** Where the value sits against its maximum, and the only thing the announcement watches. */
-type CountBand = "under" | "near" | "over";
+export const TEXTAREA_LABELS: TextareaLabels = COUNT_LABELS;
 </script>
 
 <script setup lang="ts">
