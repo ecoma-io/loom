@@ -17,27 +17,22 @@ import vitest from "@vitest/eslint-plugin";
 import playwright from "eslint-plugin-playwright";
 import prettier from "eslint-config-prettier";
 
-// Both the `.ts` and `.vue` blocks share the same `extraFileExtensions` so the
-// projectService never alternates between `[".vue"]` and `[]`, which triggers a
-// full project reload on every `.ts` ↔ `.vue` transition. The Vue TypeScript
-// language-service plugin (configured in `tsconfig.json`) decorates the host so
-// `.vue` files resolve to virtual TypeScript content; `loadTypeScriptPlugins:
-// true` is what allows `projectService` to load that plugin, which it refuses
-// to do by default.
+// The `.ts` block uses `projectService` with `loadTypeScriptPlugins: true` so
+// the Vue TypeScript language-service plugin (configured in `tsconfig.json`)
+// decorates the host and `.vue` files resolve to virtual TypeScript content.
+// That is what lets `.ts` files resolve `.vue` module types under the type-aware
+// rules — the fix for the five workarounds removed in the same commit.
 //
-// The plugin is needed only for the `.ts` block, where `.ts` files import
-// `.vue` modules and need to resolve their types. The `.vue` block uses
-// `vue-eslint-parser`, which already understands SFCs; loading the plugin
-// there produces `__VLS_*` synthetic declarations that the parser surfaces as
-// unused-variable errors.
+// The `.vue` block does NOT use `projectService`. `vue-eslint-parser` already
+// understands SFCs, and no type-aware rules target `.vue` files — the
+// `strictTypeChecked` and `stylisticTypeChecked` extends are scoped to
+// `**/*.ts`. Running `projectService` there loads the same Vue TS plugin, which
+// generates `__VLS_*` synthetic declarations that `no-unused-vars` then reports.
+// The parserOptions that remain (`tsconfigRootDir`, `extraFileExtensions`) are
+// sufficient for `vue-eslint-parser` to hand the `<script>` block to the
+// TypeScript parser for syntax-level analysis.
 const tsParserOptions = {
   projectService: { loadTypeScriptPlugins: true },
-  extraFileExtensions: [".vue"],
-  tsconfigRootDir: import.meta.dirname,
-};
-
-const vueParserOptions = {
-  projectService: true,
   extraFileExtensions: [".vue"],
   tsconfigRootDir: import.meta.dirname,
 };
@@ -169,7 +164,8 @@ export default tseslint.config(
       parser: vueParser,
       parserOptions: {
         parser: tseslint.parser,
-        ...vueParserOptions,
+        extraFileExtensions: [".vue"],
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
