@@ -52,6 +52,12 @@ export type {
 // props are written in, so a host can name a variant without reaching into a
 // deep path. `ToastItem` is absent on purpose: it is the card `Toast` bundles
 // with its provider and viewport, and it renders nothing usable on its own.
+export { default as Accordion } from "./primitives/Accordion/Accordion.vue";
+export type {
+  AccordionGap,
+  AccordionItem,
+  AccordionType,
+} from "./primitives/Accordion/Accordion.vue";
 export {
   default as AlertDialog,
   ALERT_DIALOG_LABELS,
@@ -70,6 +76,8 @@ export type {
 } from "./primitives/AvatarGroup/AvatarGroup.vue";
 export { default as Badge, badgeVariants } from "./primitives/Badge/Badge.vue";
 export type { BadgeVariant } from "./primitives/Badge/Badge.vue";
+export { default as Breadcrumb } from "./primitives/Breadcrumb/Breadcrumb.vue";
+export type { BreadcrumbItem, BreadcrumbSeparator } from "./primitives/Breadcrumb/Breadcrumb.vue";
 export { default as Button, buttonVariants } from "./primitives/Button/Button.vue";
 export type { ButtonSize, ButtonVariant } from "./primitives/Button/Button.vue";
 export { default as Checkbox } from "./primitives/Checkbox/Checkbox.vue";
@@ -90,6 +98,8 @@ export type {
   ComboboxOption,
   ComboboxSize,
 } from "./primitives/Combobox/Combobox.vue";
+export { default as ContextMenu } from "./primitives/ContextMenu/ContextMenu.vue";
+export type { ContextMenuEntry } from "./primitives/ContextMenu/ContextMenu.vue";
 export { default as DatePicker } from "./primitives/DatePicker/DatePicker.vue";
 export type { DatePickerLabels } from "./primitives/DatePicker/DatePicker.vue";
 export {
@@ -132,6 +142,8 @@ export type {
   FileUploadRejectReason,
   FileUploadRejection,
 } from "./primitives/FileUpload/FileUpload.vue";
+export { default as HoverCard } from "./primitives/HoverCard/HoverCard.vue";
+export type { HoverCardAlign, HoverCardSide } from "./primitives/HoverCard/HoverCard.vue";
 export {
   default as Indicator,
   indicatorToneVariants,
@@ -147,8 +159,12 @@ export type {
   IndicatorVariant,
 } from "./primitives/Indicator/Indicator.vue";
 export { default as InlineError } from "./primitives/InlineError/InlineError.vue";
+export { default as IconButton, iconButtonVariants } from "./primitives/IconButton/IconButton.vue";
+export type { IconButtonSize, IconButtonVariant } from "./primitives/IconButton/IconButton.vue";
 export { default as Menubar } from "./primitives/Menubar/Menubar.vue";
 export type { MenubarItem, MenubarMenu } from "./primitives/Menubar/Menubar.vue";
+export { default as Link, linkVariants } from "./primitives/Link/Link.vue";
+export type { LinkVariant } from "./primitives/Link/Link.vue";
 export {
   default as NumberField,
   NUMBER_FIELD_LABELS,
@@ -186,6 +202,8 @@ export { default as Rating, RATING_LABELS } from "./primitives/Rating/Rating.vue
 export type { RatingLabels, RatingSize } from "./primitives/Rating/Rating.vue";
 export { default as SegmentedControl } from "./primitives/SegmentedControl/SegmentedControl.vue";
 export type { SegmentedControlOption } from "./primitives/SegmentedControl/SegmentedControl.vue";
+export { default as ScrollArea } from "./primitives/ScrollArea/ScrollArea.vue";
+export type { ScrollAreaOrientation } from "./primitives/ScrollArea/ScrollArea.vue";
 export { default as Select, selectVariants } from "./primitives/Select/Select.vue";
 export type { SelectOption, SelectSize } from "./primitives/Select/Select.vue";
 export { default as Separator } from "./primitives/Separator/Separator.vue";
