@@ -246,7 +246,10 @@ export {
   default as WindowControls,
   WINDOW_CONTROLS_LABELS,
 } from "./primitives/WindowControls/WindowControls.vue";
-export type { WindowControlsLabels } from "./primitives/WindowControls/WindowControls.vue";
+export type {
+  WindowControlsLabels,
+  WindowPlatform,
+} from "./primitives/WindowControls/WindowControls.vue";
 
 // Composition primitives, alphabetical. Layout intent — not "what it looks
 // like" (a primitive) or "what it means" (a block) but "how things are

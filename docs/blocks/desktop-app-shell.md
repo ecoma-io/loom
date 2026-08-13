@@ -14,16 +14,20 @@ import desktopAppShellDemoSource from "../../src/blocks/DesktopAppShell/DesktopA
 
 ```vue
 <script setup lang="ts">
-import { DesktopAppShell, SidebarNav, type MenubarMenu } from "@ecoma-io/loom";
+import { DesktopAppShell, SidebarNav, type MenubarMenu, type WindowPlatform } from "@ecoma-io/loom";
 
 const menus: MenubarMenu[] = [
   { id: "file", label: "File", items: [{ label: "Open…", command: "file.open" }] },
 ];
+
+// The host decides the platform — Loom never sniffs the OS at runtime.
+const platform: WindowPlatform = "windows";
 </script>
 
 <template>
   <DesktopAppShell
     app-name="Acme"
+    :platform="platform"
     :menus="menus"
     @select="run($event)"
     @minimize="host.window.minimize()"
@@ -54,6 +58,13 @@ const menus: MenubarMenu[] = [
 The sidebar sits on the sunken plane and the content on the background plane,
 so navigation recedes and work surfaces lift — the same elevation rhythm
 SidebarNav and AppHeader use.
+
+## Platform awareness
+
+`platform` is passed through to TitleBar, which adjusts layout for native
+window controls. On macOS the brand cluster shifts right to leave room for
+the traffic-light buttons, and WindowControls renders nothing. See
+[TitleBar](/blocks/title-bar#platform-awareness) for the full detail.
 
 ## Responsive collapse
 

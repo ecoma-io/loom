@@ -15,16 +15,20 @@ import titleBarDemoSource from "../../src/blocks/TitleBar/TitleBarDemo.vue?raw";
 
 ```vue
 <script setup lang="ts">
-import { TitleBar, type MenubarMenu } from "@ecoma-io/loom";
+import { TitleBar, type MenubarMenu, type WindowPlatform } from "@ecoma-io/loom";
 
 const menus: MenubarMenu[] = [
   { id: "file", label: "File", items: [{ label: "Open…", command: "file.open" }] },
 ];
+
+// The host decides the platform — Loom never sniffs the OS at runtime.
+const platform: WindowPlatform = "windows";
 </script>
 
 <template>
   <TitleBar
     app-name="Acme"
+    :platform="platform"
     :menus="menus"
     @select="run($event)"
     @minimize="host.window.minimize()"
@@ -44,7 +48,11 @@ its own. Whatever brand shows on the bar always comes from the host.
 ## Layout
 
 ```
+Windows / Linux:
 [ ⬡ brand ] [ File View Help ]  ····· drag / title ····· [ – ▢ ✕ ]
+
+macOS (native traffic-lights on the left):
+[ 🔴🟡🟢   ⬡ brand ] [ File View Help ]  ····· drag / title ·····
 ```
 
 The whole bar is a window drag region. **Only** the clusters that actually
@@ -54,8 +62,37 @@ interactive, and the logo corner is exactly where someone reaches to move
 the window. Opting it out would take that affordance away for nothing in
 return.
 
-The brand mark sits on the human accent color — the one point of color on a
-bar that is otherwise neutral.
+The brand mark sits on the primary color — the one point of color on a bar
+that is otherwise neutral.
+
+## Platform awareness
+
+`platform` adjusts the layout for the host's desktop:
+
+| Platform  | Brand cluster          | WindowControls | Notes                                     |
+| --------- | ---------------------- | -------------- | ----------------------------------------- |
+| `windows` | Standard left padding  | Visible        | Default — the Loom cluster handles it all |
+| `macos`   | Shifted right (4.5rem) | Hidden         | macOS draws its own traffic-light buttons |
+| `linux`   | Standard left padding  | Visible        | Most Linux desktops need the cluster      |
+
+On macOS the brand cluster shifts right by 4.5rem (72px) to leave room for
+the native traffic-light buttons. That measurement covers the three 12px
+buttons, their 8px left margin, and 4px inter-button gap at the default
+window scale.
+
+The host decides which platform to declare. Loom never sniffs the OS at
+runtime — a Tauri or Electron host already knows its platform, and a PWA
+has no native window controls to avoid.
+
+## PWA window controls overlay
+
+The header carries a `data-loom-titlebar` attribute. When a PWA is installed
+and the browser's `window-controls-overlay` feature is visible, Loom's
+global CSS adjusts the title bar's left padding to clear the native controls.
+This is CSS-only — no JavaScript is required.
+
+See [WindowControls](/components/window-controls#platform-awareness) for the
+platform behaviour detail.
 
 ## What it composes
 
@@ -83,6 +120,7 @@ its own platform:
   :app-name="appName"
   :title="projectTitle"
   :menus="menus"
+  :platform="platform"
   :is-maximized="isMaximized"
   @select="run($event)"
   @minimize="host.window.minimize()"

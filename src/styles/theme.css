@@ -221,6 +221,18 @@
   --breakpoint-4xl: 2560px; /* QHD */
   --breakpoint-5xl: 3440px; /* 21:9 ultra-wide */
 
+  /* ---- Safe areas. Mobile webviews (notch, home indicator) and PWA title-bar
+   * overlays both reserve space the layout must not paint into. The fallback is
+   * 0 so these tokens are always safe to read — a viewport without a safe area
+   * simply contributes no inset. A host that needs the raw value for
+   * `padding-top: env(safe-area-inset-top)` can use it directly, but a host
+   * that wants Loom's opinion uses the token instead and lets the theme layer
+   * decide what the inset is. ---------------------------------------------- */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+
   /* ---- The animation vocabulary. Keyframes live in global.css; these are
    * the named utilities that play them. ---------------------------------- */
   --animate-fade: fade var(--duration-normal) var(--ease-out) both;

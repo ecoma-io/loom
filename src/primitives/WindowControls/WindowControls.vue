@@ -5,9 +5,18 @@
  * them to the platform (the desktop shell's window bridge). Windows-style layout —
  * on macOS the OS draws native traffic-lights, so hide this there.
  *
+ * `platform` tells the cluster whether to render at all: on macOS the operating
+ * system owns the traffic-light buttons, so a second set drawn by Loom would be
+ * redundant and confusing. The host decides which platform it is on — Loom never
+ * sniffs the OS at runtime, because a Tauri or Electron host already knows its
+ * platform and a PWA has no native window controls to compete with.
+ *
  * The close button is the one place `destructive` is allowed without a confirm:
  * OS window-close is an expected, reversible-by-reopen affordance.
  */
+
+/** The desktop platform that owns the window chrome. */
+export type WindowPlatform = "windows" | "macos" | "linux";
 
 /**
  * The three buttons' accessible names. There are four, because the middle
@@ -46,6 +55,13 @@ import { useLabels, type LabelOverrides } from "../../lib/labels";
 
 const props = withDefaults(
   defineProps<{
+    /**
+     * The desktop platform the window is running on. On macOS the OS draws its
+     * own traffic-light buttons, so this cluster renders nothing there. The host
+     * decides — Loom does not sniff the OS, because the host already knows its
+     * platform and a PWA has no native controls to avoid.
+     */
+    platform?: WindowPlatform;
     /** Swaps the middle button between its Maximize and Restore glyph and label. */
     isMaximized?: boolean;
     /**
@@ -59,7 +75,7 @@ const props = withDefaults(
      */
     labels?: LabelOverrides<WindowControlsLabels>;
   }>(),
-  { isMaximized: false },
+  { platform: "windows", isMaximized: false },
 );
 
 const emit = defineEmits<{
@@ -75,7 +91,14 @@ const text = useLabels("windowControls", WINDOW_CONTROLS_LABELS, () => props.lab
 </script>
 
 <template>
-  <div class="flex h-full items-stretch" style="-webkit-app-region: no-drag">
+  <!-- On macOS the OS owns the traffic-light buttons; rendering a second set
+       would be redundant. The host can also choose "linux" if their desktop
+       environment handles window buttons natively. -->
+  <div
+    v-if="platform !== 'macos'"
+    class="flex h-full items-stretch"
+    style="-webkit-app-region: no-drag"
+  >
     <button
       type="button"
       class="flex w-11 items-center justify-center text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground active:brightness-90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
