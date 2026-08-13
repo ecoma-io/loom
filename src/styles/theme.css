@@ -51,6 +51,17 @@
   --color-muted: hsl(213 18% 91%);
   --color-muted-foreground: hsl(213 14% 41%);
 
+  /* The lighter step of the same ladder, and it is reserved for a *graphical
+   * object*, never for text: a glyph that must keep clearing the 3:1 floor
+   * while receding behind `muted-foreground` — the disabled Rating's unfilled
+   * stars, which carry the maximum. Text is held to 4.5:1, which is what
+   * `muted-foreground` is measured to; the 3:1 floor of WCAG 1.4.11 leaves
+   * room for one more step, and taking it as a token rather than as an alpha
+   * over the darker grey is the whole point: composited at half alpha,
+   * `muted-foreground` lands at 2.05:1 on the page ground, short of even
+   * that floor. */
+  --color-muted-foreground-soft: hsl(213 12% 50%);
+
   /* Two border weights: the default hairline recedes; strong is for the few
    * blocks that must assert their edge — an active panel, a keyboard target
    * zone. */

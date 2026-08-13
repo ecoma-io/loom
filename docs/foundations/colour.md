@@ -21,7 +21,12 @@ above it reads as the raised surface. `muted` and `subtle` are both neutral
 fills below that: `muted` for a quietly de-emphasized block (a disabled
 field's own background, a secondary badge), `subtle` specifically for a
 hover/press state — a hover is not an action colour, so it never borrows from
-`primary`.
+`primary`. `muted-foreground` is the quietest _text_ the language allows, and
+one step lighter, `muted-foreground-soft`, is a graphical object's step of the
+same ladder: a glyph that must keep clearing the 3:1 floor of WCAG 1.4.11
+while receding behind `muted-foreground` — the disabled Rating's unfilled
+stars, which carry the maximum. It is never text: text is held to 4.5:1, and
+a value that cannot reach that floor is a different token, not a faded one.
 
 Two border weights exist for the same reason two neutrals do: `border` is a
 hairline that recedes everywhere by default, and `border-strong` is reserved
