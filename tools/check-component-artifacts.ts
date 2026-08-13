@@ -14,14 +14,15 @@ import { fileURLToPath } from "node:url";
 const ROOT = new URL("../", import.meta.url);
 
 /**
- * The two tiers of component, and the only thing that differs between them.
+ * The three tiers of component, and the only thing that differs between them.
  *
- * A block is composed where a primitive is configured, and the two document
- * separately for the reader's sake — but the pairing rule is one rule, so it is
- * written once and applied to both. A third tier would be a row here.
+ * A block is composed where a primitive is configured, and a composition
+ * primitive is layout where a block is content — but the pairing rule is one
+ * rule, so it is written once and applied to all three.
  */
 const TIERS = [
   { noun: "primitive", source: "src/primitives", docs: "docs/components" },
+  { noun: "composition", source: "src/composition", docs: "docs/composition" },
   { noun: "block", source: "src/blocks", docs: "docs/blocks" },
 ] as const;
 

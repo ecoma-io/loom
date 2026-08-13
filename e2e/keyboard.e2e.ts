@@ -172,13 +172,18 @@ test("the focus ring appears on keyboard entry and stays hidden after a mouse cl
   expect(await secondary.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
 });
 
-// A phone-width sweep, and the width is the reason it exists. Every table on
-// this site is a scroll container — VitePress styles `.vp-doc table` as
-// `display: block; overflow-x: auto` — and whether one actually scrolls is a
-// property of the viewport, not of the table: measured across the built site,
-// 2 of 92 scroll at 1280px and 62 of 92 scroll at 375px. A desktop-only check
-// therefore reports a site-wide keyboard defect as one stray page, which is
-// exactly what it did before this test existed.
+// Phone-width table focusability checks, split per page so each gets its own
+// timeout and the VitePress preview server is not hit sequentially by one
+// long-running test. A single test that looped over every documentation page
+// timed out on WebKit (the slowest CI browser) once the page count grew.
+//
+// The width is the reason these tests exist. Every table on this site is a
+// scroll container — VitePress styles `.vp-doc table` as `display: block;
+// overflow-x: auto` — and whether one actually scrolls is a property of the
+// viewport, not of the table: measured across the built site, 2 of 92 scroll
+// at 1280px and 62 of 92 scroll at 375px. A desktop-only check therefore
+// reports a site-wide keyboard defect as one stray page, which is exactly what
+// it did before this test existed.
 //
 // Focusability is asserted rather than a full Tab walk. Tabbing to every table
 // on 45 pages would spend minutes proving what the browser decides in one
@@ -195,23 +200,19 @@ test("the focus ring appears on keyboard entry and stays hidden after a mouse cl
 // by keyboard in Safari"). Keep this test on every project in
 // `playwright.config.ts`; narrowing the suite to Chromium would silently
 // retire it.
-test("every table stays reachable by keyboard at the width where every table scrolls", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 375, height: 800 });
+for (const path of documentationPages()) {
+  const label = path === "." ? "/" : `/${path}`;
 
-  const unreachable: string[] = [];
-  let scrolling = 0;
-
-  for (const path of documentationPages()) {
+  test(`at 375px, ${label} has no scrollable table unreachable by keyboard`, async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
     await page.goto(path);
 
-    // One browser-side pass per page: find the tables that actually scroll,
-    // try to focus each, and report whether focus landed. Done here rather
-    // than as a loop of `locator.focus()` calls because the decision "does
-    // this one scroll" would otherwise be a conditional in the test body,
-    // which `playwright/no-conditional-in-test` rejects — and rightly, since
-    // a skipped iteration and a passing one look identical from the outside.
+    // One browser-side pass: find the tables that actually scroll, try to focus
+    // each, and report whether focus landed. Done here rather than as a loop of
+    // `locator.focus()` calls because the decision "does this one scroll" would
+    // otherwise be a conditional in the test body, which
+    // `playwright/no-conditional-in-test` rejects — and rightly, since a skipped
+    // iteration and a passing one look identical from the outside.
     const results = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>(".vp-doc table")]
         .map((table, index) => ({ table, index }))
@@ -222,20 +223,40 @@ test("every table stays reachable by keyboard at the width where every table scr
         }),
     );
 
-    scrolling += results.length;
-    unreachable.push(
-      ...results
-        .filter((result) => !result.focused)
-        .map((result) => `${path} table[${String(result.index)}]`),
+    const unreachable = results
+      .filter((result) => !result.focused)
+      .map((result) => `table[${String(result.index)}]`);
+
+    expect(unreachable, `scrollable but not focusable:\n${unreachable.join("\n")}`).toEqual([]);
+  });
+}
+
+// Guards the guard: if a future stylesheet stops tables scrolling altogether,
+// the per-page tests above would find nothing to check and pass while proving
+// nothing. This is the assertion that would fail first. Checked against a few
+// known token-table pages rather than the whole site — any page with a design
+// token table is guaranteed to overflow at phone width.
+test("at 375px, at least one documentation table scrolls", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+
+  // Foundation pages carry generated token tables that always overflow at
+  // phone width.
+  const tokenPages = ["foundations/colour", "foundations/typography", "foundations/shape"];
+  let scrolling = 0;
+
+  for (const path of tokenPages) {
+    await page.goto(path);
+    const count = await page.evaluate(
+      () =>
+        [...document.querySelectorAll<HTMLElement>(".vp-doc table")].filter(
+          (table) => table.scrollWidth > table.clientWidth,
+        ).length,
     );
+    scrolling += count;
   }
 
-  // Guards the guard: if a future stylesheet stops tables scrolling
-  // altogether, the loop above would find nothing to check and pass while
-  // proving nothing. This is the assertion that would fail first.
   expect(
     scrolling,
     "no table scrolled at 375px — this test can no longer see what it checks",
   ).toBeGreaterThan(0);
-  expect(unreachable, `scrollable but not focusable:\n${unreachable.join("\n")}`).toEqual([]);
 });

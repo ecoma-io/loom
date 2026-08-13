@@ -230,8 +230,30 @@ export {
 } from "./primitives/WindowControls/WindowControls.vue";
 export type { WindowControlsLabels } from "./primitives/WindowControls/WindowControls.vue";
 
-// Blocks, alphabetical. A block is an arrangement of primitives that every
-// Ecoma surface repeats — an application header, an empty state, a stack of
+// Composition primitives, alphabetical. Layout intent — not "what it looks
+// like" (a primitive) or "what it means" (a block) but "how things are
+// arranged." A composition primitive wraps a CSS layout technique that is
+// easy to get wrong, hard to remember, or both, and gives it a name and a
+// responsive default so every call site gets it right without writing it out.
+export { default as Center } from "./composition/Center/Center.vue";
+export type { CenterMaxWidth } from "./composition/Center/Center.vue";
+export { default as Frame } from "./composition/Frame/Frame.vue";
+export type { FrameRatio } from "./composition/Frame/Frame.vue";
+export { default as Grid } from "./composition/Grid/Grid.vue";
+export type { GridGap } from "./composition/Grid/Grid.vue";
+export { default as Inline } from "./composition/Inline/Inline.vue";
+export type { InlineAlign, InlineGap } from "./composition/Inline/Inline.vue";
+export { default as ScrollReel } from "./composition/ScrollReel/ScrollReel.vue";
+export type { ScrollReelGap, ScrollReelSnap } from "./composition/ScrollReel/ScrollReel.vue";
+export { default as Sidebar } from "./composition/Sidebar/Sidebar.vue";
+export type { SidebarSide } from "./composition/Sidebar/Sidebar.vue";
+export { default as Split } from "./composition/Split/Split.vue";
+export type { SplitGap, SplitSide } from "./composition/Split/Split.vue";
+export { default as Stack } from "./composition/Stack/Stack.vue";
+export type { StackAlign, StackGap } from "./composition/Stack/Stack.vue";
+
+// Blocks, alphabetical. A block is an arrangement of primitives that an
+// application repeats — an application header, an empty state, a stack of
 // toasts — shipped so the arrangement is decided once rather than in each
 // product. They take composition where a primitive takes configuration: the
 // content arrives through slots, and the block owns only the layout, the
