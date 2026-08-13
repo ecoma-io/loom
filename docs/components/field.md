@@ -87,6 +87,26 @@ one. Reach for `disabled` when the control genuinely cannot be used yet.
   </div>
 </Demo>
 
+Not every control participates in `readonly`. A read-only checkbox or toggle is a
+disabled one that lies about it, so those controls deliberately decline it: the
+wrapper's instruction is dropped, and the control stays operable. In development,
+a `console.warn` fires when a Field sets `readonly` but the control inside it does
+not claim it — a signal that the instruction was silently ignored.
+
+| Claims `readonly`   | Declines `readonly` |
+| ------------------- | ------------------- |
+| DatePicker          | Checkbox            |
+| DateRangePicker     | ColorPicker         |
+| DateTimePicker      | Combobox            |
+| DateTimeRangePicker | FileUpload          |
+| Editable            | OtpInput            |
+| NumberField         | RadioGroup          |
+| Rating              | SegmentedControl    |
+| TagsInput           | Select              |
+| TextField           | Slider              |
+| Textarea            | Switch              |
+| TimePicker          |                     |
+
 ## Naming a control Field cannot reach
 
 `for` is not a legacy path, and it is not deprecated. It is the answer for
