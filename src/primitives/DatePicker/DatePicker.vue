@@ -240,6 +240,7 @@ const groupDisabled = useAncestorDisabled(() => anchor.value?.$el);
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
+  ariaLabelledby: attrs["aria-labelledby"] as string | undefined,
   name: props.name,
   // The fieldset beats the prop in both directions, exactly as it does for the
   // trigger button inside this very control.
@@ -248,6 +249,16 @@ const field = useFieldControl(() => ({
   invalid: props.invalid,
   required: props.required,
 }));
+
+// `aria-labelledby` for the group, resolved against the row. A caller who passes
+// `aria-labelledby` as a fallthrough attr wins (it reaches this control's own
+// `ariaLabelledby` through `useFieldControl`). A caller who passes `aria-label`
+// wins too — `aria-labelledby` overrides `aria-label` in ARIA, so the row's
+// label must not appear when the caller named the control themselves. Otherwise,
+// the row's label (published by Field as `labelledBy`) is the accessible name.
+const groupLabelledBy = computed(() =>
+  attrs["aria-label"] || attrs["aria-labelledby"] ? undefined : field.labelledBy,
+);
 
 function fromIso(value: string | undefined): DateValue | undefined {
   if (!value) return undefined;
@@ -378,6 +389,7 @@ function onOpenAutoFocus(event: Event) {
       <DatePickerField
         v-slot="{ segments }"
         v-bind="{ ...fieldAttrs, ...field.attrs }"
+        :aria-labelledby="groupLabelledBy"
         :class="
           cn(
             // The text input's own height scale, so a date sitting in a form

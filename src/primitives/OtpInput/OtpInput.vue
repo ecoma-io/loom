@@ -178,6 +178,7 @@ const { attrs, rest: groupAttrs } = useSplitAttrs();
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
+  ariaLabelledby: props.ariaLabelledby,
   disabled: props.disabled,
   invalid: props.invalid,
 }));
@@ -273,8 +274,8 @@ function onUpdate(next: (string | number)[]) {
     :disabled="field.disabled"
     otp
     role="group"
-    :aria-label="ariaLabel"
-    :aria-labelledby="ariaLabelledby"
+    :aria-label="ariaLabelledby ? undefined : ariaLabel"
+    :aria-labelledby="ariaLabelledby || (!ariaLabel ? field.labelledBy : undefined)"
     :data-invalid="field.invalid || undefined"
     :class="cn('inline-flex items-center gap-2', attrs.class as string)"
     @update:model-value="onUpdate"

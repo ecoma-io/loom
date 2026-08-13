@@ -35,6 +35,8 @@ import { optional } from "./props";
 export interface FieldContext {
   /** The id the primary control adopts, so the wrapper's `<label for>` names it. */
   readonly controlId: ComputedRef<string | undefined>;
+  /** The id of the wrapper's `<label>`, for group controls to reference via `aria-labelledby`. */
+  readonly labelledBy: ComputedRef<string | undefined>;
   /** The id of the hint-or-error line, and `undefined` while no message is rendered. */
   readonly describedBy: ComputedRef<string | undefined>;
   /** The form field name the control submits under. */
@@ -72,6 +74,7 @@ export interface FieldContext {
  */
 export interface FieldContextSource {
   controlId: () => string | undefined;
+  labelledBy?: () => string | undefined;
   describedBy: () => string | undefined;
   name: () => string | undefined;
   required: () => boolean | undefined;
@@ -94,6 +97,8 @@ export interface FieldControlProps {
   readonly id?: string | undefined;
   /** The caller's `aria-describedby`, likewise a fallthrough attr. */
   readonly describedBy?: string | undefined;
+  /** The caller's `aria-labelledby`, for group controls that name themselves rather than being named by `label for`. */
+  readonly ariaLabelledby?: string | undefined;
   readonly name?: string | undefined;
   readonly required?: boolean | undefined;
   readonly invalid?: boolean | undefined;
@@ -141,6 +146,7 @@ export interface FieldControl {
   /** Spread onto the node that carries the control's ARIA, **after** the fallthrough attrs. */
   readonly attrs: FieldControlAttrs;
   readonly id: string | undefined;
+  readonly labelledBy: string | undefined;
   readonly name: string | undefined;
   readonly disabled: boolean;
   readonly invalid: boolean;
@@ -175,6 +181,7 @@ export function provideFieldContext(source: FieldContextSource): void {
 
   provide(FIELD_CONTEXT, {
     controlId: computed(source.controlId),
+    labelledBy: computed(source.labelledBy ?? (() => undefined)),
     describedBy: computed(source.describedBy),
     name: computed(source.name),
     required: computed(source.required),
@@ -229,6 +236,7 @@ export function useFieldControl(own: () => FieldControlProps): FieldControl {
     () => own().id ?? (holdsControlId?.value === true ? field?.controlId.value : undefined),
   );
   const name = computed(() => own().name ?? field?.name.value);
+  const labelledBy = computed(() => own().ariaLabelledby ?? field?.labelledBy.value);
 
   // The one attribute whose rule is merge rather than replace, because
   // `aria-describedby` is a token list: the row's message is additional to
@@ -260,5 +268,5 @@ export function useFieldControl(own: () => FieldControlProps): FieldControl {
     }),
   );
 
-  return reactive({ attrs, id, name, disabled, invalid, readonly, required });
+  return reactive({ attrs, id, labelledBy, name, disabled, invalid, readonly, required });
 }
