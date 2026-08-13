@@ -264,7 +264,7 @@ onBeforeUnmount(() => teardownDrag?.());
     />
     <SliderTrack class="relative h-1.5 w-full grow rounded-full bg-muted">
       <!-- The filled range is a value a person set, so it is painted flat in
-           the human force's colour rather than in a gradient. Unavailable, it
+           the primary colour rather than in a gradient. Unavailable, it
            falls to the neutral well like every other control's value, keyed
            off Reka's own `data-disabled` on this node: `muted-foreground` is
            5.25:1 on the page ground and 4.67:1 against the `bg-muted` track

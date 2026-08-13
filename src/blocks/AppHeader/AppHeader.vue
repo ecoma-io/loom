@@ -10,7 +10,7 @@
  *   controls). This bar is browser content, not window furniture.
  *
  * Layout is three regions, so callers never hand-tune widths: brand (left) ·
- * optional search · a trailing cluster for org-switcher, notifications, and
+ * optional search · a trailing cluster for a leading control, notifications, and
  * the user menu, pushed right by `ml-auto`. Every region is a named slot —
  * this block owns the strip's geometry and elevation, never its content or
  * behavior.
@@ -22,7 +22,7 @@
  * keeps the cluster flush right even when no search is slotted at all.
  *
  * **Below `sm` the bar is two rows, and that is the point of this block's
- * responsive behavior.** A brand, a real search field, and an org-switcher +
+ * responsive behavior.** A brand, a real search field, and a leading control +
  * notifications + account cluster do not fit across a 390px viewport: on
  * that width the search field is left about 60px and renders as a magnifier
  * glyph pressed against the org name — a control that is technically present
@@ -52,9 +52,8 @@
  * 1920px canvas reads as an accident.
  *
  * Deliberately neutral: this is shell chrome shared by every user and every
- * agent action alike, so it never wears `--primary`/`--agent` — the
- * dual-force law only paints a surface once a specific force is doing
- * something on it.
+ * action alike, so it never wears `--primary`/`--accent` — the bar stays
+ * uncommitted until a specific action is happening on the surface below.
  */
 defineProps<{
   /** Accessible name for the `<header>` landmark, for a page with more than one header-like region. */
@@ -84,12 +83,12 @@ defineProps<{
     </div>
 
     <div
-      v-if="$slots.orgSwitcher || $slots.notifications || $slots.userMenu"
+      v-if="$slots.leading || $slots.notifications || $slots.userMenu"
       class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2"
     >
-      <!-- @slot The organization switcher, leading the trailing cluster. -->
-      <slot name="orgSwitcher" />
-      <!-- @slot The notifications trigger, between the org switcher and the account menu. -->
+      <!-- @slot A leading control in the trailing cluster — workspace switcher, org selector, breadcrumb, etc. -->
+      <slot name="leading" />
+      <!-- @slot The notifications trigger, between the leading control and the account menu. -->
       <slot name="notifications" />
       <!-- @slot The account menu, trailing the cluster. -->
       <slot name="userMenu" />

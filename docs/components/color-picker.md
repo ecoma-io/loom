@@ -223,7 +223,7 @@ value you are handed always agrees with the `aria-valuenow` beside it.
 `swatch` defaults to the hex itself rather than to a colour name, and that is a
 deliberate loss. Reka answers "vibrant red"; the function it does that with is
 not part of its public surface, and inventing a second English colour vocabulary
-here would be shipping translations — the one thing this seam exists to avoid.
+here would be shipping translations — the one thing this label contract exists to avoid.
 `#ef4444` is at least the value, in no language. Supply real names through this
 key if you have them.
 

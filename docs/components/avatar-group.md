@@ -1,7 +1,7 @@
 # AvatarGroup
 
 The faces on one thing, overlapped into a single row: the people assigned to a
-task, the agents on a run, the members of a workspace. Past `max` of them the
+task, the entities on a run, the members of a workspace. Past `max` of them the
 rest collapse into a counter, so the row's width is decided by the layout
 rather than by how many people happen to be involved.
 
@@ -28,8 +28,8 @@ const team = [
 
 const run = [
   { alt: "Ada Lovelace", fallback: "AL" },
-  { alt: "Weaver", fallback: "WV", force: "ai" },
-  { alt: "Nightly digest", fallback: "ND", force: "ai" },
+  { alt: "Weaver", fallback: "WV", variant: "accent" },
+  { alt: "Nightly digest", fallback: "ND", variant: "accent" },
   { alt: "Grace Hopper", fallback: "GH" },
 ];
 </script>
@@ -43,7 +43,7 @@ import { AvatarGroup, type AvatarGroupItem } from "@ecoma-io/loom";
 const assignees: AvatarGroupItem[] = [
   { src: "/ada.jpg", alt: "Ada Lovelace", fallback: "AL" },
   { alt: "Grace Hopper", fallback: "GH" },
-  { alt: "Weaver", fallback: "WV", force: "ai" },
+  { alt: "Weaver", fallback: "WV", variant: "accent" },
 ];
 </script>
 
@@ -54,7 +54,7 @@ const assignees: AvatarGroupItem[] = [
 
 ## Members
 
-A member is `src`, `alt`, `fallback` and an optional `force` — the same four
+A member is `src`, `alt`, `fallback` and an optional `variant` — the same four
 things an `Avatar` takes, because that is what each one becomes.
 
 `alt` is the field to fill in even when there is no photo. It is what a screen
@@ -91,16 +91,16 @@ told is "3 more". Where "more" is not the right word for what was left out —
   <AvatarGroup :avatars="team" :max="0" label="Assignees, collapsed" />
 </Demo>
 
-## People and agents
+## Default and accent members
 
-`force` is forwarded to every face, and a member may name its own — which is
-the case worth designing for, because a run worked by a person and two agents
-is one row, not two. An agent's face wears the weft rim described on the
-[Avatar](./avatar) page, and its name is announced with the agent qualifier
-worked into it: "Weaver, AI agent". [`labels.agent`](#labels) is what changes
+`variant` is forwarded to every face, and a member may name its own — which is
+the case worth designing for, because a group with default and accent members
+is one row, not two. An accent avatar wears the accent rim described on the
+[Avatar](./avatar) page, and its name is announced with the accent qualifier
+worked into it: "Weaver, Accent". [`labels.accent`](#labels) is what changes
 that — both the word and where in the sentence it sits.
 
-<Demo title="People and agents">
+<Demo title="Default and accent members">
   <AvatarGroup :avatars="run" label="Working on this run" />
 </Demo>
 
@@ -164,13 +164,13 @@ belongs in a tooltip or a page the consumer supplies, not in an animation.
 ## Labels
 
 The row says two things that are not a member's own name: the counter at the
-end of it, and the qualifier on an agent's face. Both are keys rather than
+end of it, and the qualifier on an accent avatar. Both are keys rather than
 props, so a whole application sets them once.
 
 ```ts
 interface AvatarGroupLabels {
   overflow: (args: { count: number }) => string;
-  agent: (args: { name: string }) => string;
+  accent: (args: { name: string }) => string;
 }
 ```
 
@@ -178,18 +178,18 @@ interface AvatarGroupLabels {
 plural category English collapses and Russian does not — `Intl.PluralRules` and
 `Intl.NumberFormat` are yours to reach for.
 
-`agent` is one key rather than a name, a comma and a word. Where the qualifier
+`accent` is one key rather than a name, a comma and a word. Where the qualifier
 sits relative to the name, and whether a comma separates them at all, is a
 property of the language; a `${name}, ${qualifier}` join inside the component
 has already answered both in English. `name` arrives empty for a member that
-gave neither an `alt` nor a `fallback`, which is still an agent and still needs
+gave neither an `alt` nor a `fallback`, which is still an accent avatar and still needs
 naming.
 
 ```ts
 provideLoomLabels(() => ({
   avatarGroup: {
     overflow: ({ count }) => `còn ${count} người`,
-    agent: ({ name }) => (name ? `Tác nhân AI ${name}` : "Tác nhân AI"),
+    accent: ({ name }) => (name ? `Nhấn ${name}` : "Nhấn"),
   },
 }));
 ```

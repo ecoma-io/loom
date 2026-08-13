@@ -293,7 +293,7 @@ interface TextFieldLabels {
 **The counters are handed the numbers, never a formatted string.** `21/20` is
 a punctuation choice made in one language, and "3 characters left" has one
 plural form in Vietnamese, two in English and six in Arabic — so the integers
-go over the seam and `Intl.PluralRules` picks the category in your own
+go over the label contract and `Intl.PluralRules` picks the category in your own
 locale, with `Intl.NumberFormat` for the digits.
 
 ```ts

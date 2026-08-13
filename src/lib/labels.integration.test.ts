@@ -136,7 +136,7 @@ const VIETNAMESE = {
     count: () => "Số lượng",
     attention: "Cần chú ý",
   },
-  avatarGroup: { overflow: () => "Còn lại", agent: () => "Tác nhân" },
+  avatarGroup: { overflow: () => "Còn lại", accent: () => "Nhấn mạnh" },
   progress: { value: () => "Đã xong", indeterminate: "Chưa rõ" },
   radialProgress: { value: () => "Đã xong", indeterminate: "Chưa rõ" },
   colorPicker: {

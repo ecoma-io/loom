@@ -39,10 +39,14 @@ const TEXT_FLOOR = 4.5;
  * block. The block is found textually — `@theme static {` is a keyword the
  * file's own header comment does not use elsewhere — and its declarations are
  * the only source of token values this test trusts.
+ *
+ * The regex is lazy (`*?` rather than `*`) so it stops at the FIRST closing
+ * `}` on its own line — the `@theme static` block itself — rather than
+ * reaching past it into the dark-theme overrides or utility blocks that follow.
  */
 async function readTokens(): Promise<Map<string, string>> {
   const css = await readFile(THEME_CSS, "utf8");
-  const block = /@theme static \{([\s\S]*)\n\}/.exec(css)?.[1];
+  const block = /@theme static \{([\s\S]*?)\n\}/.exec(css)?.[1];
   if (block === undefined) throw new Error(`${THEME_CSS}: no "@theme static {" block found.`);
   return new Map(
     [...block.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((m) => {

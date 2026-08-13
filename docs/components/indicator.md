@@ -13,9 +13,8 @@ for it. The same count floating over a bell icon is an Indicator: it overhangs,
 it takes no room, and the icon underneath does not move to make space.
 
 The colours are Badge's colours, by the same names, so nothing has to be learned
-twice — `success`, `warning`, `info`, `destructive`, and `ai` for the agent
-weft, meaning here exactly what it means there: work an agent produced or is
-running, never decoration. The values are the solid tokens rather than Badge's
+twice — `success`, `warning`, `info`, `destructive`, and `accent` for the accent
+colour, meaning here exactly what it means there: accent-marked items, never decoration. The values are the solid tokens rather than Badge's
 12% washes, because a wash that reads as a colour across a chip reads as nothing
 at all across twelve pixels.
 
@@ -135,8 +134,7 @@ render one without it. `label` is that text; leave it unset and it is derived �
 dot. A `label` that is blank or only whitespace falls back to the derived string
 rather than clearing it, which is what makes an unnamed indicator unreachable
 instead of merely discouraged. Set `label` yourself whenever the derived text
-would be wrong: the count default assumes unread things, and "7 agent runs
-finished" is not that.
+would be wrong: the count default assumes unread things, and "7 items finished" is not that.
 
 When the marked child is **interactive**, one more step is needed and the
 component hands you the tools for it. A button computes its accessible name from
@@ -180,8 +178,8 @@ same `99+` animates nothing.
 
 A dot never animates and never pulses. Presence settles in with the page rather
 than arriving as news, and a looping marker would be decoration — which nothing
-in Loom is. `animate-conduct` is not an option here either: it is the weft's
-shuttle beat, reserved for agent work specifically, and not a general-purpose
+in Loom is. No looping animation is offered here either: a persistent pulse is
+decoration — which nothing in Loom is — and not a general-purpose
 way to draw an eye.
 
 Both paths are CSS animations, so the global `prefers-reduced-motion` rule
@@ -228,7 +226,7 @@ is the language, `label` is this instance's own name. A bell counting drafts
 rather than unread mail wants `label`, in every language.
 
 ```vue
-<Indicator variant="count" :count="7" label="7 agent runs waiting" />
+<Indicator variant="count" :count="7" label="7 items waiting" />
 ```
 
 Annotate a bag of your own with `LabelOverrides<IndicatorLabels>` rather than

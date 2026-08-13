@@ -34,9 +34,9 @@ import { cn } from "../../lib/cn";
  * navigation recedes).
  *
  * The active item carries a flat `--primary` fill and an inset accent bar —
- * a human decides which surface they are on, so this is the human/warp force
- * alone. It never mixes in `--agent`: this is navigation chrome, not a place
- * reporting automated work.
+ * a human decides which surface they are on, so this is the primary force
+ * alone. It never mixes in `--accent`: this is navigation chrome, not a place
+ * reporting a second semantic category.
  *
  * Presentational only: the host owns routing (`href` renders a real anchor)
  * and which item is `active` — this component does not track a current

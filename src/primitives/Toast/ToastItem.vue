@@ -107,7 +107,7 @@ const toastAccents = {
   success: { icon: CircleCheck, color: "text-success" },
   warning: { icon: TriangleAlert, color: "text-warning" },
   destructive: { icon: CircleX, color: "text-destructive" },
-  ai: { icon: Sparkles, color: "text-primary" },
+  accent: { icon: Sparkles, color: "text-primary" },
 } satisfies Record<ToastVariant, { icon: typeof Info; color: string }>;
 
 const accent = computed(() => toastAccents[props.variant]);
@@ -128,17 +128,12 @@ const accent = computed(() => toastAccents[props.variant]);
       :class="
         cn(
           'relative flex animate-toast-in items-start gap-3 rounded-md border border-border bg-popover p-3 pr-8 text-popover-foreground shadow-lg',
-          // Agent emission (Signature law): an AI-authored toast breathes a
-          // Conduct pulse — the one variant driven by an agent, made visible.
-          variant === 'ai' && 'border-primary/40',
+          // Accent variant: a highlighted border to draw attention to the
+          // toast's distinctiveness from the standard variants.
+          variant === 'accent' && 'border-primary/40',
         )
       "
     >
-      <span
-        v-if="variant === 'ai'"
-        aria-hidden="true"
-        class="pointer-events-none absolute inset-0 rounded-md animate-conduct"
-      />
       <component
         :is="accent.icon"
         :class="cn('mt-0.5 h-4 w-4 shrink-0', accent.color)"

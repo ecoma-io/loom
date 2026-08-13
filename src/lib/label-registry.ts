@@ -93,8 +93,7 @@ export interface LoomLabels {
   // reason `Select` is: their label, hint, error and legend all arrive as
   // props, and the required marker is a glyph rather than a word.
   readonly indicator: IndicatorLabels;
-  readonly avatarGroup: AvatarGroupLabels;
-  // Two slots and not one, though the keys match: a readout beside a bar and a
+  readonly avatarGroup: AvatarGroupLabels; // Two slots and not one, though the keys match: a readout beside a bar and a
   // readout inside a 40px ring are the same fact given very different room, and
   // a host wanting "42% uploaded" on the one and "42%" on the other has no way
   // to say so through a shared slot.

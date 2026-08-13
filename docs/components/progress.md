@@ -54,7 +54,7 @@ import { Progress } from "@ecoma-io/loom";
 ## The completion beat
 
 Crossing `100%` is a moment, not a silent state: the fill turns from the
-warp colour to `success`, eased in over the same `--duration-slow` lane as
+primary colour to `success`, eased in over the same `--duration-slow` lane as
 the fill's own motion. Work that has finished reads as done at a glance.
 The colour changes once and then holds with the bar — nothing loops.
 
@@ -140,7 +140,7 @@ percentage-only label.
 ## Labels
 
 The readout beside the track is the one string this component writes, and until
-this seam existed it wrote it as `${Math.round(pct)}%` — which is already wrong
+this label contract existed it wrote it as `${Math.round(pct)}%` — which is already wrong
 for Turkish, where the sign leads the digits and the answer is `%42`.
 
 ```ts

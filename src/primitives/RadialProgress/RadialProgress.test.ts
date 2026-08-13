@@ -143,7 +143,7 @@ describe("RadialProgress", () => {
   });
 
   describe("RadialProgress states", () => {
-    it("turns the arc success only at 100% — a finished ring reads done, an in-flight one stays warp", async () => {
+    it("turns the arc success only at 100% — a finished ring reads done, an in-flight one stays primary", async () => {
       const wrapper = mount(RadialProgress, { props: { modelValue: 99, ariaLabel: "Quota" } });
       const arc = wrapper.get("circle + circle");
       expect(arc.classes()).toContain("stroke-primary");

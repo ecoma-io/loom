@@ -32,7 +32,7 @@ const checkout = [
 const onboarding = [
   { title: "Workspace", description: "Name it and pick a region" },
   { title: "Invite the team", description: "Anyone with an address" },
-  { title: "Connect an agent", description: "Optional, and reversible" },
+  { title: "Connect a service", description: "Optional, and reversible" },
 ];
 
 const publishing = [

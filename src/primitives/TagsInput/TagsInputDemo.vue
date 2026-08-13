@@ -4,7 +4,7 @@ import TagsInput, { type TagsInputRejection } from "./TagsInput.vue";
 import Field from "../Field/Field.vue";
 
 const keywords = ref<string[]>(["design systems", "accessibility"]);
-const recipients = ref<string[]>(["ana@ecoma.io"]);
+const recipients = ref<string[]>(["ada@example.com"]);
 const shortlist = ref<string[]>(["blue", "green"]);
 const aliases = ref<string[]>(["ux", "ux"]);
 const locked = ref<string[]>(["invoice", "q3"]);

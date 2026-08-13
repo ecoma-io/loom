@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Loom
-  text: The design system behind Ecoma
-  tagline: Primitives, tokens and motion for Vue — dark by default, accessible by construction.
+  text: An opinionated UI system for cross-platform web applications
+  tagline: Primitives, tokens, composition and motion for Vue — accessible by construction, responsive by design.
   actions:
     - theme: brand
       text: Components

@@ -52,7 +52,6 @@ vi.mock("../../primitives/WindowControls/WindowControls.vue", async () => {
     },
   };
 });
-vi.mock("../../icons/BrandMark", () => ({ default: { name: "BrandMark", template: "<svg />" } }));
 
 /**
  * NOT pinned here, deliberately and with the reason recorded: the window drag
@@ -81,7 +80,7 @@ describe("TitleBar", () => {
   it("keeps the brand tile out of the accessibility tree, so the app name is announced once", () => {
     const wrapper = mount(TitleBar, { props: { appName: "MyApp" } });
     const brand = wrapper.get("header").element.firstElementChild!;
-    expect(brand.querySelector("[aria-hidden='true'] svg")).not.toBeNull();
+    expect(brand.querySelector("[aria-hidden='true']")).not.toBeNull();
     expect(brand.textContent).toContain("MyApp");
   });
 

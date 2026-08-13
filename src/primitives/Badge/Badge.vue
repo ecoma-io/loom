@@ -2,11 +2,11 @@
 import { cva } from "class-variance-authority";
 
 /**
- * Badge — small status / meta chip. The `ai` variant wears the agent weft
- * used to signal AI presence across the product.
+ * Badge — small status / meta chip. The `accent` variant wears the accent
+ * colour used to signal a second semantic category distinct from primary.
  */
 export type BadgeVariant =
-  "neutral" | "outline" | "primary" | "success" | "warning" | "info" | "destructive" | "ai";
+  "neutral" | "outline" | "primary" | "success" | "warning" | "info" | "destructive" | "accent";
 
 export const badgeVariants = cva(
   "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors duration-fast",
@@ -20,7 +20,7 @@ export const badgeVariants = cva(
         warning: "border-transparent bg-warning/12 text-warning",
         info: "border-transparent bg-info/12 text-info",
         destructive: "border-transparent bg-destructive/12 text-destructive",
-        ai: "border-agent/40 bg-agent-muted text-agent",
+        accent: "border-accent/40 bg-accent-muted text-accent",
       } satisfies Record<BadgeVariant, string>,
     },
     defaultVariants: { variant: "neutral" },
@@ -33,7 +33,7 @@ import { cn } from "../../lib/cn";
 
 withDefaults(
   defineProps<{
-    /** Which status or meta this chip carries. `ai` is reserved for signalling agent-produced or agent-running work. */
+    /** Which status or meta this chip carries. `accent` is for signalling a second semantic category distinct from primary. */
     variant?: BadgeVariant;
   }>(),
   { variant: "neutral" },

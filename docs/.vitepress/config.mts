@@ -49,35 +49,44 @@ const FOUNDATIONS = pagesIn("foundations", [
 
 export default defineConfig({
   title: "Loom",
-  description: "The design system behind Ecoma — primitives, tokens and motion for Vue.",
+  description:
+    "An opinionated UI system and composition library for cross-platform web applications — primitives, tokens and motion for Vue.",
   lang: "en-US",
   base: BASE,
   cleanUrls: true,
   lastUpdated: true,
 
-  // Loom has one palette, not two, and it is the paper-light one: `theme.css`
-  // is light-first by design, and a symmetric dark theme is a reserved seam.
-  // Leaving VitePress's toggle on would offer a dark mode the components
-  // underneath do not have, so the chrome would go dark while every demo on the
-  // page stayed on paper. `false` removes the toggle rather than shipping a
-  // control that half-works — and it also keeps the `.dark` class off the
-  // document, which matters more than the switch does: VitePress's own `.dark`
-  // rules outrank the `:root` block that maps its variables onto Loom's tokens,
-  // so under a forced dark the site would quietly stop wearing them.
-  appearance: false,
+  // Flash prevention: set Loom's `data-theme` before the first paint. VitePress
+  // already prevents its own chrome from flashing by reading its localStorage key
+  // and toggling `.dark` inline — but Loom's components read `data-theme`, so
+  // without this the chrome would arrive dark while every demo stayed light until
+  // Vue hydrated. The script reads the same key VitePress uses, because that is
+  // the one the toggle in the nav writes to.
+  head: [
+    [
+      "script",
+      {},
+      `(()=>{const t=localStorage.getItem("vitepress-theme-appearance");document.documentElement.setAttribute("data-theme",(t==="dark"||((!t||t==="auto")&&matchMedia("(prefers-color-scheme:dark)").matches))?"dark":"light")})()`,
+    ],
+  ],
+
+  // Loom ships a symmetric dark theme under `:root[data-theme="dark"]`. VitePress's
+  // toggle adds a `.dark` class to `<html>`, and Layout.vue mirrors that onto
+  // Loom's `data-theme` attribute, so every demo on the page follows the same
+  // switch the chrome does. The toggle is on so a reader can see both themes.
+  appearance: true,
 
   markdown: {
-    // Named because the default was never chosen. Unconfigured, Shiki uses
-    // `github-light`, an older GitHub palette drawn for a white editor — and
-    // this site does not have one, so four of its ten syntax colours land under
-    // the 4.5:1 AA floor on our code-block background. `github-light-high-
-    // contrast` is GitHub's own answer to exactly that, and all ten of its
-    // colours clear the floor here. Measured across every light theme Shiki
-    // bundles, not picked by name.
-    //
-    // A single theme rather than a `{ light, dark }` pair, because
-    // `appearance: false` above means there is no dark side to render.
-    theme: "github-light-high-contrast",
+    // Dual themes, because the site now supports both light and dark. The light
+    // theme is `github-light-high-contrast` — all ten of its syntax colours
+    // clear the 4.5:1 AA floor on the code-block background, which is more than
+    // the default `github-light` can say. The dark theme follows the same
+    // principle: `github-dark-high-contrast` clears the floor on the dark
+    // card surface.
+    theme: {
+      light: "github-light-high-contrast",
+      dark: "github-dark-high-contrast",
+    },
   },
 
   themeConfig: {

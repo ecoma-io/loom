@@ -34,34 +34,31 @@ for the few places that must assert an edge — an active panel, a keyboard
 target zone — rather than for every border that "feels like it should stand
 out."
 
-## Two forces
+## Two action colours
 
-Ecoma's form language is dual-force, and the two action colours encode it
-rather than decorate it:
+Loom's colour system has two action colours, and each carries a distinct
+semantic role:
 
-- **Human — warp** (`--color-primary`) — what a person
-  authors and decides. It is also the default action colour: `primary`
-  doubles as both because a person drives the interface. `--color-ring`, the
-  focus ring, is the same hue for the same reason — keyboard focus is a person
-  acting.
-- **Agent — weft** (`--color-agent`) — work an agent is
-  running or has produced. It never appears as a default action colour; a
-  surface only carries it when the thing happening on it genuinely is agent
-  work.
+- **Primary** (`--color-primary`) — the default action colour: what a person
+  authors and decides. `--color-ring`, the focus ring, is the same hue for the
+  same reason — keyboard focus is a person acting.
+- **Accent** (`--color-accent`) — a second semantic colour for contrast or
+  emphasis distinct from the primary action. A surface only carries it when the
+  thing happening on it genuinely calls for a colour other than primary.
 
-Each force gets a "wash" — `primary-muted` and `agent-muted` — a pale tint of
-its own hue for a selected or agent-driven surface fill, distinct from a hover
-state's neutral `subtle`.
+Each action colour gets a "wash" — `primary-muted` and `accent-muted` — a pale
+tint of its own hue for a selected or accent-marked surface fill, distinct
+from a hover state's neutral `subtle`.
 
 ## Functional hues
 
 `destructive`, `success`, `warning` and `info` are deliberately outside both
-force hues, so a status colour can never be misread as "a person did this" or
-"an agent did this." None of the four is reused as an action colour outside
-its own meaning.
+action hues, so a status colour can never be misread as "a primary action" or
+"an accent-marked action." None of the four is reused as an action colour
+outside its own meaning.
 
 Each carries its own wash too — `destructive-muted`, `success-muted`,
-`warning-muted`, `info-muted` — on the same pattern as the two forces. Reach
+`warning-muted`, `info-muted` — on the same pattern as the two action colours. Reach
 for one whenever a status needs a _fill_ rather than a mark: a badge's ground,
 a selected chip, the panel behind an inline error. The strong hue then goes on
 top of it, as the text or the hairline, and every pairing holds at least 4.5:1.
@@ -88,17 +85,14 @@ it — so that page stays legible and stays the subject. Pick by which of those
 two things the overlay is, and a third overlay will land in the right place
 without anyone having to rediscover the reasoning.
 
-## The seam
+## Dark mode
 
-The one place the two forces are allowed to touch visually is a gradient
-between them, interpolated in OKLCH so the midpoint never turns muddy grey:
+The dark palette mirrors the light one with inverted lightness: the paper
+ground becomes near-black, the text becomes off-white, and the elevation
+gradient runs upward through lighter backgrounds instead of downward through
+shadows. Every token above has a dark counterpart declared under
+`:root[data-theme="dark"]`, and switching between the two is a single
+attribute change on `<html>` — no partial overrides, no fallback to light.
 
-<!-- @tokens seam -->
-
-Reach it through the `bg-seam` utility (`background-image: var(--seam)`), and
-only where the two forces are actually meeting — a handoff, a co-authored
-asset, a brand moment. `theme.css` states the restriction directly: never
-under body text, never on anything smaller than 20px, and never as an
-interaction state. The seam marks a moment where human and agent work meet,
-not a decoration to reach for because it looks good — a hover state or a
-selected row still uses the ordinary force colours above.
+The [theming page](/foundations/theming) covers the switching API, flash
+prevention, and the dark token design principles.

@@ -231,12 +231,12 @@ describe("Pagination", () => {
     expect(other).toContain("disabled:text-muted-foreground");
   });
 
-  it("keeps the current page on the warp wash while disabled, so which page it is survives", () => {
+  it("keeps the current page on the primary wash while disabled, so which page it is survives", () => {
     const wrapper = mountPagination({ total: 120, page: 3, disabled: true });
     const current = wrapper.get('[aria-current="page"]').classes();
 
     expect(current.some((c) => c.includes("opacity"))).toBe(false);
-    // 6.84:1, and still the only button in the row wearing the warp — being on
+    // 6.84:1, and still the only button in the row wearing the primary — being on
     // page 3 is information, not decoration.
     expect(current).toContain("disabled:bg-primary-muted");
     expect(current).toContain("disabled:text-primary");

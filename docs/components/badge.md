@@ -1,7 +1,7 @@
 # Badge
 
 A small status or meta chip: a non-interactive label sitting beside content
-to report a category, a state, or that AI produced or is producing it. It
+to report a category, a state, or a highlighted condition. It
 never hovers, presses, or takes focus — it is not a button in disguise.
 
 <script setup lang="ts">
@@ -24,15 +24,15 @@ import { Badge } from "@ecoma-io/loom";
 
 ## Variants
 
-`ai` is the one variant that is not about status. It wears the agent weft
-— the wash and text colour Loom reserves for signalling agent-produced or
-agent-running work, consistent everywhere it appears. Reach for it only for
-actual agent activity, never as a decorative accent, and never hand-mix the
-weft colour at the call site: every value comes from the token, so changing
+`accent` is the one variant that is not about status. It wears the accent
+wash — the wash and text colour Loom reserves for signalling accent-marked
+items, consistent everywhere it appears. Reach for it only for items that
+carry the accent, never as a decorative accent, and never hand-mix the
+accent colour at the call site: every value comes from the token, so changing
 the token changes every badge that uses it.
 
 `info` is a neutral cool blue for metadata such as a selection count — it is
-deliberately not a force colour, keeping the weft reserved for `ai`.
+deliberately not the accent colour, keeping the accent reserved for `accent`.
 
 <Demo title="Every variant" :source="badgeDemoSource">
   <BadgeDemo />

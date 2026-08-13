@@ -59,13 +59,14 @@ The general lesson, not specific to this block: a hover token only means
 something relative to the plane it sits on. Copying it onto a different
 plane is how a state goes missing without anything flagging it.
 
-## One force — warp, never mixed with weft
+## Primary colour only
 
 The active item carries a flat tinted fill plus an inset accent bar, in the
-human accent alone. Which surface a person is standing on is that person's
-own decision, so it carries the human force only — never the agent accent,
-even when the destination is a surface an agent operates. The accent colors
-say who is acting; "which page is this" is always a human call.
+primary colour alone. Which surface a reader is standing on is that reader's
+own decision, so it carries the primary colour only — never the accent
+variant colour, even when the destination is a specialised surface. The
+accent colour signals a distinct category; "which page is this" is a
+navigation choice.
 
 ## Types
 
@@ -132,9 +133,9 @@ conventions.
 - Don't reach for this for a transient command list — `DropdownMenu` and
   `Menubar` already cover that; this is a persistent navigation landmark,
   never an overlay.
-- Don't paint the active item with the agent accent even when it leads to a
-  surface an agent operates — the accent colors describe who just acted, and
-  "which page is current" is always a human decision.
+- Don't paint the active item with the accent variant colour even when it leads to a
+  specialised surface — the accent colour signals a distinct category, and
+  "which page is current" is a navigation choice.
 
 ## API
 

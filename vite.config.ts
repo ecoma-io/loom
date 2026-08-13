@@ -33,7 +33,7 @@ export default defineConfig({
     // Library mode: consumers bundle this package, so nothing is minified for
     // them and no peer framework is ever inlined.
     lib: {
-      entry: { index: src("index.ts"), a11y: src("a11y.ts") },
+      entry: { index: src("index.ts"), a11y: src("a11y.ts"), theme: src("lib/theme.ts") },
       formats: ["es"],
     },
     minify: false,

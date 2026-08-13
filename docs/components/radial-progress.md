@@ -112,7 +112,7 @@ rather than as nothing at all.
 
 ## The completion beat
 
-Crossing `100%` is a moment, not a silent state: the arc turns from the warp
+Crossing `100%` is a moment, not a silent state: the arc turns from the primary
 colour to `success`, eased in over the same `--duration-slow` lane as the fill
 itself. It is the same beat `Progress` plays, and the colour is never the only
 carrier — the readout says `100%` and `aria-valuenow` reports it.

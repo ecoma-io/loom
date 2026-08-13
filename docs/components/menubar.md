@@ -89,7 +89,7 @@ interface MenubarMenu {
 
 ## Visual language
 
-- Hover and open state use the neutral `subtle` fill, never the warp action
+- Hover and open state use the neutral `subtle` fill, never the primary action
   colour — a menu is navigation, not the emphasis a primary action carries.
 - The dropdown expands with `animate-scale-in` (140ms, `ease-spring`) from
   its top-left corner and respects `prefers-reduced-motion`.

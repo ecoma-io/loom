@@ -98,18 +98,18 @@ what a screen-reader user needs when a list holds eight identical buttons.
 
 The eight names are Badge's, deliberately, and they mean the same thing here:
 `neutral`, `outline`, `primary`, `success`, `warning`, `info`, `destructive` and
-`ai`. A chip and a badge sitting in the same row are one object in two moods, so
+`accent`. A chip and a badge sitting in the same row are one object in two moods, so
 `success` has to be the same green in both — a second vocabulary for one palette
 is how they drift apart.
 
 Selecting a chip deepens the colour it already has rather than replacing it: a
 reader picked the destructive chip _because_ it is the destructive one. The two
-hueless variants are the exception — `neutral` and `outline` take the warp wash
+neutral variants are the exception — `neutral` and `outline` take the primary wash
 when selected, the same fill a chosen row in a [Select](./select.md) wears, so a
-chosen filter reads as a human decision.
+chosen filter reads as a deliberate selection.
 
-`ai` wears the agent weft, and it is reserved for chips that filter or stand for
-agent-produced work. It is not a decorative accent.
+`accent` wears the accent colour, and it is reserved for chips that filter or stand for
+accent-marked items. It is not a decorative accent.
 
 ## Size
 

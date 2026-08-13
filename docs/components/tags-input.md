@@ -264,7 +264,7 @@ interface TagsInputLabels {
 
 **`count` is handed the number, never a formatted string.** "3 tags" has one
 plural form in Vietnamese, two in English and six in Arabic, and no placeholder
-syntax Loom could invent would carry that — so the number goes over the seam and
+syntax Loom could invent would carry that — so the number goes over the label contract and
 `Intl.PluralRules` picks the category in your own locale, with
 `Intl.NumberFormat` for the digits. `max` is `undefined` when the field has no
 limit, so the bounded and unbounded cases are worded by you as well.

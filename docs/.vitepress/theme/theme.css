@@ -117,7 +117,58 @@
   --vp-button-brand-hover-bg: color-mix(in oklab, var(--color-primary) 90%, transparent);
 
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: var(--seam);
+  --vp-home-hero-name-background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
+}
+
+/* VitePress's dark mode adds `.dark` to `<html>`, and Layout.vue mirrors that
+ * onto Loom's `data-theme="dark"` — so by the time this block matches, every
+ * Loom token has already been overridden by the dark theme block in
+ * `theme.css`. These VitePress-specific mappings just point at the same token
+ * names; the underlying values are already the dark ones. The one exception is
+ * `--vp-c-bg-elv`, which VitePress raises in dark by a different amount than
+ * Loom's card surface, so it is pinned explicitly. */
+.dark {
+  --vp-c-bg: var(--color-background);
+  --vp-c-bg-alt: var(--color-sunken);
+  --vp-c-bg-soft: var(--color-muted);
+
+  --vp-c-text-1: var(--color-foreground);
+  --vp-c-text-2: var(--color-muted-foreground);
+  --vp-c-text-3: var(--color-muted-foreground);
+
+  --vp-c-divider: var(--color-border);
+  --vp-c-gutter: var(--color-border);
+  --vp-c-border: var(--color-border);
+
+  --vp-c-brand-1: var(--color-primary);
+  --vp-c-brand-2: var(--color-primary);
+  --vp-c-brand-3: var(--color-primary);
+  --vp-c-brand-soft: color-mix(in oklab, var(--color-primary) 16%, transparent);
+
+  --vp-c-danger-1: var(--color-destructive);
+  --vp-c-danger-soft: color-mix(in oklab, var(--color-destructive) 16%, transparent);
+  --vp-c-warning-1: var(--color-warning);
+  --vp-c-warning-soft: color-mix(in oklab, var(--color-warning) 16%, transparent);
+  --vp-c-tip-1: var(--color-info);
+  --vp-c-tip-soft: color-mix(in oklab, var(--color-info) 16%, transparent);
+
+  --vp-code-block-bg: var(--color-card);
+  --vp-code-copy-code-bg: var(--color-sunken);
+
+  --vp-button-brand-bg: var(--color-primary);
+  --vp-button-brand-text: var(--color-primary-foreground);
+  --vp-button-brand-hover-bg: color-mix(in oklab, var(--color-primary) 90%, transparent);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
 }
 
 /* Tailwind's preflight strips the browser's default outline, and this site is

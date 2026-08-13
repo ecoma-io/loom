@@ -95,10 +95,9 @@ unsupported, so the bar is never a see-through smear over its own content.
 
 ## Deliberately neutral
 
-`AppHeader` is shell chrome shared by every user and every agent action
-alike, so it never carries the human or agent accent colors. Those colors
-mark a specific force doing something on a surface; the chrome around every
-surface is not that.
+`AppHeader` is shell chrome shared by every user and every surface alike, so
+it never carries a role-specific accent colour. Those colours mark a specific
+category or role on a surface; the chrome around every surface is not that.
 
 ## API
 

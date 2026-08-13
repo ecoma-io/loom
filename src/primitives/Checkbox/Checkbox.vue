@@ -105,7 +105,7 @@ const boxClass = cn(
   // while fill/border stay on the instant --ease-out — the "springy transform,
   // steady color" split (boxStyle below), same language as Button/Switch.
   "active:scale-90",
-  // Checked = a human decision (Loom law): the box fills flat warp.
+  // Checked = a decision (Loom law): the box fills with primary.
   "data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
   "data-[state=indeterminate]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground",
   // Focus draws the weave tight: the brand ring blooms.

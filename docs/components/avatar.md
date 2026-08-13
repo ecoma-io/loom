@@ -1,13 +1,13 @@
 # Avatar
 
-A person or agent's picture, with a graceful initials fallback for no `src`,
+A person or entity in a picture, with a graceful initials fallback for no `src`,
 a broken URL, or an image that is still loading. It is built on Reka UI's
 Avatar, which paints the image only once it has actually finished loading —
 the fallback stays visible the whole time until then, so first paint is
 always either the real photo or the initials, never a broken-image icon.
 
 Two neighbours are worth naming. Several faces standing for one thing — the
-people on a task, the agents on a run — are an [AvatarGroup](./avatar-group),
+people on a task, the entities on a run — are an [AvatarGroup](./avatar-group),
 which owns the overlap, the stacking order and the "+3" so that a row of them
 is one object to a screen reader rather than a handful of unrelated images.
 Anything pinned onto the avatar's corner — a presence dot, an unread count —
@@ -44,7 +44,7 @@ example "AL" for "Ada Lovelace". The component does not derive it from `alt`.
 
 ## Accessible name
 
-Always pass `alt` describing the person or agent in the picture. It lands
+Always pass `alt` describing the person or entity in the picture. It lands
 directly on the inner `<img>` (`AvatarImage` requires it, so a screen reader
 announces the picture's actual subject).
 
@@ -89,32 +89,32 @@ to a tile whose padding is its own edge.
   <Avatar shape="square" size="xl" fallback="LO" alt="Loom, extra large" />
 </Demo>
 
-## Human and agent
+## Default and accent variants
 
-Ecoma's form language is dual-force: the human warp a person authors on, and
-the agent weft an agent carries across it. An avatar for an agent should read
-as one at a glance, so `force` takes `human` (the default, and what every
-existing caller already gets) or `ai`.
+An avatar that should stand out from the default — to mark a highlighted
+category, a distinct role, or an item the reader should notice at a glance —
+uses `variant="accent"`. The default (no `variant`) is what every existing
+caller already gets.
 
-`ai` is deliberately Badge's own name for that second force rather than a
+`accent` is deliberately Badge's own name for that second variant rather than a
 second word for one idea, and it means here exactly what it means there:
-agent-produced or agent-running work, never decoration.
+accent-marked items, never decoration.
 
 The treatment is two signals rather than one, because a colour on its own is
-not a state this library is allowed to convey. An agent avatar wears a rim in
-the weft colour — and the rim's _presence_ is what a reader who cannot resolve
-the hue still sees, since a human avatar has no edge at all — and it carries a
-visually hidden `agentLabel`, "AI agent" by default, for the reader who sees no
+not a state this library is allowed to convey. An accent avatar wears a rim in
+the accent colour — and the rim's _presence_ is what a reader who cannot resolve
+the hue still sees, since a default avatar has no edge at all — and it carries a
+visually hidden `accentLabel`, "Accent" by default, for the reader who sees no
 avatar. Localise that string; clear it only when something around the avatar
 already says the same thing, which is what `AvatarGroup` does.
 
 The corner is left alone on purpose. That is Indicator's, and a presence dot
 pinned there would land on top of anything drawn in the same place.
 
-<Demo title="Human and agent">
+<Demo title="Default and accent">
   <Avatar fallback="AL" alt="Ada Lovelace" />
-  <Avatar force="ai" fallback="WV" alt="Weaver" />
-  <Avatar force="ai" shape="square" fallback="ND" alt="Nightly digest run" />
+  <Avatar variant="accent" fallback="WV" alt="Weaver" />
+  <Avatar variant="accent" shape="square" fallback="ND" alt="Nightly digest run" />
 </Demo>
 
 ## Motion

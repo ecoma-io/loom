@@ -30,7 +30,7 @@ import { Toast } from "@ecoma-io/loom";
 </template>
 ```
 
-<Demo title="Success, error and AI variants" :source="toastDemoSource">
+<Demo title="Success, error and accent variants" :source="toastDemoSource">
   <ToastDemo />
 </Demo>
 
@@ -47,13 +47,13 @@ stacks cleanly, so a multi-toast host owns that layout itself.
 
 ## Variants
 
-| Variant       | Use for                                     |
-| ------------- | ------------------------------------------- |
-| `info`        | neutral information                         |
-| `success`     | a completed action                          |
-| `warning`     | something to notice, not yet an error       |
-| `destructive` | an error (recoverable)                      |
-| `ai`          | a result or action taken by an agent (weft) |
+| Variant       | Use for                                 |
+| ------------- | --------------------------------------- |
+| `info`        | neutral information                     |
+| `success`     | a completed action                      |
+| `warning`     | something to notice, not yet an error   |
+| `destructive` | an error (recoverable)                  |
+| `accent`      | a highlighted result or action (accent) |
 
 ## Picking the right component
 

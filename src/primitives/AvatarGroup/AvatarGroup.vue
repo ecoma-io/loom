@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { AvatarForce, AvatarShape, AvatarSize } from "../Avatar/Avatar.vue";
+import type { AvatarShape, AvatarSize, AvatarVariant } from "../Avatar/Avatar.vue";
 import type { LabelOf } from "../../lib/labels";
 
 /** One face in the row. */
@@ -10,8 +10,8 @@ export interface AvatarGroupItem {
   alt?: string;
   /** Initials shown while there is no image, or once one has failed. */
   fallback?: string;
-  /** Which force this member is. Defaults to the group's own `force`, so a row that mixes people and agents states it per member and a row of one kind states it once. */
-  force?: AvatarForce;
+  /** Which variant this member uses. Defaults to the group's own `variant`, so a row that mixes members states it per member and a row of one kind states it once. */
+  variant?: AvatarVariant;
 }
 
 /** The surface the row sits on, which the separating ring matches. */
@@ -20,14 +20,14 @@ export type AvatarGroupSurface = "background" | "card" | "sunken" | "popover";
 /**
  * The two sentences the row says that are not a member's own name.
  *
- * **`agent` is one key and not a name, a comma and a qualifier.** Where the
+ * **`accent` is one key and not a name, a comma and a qualifier.** Where the
  * qualifier sits relative to the name, and whether a comma is what separates
  * them at all, is a property of the language — Loom joining `${who}, ${what}`
  * has already answered both, in English, for every host that translates the
  * two halves. The name arrives raw because it is the caller's own data rather
  * than anything Loom formatted, and the empty case arrives too: a face with no
- * `alt` and no `fallback` is still an agent, and "AI agent" alone is the honest
- * reading of it.
+ * `alt` and no `fallback` still carries the accent variant, and the accent
+ * label alone is the honest reading of it.
  *
  * `overflow` takes the count for the reason every counted message here does —
  * "3 more" is a plural category English collapses and Russian does not.
@@ -35,8 +35,8 @@ export type AvatarGroupSurface = "background" | "card" | "sunken" | "popover";
 export interface AvatarGroupLabels {
   /** The counter tile at the end of the row, named for how many faces it stands in for. */
   readonly overflow: LabelOf<{ count: number }>;
-  /** One member's whole name, with the agent qualifier already worked into it. `name` is empty when the member gave neither an `alt` nor a `fallback`. */
-  readonly agent: LabelOf<{ name: string }>;
+  /** One member's whole name, with the accent qualifier already worked into it. `name` is empty when the member gave neither an `alt` nor a `fallback`. */
+  readonly accent: LabelOf<{ name: string }>;
 }
 
 /**
@@ -45,7 +45,7 @@ export interface AvatarGroupLabels {
  */
 export const AVATAR_GROUP_LABELS: AvatarGroupLabels = {
   overflow: ({ count }) => `${String(count)} more`,
-  agent: ({ name }) => (name ? `${name}, AI agent` : "AI agent"),
+  accent: ({ name }) => (name ? `${name}, Accent` : "Accent"),
 };
 
 /**
@@ -114,19 +114,19 @@ const props = withDefaults(
     size?: AvatarSize;
     /** `circle` or `square`, forwarded to every face so the row reads as one shape. */
     shape?: AvatarShape;
-    /** `human` or `ai`, for members that do not name their own — set it to `ai` for a row of agents. */
-    force?: AvatarForce;
-    /** The group's accessible name: "Assignees", "Reviewers", "Agents on this run". */
+    /** `default` or `accent`, for members that do not name their own — set it to `accent` for a row where every member uses the accent variant. */
+    variant?: AvatarVariant;
+    /** The group's accessible name: "Assignees", "Reviewers", "Members". */
     label?: string;
     /** The surface the row sits on, so the ring separating the faces matches what surrounds them. */
     surface?: AvatarGroupSurface;
     /**
-     * Names for the counter and for an agent member, as any subset of
+     * Names for the counter and for an accent member, as any subset of
      * `AvatarGroupLabels` — the rest stay as the host's `provideLoomLabels`
      * vocabulary left them, and then as Loom's English.
      *
      * The per-instance case is a row where "more" is the wrong word for what
-     * was left out: three reviewers, three agents, three files.
+     * was left out: three reviewers, three members, three files.
      */
     labels?: LabelOverrides<AvatarGroupLabels>;
   }>(),
@@ -134,7 +134,7 @@ const props = withDefaults(
     max: 4,
     size: "md",
     shape: "circle",
-    force: "human",
+    variant: "default",
     surface: "background",
   },
 );
@@ -170,15 +170,15 @@ const overlap = computed(() => OVERLAP[props.size]);
 const ring = computed(() => cn("ring-2", SURFACE_RING[props.surface]));
 
 /**
- * What a screen reader reads for one member. The agent qualifier is composed
+ * What a screen reader reads for one member. The accent qualifier is composed
  * here rather than left to `Avatar`'s own hidden label, because the portrait
  * inside each item is `aria-hidden` — the item says the name once, in one
  * voice, whichever state the image is in.
  */
 function memberName(item: AvatarGroupItem): string {
   const who = (item.alt ?? item.fallback ?? "").trim();
-  if ((item.force ?? props.force) !== "ai") return who;
-  return text.value.agent({ name: who });
+  if ((item.variant ?? props.variant) !== "accent") return who;
+  return text.value.accent({ name: who });
 }
 </script>
 
@@ -212,16 +212,16 @@ function memberName(item: AvatarGroupItem): string {
       :style="{ zIndex: shown.length - index }"
       :class="cn('relative', index > 0 && overlap)"
     >
-      <!-- `agent-label` is cleared because the item beside it has already
+      <!-- `accent-label` is cleared because the item beside it has already
            worked the qualifier into one name; left at its default the row would
-           carry two copies of "AI agent" per agent. -->
+           carry two copies of the accent label per accent member. -->
       <Avatar
         aria-hidden="true"
-        agent-label=""
+        accent-label=""
         v-bind="optional({ src: item.src, alt: item.alt, fallback: item.fallback })"
         :size="size"
         :shape="shape"
-        :force="item.force ?? force"
+        :variant="item.variant ?? variant"
         :class="ring"
       />
       <span class="sr-only">{{ memberName(item) }}</span>

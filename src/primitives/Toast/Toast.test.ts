@@ -45,7 +45,7 @@ describe("Toast", () => {
       props: {
         title: "Saved",
         description: "Draft written to disk.",
-        variant: "ai",
+        variant: "accent",
         duration: 2000,
         closable: false,
         actionLabel: "Undo",
@@ -54,7 +54,7 @@ describe("Toast", () => {
     expect(wrapper.findComponent({ name: "ToastItem" }).props()).toMatchObject({
       title: "Saved",
       description: "Draft written to disk.",
-      variant: "ai",
+      variant: "accent",
       duration: 2000,
       closable: false,
       actionLabel: "Undo",

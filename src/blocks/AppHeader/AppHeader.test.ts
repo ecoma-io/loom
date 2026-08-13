@@ -20,14 +20,14 @@ describe("AppHeader", () => {
       slots: {
         brand: "<span>Brand</span>",
         search: '<input aria-label="Search" />',
-        orgSwitcher: "<button>Org</button>",
+        leading: "<button>Workspace</button>",
         notifications: "<button>Bell</button>",
         userMenu: "<button>Me</button>",
       },
     });
     expect(wrapper.text()).toContain("Brand");
     expect(wrapper.find("input").exists()).toBe(true);
-    expect(wrapper.text()).toContain("Org");
+    expect(wrapper.text()).toContain("Workspace");
     expect(wrapper.text()).toContain("Bell");
     expect(wrapper.text()).toContain("Me");
   });

@@ -80,7 +80,7 @@ const field = useFieldControl(() => ({
         'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent',
         'transition-[background-color,filter,box-shadow] duration-instant ease-out',
         'hover:brightness-95',
-        // Checked = a human decision (Loom law): the track fills flat warp.
+        // Checked = a decision (Loom law): the track fills with primary.
         'data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30',
         // Focus draws the weave tight: the brand ring blooms.
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',

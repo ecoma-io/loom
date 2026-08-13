@@ -211,7 +211,7 @@ toggle to word.
 **The counters are handed the numbers, never a formatted string.** `81/80` is a
 punctuation choice made in one language, and "3 characters left" has one plural
 form in Vietnamese, two in English and six in Arabic — so the integers go over
-the seam and `Intl.PluralRules` picks the category in your own locale.
+the label contract and `Intl.PluralRules` picks the category in your own locale.
 `countOverMax` must read differently from `countOfMax` rather than only being
 painted differently, or the over-limit state is carried by colour alone.
 

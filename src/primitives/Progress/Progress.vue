@@ -176,7 +176,7 @@ const rootAttrs = computed(() => ({
 // Determinate: a full-width bar slid left by the remaining percentage
 // (transform eased over --duration-slow). Indeterminate: a short segment
 // sweeping the track on a loop, since there is no percentage to paint.
-// Completion beat: at 100% the fill turns success (Loom dual-force law — a
+// Completion beat: at 100% the fill turns success (Loom law — a
 // finished piece of work reads as done at a glance), eased in over the same
 // --duration-slow lane via the background transition.
 const indicatorClass = computed(() =>

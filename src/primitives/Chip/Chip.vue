@@ -8,7 +8,7 @@ import { cva } from "class-variance-authority";
  * palette.
  */
 export type ChipVariant =
-  "neutral" | "outline" | "primary" | "success" | "warning" | "info" | "destructive" | "ai";
+  "neutral" | "outline" | "primary" | "success" | "warning" | "info" | "destructive" | "accent";
 
 /**
  * Two heights off the shared control scale (the text input's `sm` and `md`), so
@@ -45,7 +45,7 @@ export const chipVariants = cva(
     // classes. Adding a member to one and not the other stops compiling.
     variants: {
       variant: {
-        // The two hueless variants take the warp wash when selected —
+        // The two hueless variants take the primary wash when selected —
         // `--color-primary-muted` is the repository's selected/active fill, the
         // one Select's checked row already uses, so a chosen filter reads as a
         // human decision rather than as a new colour invented here.
@@ -54,7 +54,7 @@ export const chipVariants = cva(
         outline:
           "border-border bg-transparent text-muted-foreground data-[selected]:border-primary/40 data-[selected]:bg-primary-muted data-[selected]:text-primary",
         // The hue-carrying variants deepen their own hue instead of jumping to
-        // the warp: a reader picked this chip *because* it is the destructive
+        // the primary: a reader picked this chip *because* it is the destructive
         // one, and swapping its colour on selection would throw that away.
         primary:
           "border-transparent bg-primary/12 text-primary data-[selected]:border-primary/45 data-[selected]:bg-primary/20",
@@ -65,7 +65,8 @@ export const chipVariants = cva(
         info: "border-transparent bg-info/12 text-info data-[selected]:border-info/45 data-[selected]:bg-info/20",
         destructive:
           "border-transparent bg-destructive/12 text-destructive data-[selected]:border-destructive/45 data-[selected]:bg-destructive/20",
-        ai: "border-agent/40 bg-agent-muted text-agent data-[selected]:border-agent/70 data-[selected]:bg-agent/20",
+        accent:
+          "border-accent/40 bg-accent-muted text-accent data-[selected]:border-accent/70 data-[selected]:bg-accent/20",
       } satisfies Record<ChipVariant, string>,
       size: {
         sm: "h-8 text-xs",
@@ -165,7 +166,7 @@ const pressStyle =
 // selector no plain class on the same element outranks. On the label itself it
 // is a declaration rather than an inheritance, so it wins whatever the pill
 // resolved to: 4.67:1 over the drained `--color-muted` fill, 4.77:1 over the
-// warp wash a selected chip keeps.
+// primary wash a selected chip keeps.
 const disabledText = "group-data-[disabled]:text-muted-foreground";
 
 // Both inner controls are surfaces *inside* a 32px pill, so the standard
@@ -196,7 +197,7 @@ const { attrs, rest: containerAttrs } = useSplitAttrs();
         chipVariants({ variant, size }),
         // Drained to the neutral well, with the hairline the coloured variants
         // hide: an unavailable chip gives up its hue rather than its legibility.
-        // A *selected* one keeps the warp wash — `data-[selected]:bg-primary-muted`
+        // A *selected* one keeps the primary wash — `data-[selected]:bg-primary-muted`
         // outranks a plain class — which is right: switched-on is information,
         // and the label is muted over either fill.
         //
