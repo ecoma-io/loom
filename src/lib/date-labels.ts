@@ -74,6 +74,25 @@ export interface DateSegmentLabels {
    * date half would be a key it could not set.
    */
   readonly empty: string;
+  /**
+   * What a filled month segment announces as its value, replacing the
+   * `aria-valuetext` Reka builds inside `useDateField`.
+   *
+   * Reka writes `"5 - May"` — the numeric month, a hard-coded `" - "`, and
+   * the month name from `Intl.DateTimeFormat`. The name is locale-aware, but
+   * the format is not: Japanese writes `"5月"`, Vietnamese `"tháng 5"`, and
+   * neither separates the two parts with a hyphen. A `LabelOf` hands the
+   * host the month number and the locale so they can compose the string their
+   * language needs, using `Intl.DateTimeFormat` for the name and arranging the
+   * parts in the right order.
+   *
+   * A `LabelOf` rather than a plain string, for the same reason
+   * `RangeCellLabels.cell` is one: the month name depends on the locale, and
+   * a string that did not receive the locale could not produce it. The host
+   * decides the format — Loom's English default matches Reka's output so that
+   * nothing changes for a consumer who does not override it.
+   */
+  readonly filledMonth: LabelOf<{ value: number; locale: string }>;
 }
 
 /**
@@ -91,6 +110,14 @@ export const DATE_SEGMENT_LABELS: DateSegmentLabels = {
   // test assert whose string reached the DOM. It also reads better spoken — a
   // reader is being told this field has no value yet, not that it is blank.
   empty: "Not set",
+  // Matches Reka's `"5 - May"` format for English. The month name comes from
+  // `Intl.DateTimeFormat` via the cached `monthFormatters` map, which avoids
+  // reconstructing the formatter on every render. A host overrides this to
+  // change the format — Japanese `"5月"`, Vietnamese `"tháng 5"`, etc.
+  filledMonth: ({ value, locale }) => {
+    const name = monthName(locale, value);
+    return `${String(value)} - ${name}`;
+  },
 };
 
 /**
@@ -112,6 +139,22 @@ export interface TimeSegmentLabels {
   readonly dayPeriod: string;
   /** What an hour, minute or second with nothing in it yet reports. See `DateSegmentLabels.empty`. */
   readonly empty: string;
+  /**
+   * What a filled day-period segment announces as its value, replacing the
+   * `aria-valuetext` Reka writes inside `useDateField`.
+   *
+   * Reka writes `segmentValues.dayPeriod ?? "AM"` — always `"AM"` or `"PM"`,
+   * produced by its own hour-cycle logic (`hour >= 12 ? "PM" : "AM"`) rather
+   * than by `Intl.DateTimeFormat`. A host who has localised every other string
+   * in the library still hears Latin-script "AM"/"PM" from this segment, which
+   * is the defect this key exists to close.
+   *
+   * A `LabelOf` rather than a plain string, because the period name depends on
+   * the locale: Arabic writes `"ص"`/`"م"`, Japanese `"午前"`/`"午後"`, and a
+   * plain string could not carry that decision. Loom's English default returns
+   * `dayPeriod` unchanged, which is correct for Latin-script locales.
+   */
+  readonly filledDayPeriod: LabelOf<{ dayPeriod: string }>;
 }
 
 /** Loom's English for the time segments. See `DATE_SEGMENT_LABELS`. */
@@ -121,6 +164,10 @@ export const TIME_SEGMENT_LABELS: TimeSegmentLabels = {
   second: "Second",
   dayPeriod: "AM or PM",
   empty: "Not set",
+  // The identity function for English: Reka's `"AM"`/`"PM"` are correct for
+  // Latin-script locales. A host localising to Arabic, Japanese, etc. overrides
+  // this to return the locale's own period names.
+  filledDayPeriod: ({ dayPeriod }) => dayPeriod,
 };
 
 /**
@@ -133,8 +180,8 @@ export const TIME_SEGMENT_LABELS: TimeSegmentLabels = {
  * element, and `segmentLabel` would happily return the empty message as a
  * segment's accessible name.
  */
-export type DateSegmentName = Exclude<keyof DateSegmentLabels, "empty">;
-export type TimeSegmentName = Exclude<keyof TimeSegmentLabels, "empty">;
+export type DateSegmentName = Exclude<keyof DateSegmentLabels, "empty" | "filledMonth">;
+export type TimeSegmentName = Exclude<keyof TimeSegmentLabels, "empty" | "filledDayPeriod">;
 
 const DATE_SEGMENT_PARTS = new Set<DateSegmentName>(["month", "day", "year", "era"]);
 const TIME_SEGMENT_PARTS = new Set<TimeSegmentName>(["hour", "minute", "second", "dayPeriod"]);
@@ -294,6 +341,28 @@ export const RANGE_CELL_LABELS: RangeCellLabels = {
 // constructor is the expensive half of it. The map is bounded by the number of
 // locales an application actually renders, which is one in nearly every case.
 const dayFormatters = new Map<string, Intl.DateTimeFormat>();
+
+// Same pattern, for the filled month segment's `aria-valuetext`. The default
+// `filledMonth` label calls this on every render, so caching the formatter
+// avoids the `Intl.DateTimeFormat` constructor cost each time.
+const monthFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * A month name in the control's locale, for use in `aria-valuetext`.
+ *
+ * Exported so a host building a partial vocabulary can call it from their own
+ * `filledMonth` override rather than formatting from scratch — the same reason
+ * `formatFullDay` is exported.
+ */
+export function monthName(locale: string, month: number): string {
+  let formatter = monthFormatters.get(locale);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, { month: "long" });
+    monthFormatters.set(locale, formatter);
+  }
+  // `Date` months are 0-indexed; Loom months are 1-indexed (as in `DateValue.month`).
+  return formatter.format(new Date(2026, month - 1, 1));
+}
 
 /**
  * A whole day written out — weekday, day, month and year — in the control's

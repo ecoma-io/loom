@@ -291,8 +291,22 @@ function segmentLabel(part: string): string | undefined {
 // hard-coded "Empty" only while the segment holds nothing, so this replaces
 // that case and leaves the filled one — a number, and the locale's own month
 // name — exactly as Reka wrote it.
-function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
-  return emptySegmentValueText(part, value, dateText.value.empty);
+//
+// The month is the exception. See DatePicker's `segmentValueText` for the full
+// account; the same reasoning and the same `filledMonth` label apply here,
+// with the month taken from whichever half is rendering the segment.
+function segmentValueText(
+  part: string,
+  value: string,
+  monthValue?: number,
+): { "aria-valuetext"?: string } {
+  const empty = emptySegmentValueText(part, value, dateText.value.empty);
+  if (empty["aria-valuetext"]) return empty;
+  if (part === "month" && monthValue !== undefined)
+    return {
+      "aria-valuetext": dateText.value.filledMonth({ value: monthValue, locale: props.locale }),
+    };
+  return {};
 }
 
 // Routed exactly as DatePicker routes it, and for the same reasons: `class`
@@ -614,7 +628,13 @@ function onOpenAutoFocus(event: Event) {
               :type="type"
               :tabindex="segmentTabIndex(type, item.part, segments)"
               :aria-label="segmentLabel(item.part)"
-              v-bind="segmentValueText(item.part, item.value)"
+              v-bind="
+                segmentValueText(
+                  item.part,
+                  item.value,
+                  (type === 'start' ? range.start : range.end)?.month,
+                )
+              "
               :class="
                 cn(
                   'tabular rounded-sm px-0.5 outline-none',

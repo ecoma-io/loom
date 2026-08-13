@@ -355,9 +355,23 @@ function segmentLabel(part: string): string | undefined {
 // name — exactly as Reka wrote it.
 // The half that owns the part owns its empty message too, so a host localising
 // only `timeSegments` still reaches the clock segments of this control.
-function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
+function segmentValueText(
+  part: string,
+  value: string,
+  monthValue?: number,
+): { "aria-valuetext"?: string } {
   const empty = isTimeSegmentPart(part) ? timeText.value.empty : dateText.value.empty;
-  return emptySegmentValueText(part, value, empty);
+  const emptyResult = emptySegmentValueText(part, value, empty);
+  if (emptyResult["aria-valuetext"]) return emptyResult;
+  if (part === "month" && monthValue !== undefined) {
+    return {
+      "aria-valuetext": dateText.value.filledMonth({ value: monthValue, locale: props.locale }),
+    };
+  }
+  if (part === "dayPeriod") {
+    return { "aria-valuetext": timeText.value.filledDayPeriod({ dayPeriod: value }) };
+  }
+  return {};
 }
 
 // Routed exactly as both parents route it, and for the same reasons: `class`
@@ -848,7 +862,11 @@ function onOpenAutoFocus(event: Event) {
               :tabindex="segmentTabIndex(type, item.part, segments)"
               :aria-label="segmentLabel(item.part)"
               v-bind="{
-                ...segmentValueText(item.part, item.value),
+                ...segmentValueText(
+                  item.part,
+                  item.value,
+                  (type === 'start' ? range.start : range.end)?.month,
+                ),
                 ...(item.part === 'hour' ? hourAnnouncement(segments[type]) : undefined),
               }"
               :class="
