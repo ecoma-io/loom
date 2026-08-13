@@ -151,7 +151,7 @@ const EXTENT = {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, useId } from "vue";
 import {
   DrawerRoot,
   DrawerTrigger,
@@ -277,6 +277,70 @@ const { attrs, rest: panelAttrs } = useSplitAttrs();
 function guardOutsidePress(event: Event): void {
   if (!props.dismissible) event.preventDefault();
 }
+
+// The `dismissible: false` other half — the swipe. Reka wires
+// `useSwipeDismiss` unconditionally inside `DrawerContentImpl` with
+// `enabled: open` and exposes no prop to turn it off, so a drag on the panel
+// body toward the anchored edge used to dismiss a drawer whose `dismissible`
+// was `false` — defeating exactly the case the prop exists for, on touch,
+// where the reader is least likely to have meant it.
+//
+// There is no event Reka emits for the gesture that a handler could veto
+// from outside; the only lever is stopping its pointer handlers before they
+// start a swipe. Reka listens on the panel in the bubble phase, so a
+// capture-phase listener on `document` runs first for every event that
+// reaches the panel, and `stopImmediatePropagation` clears the rest of the
+// path — Reka's listener included — while leaving click, focus, scroll and
+// selection alone, which are separate events.
+//
+// Two costs are accepted rather than designed around. A consumer's own
+// pointerdown handler inside a non-dismissible drawer is stopped too, which
+// is the same neighbourhood as `interact-outside` vetoing their outside
+// press: `dismissible: false` declines pointer gestures, full stop. And a
+// non-dismissible drawer nested inside another non-dismissible one vetoes
+// gestures for both, which is the direction the pointer would have to travel
+// anyway.
+//
+// Pointer and touch are two paths in Reka (`onPointerDown` returns early for
+// touch pointers, which arrive via `onTouchStart`), so both events are
+// watched. The `data-loom-drawer-panel` marker scopes the veto to this
+// drawer's panel — and to nobody else's. That last half is the part that
+// bites: the marker is on every panel, so a naive `closest` check makes one
+// non-dismissible drawer on a page veto the gestures of every drawer on it,
+// dismissing nothing but the sibling's ability to be swiped. The marker
+// therefore carries this instance's own id, and the veto demands a match on
+// the value, not just the attribute. The attribute itself still has to
+// survive the panel being portalled away from the drawer's own subtree,
+// which an element-membership check would not.
+const PANEL_MARKER = "data-loom-drawer-panel";
+// `useId` like the rest of the library: stable across server and client, so
+// the marker value a listener armed during hydration checks is the value the
+// portalled panel renders with.
+const panelMarkerId = useId();
+
+function vetoSwipeStart(event: PointerEvent | TouchEvent): void {
+  if (props.dismissible) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const panel = target.closest(`[${PANEL_MARKER}]`);
+  if (!(panel instanceof Element) || panel.getAttribute(PANEL_MARKER) !== panelMarkerId) return;
+  event.stopImmediatePropagation();
+}
+
+// The listeners are on `document`, not the panel, because the panel's whole
+// lifecycle is Reka's — the portal content mounts with the drawer and is
+// removed with it, so a listener attached to the panel would need re-arming
+// on every open. A document listener is armed once for the component's own
+// lifetime, and `onBeforeUnmount` is the pairing that keeps it from leaking
+// into the next drawer or the host's page.
+onMounted(() => {
+  document.addEventListener("pointerdown", vetoSwipeStart, { capture: true });
+  document.addEventListener("touchstart", vetoSwipeStart, { capture: true, passive: true });
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("pointerdown", vetoSwipeStart, { capture: true });
+  document.removeEventListener("touchstart", vetoSwipeStart, { capture: true });
+});
 </script>
 
 <template>
@@ -310,6 +374,7 @@ function guardOutsidePress(event: Event): void {
 
       <DrawerContent
         v-bind="panelAttrs"
+        :data-loom-drawer-panel="panelMarkerId"
         :class="
           cn(
             'fixed z-50 flex flex-col border-border bg-popover text-popover-foreground shadow-lg outline-none',
