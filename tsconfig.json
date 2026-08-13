@@ -35,6 +35,14 @@
     // real source instead of a hand-copied snippet that can drift from it.
     "types": ["node", "vite/client"],
 
+    // The Vue TypeScript language-service plugin decorates the host so that
+    // `.vue` files resolve to virtual TypeScript content rather than being read
+    // from disk as raw text. ESLint's `projectService` shares the same host,
+    // so this is also what lets `.ts` files resolve `.vue` module types under
+    // the type-aware rules — the fix for the five workarounds removed in the
+    // same commit. `vue-tsc` uses its own compilation path and is unaffected.
+    "plugins": [{ "name": "@vue/typescript-plugin" }],
+
     // The documentation site imports Loom by its published name, so a snippet
     // on the site is a snippet a consumer can paste. This is the type-checker's
     // half of that; Vite's half is the matching alias in the VitePress config,

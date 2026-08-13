@@ -95,16 +95,6 @@ const options = [
   { value: "b", label: "Beta" },
 ];
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment --
- * ESLint's program cannot resolve a `.vue` module — only `vue-tsc` can, which
- * is what `pnpm typecheck` runs — so every component imported above arrives
- * here as an error type and assigning one to a declared `Component` reads as
- * unsafe. That is a statement about the linter rather than about the code, and
- * `eslint.config.mjs` already turns the same three rules off wholesale for the
- * documentation theme, which imports components for the same reason. Scoped to
- * this table rather than to the file, so an actually-unsafe assignment in an
- * assertion below is still reported.
- */
 const CONTROLS: readonly FieldControlRow[] = [
   {
     name: "Checkbox",
@@ -318,7 +308,6 @@ const CONTROLS: readonly FieldControlRow[] = [
     readonlyMark: "[data-readonly]",
   },
 ];
-/* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
 // Select, Combobox and the pickers portal their overlays and drive them with
 // real pointer capture, focus and layout APIs. jsdom implements none of those,
