@@ -170,20 +170,12 @@ enableAutoUnmount(afterEach);
  * `provideLoomLabels` works and the arrangement a host actually uses — a
  * getter rather than a snapshot, for the reason the seam documents: the getter
  * runs inside each component's render effect, so a language switch repaints.
- *
- * `inner` is `unknown` rather than `Component`, and that is forced rather than
- * chosen. ESLint's TypeScript program resolves `.vue` types only on `.vue`
- * files — the caveat `./labels.ts` records at `useLabels` — so every SFC
- * imported into a `.ts` module is error-typed there, and naming `Component` in
- * the parameter turns every call site below into a `no-unsafe-argument`
- * violation about a type that is perfectly sound to `vue-tsc`. `unknown` accepts it without asserting anything about it, and the
- * one assertion needed to render it is made here rather than at every call.
  */
-function render(inner: unknown, props: Record<string, unknown>): Element {
+function render(inner: Component, props: Record<string, unknown>): Element {
   const host = defineComponent({
     setup() {
       provideLoomLabels(() => VIETNAMESE);
-      return () => h(inner as Component, props);
+      return () => h(inner, props);
     },
   });
   return mount(host, { attachTo: document.body }).element as Element;

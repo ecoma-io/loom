@@ -88,6 +88,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/eslint-plugin": "^1.6.26",
     "@vue/test-utils": "^2.4.11",
+    "@vue/typescript-plugin": "3.3.9",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-playwright": "^2.11.0",

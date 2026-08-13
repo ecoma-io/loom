@@ -17,6 +17,26 @@ import vitest from "@vitest/eslint-plugin";
 import playwright from "eslint-plugin-playwright";
 import prettier from "eslint-config-prettier";
 
+// The `.ts` block uses `projectService` with `loadTypeScriptPlugins: true` so
+// the Vue TypeScript language-service plugin (configured in `tsconfig.json`)
+// decorates the host and `.vue` files resolve to virtual TypeScript content.
+// That is what lets `.ts` files resolve `.vue` module types under the type-aware
+// rules — the fix for the five workarounds removed in the same commit.
+//
+// The `.vue` block does NOT use `projectService`. `vue-eslint-parser` already
+// understands SFCs, and no type-aware rules target `.vue` files — the
+// `strictTypeChecked` and `stylisticTypeChecked` extends are scoped to
+// `**/*.ts`. Running `projectService` there loads the same Vue TS plugin, which
+// generates `__VLS_*` synthetic declarations that `no-unused-vars` then reports.
+// The parserOptions that remain (`tsconfigRootDir`, `extraFileExtensions`) are
+// sufficient for `vue-eslint-parser` to hand the `<script>` block to the
+// TypeScript parser for syntax-level analysis.
+const tsParserOptions = {
+  projectService: { loadTypeScriptPlugins: true },
+  extraFileExtensions: [".vue"],
+  tsconfigRootDir: import.meta.dirname,
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -54,10 +74,7 @@ export default tseslint.config(
     files: ["**/*.ts", "**/*.mts", "**/*.cts"],
     extends: [tseslint.configs.strictTypeChecked, tseslint.configs.stylisticTypeChecked],
     languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+      parserOptions: tsParserOptions,
     },
     rules: {
       // An unused binding is a leftover unless it is deliberately named with a
@@ -147,9 +164,8 @@ export default tseslint.config(
       parser: vueParser,
       parserOptions: {
         parser: tseslint.parser,
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: [".vue"],
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
@@ -188,20 +204,6 @@ export default tseslint.config(
       // and they belong beside the assertions that explain them. The rule is
       // about a shipped module's identity, which a test file does not have.
       "vue/one-component-per-file": "off",
-    },
-  },
-
-  // The documentation theme is TypeScript that imports single-file components,
-  // and ESLint's program cannot resolve a `.vue` module — only `vue-tsc` can,
-  // which is what `pnpm typecheck` runs over exactly these files. Left on, the
-  // unsafe-* rules report every such import as an error typed value, which is
-  // a statement about the linter rather than about the code.
-  {
-    files: ["docs/.vitepress/theme/**/*.ts"],
-    rules: {
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
     },
   },
 
