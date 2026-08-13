@@ -475,6 +475,7 @@ const groupDisabled = useAncestorDisabled(() => anchor.value?.$el);
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
+  ariaLabelledby: attrs["aria-labelledby"] as string | undefined,
   name: props.name,
   // The fieldset beats the prop in both directions, exactly as it does for the
   // trigger button inside this very control.
@@ -483,6 +484,12 @@ const field = useFieldControl(() => ({
   invalid: props.invalid,
   required: props.required,
 }));
+
+// `aria-labelledby` for the group, resolved against the row — DatePicker's
+// reasoning, and the same three-way guard.
+const groupLabelledBy = computed(() =>
+  attrs["aria-label"] || attrs["aria-labelledby"] ? undefined : field.labelledBy,
+);
 
 const errored = computed(() => field.invalid || outOfRange.value || backwards.value);
 
@@ -773,6 +780,7 @@ function onOpenAutoFocus(event: Event) {
         :key="shape"
         v-slot="{ segments }"
         v-bind="{ ...fieldAttrs, ...field.attrs }"
+        :aria-labelledby="groupLabelledBy"
         :aria-invalid="errored || undefined"
         :class="
           cn(

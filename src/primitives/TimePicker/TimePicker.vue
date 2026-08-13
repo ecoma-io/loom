@@ -216,6 +216,7 @@ const groupDisabled = useAncestorDisabled(() => root.value?.$el);
 const field = useFieldControl(() => ({
   id: attrs.id as string | undefined,
   describedBy: attrs["aria-describedby"] as string | undefined,
+  ariaLabelledby: attrs["aria-labelledby"] as string | undefined,
   name: props.name,
   // The fieldset beats the prop in both directions, exactly as it does for the
   // native input Reka renders inside this very control.
@@ -224,6 +225,12 @@ const field = useFieldControl(() => ({
   invalid: props.invalid,
   required: props.required,
 }));
+
+// `aria-labelledby` for the group, resolved against the row — DatePicker's
+// reasoning, and the same three-way guard.
+const groupLabelledBy = computed(() =>
+  attrs["aria-label"] || attrs["aria-labelledby"] ? undefined : field.labelledBy,
+);
 
 function fromClock(value: string | undefined): TimeValue | undefined {
   if (!value) return undefined;
@@ -334,6 +341,7 @@ function hourAnnouncement(
     :key="shape"
     v-slot="{ segments }"
     v-bind="{ ...rootValue, ...fieldAttrs, ...field.attrs }"
+    :aria-labelledby="groupLabelledBy"
     :locale="locale"
     :granularity="granularity"
     :disabled="field.disabled"

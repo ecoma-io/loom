@@ -100,6 +100,14 @@ const hasControl = useSlots().default !== undefined;
 // nobody, and an id nothing references is a landmark for no one.
 const controlId = computed(() => props.for ?? (hasControl ? generatedId : undefined));
 
+// The label's own id, for group controls that name themselves with
+// `aria-labelledby` rather than by `label for`. Follows the same `-label`
+// convention as the description line's `-description`, and it exists for the
+// same reason: a group element inside the slot cannot be pointed at by `<label
+// for>` (that element is not a labelable element), so it needs a second way to
+// learn the label's id.
+const labelId = computed(() => (controlId.value ? `${controlId.value}-label` : undefined));
+
 // The hint and the error are mutually exclusive, so one id covers whichever is
 // showing.
 const descriptionId = computed(() =>
@@ -116,6 +124,10 @@ const group = useOuterFieldContext();
 
 provideFieldContext({
   controlId: () => controlId.value,
+  // Group controls name themselves with `aria-labelledby`, not `label for`, so
+  // they need the label's own id. Only when the label is actually rendered: an
+  // IDREF that resolves to nothing is worse than no attribute at all.
+  labelledBy: () => (props.label ? labelId.value : undefined),
   // Only while a message is actually rendered. An IDREF resolving to nothing
   // is a worse answer than no attribute — the same reasoning Fieldset already
   // carries for its own `aria-describedby`.
@@ -132,7 +144,12 @@ provideFieldContext({
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <label v-if="label && controlId" :for="controlId" class="text-sm font-medium text-foreground">
+    <label
+      v-if="label && controlId"
+      :id="labelId"
+      :for="controlId"
+      class="text-sm font-medium text-foreground"
+    >
       {{ label }} <span v-if="required" class="text-destructive">*</span>
     </label>
     <span v-else-if="label" class="text-sm font-medium text-foreground">

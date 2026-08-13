@@ -17,6 +17,7 @@ enableAutoUnmount(afterEach);
 const Wrapper = defineComponent({
   props: {
     controlId: { type: String, default: undefined },
+    labelledBy: { type: String, default: undefined },
     describedBy: { type: String, default: undefined },
     name: { type: String, default: undefined },
     required: { type: Boolean, default: undefined },
@@ -27,6 +28,7 @@ const Wrapper = defineComponent({
   setup(props, { slots }) {
     provideFieldContext({
       controlId: () => props.controlId,
+      labelledBy: () => props.labelledBy,
       describedBy: () => props.describedBy,
       name: () => props.name,
       required: () => props.required,
@@ -65,6 +67,23 @@ const Control = defineComponent({
         disabled: field.disabled,
         readonly: field.readonly,
         "data-invalid": field.invalid || undefined,
+      });
+  },
+});
+
+const GroupControl = defineComponent({
+  inheritAttrs: false,
+  props: {
+    ariaLabelledby: { type: String, default: undefined },
+  },
+  setup(props) {
+    const field = useFieldControl(() => ({
+      ariaLabelledby: props.ariaLabelledby,
+    }));
+    return () =>
+      h("div", {
+        role: "group",
+        "aria-labelledby": field.labelledBy,
       });
   },
 });
@@ -212,5 +231,38 @@ describe("useFieldControl", () => {
     const remaining = wrapper.findAll("input");
     expect(remaining).toHaveLength(1);
     expect(remaining[0]?.attributes("id")).toBe("row");
+  });
+
+  describe("labelledBy", () => {
+    it("has no aria-labelledby when there is no wrapper above it", () => {
+      const group = mount(GroupControl).get("[role='group']");
+      expect(group.attributes("aria-labelledby")).toBeUndefined();
+    });
+
+    it("takes the wrapper's labelledBy when the control sets no ariaLabelledby of its own", () => {
+      const group = mount(Wrapper, {
+        props: { labelledBy: "row-label" },
+        slots: { default: h(GroupControl) },
+      }).get("[role='group']");
+
+      expect(group.attributes("aria-labelledby")).toBe("row-label");
+    });
+
+    it("lets a control's own ariaLabelledby beat the wrapper's labelledBy", () => {
+      const group = mount(Wrapper, {
+        props: { labelledBy: "row-label" },
+        slots: { default: h(GroupControl, { ariaLabelledby: "own-label" }) },
+      }).get("[role='group']");
+
+      expect(group.attributes("aria-labelledby")).toBe("own-label");
+    });
+
+    it("resolves to undefined when neither the control nor the wrapper provides a label", () => {
+      const group = mount(Wrapper, {
+        slots: { default: h(GroupControl) },
+      }).get("[role='group']");
+
+      expect(group.attributes("aria-labelledby")).toBeUndefined();
+    });
   });
 });

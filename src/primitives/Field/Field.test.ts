@@ -224,4 +224,22 @@ describe("Field", () => {
     });
     expect((overruled.get("input").element as HTMLInputElement).readOnly).toBe(false);
   });
+
+  it("gives the label an id derived from the control id, for group controls that name themselves with aria-labelledby", () => {
+    const wrapper = mount(Field, {
+      props: { label: "Code", for: "code-input" },
+    });
+    expect(wrapper.get("label").attributes("id")).toBe("code-input-label");
+  });
+
+  it("gives the label no id when there is no control id — a label with an id nobody references is a landmark for no one", () => {
+    const wrapper = mount(Field, { props: { label: "Code" } });
+    expect(wrapper.find("label").exists()).toBe(false);
+  });
+
+  it("gives the label no id when the label text is absent — an id on a span nobody reads is a landmark for no one", () => {
+    const wrapper = mount(Field, { props: { for: "code-input" } });
+    // No label rendered at all without `label` text
+    expect(wrapper.find("label").exists()).toBe(false);
+  });
 });
