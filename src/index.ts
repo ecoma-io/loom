@@ -301,7 +301,16 @@ export type { SplitLayoutCollapseAt } from "./layouts/SplitLayout/SplitLayout.vu
 // spacing and the behaviour that layout implies.
 export { default as AppHeader } from "./blocks/AppHeader/AppHeader.vue";
 export { default as DashboardGrid } from "./blocks/DashboardGrid/DashboardGrid.vue";
+export { default as DesktopAppShell } from "./blocks/DesktopAppShell/DesktopAppShell.vue";
 export { default as EmptyState } from "./blocks/EmptyState/EmptyState.vue";
+export { default as ErrorState } from "./blocks/ErrorState/ErrorState.vue";
+export { default as FormActions } from "./blocks/FormActions/FormActions.vue";
+export type { FormActionsAlign } from "./blocks/FormActions/FormActions.vue";
+export { default as FormSection } from "./blocks/FormSection/FormSection.vue";
+export type { FormSectionGap } from "./blocks/FormSection/FormSection.vue";
+export { default as LoadingState } from "./blocks/LoadingState/LoadingState.vue";
+export { default as MetricCard } from "./blocks/MetricCard/MetricCard.vue";
+export type { MetricCardTrend } from "./blocks/MetricCard/MetricCard.vue";
 export { default as PageHeader } from "./blocks/PageHeader/PageHeader.vue";
 export { default as RowActions } from "./blocks/RowActions/RowActions.vue";
 export { default as SidebarNav } from "./blocks/SidebarNav/SidebarNav.vue";
