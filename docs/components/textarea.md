@@ -1,10 +1,18 @@
 # Textarea
 
-Multi-line text entry — a native `<textarea>`. Unlike
-[TextField](./text-field) there are no `#leading`/`#trailing` adornments to
-frame, so the border, focus ring and invalid state live directly on the control
-itself: `class` and every other attribute you pass land on the `<textarea>`,
-not on anything wrapped around it.
+Multi-line text entry — a native `<textarea>`. The border, focus ring and
+invalid state live on the wrapper so optional `#leading`/`#trailing` adornments
+(a document icon, a formatting hint) sit inside the field and share its focus
+bloom, the same contract as [TextField](./text-field). The slot names match,
+and the vertical alignment differs — `items-start` for multi-line, where the
+text begins, versus `items-center` for single-line — because a five-row box
+with a centered icon mid-field reads as a mistake rather than a choice.
+
+`class` and every other attribute you pass land on the field frame wrapper,
+not on the `<textarea>` itself — a caller's `w-64` sizes the bordered field,
+not the bare textarea inside it. The native attributes (`id`, `name`,
+`aria-describedby`, `maxlength`) reach the `<textarea>` through the
+split-attrs convention shared with TextField.
 
 <script setup lang="ts">
 import { ref } from "vue";
@@ -112,6 +120,25 @@ and its placeholder to 2.05:1, against a 4.5:1 bar.
   <Textarea :rows="5" resize="none" aria-label="Notes" placeholder="Enter notes…" />
 </Demo>
 
+## Adornments
+
+`#leading` and `#trailing` sit inside the field border and share the focus bloom,
+the same slots [TextField](./text-field) offers. An icon, a formatting hint, a
+paste button — anything that belongs alongside the text rather than below it.
+
+<Demo title="With leading and trailing">
+  <div class="flex w-full flex-col gap-4" style="max-width: 22rem">
+    <Textarea aria-label="Notes" placeholder="Enter notes…">
+      <template #leading>📝</template>
+      <template #trailing>📋</template>
+    </Textarea>
+  </div>
+</Demo>
+
+The adornments start at the top of the field rather than the middle, because a
+multi-line textarea's text begins at the top. A centered icon in a five-row box
+would float mid-field.
+
 ## Character count
 
 `maxLength` gives the field a limit to report, and `showCount` overrules that in
@@ -122,11 +149,12 @@ counts them the same way.
 
 **The counter sits below the box, not inside it**, and that is the one place
 this differs from TextField. A single-line field has a free column at its end to
-hang a readout in; a textarea has none — the value fills the box and scrolls, and
-the bottom-right corner belongs to the browser's own resize grabber, which an
-overlaid counter would cover. Below the box, `resize` moves the field's bottom
-edge and the counter travels down with it rather than floating over the words.
-`resize="none"` changes nothing about where it sits.
+hang a readout in alongside the adornments; a textarea has none — the value
+fills the box and scrolls, and the bottom-right corner belongs to the browser's
+own resize grabber, which an overlaid counter would cover. Below the box,
+`resize` moves the field's bottom edge and the counter travels down with it
+rather than floating over the words. `resize="none"` changes nothing about where
+it sits.
 
 <Demo title="Counting against a limit">
   <div class="flex w-full flex-col gap-4" style="max-width: 22rem">
