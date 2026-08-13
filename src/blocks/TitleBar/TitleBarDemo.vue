@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import TitleBar from "./TitleBar.vue";
+import { Hexagon } from "@lucide/vue";
 import type { MenubarMenu } from "../../primitives/Menubar/Menubar.vue";
 
 const isMaximized = ref(false);
@@ -41,7 +42,11 @@ const menus: MenubarMenu[] = [
         @minimize="last = 'window.minimize'"
         @maximize="((isMaximized = !isMaximized), (last = 'window.maximize'))"
         @close="last = 'window.close'"
-      />
+      >
+        <template #brandMark>
+          <Hexagon :size="10" :stroke-width="2.5" />
+        </template>
+      </TitleBar>
       <div class="grid h-24 place-items-center bg-background text-xs text-muted-foreground">
         (app body)
       </div>

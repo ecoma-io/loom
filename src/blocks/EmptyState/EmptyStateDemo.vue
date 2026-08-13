@@ -14,7 +14,7 @@ const replayKey = ref(0);
       <EmptyState
         :key="replayKey"
         title="No workflows yet"
-        description="Create your first workflow to hand work to an agent."
+        description="Create your first workflow to get started."
       >
         <template #icon><Inbox /></template>
         <template #action>

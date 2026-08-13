@@ -130,12 +130,12 @@ describe("Indicator", () => {
     expect(overridden.get(MARKER).classes()).not.toContain("bg-destructive");
   });
 
-  it("wears the agent weft only where it is asked for, since it signals agent work rather than decorating", () => {
-    const agent = mount(Indicator, { props: { variant: "count", count: 2, tone: "ai" } });
-    expect(agent.get(MARKER).classes()).toContain("bg-agent");
+  it("wears the accent colour only where it is asked for, since it signals a second semantic category rather than decorating", () => {
+    const accent = mount(Indicator, { props: { variant: "count", count: 2, tone: "accent" } });
+    expect(accent.get(MARKER).classes()).toContain("bg-accent");
 
     const human = mount(Indicator, { props: { variant: "count", count: 2 } });
-    expect(human.get(MARKER).classes()).not.toContain("bg-agent");
+    expect(human.get(MARKER).classes()).not.toContain("bg-accent");
   });
 
   it("gives busy and away a shape of their own, so the three saturated statuses never differ by hue alone", () => {

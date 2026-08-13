@@ -31,9 +31,9 @@ function show(v: ToastVariant, t: string, d: string) {
     </Button>
     <Button
       variant="outline"
-      @click="show('ai', 'AI finished a draft', 'Review it before rendering.')"
+      @click="show('accent', 'Background task finished', 'Review it before rendering.')"
     >
-      AI
+      Accent
     </Button>
 
     <Toast

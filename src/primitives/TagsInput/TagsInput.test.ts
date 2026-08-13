@@ -457,7 +457,7 @@ describe("TagsInput", () => {
   it("takes every name it says from the labels bag, and keeps Loom's English for the keys left out", async () => {
     const wrapper = mount(TagsInput, {
       props: {
-        modelValue: ["ana@ecoma.io"],
+        modelValue: ["ada@example.com"],
         clearable: true,
         ariaLabel: "Recipients",
         labels: {
@@ -468,14 +468,14 @@ describe("TagsInput", () => {
       },
     });
 
-    expect(named(wrapper.element, "Bỏ ana@ecoma.io")).toBeTruthy();
+    expect(named(wrapper.element, "Bỏ ada@example.com")).toBeTruthy();
     expect(describedText(wrapper.element, box(wrapper.element))).toBe("1 người nhận");
     expect(named(wrapper.element, "Xoá tất cả")).toBeTruthy();
 
     // A partial bag is the shape a host actually writes, and the key it left
     // out has to stay a sentence rather than becoming nothing.
-    await commit(wrapper.element, "ana@ecoma.io");
-    expect(announced(wrapper.element)).toBe("ana@ecoma.io has already been added.");
+    await commit(wrapper.element, "ada@example.com");
+    expect(announced(wrapper.element)).toBe("ada@example.com has already been added.");
   });
 
   it("posts each token under the row's name, and never the half-typed draft", async () => {

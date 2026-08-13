@@ -67,7 +67,7 @@ than as a dark smear.
 
 ## The focus halo
 
-`--shadow-halo` is a warp-coloured haze added **around** the crisp
+`--shadow-halo` is a primary-coloured haze added **around** the crisp
 `:focus-visible` outline, on top of it, never replacing it — so the outline
 underneath still shows even where the halo itself is suppressed. Nearly every interactive primitive pairs
 the two together: `focus-visible:outline-2 focus-visible:outline-offset-2

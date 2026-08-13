@@ -93,12 +93,12 @@ describe("SidebarNav", () => {
     expect(links[1]!.attributes("aria-current")).toBeUndefined();
   });
 
-  it("paints the active item with the human/warp accent alone — a tinted fill, never the agent weft", () => {
+  it("paints the active item with the primary accent alone — a tinted fill, never the accent colour", () => {
     const wrapper = mount(SidebarNav, { props: { sections: SECTIONS } });
     const links = wrapper.findAll("a");
     expect(links[0]!.classes()).toContain("bg-primary/10");
     expect(links[0]!.classes()).toContain("text-primary");
-    expect(links[0]!.classes().some((c) => c.includes("agent"))).toBe(false);
+    expect(links[0]!.classes().some((c) => c.includes("accent"))).toBe(false);
     expect(links[1]!.classes()).not.toContain("bg-primary/10");
   });
 

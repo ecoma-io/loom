@@ -38,6 +38,7 @@
   }
 
   html {
+    color-scheme: light dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -216,30 +217,6 @@
   }
   to {
     background-position: 180% 0;
-  }
-}
-
-/* Conduct — "an agent is working": the weft's shuttle beat, a pulse keeping
- * time while the thread is carried across. This is Force 2's motion voice. */
-@keyframes conduct {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 transparent;
-  }
-  50% {
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-agent) 18%, transparent);
-  }
-}
-
-/* Seam-flow — a live seam: the warp↔weft boundary drifts while a human↔agent
- * collaboration is running. Apply to a `bg-seam` element with
- * `background-size: 200% 100%`, and stop it once the work settles. */
-@keyframes seam-flow {
-  from {
-    background-position: 0% 0;
-  }
-  to {
-    background-position: -200% 0;
   }
 }
 

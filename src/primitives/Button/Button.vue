@@ -40,7 +40,7 @@ export const buttonVariantClasses = {
  *
  *   • hover lifts by fill, not by shadow
  *   • active presses down (scale 0.97) — physical, causal feedback
- *   • focus blooms the warp ring
+ *   • focus blooms the primary ring
  *   • loading plays a kinetic swap under a shimmer sweep: the label rolls up
  *     and out, a progress arc springs in, the loading text rises last — and
  *     both layers share one grid cell, so the width never jumps mid-film

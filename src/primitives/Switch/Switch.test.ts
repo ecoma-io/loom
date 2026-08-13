@@ -108,7 +108,7 @@ describe("Switch", () => {
     expect(dimmed.map((el) => el.classes().join(" "))).toEqual([]);
   });
 
-  it("mirrors the model value into data-state, the hook the checked warp fill and the unchecked muted track both key on", async () => {
+  it("mirrors the model value into data-state, the hook the checked primary fill and the unchecked muted track both key on", async () => {
     const wrapper = mount(Switch, { props: { modelValue: false }, attrs: { "aria-label": "X" } });
     expect(wrapper.get('[role="switch"]').attributes("data-state")).toBe("unchecked");
     await wrapper.setProps({ modelValue: true });

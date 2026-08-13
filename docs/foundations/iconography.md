@@ -4,11 +4,6 @@ Loom draws every icon from [Lucide](https://lucide.dev), through `@lucide/vue`
 — an icon component per glyph, imported by name, styled entirely through
 props rather than through hand-tuned CSS per instance.
 
-<script setup lang="ts">
-import { Search, Bell } from "@lucide/vue";
-import { BrandMark } from "@ecoma-io/loom";
-</script>
-
 ```vue
 <script setup lang="ts">
 import { Search } from "@lucide/vue";
@@ -70,22 +65,10 @@ that needs an explicit accessible name instead, through `aria-label`.
   </span>
 </Demo>
 
-## BrandMark
+## Consumer icons
 
-`BrandMark` is Loom's one custom icon, built with the same `createLucideIcon`
-factory Lucide's own icons use — which is what lets it take exactly the props
-any Lucide icon takes (`size`, `strokeWidth`, `color`) and makes it
-indistinguishable, from a consumer's side, from a stock glyph. Its own source
-comment states the concept directly: one face, two forces — an almond eye for
-the human half, a rectangular eye for the agent half, joined by a single nose
-bridge, because both halves belong to the same face, the organization.
-
-<Demo title="BrandMark, at the icon defaults">
-  <BrandMark />
-</Demo>
-
-It stays strictly monochrome, inheriting `currentColor` like any other icon.
-The duotone treatment — the warp and weft halves carrying their own separate
-colours — is reserved for brand moments, not for this component: an icon has
-to be able to sit inside whatever colour context drops it in, which a
-two-colour glyph cannot do.
+Host applications can use the same `createLucideIcon` factory Loom's own
+components use internally to build custom icons that take the same props
+as any Lucide icon (`size`, `strokeWidth`, `color`). This is useful for
+brand marks and domain-specific glyphs that need to sit alongside the
+standard Lucide set.

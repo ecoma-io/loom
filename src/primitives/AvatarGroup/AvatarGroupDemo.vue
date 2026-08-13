@@ -15,19 +15,19 @@ const team: AvatarGroupItem[] = [
   { alt: "Rosa Peña", fallback: "RP" },
 ];
 
-// A run is worked by people and agents together, which is the case the
-// per-member `force` exists for.
+// A group may mix default and accent members, which is the case the
+// per-member `variant` exists for.
 const run: AvatarGroupItem[] = [
   { src: photo, alt: "Ada Lovelace", fallback: "AL" },
-  { alt: "Weaver", fallback: "WV", force: "ai" },
-  { alt: "Nightly digest", fallback: "ND", force: "ai" },
+  { alt: "Weaver", fallback: "WV", variant: "accent" },
+  { alt: "Scheduled task", fallback: "ST", variant: "accent" },
   { alt: "Grace Hopper", fallback: "GH" },
 ];
 
 const workspaces: AvatarGroupItem[] = [
   { alt: "Loom", fallback: "LO" },
-  { alt: "Warp", fallback: "WA" },
-  { alt: "Weft", fallback: "WE" },
+  { alt: "North", fallback: "NO" },
+  { alt: "South", fallback: "SO" },
 ];
 </script>
 
@@ -54,7 +54,7 @@ const workspaces: AvatarGroupItem[] = [
 
     <div class="flex flex-col gap-2">
       <span class="text-xs text-muted-foreground">
-        People and agents on one run — the rimmed faces are the agents
+        People and accent members on one row — the rimmed faces are the accent items
       </span>
       <AvatarGroup :avatars="run" label="Working on this run" />
     </div>

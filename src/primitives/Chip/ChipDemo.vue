@@ -7,7 +7,7 @@ const severities = [
   { value: "error", label: "Errors", variant: "destructive" },
   { value: "warn", label: "Warnings", variant: "warning" },
   { value: "ok", label: "Passing", variant: "success" },
-  { value: "agent", label: "Agent runs", variant: "ai" },
+  { value: "accent", label: "Accent items", variant: "accent" },
 ] as const;
 
 // Many-of-many, and none-of-them is a valid answer — which is what a row of
@@ -129,7 +129,7 @@ const medium = ref(false);
       <span id="chip-demo-disabled" class="text-xs text-muted-foreground">disabled</span>
       <div role="group" aria-labelledby="chip-demo-disabled" class="flex flex-wrap gap-2">
         <Chip :selected="true" disabled>Locked filter</Chip>
-        <Chip removable disabled remove-label="Remove the locked recipient">ana@ecoma.io</Chip>
+        <Chip removable disabled remove-label="Remove the locked recipient">ada@example.com</Chip>
       </div>
     </div>
   </div>

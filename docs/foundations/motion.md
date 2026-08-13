@@ -65,12 +65,6 @@ each one paired with the duration and easing it plays at, under the name a
 component actually reaches for (`animate-fade-rise`, not the bare
 `fade-rise` keyframe). A few, in the words of their own source comments:
 
-- **`conduct`** — "the weft's shuttle beat": a pulsing ring in the agent
-  colour, Force 2's motion voice for "an agent is working."
-- **`seam-flow`** — the warp↔weft boundary drifting while a human↔agent
-  collaboration is actually running, then going static once the work settles;
-  meant to be applied to a `bg-seam` element and stopped deliberately, not
-  left looping forever.
 - **`toast-in`** — applied to a toast's inner card, sliding in from the same
   edge it is later swiped away on, so an entrance transform never fights a
   live swipe gesture.

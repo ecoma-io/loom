@@ -10,11 +10,19 @@
  * a host from `@ecoma-io/loom/styles/global.css`. And `WCAG_TAGS` ships from
  * the narrow `@ecoma-io/loom/a11y` entry, so a consumer that compiles no Vue
  * at all can read it without resolving a single component below.
+ *
+ * `useTheme` and `themeScript` are re-exported here for convenience, but the
+ * primary entry is `@ecoma-io/loom/theme`, which carries no component weight.
  */
 
 // Utilities.
 export { cn } from "./lib/cn";
 export { applyLoomIconDefaults } from "./lib/icon-defaults";
+// Theme switching. The primary entry is `@ecoma-io/loom/theme`; these are
+// re-exported so a consumer already importing components can add theme
+// support without a second import path.
+export { useTheme, themeScript } from "./lib/theme";
+export type { ThemePreference, ResolvedTheme } from "./lib/theme";
 // The localisation seam. Loom ships the contract, never the content: there is
 // no i18n dependency here and no bundled translations, and a label that takes a
 // count is a function the host supplies, because pluralisation differs by
@@ -50,7 +58,7 @@ export {
 } from "./primitives/AlertDialog/AlertDialog.vue";
 export type { AlertDialogLabels } from "./primitives/AlertDialog/AlertDialog.vue";
 export { default as Avatar, avatarVariants } from "./primitives/Avatar/Avatar.vue";
-export type { AvatarForce, AvatarShape, AvatarSize } from "./primitives/Avatar/Avatar.vue";
+export type { AvatarShape, AvatarSize, AvatarVariant } from "./primitives/Avatar/Avatar.vue";
 export {
   default as AvatarGroup,
   AVATAR_GROUP_LABELS,
@@ -238,6 +246,3 @@ export type { SidebarNavItem, SidebarNavSection } from "./blocks/SidebarNav/Side
 export { default as TitleBar } from "./blocks/TitleBar/TitleBar.vue";
 export { default as ToastStack } from "./blocks/ToastStack/ToastStack.vue";
 export type { ToastStackItem } from "./blocks/ToastStack/ToastStack.vue";
-
-// Icons — custom domain glyphs, taking the same props as any Lucide icon.
-export { default as BrandMark } from "./icons/BrandMark";

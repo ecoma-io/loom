@@ -48,7 +48,7 @@ import { Field, Fieldset, TextField } from "@ecoma-io/loom";
   <div class="w-full max-w-sm">
     <Fieldset id="docs-shipping" legend="Shipping address" hint="We only use this for delivery" required>
       <Field label="Street" name="docs-shipping-street">
-        <TextField placeholder="12 Warp Lane" />
+        <TextField placeholder="12 Oak Lane" />
       </Field>
       <Field label="City" name="docs-shipping-city">
         <TextField placeholder="Hanoi" />
@@ -200,7 +200,7 @@ that same control landed at 1.93:1 when it added no dim of its own, and at
   <div class="w-full max-w-sm">
     <Fieldset id="docs-billing" legend="Billing address" error="Enter both a street and a city, or copy the shipping address" required>
       <Field label="Street" name="docs-billing-street">
-        <TextField placeholder="12 Warp Lane" />
+        <TextField placeholder="12 Oak Lane" />
       </Field>
       <Field label="City" name="docs-billing-city">
         <TextField placeholder="Hanoi" />

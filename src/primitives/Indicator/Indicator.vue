@@ -13,11 +13,11 @@ export type IndicatorPlacement = "top-right" | "top-left" | "bottom-right" | "bo
 
 /**
  * The colour vocabulary, deliberately Badge's own names rather than a second
- * set — `ai` included, and it means here exactly what it means there: work an
- * agent produced or is running, never decoration.
+ * set — `accent` included, and it means here exactly what it means there:
+ * a second semantic category distinct from primary, never decoration.
  */
 export type IndicatorTone =
-  "neutral" | "primary" | "success" | "warning" | "info" | "destructive" | "ai";
+  "neutral" | "primary" | "success" | "warning" | "info" | "destructive" | "accent";
 
 /** The surface the marked element sits on, which the separating ring matches. */
 export type IndicatorSurface = "background" | "card" | "sunken" | "popover";
@@ -76,7 +76,7 @@ export const indicatorToneVariants = cva("", {
       warning: "bg-warning text-warning-foreground",
       info: "bg-info text-info-foreground",
       destructive: "bg-destructive text-destructive-foreground",
-      ai: "bg-agent text-agent-foreground",
+      accent: "bg-accent text-accent-foreground",
     } satisfies Record<IndicatorTone, string>,
   },
   defaultVariants: { tone: "primary" },

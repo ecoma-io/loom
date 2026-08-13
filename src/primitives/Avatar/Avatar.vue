@@ -8,13 +8,11 @@ export type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
 export type AvatarShape = "circle" | "square";
 
 /**
- * Which of Loom's two forces the subject belongs to — the warp a person
- * authors on, or the weft an agent carries across it. `ai` is deliberately
- * Badge's own name for that second force rather than a second word for one
- * idea, and it means here exactly what it means there: an agent, never
- * decoration.
+ * Which visual treatment the avatar receives. `accent` applies the accent
+ * colour as a rim, signalling a second semantic category distinct from the
+ * default — a different role, origin, or mode.
  */
-export type AvatarForce = "human" | "ai";
+export type AvatarVariant = "default" | "accent";
 
 export const avatarVariants = cva(
   "relative inline-flex shrink-0 items-center justify-center overflow-hidden select-none",
@@ -38,17 +36,17 @@ export const avatarVariants = cva(
         xl: "h-16 w-16 text-lg",
       } satisfies Record<AvatarSize, string>,
       force: {
-        human: "bg-muted text-muted-foreground",
-        // The weft, worn as a rim. Two signals, not one: the rim's *presence*
-        // is what a reader who cannot resolve the hue still sees — a human
-        // avatar has no edge at all — and the hidden `agentLabel` is what a
-        // reader who sees no avatar hears. The corner is left alone on
-        // purpose, because the corner is Indicator's: a presence dot pinned
-        // there would land on top of anything this component drew.
-        ai: "border-2 border-agent bg-agent-muted text-agent",
-      } satisfies Record<AvatarForce, string>,
+        default: "bg-muted text-muted-foreground",
+        // The accent rim. Two signals, not one: the rim's *presence* is what a
+        // reader who cannot resolve the hue still sees — a default avatar has no
+        // edge at all — and the hidden `accentLabel` is what a reader who sees
+        // no avatar hears. The corner is left alone on purpose, because the
+        // corner is Indicator's: a presence dot pinned there would land on top
+        // of anything this component drew.
+        accent: "border-2 border-accent bg-accent-muted text-accent",
+      } satisfies Record<AvatarVariant, string>,
     },
-    defaultVariants: { size: "md", force: "human" },
+    defaultVariants: { size: "md", force: "default" },
   },
 );
 
@@ -87,7 +85,7 @@ import { cn } from "../../lib/cn";
 import { useSplitAttrs } from "../../lib/attrs";
 
 /**
- * Avatar — a user or agent's picture, with a graceful initials fallback for
+ * Avatar — a user's picture, with a graceful initials fallback for
  * no `src`, a broken URL, or a still-loading image. Built on Reka UI's
  * Avatar: the image only paints once it has actually finished loading, so
  * the fallback stays visible the whole time until then — first paint is
@@ -112,17 +110,17 @@ const props = withDefaults(
     size?: AvatarSize;
     /** A circle, or a rounded square tile. Square suits a subject a circle would misdescribe — an organisation, a project, a repository — and takes a radius that steps with the size rather than one fixed value. */
     shape?: AvatarShape;
-    /** Which force the subject belongs to. `ai` wears the agent weft as a rim, and adds `agentLabel` for a screen reader, so the distinction never rests on the hue alone. */
-    force?: AvatarForce;
-    /** What a screen reader announces after the name of an `ai` avatar. Localise it. Set it empty when something outside already says so — `AvatarGroup` does, because each row item composes its own name — and nothing is added for a `human` avatar either way. */
-    agentLabel?: string;
+    /** Which visual treatment the avatar receives. `accent` applies the accent rim and `accentLabel` for a screen reader, so the distinction never rests on the hue alone. */
+    variant?: AvatarVariant;
+    /** What a screen reader announces after the name of an `accent` avatar. Localise it. Set it empty when something outside already says so — `AvatarGroup` does, because each row item composes its own name — and nothing is added for a `default` avatar either way. */
+    accentLabel?: string;
   }>(),
   {
     alt: "",
     size: "md",
     shape: "circle",
-    force: "human",
-    agentLabel: "AI agent",
+    variant: "default",
+    accentLabel: "",
   },
 );
 
@@ -140,8 +138,8 @@ const radius = computed(() => avatarRadius(props.size, props.shape));
 <template>
   <AvatarRoot
     v-bind="rest"
-    :data-force="force"
-    :class="cn(avatarVariants({ size, force }), radius, attrs.class as string)"
+    :data-variant="variant"
+    :class="cn(avatarVariants({ size, force: variant }), radius, attrs.class as string)"
   >
     <!-- Reka paints AvatarImage only once the photo has loaded, so scale-in
          plays exactly on that swap-in — a gentle settle over the fallback. -->
@@ -152,11 +150,11 @@ const radius = computed(() => avatarRadius(props.size, props.shape));
       class="h-full w-full animate-scale-in object-cover"
     />
     <AvatarFallback class="font-medium">{{ fallback }}</AvatarFallback>
-    <!-- The half of the agent signal a rim cannot carry. It sits after the
+    <!-- The half of the accent signal a rim cannot carry. It sits after the
          image so it is announced as a qualifier on the name rather than in
-         place of it, and it is dropped entirely for an empty `agentLabel`: a
+         place of it, and it is dropped entirely for an empty `accentLabel`: a
          wrapper that has already worked the qualifier into its own name would
          otherwise leave a second copy of it in the tree. -->
-    <span v-if="force === 'ai' && agentLabel" class="sr-only">{{ agentLabel }}</span>
+    <span v-if="variant === 'accent' && accentLabel" class="sr-only">{{ accentLabel }}</span>
   </AvatarRoot>
 </template>

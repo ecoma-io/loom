@@ -25,12 +25,12 @@ describe("Badge", () => {
     expect(classes).not.toContain("bg-destructive/12");
   });
 
-  it("carries the agent weft on the ai variant and on no other — agent work is signalled, never decorative", () => {
-    const ai = mount(Badge, { props: { variant: "ai" }, slots: { default: "AI" } });
-    expect(ai.classes()).toContain("bg-agent-muted");
+  it("carries the accent colour on the accent variant and on no other — a second semantic category is signalled, never decorative", () => {
+    const accent = mount(Badge, { props: { variant: "accent" }, slots: { default: "Accent" } });
+    expect(accent.classes()).toContain("bg-accent-muted");
 
-    const neutral = mount(Badge, { props: { variant: "neutral" }, slots: { default: "AI" } });
-    expect(neutral.classes()).not.toContain("bg-agent-muted");
+    const neutral = mount(Badge, { props: { variant: "neutral" }, slots: { default: "Accent" } });
+    expect(neutral.classes()).not.toContain("bg-accent-muted");
   });
 
   it("draws the outline variant as a bordered chip rather than a filled one, for meta that must not compete with status", () => {

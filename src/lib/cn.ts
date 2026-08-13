@@ -43,11 +43,6 @@ const TYPE_SCALE = [
  * resolves by value table — durations, easings, animations — is invisible to it
  * until it appears below, and the defect it produces is the silent one this
  * file already exists to document.
- *
- * `bg-seam` is the odd one and the clearest bug of the set. It sets
- * `background-image`; `bg-primary` sets `background-color`. tailwind-merge read
- * the unrecognised name as a colour, so a gradient laid over a base colour lost
- * the gradient. In its own group the two correctly coexist.
  */
 const ANIMATIONS = [
   "animate-fade",
@@ -57,8 +52,6 @@ const ANIMATIONS = [
   "animate-scale-in",
   "animate-scale-out",
   "animate-shimmer",
-  "animate-conduct",
-  "animate-seam-flow",
   "animate-progress-indeterminate",
   "animate-toast-in",
   "animate-slide-out-to-left",
@@ -83,7 +76,6 @@ const twMerge = extendTailwindMerge({
       animate: ANIMATIONS,
       duration: DURATIONS,
       ease: EASINGS,
-      "bg-image": ["bg-seam"],
       z: ["z-raised", "z-sticky", "z-chrome", "z-overlay", "z-toast"],
       opacity: ["opacity-disabled", "opacity-scrim", "opacity-scrim-light"],
       scale: ["scale-press"],

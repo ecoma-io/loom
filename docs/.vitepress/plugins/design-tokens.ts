@@ -153,7 +153,7 @@ function parseTokens(css: string): Token[] {
   return tokens;
 }
 
-/** `color-primary-foreground` groups as `color`; `seam` groups as `seam`. */
+/** `color-primary-foreground` groups as `color`. */
 function groupOf(tokenName: string): string {
   const base = tokenName.includes("--") ? tokenName.slice(0, tokenName.indexOf("--")) : tokenName;
   const hyphen = base.indexOf("-");
@@ -187,17 +187,6 @@ const SWATCH_STYLE =
 function renderColor(tokens: Token[]): string {
   const rows = tokens.map((t) => [
     `<span style="${SWATCH_STYLE}${escapeAttr(t.value)}"></span>`,
-    code(`--${t.name}`),
-    code(t.value),
-    cell(t.description),
-  ]);
-  return table(["", "Token", "Value", "Description"], rows);
-}
-
-function renderSeam(tokens: Token[]): string {
-  const rows = tokens.map((t) => [
-    `<span style="display:inline-block;width:6rem;height:1.5rem;border-radius:0.375rem;` +
-      `border:1px solid var(--color-border);vertical-align:middle;background-image:${escapeAttr(t.value)}"></span>`,
     code(`--${t.name}`),
     code(t.value),
     cell(t.description),
@@ -281,8 +270,6 @@ function render(group: string, tokens: Token[]): string {
   switch (group) {
     case "color":
       return renderColor(tokens);
-    case "seam":
-      return renderSeam(tokens);
     case "radius":
       return renderPreview(
         tokens,

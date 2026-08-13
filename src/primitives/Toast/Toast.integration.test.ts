@@ -83,14 +83,14 @@ describe("Toast", () => {
     expect(description()?.textContent.trim()).toBe("Draft written to disk.");
   });
 
-  it("picks the variant's accent — the ai variant adds the conduct pulse the plain variants must not carry", async () => {
+  it("picks the variant's accent — the accent variant adds the border highlight the plain variants must not carry", async () => {
     await mountToast({ variant: "info" });
-    expect(viewport().querySelector(".animate-conduct")).toBeNull();
+    expect(viewport().querySelector(".border-primary\\/40")).toBeNull();
     mounted!.unmount();
     document.body.innerHTML = "";
 
-    await mountToast({ variant: "ai" });
-    expect(viewport().querySelector(".animate-conduct")).not.toBeNull();
+    await mountToast({ variant: "accent" });
+    expect(viewport().querySelector(".border-primary\\/40")).not.toBeNull();
   });
 
   // The case above pins that the accent renders, not that it stays silent —
@@ -98,11 +98,10 @@ describe("Toast", () => {
   // A toast is announced through a live region the moment it appears, so a
   // glyph or a pulse overlay that reaches the accessibility tree is read out
   // ahead of the message, on every toast the app shows.
-  it("keeps the accent glyph and the conduct pulse out of the announcement, so only the message is read", async () => {
-    await mountToast({ variant: "ai" });
+  it("keeps the accent glyph out of the announcement, so only the message is read", async () => {
+    await mountToast({ variant: "accent" });
     const card = viewport().querySelector("li")!;
     expect(card.querySelector("svg")!.getAttribute("aria-hidden")).toBe("true");
-    expect(card.querySelector(".animate-conduct")!.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("renders the inline action only when a label is supplied and reports the press instead of acting", async () => {

@@ -60,13 +60,16 @@ describe("Chip", () => {
   // dismiss-only chip would grow a second Tab stop that announces itself as
   // pressable and does nothing when pressed.
   it("leaves the label inert when selected is unbound, rather than making every chip a toggle", () => {
-    const wrapper = mount(Chip, { props: { removable: true }, slots: { default: "ana@ecoma.io" } });
+    const wrapper = mount(Chip, {
+      props: { removable: true },
+      slots: { default: "ada@example.com" },
+    });
 
     const buttons = wrapper.findAll("button");
     expect(buttons).toHaveLength(1);
     expect(buttons[0]?.attributes("aria-label")).toBe("Remove");
     expect(wrapper.find("[aria-pressed]").exists()).toBe(false);
-    expect(wrapper.text()).toContain("ana@ecoma.io");
+    expect(wrapper.text()).toContain("ada@example.com");
   });
 
   it("emits remove from the dismiss control without also toggling the selection", async () => {
@@ -166,7 +169,7 @@ describe("Chip", () => {
       ["warning", "bg-warning/12"],
       ["info", "bg-info/12"],
       ["destructive", "bg-destructive/12"],
-      ["ai", "bg-agent-muted"],
+      ["accent", "bg-accent-muted"],
     ];
     for (const [variant, token] of tokens) {
       const wrapper = mount(Chip, { props: { variant }, slots: { default: "token" } });

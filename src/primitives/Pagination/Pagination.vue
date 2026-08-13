@@ -220,13 +220,13 @@ function pageClass(selected: boolean): string {
     // *is* text — the page number, the one thing a reader needs from a pager
     // that is briefly out of service. `disabled:opacity-50` composited the
     // ghost variant's `--color-muted-foreground` down to 2.05:1 and the current
-    // page's white-on-warp label down to 2.48:1; halving the alpha more than
+    // page's white-on-primary label down to 2.48:1; halving the alpha more than
     // halves the contrast. Unavailability is painted in measured colours
     // instead.
     //
     // The two branches drain to different wells on purpose, which is Chip's
     // rule applied to a row of numbers: an unselected page falls to the neutral
-    // well at 4.67:1, and the current page keeps the warp wash it already wears
+    // well at 4.67:1, and the current page keeps the primary wash it already wears
     // at 6.84:1. Which page a reader is on is information, and a disabled pager
     // that forgets it has answered the question by refusing to answer it.
     selected

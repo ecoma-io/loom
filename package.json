@@ -1,7 +1,7 @@
 {
   "name": "@ecoma-io/loom",
   "version": "0.1.1",
-  "description": "Design system & components for the Ecoma ecosystem.",
+  "description": "Opinionated UI system and composition library for cross-platform web applications.",
   "keywords": [
     "design-system",
     "component-library",
@@ -16,7 +16,10 @@
     "wcag",
     "theming",
     "dark-mode",
-    "ecoma"
+    "cross-platform",
+    "desktop",
+    "responsive",
+    "composition"
   ],
   "homepage": "https://github.com/ecoma-io/loom#readme",
   "repository": {
@@ -46,6 +49,10 @@
     "./a11y": {
       "types": "./dist/a11y.d.ts",
       "default": "./dist/a11y.js"
+    },
+    "./theme": {
+      "types": "./dist/lib/theme.d.ts",
+      "default": "./dist/theme.js"
     },
     "./styles/global.css": "./dist/styles/global.css",
     "./styles/theme.css": "./dist/styles/theme.css",

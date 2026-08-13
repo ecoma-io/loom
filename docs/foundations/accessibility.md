@@ -48,7 +48,7 @@ rest of the library.
 ```
 
 That base rule covers plain elements; nearly every interactive primitive adds
-`focus-visible:shadow-halo` on top of it — the warp-coloured haze documented
+`focus-visible:shadow-halo` on top of it — the primary-coloured haze documented
 on the [Elevation](./elevation) page — layered around the outline rather than
 instead of it. The outline is never removed without something at least as
 visible replacing it, which is why the halo is additive: whatever suppresses

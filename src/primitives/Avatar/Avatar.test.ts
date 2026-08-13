@@ -62,43 +62,50 @@ describe("Avatar", () => {
     expect(wrapper.classes()).toContain("rounded-full");
   });
 
-  it("marks an agent avatar with a rim as well as a colour, so the force survives greyscale", () => {
-    const agent = mount(Avatar, { props: { fallback: "OP", force: "ai" } });
-    expect(agent.classes()).toEqual(expect.arrayContaining(["border-2", "border-agent"]));
+  it("marks an accent avatar with a rim as well as a colour, so the variant survives greyscale", () => {
+    const accent = mount(Avatar, { props: { fallback: "OP", variant: "accent" } });
+    expect(accent.classes()).toEqual(expect.arrayContaining(["border-2", "border-accent"]));
 
     const person = mount(Avatar, { props: { fallback: "AL" } });
-    expect(person.classes()).not.toContain("border-agent");
+    expect(person.classes()).not.toContain("border-accent");
     expect(person.classes()).toContain("bg-muted");
   });
 
-  it("names the agent force for a screen reader, so it is never carried by the rim alone", () => {
-    const agent = mount(Avatar, { props: { fallback: "OP", alt: "Opus", force: "ai" } });
-    expect(agent.get(".sr-only").text()).toBe("AI agent");
-  });
+  it("names the accent variant for a screen reader only when an accentLabel is provided, so the rim alone is not the whole signal", () => {
+    // No accentLabel → no sr-only text; the accent rim is visual only.
+    const rimOnly = mount(Avatar, { props: { fallback: "OP", alt: "Opus", variant: "accent" } });
+    expect(rimOnly.find(".sr-only").exists()).toBe(false);
 
-  it("takes a localised agent label", () => {
-    const agent = mount(Avatar, {
-      props: { fallback: "OP", force: "ai", agentLabel: "Tác nhân AI" },
+    // With an accentLabel → the sr-only text appears.
+    const named = mount(Avatar, {
+      props: { fallback: "OP", alt: "Opus", variant: "accent", accentLabel: "Accent" },
     });
-    expect(agent.get(".sr-only").text()).toBe("Tác nhân AI");
+    expect(named.get(".sr-only").text()).toBe("Accent");
   });
 
-  it("drops the hidden label when it is cleared, so a wrapper that names the force itself leaves no second copy", () => {
-    const agent = mount(Avatar, { props: { fallback: "OP", force: "ai", agentLabel: "" } });
-    expect(agent.find(".sr-only").exists()).toBe(false);
-    expect(agent.classes()).toContain("border-agent");
+  it("takes a localised accent label", () => {
+    const accent = mount(Avatar, {
+      props: { fallback: "OP", variant: "accent", accentLabel: "Nhấn mạnh" },
+    });
+    expect(accent.get(".sr-only").text()).toBe("Nhấn mạnh");
   });
 
-  it("says nothing extra for a person, so a human avatar announces only who it is", () => {
+  it("drops the hidden label when it is cleared, so a wrapper that names the variant itself leaves no second copy", () => {
+    const accent = mount(Avatar, { props: { fallback: "OP", variant: "accent", accentLabel: "" } });
+    expect(accent.find(".sr-only").exists()).toBe(false);
+    expect(accent.classes()).toContain("border-accent");
+  });
+
+  it("says nothing extra for a default avatar, so a person's avatar announces only who it is", () => {
     const person = mount(Avatar, { props: { fallback: "AL", alt: "Ada Lovelace" } });
     expect(person.find(".sr-only").exists()).toBe(false);
   });
 
-  it("reports its force as a data attribute, defaulting to human", () => {
-    expect(mount(Avatar, { props: { fallback: "AL" } }).attributes("data-force")).toBe("human");
-    expect(mount(Avatar, { props: { fallback: "OP", force: "ai" } }).attributes("data-force")).toBe(
-      "ai",
-    );
+  it("reports its variant as a data attribute, defaulting to default", () => {
+    expect(mount(Avatar, { props: { fallback: "AL" } }).attributes("data-variant")).toBe("default");
+    expect(
+      mount(Avatar, { props: { fallback: "OP", variant: "accent" } }).attributes("data-variant"),
+    ).toBe("accent");
   });
 
   it("gives the image the alt it was passed, so the photo announces its subject", () => {

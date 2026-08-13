@@ -136,13 +136,4 @@ describe("cn and the rest of the named vocabulary", () => {
     expect(cn("ease-out", "ease-spring")).toBe("ease-spring");
     expect(cn("ease-spring", "ease-out")).toBe("ease-out");
   });
-
-  // `bg-seam` paints a background *image*; `bg-primary` a background *colour*.
-  // Read as a colour, the gradient was dropped whenever a base colour followed
-  // it — the seam is the one thing in the library that may never be lost by
-  // accident, since it is the brand moment rather than decoration.
-  it("keeps the seam gradient alongside a background colour, in either order", () => {
-    expect(cn("bg-seam", "bg-primary")).toBe("bg-seam bg-primary");
-    expect(cn("bg-primary", "bg-seam")).toBe("bg-primary bg-seam");
-  });
 });

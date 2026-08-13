@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Bell, ChevronDown, Search } from "@lucide/vue";
+import { Bell, ChevronDown, Hexagon, Search } from "@lucide/vue";
 import AppHeader from "./AppHeader.vue";
 import Button from "../../primitives/Button/Button.vue";
 import TextField from "../../primitives/TextField/TextField.vue";
@@ -8,7 +8,6 @@ import DropdownMenu, {
   type DropdownMenuEntry,
 } from "../../primitives/DropdownMenu/DropdownMenu.vue";
 import Avatar from "../../primitives/Avatar/Avatar.vue";
-import BrandMark from "../../icons/BrandMark";
 import Surface from "../../primitives/Surface/Surface.vue";
 
 const query = ref("");
@@ -17,16 +16,15 @@ const query = ref("");
 const rows = ["Video digest", "Repo cleanup", "Blog roundup", "Comment summary"];
 
 const orgItems: DropdownMenuEntry[] = [
-  { heading: true, label: "Organization" },
-  { label: "Ecoma Studio", value: "ecoma-studio" },
+  { label: "Acme Corp", value: "acme-corp" },
   { label: "North Peak Films", value: "north-peak-films" },
   { separator: true },
-  { label: "Create organization", value: "create-org" },
+  { label: "Create workspace", value: "create-workspace" },
 ];
 
 const notificationItems: DropdownMenuEntry[] = [
   { heading: true, label: "Notifications" },
-  { label: 'Workflow "Repo cleanup" finished', value: "workflow-done" },
+  { label: 'Task "Repo cleanup" finished', value: "task-done" },
   { label: "2 new members awaiting approval", value: "members-pending" },
 ];
 
@@ -48,9 +46,9 @@ const userItems: DropdownMenuEntry[] = [
           class="grid h-6 w-6 place-items-center rounded-md bg-primary text-primary-foreground"
           aria-hidden="true"
         >
-          <BrandMark :size="14" :stroke-width="2" />
+          <Hexagon :size="14" :stroke-width="2" />
         </span>
-        <span class="text-sm font-semibold tracking-tight text-foreground">Ecoma</span>
+        <span class="text-sm font-semibold tracking-tight text-foreground">Acme</span>
       </template>
 
       <template #search>
@@ -61,11 +59,11 @@ const userItems: DropdownMenuEntry[] = [
         </TextField>
       </template>
 
-      <template #orgSwitcher>
+      <template #leading>
         <DropdownMenu :items="orgItems">
           <template #trigger>
             <Button variant="ghost" size="sm">
-              Ecoma Studio
+              Acme Corp
               <ChevronDown aria-hidden="true" />
             </Button>
           </template>

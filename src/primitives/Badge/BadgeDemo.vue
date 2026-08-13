@@ -4,7 +4,7 @@ import Badge from "./Badge.vue";
 
 <template>
   <div class="flex flex-wrap items-center gap-2">
-    <Badge variant="ai">✦ Agent</Badge>
+    <Badge variant="accent">✦ Accent</Badge>
     <Badge variant="primary">Primary</Badge>
     <Badge variant="info">selection</Badge>
     <Badge variant="success">rendered</Badge>

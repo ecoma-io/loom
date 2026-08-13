@@ -5,26 +5,21 @@
  * can theme lives here and nowhere else: no colour, duration, easing, radius
  * or shadow is written literally in a component.
  *
- * Positioning it encodes. Ecoma is a platform where an organization digitizes
- * its own operations and AI agents are a first-class workforce, so the form
- * language is dual-force:
+ * Positioning it encodes. Loom is a UI system for cross-platform web
+ * applications — browser, PWA, Electron, Tauri — so the form language is
+ * purposeful and opinionated:
  *
- *   - Human (warp) — the threads strung and held under tension: what people
- *     author and decide. Doubles as the default action colour, because a
- *     person drives the interface.
- *   - Agent (weft) — the thread carried across them: work an agent is running
- *     or has produced.
- *   - The seam — a warp→weft gradient — appears ONLY where the two forces
- *     meet: handoffs, co-authored assets, brand moments. Never under body
- *     text, never on anything smaller than 20px, never in an interaction
- *     state.
+ *   - Primary (`--color-primary`) — the default action colour: what a person
+ *     drives the interface with. The focus ring is the same hue for the same
+ *     reason — keyboard focus is the primary action.
+ *   - Accent (`--color-accent`) — a second semantic colour for contrast or
+ *     emphasis distinct from the primary action. Useful for signalling a
+ *     different category, mode, or origin.
  *
- * Two threads, one cloth: the forces are one piece of work, not two systems.
- *
- * Light-first. This is a daytime operations tool, so the paper-light theme is
- * the single default and there is no runtime light/dark switch. A symmetric
- * dark theme is a reserved seam that returns with the first surface that
- * needs it.
+ * Dual-theme. The light tokens are the default; the dark block below
+ * overrides every semantic token under `:root[data-theme="dark"]`. Switching
+ * replaces the entire set, so the two cannot drift apart. The `useTheme`
+ * composable and `themeScript` flash-prevention snippet manage the attribute.
  *
  * `static` rather than plain `@theme`: Tailwind emits only the variables its
  * generated utilities reference, and several tokens here are read by an
@@ -33,7 +28,7 @@
  * `var(--duration-fast)` resolve inside a component's style attribute.
  */
 @theme static {
-  /* ---- Neutrals: technical paper, cooled slightly toward the warp ------- */
+  /* ---- Neutrals: technical paper, cooled slightly toward the primary hue --- */
   --color-background: hsl(213 25% 96%);
   --color-foreground: hsl(213 29% 15%);
 
@@ -74,23 +69,25 @@
   --color-subtle: hsl(213 20% 94%);
   --color-subtle-foreground: hsl(213 29% 18%);
 
-  /* ---- Force 1 · Human — warp: default action, structure, decisions ----- */
+  /* ---- Force 1 · Primary — default action, structure, decisions --------- */
   --color-primary: hsl(211 37% 32%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-primary-muted: hsl(211 35% 92%); /* warp wash: selected/active fills */
+  --color-primary-muted: hsl(211 35% 92%); /* wash: selected/active fills */
 
-  /* ---- Force 2 · Agent — weft: automated work running or produced ------- */
-  --color-agent: hsl(18 56% 39%);
-  --color-agent-foreground: hsl(0 0% 100%);
-  --color-agent-muted: hsl(18 50% 93%); /* weft wash: agent-driven surfaces */
+  /* ---- Force 2 · Accent — a second semantic colour for contrast or
+   * emphasis distinct from the primary action. Useful for signalling a
+   * different category, mode, or origin. ------------------------------- */
+  --color-accent: hsl(18 56% 39%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  --color-accent-muted: hsl(18 50% 93%); /* wash: accent-driven surfaces */
 
   --color-secondary: hsl(213 18% 91%);
   --color-secondary-foreground: hsl(213 29% 18%);
 
-  /* Focus ring is the Human warp: keyboard focus is a person acting. */
+  /* Focus ring is the primary colour: keyboard focus is the primary action. */
   --color-ring: hsl(211 37% 32%);
 
-  /* ---- Functional — hues kept distinct from both forces ----------------- */
+  /* ---- Functional — hues kept distinct from both action colours ------------ */
   --color-destructive: hsl(356 65% 41%);
   --color-destructive-foreground: hsl(0 0% 100%);
   --color-success: hsl(152 45% 30%);
@@ -100,7 +97,7 @@
   --color-info: hsl(202 65% 35%);
   --color-info-foreground: hsl(0 0% 100%);
 
-  /* Each functional hue's wash, completing the pattern the two forces above
+  /* Each functional hue's wash, completing the pattern the action colours above
    * already set. These are opaque rather than an alpha of the base hue, and
    * that is the whole reason they exist: a `bg-destructive/12` fill composites
    * against whatever is behind it, so the same badge renders as one colour on
@@ -112,11 +109,6 @@
   --color-success-muted: hsl(152 40% 93%); /* success wash: a settled, completed surface */
   --color-warning-muted: hsl(38 70% 92%); /* warning wash: a surface needing attention */
   --color-info-muted: hsl(202 55% 93%); /* info wash: a neutral advisory surface */
-
-  /* ---- The seam: the two forces meeting. Interpolated in OKLCH so the
-   * midpoint never turns muddy. Reach for it through the `bg-seam` utility
-   * below, at handoff points and brand moments only. ---------------------- */
-  --seam: linear-gradient(90deg in oklch, hsl(211 37% 32%), hsl(18 56% 39%));
 
   /* ---- Scrim weight, as modifiers on `foreground`: `bg-foreground/scrim`.
    * Two weights, because how much of the page a surface hides is a statement
@@ -181,7 +173,7 @@
   --shadow-md: 0 4px 12px -2px hsl(213 30% 12% / 0.1), 0 2px 6px -2px hsl(213 30% 12% / 0.07);
   --shadow-lg: 0 12px 32px -6px hsl(213 30% 12% / 0.14), 0 4px 10px -4px hsl(213 30% 12% / 0.08);
 
-  /* Focus halo — a warp haze AROUND the crisp ring outline, added on top of
+  /* Focus halo — a primary haze AROUND the crisp ring outline, added on top of
    * it and never replacing it, so the outline still shows under
    * forced-colors. */
   --shadow-halo: 0 0 0 4px hsl(211 37% 32% / 0.15);
@@ -235,11 +227,6 @@
   --animate-fade-rise: fade-rise var(--duration-normal) var(--ease-out) both;
   --animate-scale-in: scale-in var(--duration-fast) var(--ease-spring) both;
   --animate-shimmer: shimmer 1.6s linear infinite;
-  /* Agent at work — the weft's shuttle beat. */
-  --animate-conduct: conduct 1.8s var(--ease-in-out) infinite;
-  /* A live seam: the warp↔weft boundary drifts while the collaboration runs,
-   * and goes static once the work settles. */
-  --animate-seam-flow: seam-flow 3.2s linear infinite;
   --animate-progress-indeterminate: progress-indeterminate 1.3s var(--ease-in-out) infinite;
   --animate-toast-in: toast-in var(--duration-normal) var(--ease-spring) both;
 
@@ -300,8 +287,112 @@
   transition-duration: var(--duration-slower);
 }
 
-/* The seam, as a background. A gradient is not a colour, so it has no colour
- * namespace to live in; this is the only sanctioned way to paint one. */
-@utility bg-seam {
-  background-image: var(--seam);
+/* ---- Dark theme overrides ------------------------------------------------
+ * Every semantic token overridden; no "fallback to light". Switching replaces
+ * the entire set, so the two cannot drift apart and contrast is verified for
+ * each independently. `data-theme` on `<html>` is the single source of truth.
+ *
+ * Design principles:
+ *   - Same hue family, adjusted lightness — dark is the mirror, not a new palette
+ *   - Functional tokens slightly desaturated — bright saturated colours on dark
+ *     backgrounds cause eye strain and fail contrast against dark surfaces
+ *   - Elevation = lighter background, not shadow — shadows are invisible on dark
+ *   - Borders brighten — the hairline that recedes on light must be visible on dark
+ *   - `muted-foreground-soft` stays above 3:1 (graphical-object floor)
+ *   - Focus ring stays primary — halo shifts to a lighter shade for visibility
+ *
+ * Contrast is verified: all text pairings clear 4.5:1; all graphical-object
+ * pairings clear 3:1. See the contrast verification table in the repository
+ * for the full audit. ----------------------------------------------------- */
+:root[data-theme="dark"] {
+  /* ---- Neutrals: same hue family, inverted lightness ---- */
+
+  /* Elevation in dark = lighter: sunken(7%) < background(10%) < card(14%) < popover(17%).
+   * Light: sunken(93%) < background(96%) < card(100%) = popover(100%).
+   * Dark mirrors the order with the 4-7% steps that keep surfaces distinct
+   * while staying dark enough for high foreground contrast. */
+  --color-background: hsl(213 25% 10%);
+  --color-foreground: hsl(
+    213 20% 92%
+  ); /* S narrowed 29→20 for softer read; 14.68:1 on background */
+
+  --color-card: hsl(213 20% 14%);
+  --color-card-foreground: hsl(213 20% 92%);
+
+  --color-sunken: hsl(213 24% 7%);
+
+  --color-popover: hsl(213 18% 17%);
+  --color-popover-foreground: hsl(213 20% 92%);
+
+  --color-muted: hsl(213 16% 13%);
+  --color-muted-foreground: hsl(213 10% 60%); /* S 14→10%; 6.06:1 on background */
+
+  /* Graphical-object token: clears 3:1 (4.03:1 on background). In light the
+   * gap is 9pp (41→50); in dark it widens to 12pp (60→48) because the 3:1
+   * floor binds tighter on dark. */
+  --color-muted-foreground-soft: hsl(213 8% 48%);
+
+  /* Borders brighten — the hairline that recedes on light must be visible on
+   * dark. Input and border-strong carry additional indicators (background fill,
+   * label) beyond the border alone. */
+  --color-border: hsl(213 14% 22%);
+  --color-border-strong: hsl(213 10% 36%);
+  --color-input: hsl(213 12% 28%);
+
+  --color-subtle: hsl(213 20% 13%);
+  --color-subtle-foreground: hsl(213 20% 86%);
+
+  /* ---- Primary — lightened (32→45%) and desaturated (37→33%) so the colour
+   * is visible on dark without eye strain. White foreground still clears 4.5:1
+   * (5.05:1) because blue's low luminance-per-lightness keeps the base dark. - */
+  --color-primary: hsl(211 33% 45%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-primary-muted: hsl(211 28% 13%);
+
+  /* ---- Accent — lightened (39→44%) and desaturated (56→48%). -------------- */
+  --color-accent: hsl(18 48% 44%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  --color-accent-muted: hsl(18 35% 13%);
+
+  --color-secondary: hsl(213 16% 14%);
+  --color-secondary-foreground: hsl(213 20% 88%);
+
+  --color-ring: hsl(211 33% 45%); /* matches primary; 3.50:1 on background */
+
+  /* ---- Functional — each lightened and desaturated for dark ---- */
+
+  --color-destructive: hsl(356 55% 48%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-success: hsl(152 38% 36%);
+  --color-success-foreground: hsl(0 0% 100%);
+  /* Amber has very high luminance-per-lightness; white text fails, so the
+   * foreground is near-black. Dark text on amber is the universal pattern. */
+  --color-warning: hsl(38 80% 50%);
+  --color-warning-foreground: hsl(0 0% 5%);
+  --color-info: hsl(202 55% 40%);
+  --color-info-foreground: hsl(0 0% 100%);
+
+  /* Functional-muted surfaces. In light each wash holds 4.5:1 against its base
+   * hue (dark text on light wash). In dark the luminance range of dark surfaces
+   * is too compressed for that — a surface dark enough for 4.5:1 base-as-text
+   * would be indistinguishable from the background. Each base hue instead
+   * clears the 3:1 graphical-object floor on its muted surface (icons,
+   * indicators), and text uses the foreground token (12-14:1 on every surface). */
+  --color-destructive-muted: hsl(356 40% 13%);
+  --color-success-muted: hsl(152 28% 13%);
+  --color-warning-muted: hsl(38 45% 13%);
+  --color-info-muted: hsl(202 35% 13%);
+
+  /* ---- Elevation: shadow recedes, background lightness ascends ----
+   * Shadows are nearly invisible on dark; elevation is communicated through
+   * the background lightness gradient (sunken through popover). The shadow
+   * tokens use a near-black colour with raised opacity so they remain faintly
+   * perceptible on the lightest dark surfaces (card, popover). */
+  --shadow-sm: 0 1px 2px 0 hsl(213 30% 2% / 0.18);
+  --shadow-md: 0 4px 12px -2px hsl(213 30% 2% / 0.22), 0 2px 6px -2px hsl(213 30% 2% / 0.16);
+  --shadow-lg: 0 12px 32px -6px hsl(213 30% 2% / 0.28), 0 4px 10px -4px hsl(213 30% 2% / 0.18);
+
+  /* Focus halo — shifts to the lighter dark-primary and raises opacity for
+   * visibility on dark surfaces. */
+  --shadow-halo: 0 0 0 4px hsl(211 33% 45% / 0.35);
 }

@@ -130,7 +130,7 @@ const field = useFieldControl(() => ({
             // rides --ease-spring while border stays instant --ease-out (style
             // below), same press language as Button/Switch/Checkbox.
             'active:scale-90',
-            // Selected = a human decision (Loom law): the ring turns warp.
+            // Selected = a decision (Loom law): the ring turns primary.
             'data-[state=checked]:border-primary',
             // Focus draws the weave tight: the brand ring blooms.
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',

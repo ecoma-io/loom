@@ -15,8 +15,8 @@ const TEAM: AvatarGroupItem[] = [
 /** The list items, in row order — a face is one, and so is the counter. */
 const ITEMS = '[role="listitem"]';
 
-/** The portrait inside an item. Only `Avatar` emits `data-force`. */
-const FACE = "[data-force]";
+/** The portrait inside an item. Only `Avatar` emits `data-variant`. */
+const FACE = "[data-variant]";
 
 describe("AvatarGroup", () => {
   it("presents the row as one labelled list rather than as N unrelated images", () => {
@@ -124,38 +124,38 @@ describe("AvatarGroup", () => {
     expect(onPage.get(FACE).classes()).toContain("ring-background");
   });
 
-  it("lets a member declare its own force, so one row can hold both people and agents", () => {
+  it("lets a member declare its own variant, so one row can hold both people and accent items", () => {
     const wrapper = mount(AvatarGroup, {
       props: {
         avatars: [
           { alt: "Ada Lovelace", fallback: "AL" },
-          { alt: "Weaver", fallback: "WV", force: "ai" },
+          { alt: "Weaver", fallback: "WV", variant: "accent" },
         ],
         label: "On this run",
       },
     });
     const items = wrapper.findAll(ITEMS);
-    expect(items[0]?.get(FACE).classes()).not.toContain("border-agent");
+    expect(items[0]?.get(FACE).classes()).not.toContain("border-accent");
     expect(items[0]?.get(".sr-only").text()).toBe("Ada Lovelace");
-    expect(items[1]?.get(FACE).classes()).toContain("border-agent");
-    expect(items[1]?.get(".sr-only").text()).toBe("Weaver, AI agent");
+    expect(items[1]?.get(FACE).classes()).toContain("border-accent");
+    expect(items[1]?.get(".sr-only").text()).toBe("Weaver, Accent");
   });
 
-  it("applies the group's force to every member that does not name one", () => {
+  it("applies the group's variant to every member that does not name one", () => {
     const wrapper = mount(AvatarGroup, {
-      props: { avatars: TEAM.slice(0, 2), force: "ai", label: "Agents" },
+      props: { avatars: TEAM.slice(0, 2), variant: "accent", label: "Members" },
     });
     for (const item of wrapper.findAll(ITEMS)) {
-      expect(item.get(FACE).classes()).toContain("border-agent");
-      expect(item.get(".sr-only").text()).toContain("AI agent");
+      expect(item.get(FACE).classes()).toContain("border-accent");
+      expect(item.get(".sr-only").text()).toContain("Accent");
     }
   });
 
-  it("names a member with no alt and no fallback as the agent alone rather than as a stray comma", () => {
+  it("names a member with no alt and no fallback as the accent label alone rather than as a stray comma", () => {
     const wrapper = mount(AvatarGroup, {
-      props: { avatars: [{ src: "/weaver.jpg" }], force: "ai", label: "Agents" },
+      props: { avatars: [{ src: "/weaver.jpg" }], variant: "accent", label: "Members" },
     });
-    expect(wrapper.get(ITEMS).get(".sr-only").text()).toBe("AI agent");
+    expect(wrapper.get(ITEMS).get(".sr-only").text()).toBe("Accent");
   });
 
   it("forwards size and shape to every face, counter included, so the row is one shape", () => {
@@ -212,15 +212,16 @@ const LabelHost = defineComponent({
 });
 
 describe("AvatarGroup labels", () => {
-  it("names the counter and an agent member from its own English by default", () => {
+  it("names the counter and an accent member from its own English by default", () => {
     const wrapper = mount(LabelHost, {
       props: { vocabulary: () => ({}) },
       slots: {
-        default: () => h(AvatarGroup, { avatars: TEAM, max: 2, force: "ai", label: "Agents" }),
+        default: () =>
+          h(AvatarGroup, { avatars: TEAM, max: 2, variant: "accent", label: "Members" }),
       },
     });
     const items = wrapper.findAll(ITEMS);
-    expect(items[0]?.get(".sr-only").text()).toBe("Ada Lovelace, AI agent");
+    expect(items[0]?.get(".sr-only").text()).toBe("Ada Lovelace, Accent");
     expect(items[2]?.get(".sr-only").text()).toBe("3 more");
   });
 
@@ -243,19 +244,19 @@ describe("AvatarGroup labels", () => {
     expect(wrapper.findAll(ITEMS)[2]?.get(".sr-only").text()).toBe("ещё 3");
   });
 
-  it("lets the agent qualifier sit wherever the language puts it, joiner included", () => {
+  it("lets the accent qualifier sit wherever the language puts it, joiner included", () => {
     // The whole reason this is one key rather than a name, a comma and a word:
     // Vietnamese leads with the qualifier, and a `${who}, ${what}` join in the
     // component has already ruled that out.
     const wrapper = mount(AvatarGroup, {
       props: {
         avatars: [{ alt: "Weaver", fallback: "WV" }],
-        force: "ai",
-        label: "Agents",
-        labels: { agent: ({ name }: { name: string }) => `Tác nhân AI ${name}` },
+        variant: "accent",
+        label: "Members",
+        labels: { accent: ({ name }: { name: string }) => `Nhấn mạnh ${name}` },
       },
     });
-    expect(wrapper.get(ITEMS).get(".sr-only").text()).toBe("Tác nhân AI Weaver");
+    expect(wrapper.get(ITEMS).get(".sr-only").text()).toBe("Nhấn mạnh Weaver");
   });
 
   it("takes its names from a host's vocabulary, and lets one instance correct them", () => {

@@ -5,7 +5,7 @@ import Field from "../Field/Field.vue";
 import Checkbox from "../Checkbox/Checkbox.vue";
 import TextField from "../TextField/TextField.vue";
 
-const street = ref("12 Warp Lane");
+const street = ref("12 Oak Lane");
 const city = ref("");
 const digest = ref(true);
 const mentions = ref(false);
@@ -20,7 +20,7 @@ const mentions = ref(false);
       required
     >
       <Field label="Street" name="street">
-        <TextField v-model="street" placeholder="12 Warp Lane" />
+        <TextField v-model="street" placeholder="12 Oak Lane" />
       </Field>
       <Field label="City" name="city">
         <TextField v-model="city" placeholder="Hanoi" />
@@ -37,7 +37,7 @@ const mentions = ref(false);
       required
     >
       <Field label="Street" name="billing-street">
-        <TextField placeholder="12 Warp Lane" />
+        <TextField placeholder="12 Oak Lane" />
       </Field>
       <Field label="City" name="billing-city">
         <TextField placeholder="Hanoi" />

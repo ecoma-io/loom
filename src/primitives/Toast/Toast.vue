@@ -1,5 +1,5 @@
 <script lang="ts">
-export type ToastVariant = "info" | "success" | "warning" | "destructive" | "ai";
+export type ToastVariant = "info" | "success" | "warning" | "destructive" | "accent";
 
 // Re-exported so the vocabulary is reachable from the component a consumer
 // actually imports. It is declared in `ToastItem.vue` — which is where the ✕

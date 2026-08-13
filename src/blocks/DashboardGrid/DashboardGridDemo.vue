@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Activity, Bot, TrendingDown, TrendingUp } from "@lucide/vue";
+import { Activity, TrendingDown, TrendingUp } from "@lucide/vue";
 import DashboardGrid from "./DashboardGrid.vue";
 import Surface from "../../primitives/Surface/Surface.vue";
 import Badge from "../../primitives/Badge/Badge.vue";
@@ -10,12 +10,12 @@ const kpis = [
   { label: "Orders today", value: "1,284", delta: "+12%", trend: "up" },
   { label: "Revenue", value: "$48.2k", delta: "+4%", trend: "up" },
   { label: "Return rate", value: "1.3%", delta: "-0.2%", trend: "down" },
-  { label: "Agents running", value: "6", delta: "+2", trend: "up" },
+  { label: "Active tasks", value: "6", delta: "+2", trend: "up" },
 ] as const;
 
 const recentActivity = [
   'Workflow "Inventory reconciliation" finished — 214 rows matched.',
-  "The comment-triage agent produced 8 drafts awaiting review.",
+  "The triage queue produced 8 drafts awaiting review.",
   "3 invoices have been pending approval for over 24 hours.",
 ];
 </script>
@@ -48,11 +48,11 @@ const recentActivity = [
 
     <Surface pad="lg" class="flex flex-col gap-3 sm:col-span-2">
       <div class="flex items-center gap-2">
-        <Bot aria-hidden="true" class="text-agent" />
-        <p class="text-title text-foreground">Agents running</p>
+        <Activity aria-hidden="true" class="text-accent" />
+        <p class="text-title text-foreground">Active tasks</p>
       </div>
       <p class="text-body text-muted-foreground">
-        6 agent workflows are active, with zero errors in the past hour.
+        6 background tasks are running, with zero errors in the past hour.
       </p>
     </Surface>
   </DashboardGrid>

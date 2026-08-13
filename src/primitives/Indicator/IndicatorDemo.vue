@@ -53,13 +53,13 @@ function poll() {
           v-slot="{ labelId }"
           variant="count"
           :count="7"
-          tone="ai"
-          label="7 agent runs finished"
+          tone="accent"
+          label="7 background tasks finished"
         >
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Agent activity"
+            aria-label="Background activity"
             :aria-describedby="labelId"
           >
             <Bot />

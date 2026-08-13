@@ -18,7 +18,6 @@ import Menubar from "../../primitives/Menubar/Menubar.vue";
 import WindowControls, {
   type WindowControlsLabels,
 } from "../../primitives/WindowControls/WindowControls.vue";
-import BrandMark from "../../icons/BrandMark";
 import { optional } from "../../lib/props";
 
 withDefaults(
@@ -58,13 +57,17 @@ const emit = defineEmits<{
          Only the clusters that actually take clicks (Menubar, WindowControls)
          opt out. -->
     <div class="flex shrink-0 items-center gap-2 pl-3 pr-1.5">
-      <span
-        class="grid h-4 w-4 place-items-center rounded-[5px] bg-primary text-primary-foreground shadow-sm"
-        aria-hidden="true"
-      >
-        <!-- stroke bumped for optical balance at tiny size -->
-        <BrandMark :size="10" :stroke-width="2.5" />
-      </span>
+      <!-- @slot Brand icon — the consumer provides their own mark. Rendered
+           inside a 16px coloured tile, `aria-hidden` by the container. -->
+      <slot name="brandIcon">
+        <span
+          class="grid h-4 w-4 place-items-center rounded-[5px] bg-primary text-primary-foreground shadow-sm"
+          aria-hidden="true"
+        >
+          <!-- stroke bumped for optical balance at tiny size -->
+          <slot name="brandMark" />
+        </span>
+      </slot>
       <span class="text-xs font-semibold tracking-tight">{{ appName }}</span>
     </div>
 

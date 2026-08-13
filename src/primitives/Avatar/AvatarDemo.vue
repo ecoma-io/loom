@@ -48,13 +48,13 @@ const workingSrc =
 
     <div class="flex flex-col gap-2">
       <span class="text-xs text-muted-foreground">
-        A person and an agent, side by side — the rim is the signal a reader who cannot see the hue
-        still gets, and "AI agent" is the one a screen reader gets
+        Default and accent variants, side by side — the rim is the signal a reader who cannot see
+        the hue still gets, and "Accent" is the one a screen reader gets
       </span>
       <div class="flex items-center gap-3">
         <Avatar :src="workingSrc" alt="Ada Lovelace" fallback="AL" />
-        <Avatar force="ai" alt="Weaver" fallback="WV" />
-        <Avatar force="ai" shape="square" alt="Nightly digest run" fallback="ND" />
+        <Avatar variant="accent" alt="Weaver" fallback="WV" />
+        <Avatar variant="accent" shape="square" alt="Scheduled task" fallback="ST" />
       </div>
     </div>
   </div>
