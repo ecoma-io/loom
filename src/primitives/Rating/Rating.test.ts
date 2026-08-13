@@ -225,7 +225,7 @@ describe("Rating", () => {
     wrapper.unmount();
   });
 
-  it("refuses the pointer and dims when disabled, while staying a radio group", async () => {
+  it("refuses the pointer and paints unavailability in measured greys when disabled", async () => {
     const wrapper = mount(Rating, { props: { modelValue: 2, disabled: true } });
     const radios = wrapper.findAll('[role="radio"]');
     for (const radio of radios) {
@@ -236,14 +236,36 @@ describe("Rating", () => {
 
     const root = wrapper.get('[role="radiogroup"]');
     expect(root.attributes("data-disabled")).toBe("");
-    expect(root.classes()).toContain("data-[disabled]:opacity-50");
 
-    // The dim is allowed to stay here, and this is the reason: the library-wide
-    // rule is that an `opacity` may drain a border, a fill or a glyph and may
-    // never drain text, because compositing at 50% more than halves the
-    // contrast of whatever is underneath. A rating is glyphs the whole way
-    // down — the score is carried by `aria-label`, which no opacity touches —
-    // so there is nothing under this dim for it to make illegible.
+    // Unavailability is a measured grey, never an alpha over the available
+    // state. The stars are the control's *data* — the filled ones are the
+    // score, the empty ones the maximum — so both are graphical objects held
+    // to WCAG 1.4.11's 3:1, and `opacity-50` here took the empty stars from
+    // 5.25:1 to 2.05:1 on the page ground. Each glyph drains to its own
+    // token instead: `muted-foreground` for the score, one lighter step
+    // (`muted-foreground-soft`) for the maximum, both solid-versus-hollow.
+    const opacityClass = root.classes().find((cls) => cls.includes("opacity"));
+    expect(opacityClass).toBeUndefined();
+    expect(root.classes()).toContain("data-[disabled]:cursor-not-allowed");
+
+    // The variants are keyed off the ancestors that carry the state — the
+    // root for the empty star, the step button for the filled one — so the
+    // same class list paints both the prop's disabled and the fieldset's.
+    expect(root.classes()).toContain("group");
+    expect(radios[0]!.attributes("data-disabled")).toBe("");
+    expect(radios[0]!.classes()).toContain("group/step");
+    expect(wrapper.find('svg[class*="fill-primary"]').classes()).toEqual(
+      expect.arrayContaining([
+        "group-data-[disabled]/step:fill-muted-foreground",
+        "group-data-[disabled]/step:text-muted-foreground",
+      ]),
+    );
+    expect(wrapper.find('[role="radiogroup"] > span > svg').classes()).toContain(
+      "group-data-[disabled]:text-muted-foreground-soft",
+    );
+
+    // Nothing about the greys touches the announcement: no text node exists
+    // under them, and the score travels in the radios' `aria-label`.
     expect(wrapper.text().trim()).toBe("");
     expect(root.attributes("aria-label") ?? radios[0]!.attributes("aria-label")).toContain(
       "of 5 stars",
@@ -261,7 +283,13 @@ describe("Rating", () => {
 
   it("does not dim a read-only score, because nothing about it is unavailable", () => {
     const readonly = mount(Rating, { props: { modelValue: 3, readonly: true } });
-    expect(readonly.get('[role="img"]').classes()).not.toContain("data-[disabled]:opacity-50");
+    const picture = readonly.get('[role="img"]');
+    // No `group` marker and no disabled variants: the picture keeps the live
+    // state's exact colours, where the interactive branch recedes into the
+    // measured greys. Conflating the two is the class of defect this suite
+    // exists to catch.
+    expect(picture.classes()).not.toContain("group");
+    expect(picture.classes().join(" ")).not.toMatch(/data-\[disabled\]/);
   });
 
   it("paints and announces a read-only score exactly, ignoring `step`", () => {
@@ -388,7 +416,7 @@ describe("Rating inside a Field", () => {
     });
     const picture = row.get('[role="img"]');
     expect(picture.attributes("aria-label")).toBe("4.2 of 5 stars");
-    expect(picture.classes()).not.toContain("opacity-50");
+    expect(picture.classes()).not.toContain("group");
     expect(row.find('[role="radiogroup"]').exists()).toBe(false);
     expect(row.find('[role="radio"]').exists()).toBe(false);
 

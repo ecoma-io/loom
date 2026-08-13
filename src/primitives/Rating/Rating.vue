@@ -317,7 +317,14 @@ function fillOf(star: number): string {
     :class="
       cn(
         rowVariants({ size }),
-        'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
+        // Unavailability is painted in measured greys, never as an alpha over
+        // the available state: `opacity-50` here took the empty stars from
+        // 5.25:1 to 2.05:1 on the page ground, and the stars are the control's
+        // *data* — the filled ones are the score, the empty ones the maximum —
+        // which WCAG 1.4.11 holds to 3:1 as graphical objects. The two glyphs
+        // drain to their own tokens below, keyed off `data-disabled` so the
+        // prop and the enclosing fieldset paint the same picture.
+        'group data-[disabled]:cursor-not-allowed',
         attrs.class as string,
       )
     "
@@ -336,7 +343,16 @@ function fillOf(star: number): string {
     >
       <Star
         aria-hidden="true"
-        :class="cn(starVariants({ size }), 'absolute inset-0 text-muted-foreground')"
+        :class="
+          cn(
+            starVariants({ size }),
+            // The empty star is the maximum, so when the row is unavailable it
+            // keeps a colour of its own rather than taking the row's old
+            // alpha — one measured step lighter than the score, held to the
+            // 3:1 floor `muted-foreground` itself was measured against.
+            'absolute inset-0 text-muted-foreground group-data-[disabled]:text-muted-foreground-soft',
+          )
+        "
       />
       <!-- One radio per step, stacked over the empty star and clipped to the
            fraction it stands for: with `step` 0.5 the left half of the glyph
@@ -373,6 +389,10 @@ function fillOf(star: number): string {
             cn(
               starVariants({ size }),
               'fill-primary text-primary opacity-0 transition-opacity duration-instant ease-out',
+              // Unavailable, the score drains to the neutral well like every
+              // other control's value — solid still, so it stays distinct from
+              // the hollow maximum beside it.
+              'group-data-[disabled]/step:fill-muted-foreground group-data-[disabled]/step:text-muted-foreground',
               'group-data-[state=active]/step:opacity-100',
               'group-aria-checked/step:animate-scale-in',
             )
