@@ -24,6 +24,22 @@ type VitePlugins = NonNullable<NonNullable<UserConfig["vite"]>["plugins"]>;
 // arbitrary in a way that costs nothing.
 const COMPONENTS = pagesIn("components");
 
+// Composition primitives are a separate tier between primitives and blocks.
+// They answer "how are things arranged?" — layout intent, not content or
+// control configuration. A curated order puts the most fundamental patterns
+// first: vertical flow, horizontal flow, grid, then the special-purpose
+// compositions.
+const COMPOSITION = pagesIn("composition", [
+  "stack",
+  "inline",
+  "grid",
+  "split",
+  "center",
+  "sidebar",
+  "frame",
+  "scroll-reel",
+]);
+
 // Blocks are a separate directory and a separate sidebar group because they
 // answer a different question. A reader looking for a primitive knows the name
 // of the control they want; a reader looking for a block knows the shape of the
@@ -98,6 +114,7 @@ export default defineConfig({
       { text: "Overview", link: "/" },
       { text: "Foundations", items: FOUNDATIONS },
       { text: "Primitives", items: COMPONENTS },
+      { text: "Composition", items: COMPOSITION },
       { text: "Blocks", items: BLOCKS },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],

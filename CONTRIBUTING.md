@@ -98,8 +98,8 @@ commitlint.
 
 **Scope is optional** — this is a single package, so a scope carries no routing
 information the type does not already give. When you do use one, it must be from
-this list: `primitives`, `blocks`, `brand`, `lib`, `a11y`, `styles`, `docs`,
-`e2e`, `workspace`, `deps`, `ci`.
+this list: `primitives`, `composition`, `blocks`, `brand`, `lib`, `a11y`, `styles`,
+`docs`, `e2e`, `workspace`, `deps`, `ci`.
 
 `deps` and `ci` are on that list because Renovate writes them: it opens
 `chore(deps):` and `chore(ci):` pull requests, and a scope list without them
