@@ -401,6 +401,82 @@ describe("Drawer dismissible", () => {
     expect(wrapper.emitted("update:open")).toBeUndefined();
   });
 
+  // The two swipes below drive the same event path Reka really listens on —
+  // `firePointer` dispatches real `PointerEvent`s, and the panel carries
+  // Reka's own listeners — so they exercise the veto rather than a mock of
+  // it. jsdom can supply no TouchEvent, which is what the second half of the
+  // gesture (a real finger, in a real browser) needs; `drawer.e2e.ts` drives
+  // that as an actual drag. The pointer half is still worth pinning here:
+  // it is the same veto listener as the touch half, and it fails loudly if
+  // the veto's registration or removal is ever disturbed.
+  it("closes on a drag on the panel body toward the anchored edge, by default", async () => {
+    const wrapper = await mountDrawer({ side: "right" });
+    firePointer(panel(), "pointerdown", { clientX: 100, clientY: 100 });
+    // `buttons: 1` is load-bearing: Reka reads it to tell a press that is
+    // still held from one that already ended, and a move with no buttons set
+    // is a move no swipe ever follows.
+    firePointer(panel(), "pointermove", { clientX: 240, clientY: 100, buttons: 1 });
+    firePointer(panel(), "pointerup", { clientX: 240, clientY: 100 });
+    await settle();
+    expect(wrapper.emitted("update:open")).toEqual([[false]]);
+  });
+
+  it("declines the same drag when dismissible is off — the veto covers the swipe, not only the press outside", async () => {
+    const wrapper = await mountDrawer({ dismissible: false, side: "right" });
+    firePointer(panel(), "pointerdown", { clientX: 100, clientY: 100 });
+    firePointer(panel(), "pointermove", { clientX: 240, clientY: 100, buttons: 1 });
+    firePointer(panel(), "pointerup", { clientX: 240, clientY: 100 });
+    await settle();
+    expect(wrapper.emitted("update:open")).toBeUndefined();
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+  });
+
+  // The veto that would break this page. A `closest("[data-loom-drawer-panel]")`
+  // check fails here: the marker is on every panel, so one non-dismissible
+  // drawer's document listener matches — and swallows — the pointerdown of its
+  // dismissible sibling, which then refuses to be swiped. The marker has to
+  // carry the instance's own id and the veto has to demand that exact value.
+  it("does not let a non-dismissible drawer's veto swallow its sibling's gestures", async () => {
+    const siblingRequests: boolean[][] = [];
+    mounted = mount(
+      defineComponent({
+        setup() {
+          return () => [
+            h(Drawer, {
+              open: true,
+              title: "Sibling",
+              side: "right",
+              "onUpdate:open": (value: boolean) => siblingRequests.push([value]),
+            }),
+            h(Drawer, { open: true, title: "Guarded sheet", side: "bottom", dismissible: false }),
+          ];
+        },
+      }),
+      { attachTo: document.body },
+    );
+    await settle();
+
+    const panels = [...document.querySelectorAll('[role="dialog"]')];
+    const sibling = panels[0]!;
+    const guarded = panels[1]!;
+
+    // A drag on the guarded sheet's own body must stay declined…
+    firePointer(guarded, "pointerdown", { clientX: 100, clientY: 400 });
+    firePointer(guarded, "pointermove", { clientX: 100, clientY: 540, buttons: 1 });
+    firePointer(guarded, "pointerup", { clientX: 100, clientY: 540 });
+    await settle();
+
+    // …and the same gesture on the sibling must still dismiss it. Both done
+    // through the same document, which is exactly the condition the veto
+    // broke under: one non-dismissible drawer on the page.
+    firePointer(sibling, "pointerdown", { clientX: 100, clientY: 100 });
+    firePointer(sibling, "pointermove", { clientX: 240, clientY: 100, buttons: 1 });
+    firePointer(sibling, "pointerup", { clientX: 240, clientY: 100 });
+    await settle();
+
+    expect(siblingRequests).toEqual([[false]]);
+  });
+
   it("still closes on Escape when dismissible is off — declining an accidental dismissal is not the same as having no keyboard exit", async () => {
     const wrapper = await mountDrawer({ dismissible: false });
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));

@@ -104,8 +104,12 @@ negotiable.
 `dismissible` is on by default, and it governs the two _casual_ exits: a press
 outside the panel, and the drag handle offered on its inner edge. Turn it off
 for a panel holding an unsaved edit, where leaving should be a choice rather
-than a stray click — the scrim then absorbs the press, and no handle is drawn,
-because there is nothing to drag towards.
+than a stray click — the scrim then absorbs the press, no handle is drawn,
+because there is nothing to drag towards, and a swipe on the panel body
+towards the anchored edge is declined too. The last half is not free:
+declining the swipe means declining pointer gestures on the panel outright,
+so a drag on a non-dismissible drawer's own body starts no drag, scrolls
+nothing and opens nothing.
 
 Turning it off never makes the drawer inescapable. **Esc closes it, and the
 control in the corner closes it**, and both return focus to whatever opened
