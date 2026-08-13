@@ -12,6 +12,29 @@ export type ButtonVariant =
 export type ButtonSize = "sm" | "md" | "lg" | "icon" | "icon-sm";
 
 /**
+ * One row per rest-state variant, naming the fill and the label token the
+ * variant paints. Kept separate from the `cva` call because it is also the
+ * contract `Button.contrast.test.ts` reads: that file derives every variant's
+ * pairing from here, so a variant added to the map is measured on arrival
+ * rather than when someone remembers to add a row to a test. The two halves
+ * — this map and the `cva` call consuming it — cannot drift apart, because
+ * `cva` is handed this very object.
+ *
+ * `satisfies` is what keeps this map and the union honest. The union above is
+ * the name a consumer imports and the documentation prints; the map below is
+ * the classes. Adding a member to one and not the other stops compiling, so
+ * neither can be the stale copy of the other.
+ */
+export const buttonVariantClasses = {
+  primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+  secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+  subtle: "bg-transparent text-foreground hover:bg-subtle",
+  outline: "border border-input bg-transparent text-foreground hover:bg-subtle",
+  ghost: "bg-transparent text-muted-foreground hover:bg-subtle hover:text-foreground",
+  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+} satisfies Record<ButtonVariant, string>;
+
+/**
  * Button — the workhorse, and the primitive that encodes Loom's press
  * language:
  *
@@ -37,19 +60,8 @@ export const buttonVariants = cva(
     "disabled:pointer-events-none",
   ],
   {
-    // `satisfies` is what keeps the two halves honest. The union above is the
-    // name a consumer imports and the documentation prints; the map below is
-    // the classes. Adding a member to one and not the other stops compiling,
-    // so neither can be the stale copy of the other.
     variants: {
-      variant: {
-        primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
-        subtle: "bg-transparent text-foreground hover:bg-subtle",
-        outline: "border border-input bg-transparent text-foreground hover:bg-subtle",
-        ghost: "bg-transparent text-muted-foreground hover:bg-subtle hover:text-foreground",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
-      } satisfies Record<ButtonVariant, string>,
+      variant: buttonVariantClasses,
       size: {
         sm: "h-8 px-3 text-xs",
         md: "h-9 px-4",
