@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { FileText, ClipboardPaste } from "@lucide/vue";
 import Textarea from "./Textarea.vue";
 
 const bio = ref("Visual director, 8 years cutting ad films.");
@@ -9,6 +10,7 @@ const summary = ref("A short account of what changed and why.");
 const overrun = ref(
   "A short account of what changed and why, written well past the room the form allowed for it.",
 );
+const withSlots = ref("");
 </script>
 
 <template>
@@ -56,6 +58,18 @@ const overrun = ref(
         Summary, past its limit — the counter says so in words as well as in red
       </span>
       <Textarea v-model="overrun" :max-length="80" :rows="2" aria-labelledby="ta-demo-overrun" />
+    </div>
+
+    <!-- #leading and #trailing adornments sit inside the border and share the
+         field's focus bloom, the same contract as TextField. The slot names are
+         the same so a consumer can move between the two fields without learning
+         a second vocabulary. -->
+    <div class="flex flex-col gap-2">
+      <span id="ta-demo-slots" class="text-xs text-muted-foreground">Notes (with adornments)</span>
+      <Textarea v-model="withSlots" aria-labelledby="ta-demo-slots" placeholder="Enter notes…">
+        <template #leading><FileText class="h-4 w-4" aria-hidden="true" /></template>
+        <template #trailing><ClipboardPaste class="h-4 w-4" aria-hidden="true" /></template>
+      </Textarea>
     </div>
 
     <!-- Read-only and disabled are different states, and they look different on

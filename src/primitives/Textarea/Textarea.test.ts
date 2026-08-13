@@ -126,6 +126,24 @@ describe("Textarea", () => {
     expect((wrapper.get("textarea").element as HTMLTextAreaElement).name).toBe("notes");
   });
 
+  it("renders leading and trailing adornments inside the field frame", () => {
+    const wrapper = mount(Textarea, {
+      props: { ariaLabel: "Notes" },
+      slots: { leading: "📝", trailing: "📋" },
+    });
+    expect(wrapper.text()).toContain("📝");
+    expect(wrapper.text()).toContain("📋");
+  });
+
+  it("routes the fallthrough class onto the field frame so a caller can size the whole field, not just the textarea", () => {
+    const wrapper = mount(Textarea, {
+      props: { ariaLabel: "Notes" },
+      attrs: { class: "w-64" },
+    });
+    expect(wrapper.get("div.group").classes()).toContain("w-64");
+    expect(wrapper.get("textarea").classes()).not.toContain("w-64");
+  });
+
   it("keeps a readonly textarea focusable and submitted where a disabled one is neither", () => {
     const readOnly = mount(Textarea, {
       props: { ariaLabel: "Notes", name: "notes", readonly: true },
@@ -148,21 +166,23 @@ describe("Textarea", () => {
 
   it("shows a readonly textarea on the subtle fill, at full text strength and on the input hairline", () => {
     const readOnly = mount(Textarea, { props: { ariaLabel: "Notes", readonly: true } });
-    const classes = readOnly.get("textarea").classes();
+    // The state classes moved to the field frame wrapper — the textarea itself is
+    // transparent — so the assertions target the wrapper, not the textarea.
+    const frame = readOnly.get("div.group");
 
-    expect(readOnly.get("textarea").attributes("data-readonly")).toBe("true");
+    expect(frame.attributes("data-readonly")).toBe("true");
     // The lighter of the two neutrals, and it is what separates this state from
     // the disabled one on the fill rather than on the text colour alone — a
     // difference a sighted reader can see without resolving a hue.
-    expect(classes).toContain("bg-subtle");
-    expect(classes).not.toContain("bg-muted");
-    // Full strength: the muted colour rides the `disabled:` variant, which a
+    expect(frame.classes()).toContain("bg-subtle");
+    expect(frame.classes()).not.toContain("bg-muted");
+    // Full strength: the muted colour rides the disabled class, which a
     // read-only element never matches, so the value stays on `text-foreground`.
-    expect(classes).toContain("text-foreground");
+    expect(frame.classes()).toContain("text-foreground");
     // The hairline is the third channel, and read-only keeps the resting one.
-    expect(classes).toContain("border-input");
-    expect(classes).not.toContain("border-border");
-    expect(classes.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+    expect(frame.classes()).toContain("border-input");
+    expect(frame.classes()).not.toContain("border-border");
+    expect(frame.classes().some((name) => /(^|:)opacity-/.test(name))).toBe(false);
     expect((readOnly.get("textarea").element as HTMLTextAreaElement).disabled).toBe(false);
   });
 
@@ -172,15 +192,16 @@ describe("Textarea", () => {
   // over it — 12.58:1 and 4.68:1 measured.
   it("drains a disabled textarea on all three channels rather than fading the text written in it", () => {
     const wrapper = mount(Textarea, { props: { ariaLabel: "Notes", disabled: true } });
-    const classes = wrapper.get("textarea").classes();
+    // State classes are on the field frame wrapper, not the textarea itself.
+    const frame = wrapper.get("div.group");
 
-    expect(classes.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
-    expect(classes).toContain("disabled:bg-muted");
-    expect(classes).toContain("disabled:text-muted-foreground");
+    expect(frame.classes().some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+    expect(frame.classes()).toContain("bg-muted");
+    expect(frame.classes()).toContain("text-muted-foreground");
     // The hairline recedes with the fill. Two states that parted only on the
     // text colour were a colour-only distinction; the border makes it a
     // difference in shape as well.
-    expect(classes).toContain("disabled:border-border");
+    expect(frame.classes()).toContain("border-border");
   });
 
   it("takes its id, description, name, required and invalid state from the row it sits in", () => {
@@ -201,7 +222,8 @@ describe("Textarea", () => {
     expect(textarea.attributes("name")).toBe("bio");
     expect(textarea.attributes("aria-required")).toBe("true");
     expect(textarea.attributes("aria-invalid")).toBe("true");
-    expect(textarea.classes()).toContain("border-destructive");
+    // The destructive border is on the field frame wrapper, not the textarea.
+    expect(row.get("div.group").classes()).toContain("border-destructive");
   });
 
   it("lets an explicit prop overrule the row in both directions", () => {
@@ -351,16 +373,17 @@ describe("Textarea", () => {
 
     it("keeps the counter below the box, where a drag-resize moves it rather than covering the value", () => {
       // The layout claim, pinned structurally: the counter is a sibling that
-      // follows the textarea inside the control's own outer element, so the
+      // follows the field frame inside the control's own outer element, so the
       // native resize grabber in the box's bottom-right corner is never under
       // it. `resize` changes the box, not where the readout sits.
       const wrapper = mount(Textarea, { props: { ariaLabel: "Bio", maxLength: 200 } });
-      expect(counterOf(wrapper).element.previousElementSibling?.tagName).toBe("TEXTAREA");
+      // The counter follows the field frame div, which contains the textarea.
+      expect(counterOf(wrapper).element.previousElementSibling?.tagName).toBe("DIV");
 
       const locked = mount(Textarea, {
         props: { ariaLabel: "Bio", maxLength: 200, resize: "none" },
       });
-      expect(counterOf(locked).element.previousElementSibling?.tagName).toBe("TEXTAREA");
+      expect(counterOf(locked).element.previousElementSibling?.tagName).toBe("DIV");
       expect(locked.get("textarea").classes()).toContain("resize-none");
     });
 

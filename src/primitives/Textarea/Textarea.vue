@@ -44,21 +44,26 @@ import { useLabels, type LabelOverrides } from "../../lib/labels";
  * camelized by Vue) bound onto the textarea explicitly, the same contract as
  * TextField.
  *
- * **`class` lands on the textarea itself**, and everything else a caller passes
- * with it. That is this control's own long-standing rule and it does not move:
- * the textarea is the painted box, the thing a `w-64` is meant to size and the
- * only node here a name can land on. The outer element below is layout and
- * nothing else — it shrink-wraps whatever width the textarea resolved to, so a
- * counter sits under the field's own right edge rather than under the column
- * the field happens to be in.
+ * The border, focus ring and invalid state live on the wrapper so optional
+ * `#leading`/`#trailing` adornments sit *inside* the field and share its focus
+ * bloom, instead of every caller re-inventing an icon-inside-input layout.
+ * The slot names and positions match TextField's, and the vertical alignment
+ * differs — `items-start` for multi-line, where the text begins, versus
+ * `items-center` for single-line — because a five-row box with a centered icon
+ * mid-field reads as a mistake rather than a choice.
  *
- * That outer element is why this is no longer the single node it once was.
- * TextField hangs its counter inside the border with its adornments; a textarea
- * has no free column to hang one in — the value fills the box and scrolls, and
- * the bottom-right corner belongs to the native resize grabber, which an
- * overlaid readout would cover. So the counter sits **below the box**, where
- * `resize` moves the box's bottom edge and the counter travels with it rather
- * than floating over the text.
+ * Wrapping a rendered structure means the fallthrough `class` must land on the
+ * wrapper (so a caller's `w-64`/`flex-1` sizes the whole field) while the rest
+ * of the attrs (`id`, `name`, `data-testid`, `aria-describedby`) belong on the
+ * real `<textarea>` — the split-attrs convention shared with TextField.
+ *
+ * That same wrapper is why the character counter is a prop here rather than a
+ * `CountedField` beside this one. A counter rendered *below* the field would
+ * have to move the fallthrough `class` off the box a caller sizes with it, and
+ * a textarea has no free column to hang one in — the value fills the box and
+ * scrolls, and the bottom-right corner belongs to the native resize grabber.
+ * The counter sits below the border, where `resize` moves the box's bottom
+ * edge and the counter travels with it rather than floating over the text.
  *
  * Inside a [Field](../Field/Field.vue) it wires itself through
  * `useFieldControl()` — the row's id, the id of its hint or error line, and
@@ -258,56 +263,113 @@ const field = useFieldControl(() => ({
 
 <template>
   <!-- Layout, and nothing else: no fallthrough attribute lands here and nothing
-       is painted on it. `inline-flex` is what makes it shrink-wrap the textarea
-       — a block wrapper would be as wide as the column, and the counter would
-       right-align to that column rather than to the field's own edge. -->
+       is painted on it. `inline-flex` is what makes it shrink-wrap the field
+       frame — a block wrapper would be as wide as the column, and the counter
+       would right-align to that column rather than to the field's own edge. -->
   <div class="inline-flex max-w-full flex-col align-top">
-    <textarea
-      v-bind="{ ...textareaAttrs, ...field.attrs }"
-      :aria-label="ariaLabel"
-      :aria-labelledby="ariaLabelledby"
-      :value="currentValue"
-      :placeholder="placeholder"
-      :disabled="field.disabled"
-      :readonly="field.readonly"
+    <!-- The field frame: border, focus, state. Like TextField, the border lives
+         here so optional #leading/#trailing adornments sit inside the field and
+         share its focus bloom, instead of every caller re-inventing an
+         icon-inside-input layout. -->
+    <div
+      :data-disabled="field.disabled || undefined"
       :data-readonly="field.readonly || undefined"
-      :rows="rows"
+      :data-invalid="field.invalid || undefined"
       :class="
         cn(
-          'rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm',
+          'group flex items-start gap-2 rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm',
           'transition-[color,background-color,border-color,box-shadow] duration-fast ease-out',
-          // Rim-lit at rest, the weave blooms on focus (Signature law).
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
-          !field.invalid && 'focus-visible:shadow-halo',
-          'placeholder:text-muted-foreground',
-          // No `opacity`, for the reason Select's trigger carries the same rule:
-          // this element *is* the text. A disabled textarea holding a filed
-          // answer is still there to be read, and `disabled:opacity-50` took that
-          // answer from 14.09:1 to 3.06:1 and its placeholder from 5.25:1 to
-          // 2.05:1 — halving the alpha more than halves the contrast. Drained to
-          // the neutral well with the label on the measured muted colour instead:
-          // 12.58:1 for the value and 4.68:1 for the placeholder.
+          // Rim-lit at rest, the weave blooms on focus (Signature law): the field
+          // catches light instead of casting a shadow, and focus draws it tight.
+          'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring',
+          !field.invalid && 'focus-within:shadow-halo',
+          // The three resting appearances, and each is three changes rather than
+          // one. Read-only and disabled used to share `bg-muted` and part only on
+          // the text colour, which is a distinction carried by hue alone — the
+          // one thing a reader with a colour deficiency, or a low-quality
+          // display, or forced-colors, does not get. The fill separates them and
+          // the border weight separates them again, so the progression
+          // available → on show → unavailable is legible on three channels.
           //
-          // The hairline recedes with the fill, and that third channel is why
-          // the state is legible without colour: unavailable differs from
-          // read-only in *shape* as well as in hue.
-          'disabled:cursor-not-allowed disabled:border-border disabled:bg-muted disabled:text-muted-foreground',
-          field.invalid && 'border-destructive focus-visible:outline-destructive',
-          // On show rather than unavailable, and it keeps its focus ring and its
-          // input hairline. The fill is the lighter of the two neutrals —
-          // `subtle`, not `muted` — because sharing one fill with the disabled
-          // state left the two parting on the text colour alone, which is a
-          // colour-only distinction for a sighted reader. The value stays at
-          // full strength: 13.46:1 over this fill. The native `readonly`
-          // attribute carries the same state to assistive tech, so nothing here
-          // rests on colour.
+          // Read-only is a value **on show**: the fill lifts off `background` to
+          // `subtle` so the row reads as settled rather than editable, and the
+          // text stays full strength — 13.46:1 over that fill — because being
+          // read is the entire purpose of the state. The border does not move,
+          // because nothing about the control's reach has: it is still a Tab stop
+          // and still submitted. The native `readonly` attribute below carries
+          // the same fact to assistive tech, so nothing here rests on colour.
           field.readonly && 'bg-subtle',
-          resize === 'none' ? 'resize-none' : 'resize-y',
+          // Disabled is **unavailable**: the fill drains one step further to
+          // `muted`, the text follows it down to `muted-foreground` (4.68:1 over
+          // it, still AA), and the rim slackens from `input` to the lighter
+          // `border`.
+          //
+          // Drained rather than faded, and `opacity` is never the mechanism. The
+          // element a dim would sit on is the box, and the box is wrapped around
+          // the one thing a reader still needs: measured on the built site,
+          // `opacity-50` put a disabled field's value at 3.08:1 and its
+          // placeholder — already the muted colour before the fade — at 2.07:1.
+          // The text colour is declared here rather than on the `<textarea>` because
+          // the textarea sets no resting colour of its own and inherits this one,
+          // which also carries it to the adornments in the same box.
+          field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
+          // The same appearance, reached from the other direction: a
+          // `<fieldset disabled>` above this field disables the `<textarea>` inside
+          // it natively and never touches `field.disabled`, so the rule above
+          // cannot fire and the field rendered byte-identical to an editable one.
+          //
+          // `in-[fieldset:disabled]:` is a *read* of the attribute that did the
+          // disabling, so the fill and the native inertness cannot disagree — the
+          // fieldset element is still the only place the fact is written. It is
+          // preferred to `has-[:disabled]:` (a wrapper reading its own contents)
+          // because that proxy is wrong wherever a control holds a part that
+          // disables itself.
+          'in-[fieldset:disabled]:cursor-not-allowed in-[fieldset:disabled]:bg-muted in-[fieldset:disabled]:text-muted-foreground',
+          // Gated where the two rules below are ordered, and for the same reason.
+          // Tailwind emits the ancestor half of `in-*` inside `:where()`, so this
+          // carries no more specificity than `border-destructive` and would win
+          // on emission order alone — an unavailable field that is also in error
+          // would quietly lose its destructive rim.
+          !field.invalid && 'in-[fieldset:disabled]:border-border',
+          // Last of the three rules that name a border colour, and the order is
+          // load-bearing: `cn()` resolves a border colour by whichever class it
+          // saw last, so a field that is both in error and unavailable would lose
+          // its destructive rim to the disabled one if this sat above it.
+          field.invalid && 'border-destructive focus-within:outline-destructive',
           attrs.class as string,
         )
       "
-      @input="onInput"
-    />
+    >
+      <span
+        v-if="$slots.leading"
+        class="inline-flex shrink-0 text-muted-foreground transition-colors duration-fast ease-out group-focus-within:text-foreground"
+      >
+        <slot name="leading" />
+      </span>
+      <textarea
+        v-bind="{ ...textareaAttrs, ...field.attrs }"
+        :aria-label="ariaLabel"
+        :aria-labelledby="ariaLabelledby"
+        :value="currentValue"
+        :placeholder="placeholder"
+        :disabled="field.disabled"
+        :readonly="field.readonly"
+        :rows="rows"
+        :class="
+          cn(
+            'min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed',
+            resize === 'none' ? 'resize-none' : 'resize-y',
+          )
+        "
+        @input="onInput"
+      />
+      <span
+        v-if="$slots.trailing"
+        class="inline-flex shrink-0 items-center gap-1 text-muted-foreground transition-colors duration-fast ease-out group-focus-within:text-foreground"
+      >
+        <slot name="trailing" />
+      </span>
+    </div>
     <!-- Below the box, never inside it. A textarea's value fills its box and
          scrolls, so there is no free column to hang a readout in, and the
          bottom-right corner belongs to the native resize grabber — an inset
