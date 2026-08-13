@@ -14,6 +14,7 @@ export default {
         "primitives",
         "composition",
         "blocks",
+        "layouts",
         "brand",
         "lib",
         "a11y",

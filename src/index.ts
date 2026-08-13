@@ -270,6 +270,29 @@ export type { SplitGap, SplitSide } from "./composition/Split/Split.vue";
 export { default as Stack } from "./composition/Stack/Stack.vue";
 export type { StackAlign, StackGap } from "./composition/Stack/Stack.vue";
 
+// Layouts, alphabetical. A layout composes composition primitives into a
+// ready-made responsive application shell — the "flagship" tier. Where a
+// composition primitive answers "how are things arranged?", a layout answers
+// "what does the whole screen look like?" — mobile through ultrawide, with
+// named slots for the host's content and responsive behaviour the host never
+// has to author. Content has a maximum readable width; extra viewport on
+// ultrawide goes to intentional whitespace, never stretching.
+export { default as AppShell } from "./layouts/AppShell/AppShell.vue";
+export type { AppShellSidebarWidth } from "./layouts/AppShell/AppShell.vue";
+export { default as Centered } from "./layouts/Centered/Centered.vue";
+export type { CenteredMaxWidth } from "./layouts/Centered/Centered.vue";
+export { default as Dashboard } from "./layouts/Dashboard/Dashboard.vue";
+export type { DashboardMinTileWidth } from "./layouts/Dashboard/Dashboard.vue";
+export { default as FormLayout } from "./layouts/FormLayout/FormLayout.vue";
+export type { FormLayoutMaxWidth } from "./layouts/FormLayout/FormLayout.vue";
+export { default as MasterDetail } from "./layouts/MasterDetail/MasterDetail.vue";
+export type { MasterDetailMinMasterWidth } from "./layouts/MasterDetail/MasterDetail.vue";
+export { default as Reading } from "./layouts/Reading/Reading.vue";
+export { default as Settings } from "./layouts/Settings/Settings.vue";
+export type { SettingsNavWidth } from "./layouts/Settings/Settings.vue";
+export { default as SplitLayout } from "./layouts/SplitLayout/SplitLayout.vue";
+export type { SplitLayoutCollapseAt } from "./layouts/SplitLayout/SplitLayout.vue";
+
 // Blocks, alphabetical. A block is an arrangement of primitives that an
 // application repeats — an application header, an empty state, a stack of
 // toasts — shipped so the arrangement is decided once rather than in each

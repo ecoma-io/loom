@@ -48,6 +48,21 @@ const COMPOSITION = pagesIn("composition", [
 // first reader's twenty-seven.
 const BLOCKS = pagesIn("blocks");
 
+// Layouts compose composition primitives into ready-made responsive
+// application shells — the "flagship" tier. A curated order puts the
+// most universal shells first: the app shell every product starts from,
+// then the specialised patterns.
+const LAYOUTS = pagesIn("layouts", [
+  "app-shell",
+  "master-detail",
+  "centered",
+  "dashboard",
+  "settings",
+  "split",
+  "form",
+  "reading",
+]);
+
 // Foundations have a genuine reading order — colour and type before the
 // layout and behaviour that compose them — that alphabetical destroys, so
 // this is the one directory `pagesIn` is given a curated order for.
@@ -116,6 +131,7 @@ export default defineConfig({
       { text: "Primitives", items: COMPONENTS },
       { text: "Composition", items: COMPOSITION },
       { text: "Blocks", items: BLOCKS },
+      { text: "Layouts", items: LAYOUTS },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],
     editLink: {
