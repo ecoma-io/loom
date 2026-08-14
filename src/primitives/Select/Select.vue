@@ -264,7 +264,7 @@ const triggerFieldAttrs = computed(() => {
                 'transition-colors duration-fast ease-out',
                 'animate-fade-rise',
                 'data-[highlighted]:bg-subtle',
-                'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary',
+                'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary-text',
                 // Inert, but still readable: a row a reader cannot pick is
                 // still a row they have to read to understand why the list is
                 // shaped the way it is. `data-[disabled]:opacity-50` took the
@@ -278,7 +278,7 @@ const triggerFieldAttrs = computed(() => {
             <!-- The mute lives here rather than on the row, and it has to.
                  `data-[disabled]:` sorts *before* `data-[state=checked]:` in
                  Tailwind's variant order, so a disabled row that is also the
-                 chosen one would take `text-primary` from the container and a
+                 chosen one would take `text-primary-text` from the container and a
                  container colour is only inherited. Declared on the text node
                  it wins whatever the row resolved to. -->
             <SelectItemText :class="option.disabled && 'text-muted-foreground'">{{

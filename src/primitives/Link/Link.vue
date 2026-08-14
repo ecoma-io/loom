@@ -9,7 +9,7 @@ export const linkVariants = cva(
   {
     variants: {
       variant: {
-        default: "text-primary underline underline-offset-4 hover:text-primary/80",
+        default: "text-primary-text underline underline-offset-4 hover:text-primary-text/80",
         muted: "text-muted-foreground hover:text-foreground",
         accent: "text-accent underline underline-offset-4 hover:text-accent/80",
         subtle:

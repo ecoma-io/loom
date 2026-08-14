@@ -873,7 +873,7 @@ function onOpenAutoFocus(event: Event) {
                 cn(
                   'tabular rounded-sm px-0.5 outline-none',
                   'transition-colors duration-instant ease-out',
-                  'focus:bg-primary-muted focus:text-primary',
+                  'focus:bg-primary-muted focus:text-primary-text',
                   'data-[placeholder]:text-muted-foreground',
                   item.part === 'literal' && 'text-muted-foreground',
                 )
@@ -1015,7 +1015,7 @@ function onOpenAutoFocus(event: Event) {
                           'data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground',
                           'data-[selection-end]:bg-primary data-[selection-end]:text-primary-foreground',
                           '[&[data-selected]:not([data-selection-start]):not([data-selection-end])]:bg-primary-muted',
-                          '[&[data-selected]:not([data-selection-start]):not([data-selection-end])]:text-primary',
+                          '[&[data-selected]:not([data-selection-start]):not([data-selection-end])]:text-primary-text',
                           '[&[data-highlighted]:not([data-selected])]:bg-subtle',
                           '[&[data-selected]:not([data-selection-start]):not([data-selection-end])]:rounded-none',
                           '[&[data-highlighted]:not([data-highlighted-start]):not([data-highlighted-end])]:rounded-none',

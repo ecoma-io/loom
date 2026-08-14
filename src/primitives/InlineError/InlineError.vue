@@ -25,7 +25,7 @@ defineProps<{
     role="alert"
     :class="
       cn(
-        'flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive',
+        'flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive-text',
         'animate-fade-rise',
       )
     "

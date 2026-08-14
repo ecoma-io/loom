@@ -34,7 +34,7 @@ defineProps<{
     <div
       v-if="$slots.icon"
       aria-hidden="true"
-      class="grid h-12 w-12 place-items-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive [&_svg]:h-5 [&_svg]:w-5"
+      class="grid h-12 w-12 place-items-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive-text [&_svg]:h-5 [&_svg]:w-5"
     >
       <slot name="icon" />
     </div>

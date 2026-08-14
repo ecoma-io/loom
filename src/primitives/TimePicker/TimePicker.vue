@@ -426,7 +426,7 @@ function hourAnnouncement(
         cn(
           'tabular rounded-sm px-0.5 outline-none',
           'transition-colors duration-instant ease-out',
-          'focus:bg-primary-muted focus:text-primary',
+          'focus:bg-primary-muted focus:text-primary-text',
           'data-[placeholder]:text-muted-foreground',
           item.part === 'literal' && 'text-muted-foreground',
         )

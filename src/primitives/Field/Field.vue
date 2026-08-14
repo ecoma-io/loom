@@ -150,10 +150,10 @@ provideFieldContext({
       :for="controlId"
       class="text-sm font-medium text-foreground"
     >
-      {{ label }} <span v-if="required" class="text-destructive">*</span>
+      {{ label }} <span v-if="required" class="text-destructive-text">*</span>
     </label>
     <span v-else-if="label" class="text-sm font-medium text-foreground">
-      {{ label }} <span v-if="required" class="text-destructive">*</span>
+      {{ label }} <span v-if="required" class="text-destructive-text">*</span>
     </span>
     <slot />
     <p v-if="hint && !error" :id="descriptionId" class="text-xs text-muted-foreground">

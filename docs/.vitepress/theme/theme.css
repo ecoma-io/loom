@@ -116,6 +116,20 @@
   --vp-button-brand-text: var(--color-primary-foreground);
   --vp-button-brand-hover-bg: color-mix(in oklab, var(--color-primary) 90%, transparent);
 
+  --vp-button-alt-bg: var(--color-muted);
+  --vp-button-alt-text: var(--color-muted-foreground);
+  --vp-button-alt-hover-bg: var(--color-subtle);
+  --vp-button-alt-hover-text: var(--color-foreground);
+  --vp-button-alt-border: var(--color-border);
+
+  /* Inline code colour. VitePress defaults this to --vp-c-brand-1, which is
+   * primary — fine in light mode (7.5:1+ on the page), but see the dark block
+   * below for why it diverges there. */
+  --vp-c-text-code: var(--color-primary);
+  /* Inline code background. VitePress uses --vp-c-default-soft by default;
+   * pointing it to the muted surface keeps it in Loom's palette. */
+  --vp-code-bg: var(--color-muted);
+
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: linear-gradient(
     135deg,
@@ -128,9 +142,16 @@
  * onto Loom's `data-theme="dark"` — so by the time this block matches, every
  * Loom token has already been overridden by the dark theme block in
  * `theme.css`. These VitePress-specific mappings just point at the same token
- * names; the underlying values are already the dark ones. The one exception is
- * `--vp-c-bg-elv`, which VitePress raises in dark by a different amount than
- * Loom's card surface, so it is pinned explicitly. */
+ * names; the underlying values are already the dark ones.
+ *
+ * The one systematic divergence is the brand/functional tokens used as TEXT.
+ * `--color-primary` in dark mode is calibrated for button backgrounds (white
+ * on primary at 5.05:1), not for text colour — as text on a dark surface it
+ * lands around 4:1, below the 4.5:1 AA floor. The same applies to
+ * `--color-destructive`, `--color-info`, and the other functional tokens.
+ * VitePress uses `--vp-c-brand-1` for links and `--vp-c-text-code` for inline
+ * code, so those two must resolve to a lighter primary variant. Mixing the
+ * base token with white raises the luminance while preserving the hue. */
 .dark {
   --vp-c-bg: var(--color-background);
   --vp-c-bg-alt: var(--color-sunken);
@@ -144,16 +165,21 @@
   --vp-c-gutter: var(--color-border);
   --vp-c-border: var(--color-border);
 
-  --vp-c-brand-1: var(--color-primary);
-  --vp-c-brand-2: var(--color-primary);
-  --vp-c-brand-3: var(--color-primary);
+  /* Brand tokens for text use: lighter than --color-primary to clear 4.5:1.
+   * Buttons use --vp-button-brand-bg (--color-primary) separately, so this
+   * only affects links, headings, and accent text. */
+  --vp-c-brand-1: color-mix(in oklab, var(--color-primary) 70%, white);
+  --vp-c-brand-2: color-mix(in oklab, var(--color-primary) 70%, white);
+  --vp-c-brand-3: color-mix(in oklab, var(--color-primary) 70%, white);
   --vp-c-brand-soft: color-mix(in oklab, var(--color-primary) 16%, transparent);
 
-  --vp-c-danger-1: var(--color-destructive);
+  /* Danger and tip titles/icons use the functional tokens as text colour.
+   * Same treatment: mix with white to clear 4.5:1 on the dark surface. */
+  --vp-c-danger-1: color-mix(in oklab, var(--color-destructive) 65%, white);
   --vp-c-danger-soft: color-mix(in oklab, var(--color-destructive) 16%, transparent);
-  --vp-c-warning-1: var(--color-warning);
+  --vp-c-warning-1: color-mix(in oklab, var(--color-warning) 65%, white);
   --vp-c-warning-soft: color-mix(in oklab, var(--color-warning) 16%, transparent);
-  --vp-c-tip-1: var(--color-info);
+  --vp-c-tip-1: color-mix(in oklab, var(--color-info) 65%, white);
   --vp-c-tip-soft: color-mix(in oklab, var(--color-info) 16%, transparent);
 
   --vp-code-block-bg: var(--color-card);
@@ -162,6 +188,16 @@
   --vp-button-brand-bg: var(--color-primary);
   --vp-button-brand-text: var(--color-primary-foreground);
   --vp-button-brand-hover-bg: color-mix(in oklab, var(--color-primary) 90%, transparent);
+
+  --vp-button-alt-bg: var(--color-muted);
+  --vp-button-alt-text: var(--color-muted-foreground);
+  --vp-button-alt-hover-bg: var(--color-subtle);
+  --vp-button-alt-hover-text: var(--color-foreground);
+  --vp-button-alt-border: var(--color-border);
+
+  /* Inline code: lighter primary variant, same as links. */
+  --vp-c-text-code: color-mix(in oklab, var(--color-primary) 70%, white);
+  --vp-code-bg: var(--color-muted);
 
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: linear-gradient(

@@ -104,10 +104,10 @@ const text = useLabels("toast", TOAST_LABELS, () => props.labels);
 // without a matching entry here fails at compile time (Button's own idiom).
 const toastAccents = {
   info: { icon: Info, color: "text-info" },
-  success: { icon: CircleCheck, color: "text-success" },
+  success: { icon: CircleCheck, color: "text-success-text" },
   warning: { icon: TriangleAlert, color: "text-warning" },
-  destructive: { icon: CircleX, color: "text-destructive" },
-  accent: { icon: Sparkles, color: "text-primary" },
+  destructive: { icon: CircleX, color: "text-destructive-text" },
+  accent: { icon: Sparkles, color: "text-primary-text" },
 } satisfies Record<ToastVariant, { icon: typeof Info; color: string }>;
 
 const accent = computed(() => toastAccents[props.variant]);
@@ -149,7 +149,7 @@ const accent = computed(() => toastAccents[props.variant]);
       <ToastAction v-if="actionLabel" :alt-text="actionLabel" as-child @click="$emit('action')">
         <button
           type="button"
-          class="shrink-0 rounded-sm px-2 py-1 text-xs font-medium text-primary transition-colors duration-fast ease-out hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          class="shrink-0 rounded-sm px-2 py-1 text-xs font-medium text-primary-text transition-colors duration-fast ease-out hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {{ actionLabel }}
         </button>

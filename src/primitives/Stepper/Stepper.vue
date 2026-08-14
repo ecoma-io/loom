@@ -330,7 +330,7 @@ function onUpdate(value: number | undefined): void {
                     'data-[state=inactive]:border-input data-[state=inactive]:bg-background data-[state=inactive]:text-muted-foreground',
                     'data-[state=inactive]:enabled:hover:bg-subtle',
                   ],
-              'data-[state=active]:border-primary data-[state=active]:bg-primary-muted data-[state=active]:text-primary',
+              'data-[state=active]:border-primary data-[state=active]:bg-primary-muted data-[state=active]:text-primary-text',
               'data-[state=completed]:border-primary data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground',
               'disabled:cursor-not-allowed',
             )

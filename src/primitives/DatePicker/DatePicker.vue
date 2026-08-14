@@ -448,7 +448,7 @@ function onOpenAutoFocus(event: Event) {
             //
             // The colour is set here rather than on each segment because no
             // segment declares one of its own in the resting state, so each
-            // inherits this; `focus:text-primary` below is unreachable on a
+            // inherits this; `focus:text-primary-text` below is unreachable on a
             // control that cannot take focus.
             field.disabled && 'cursor-not-allowed border-border bg-muted text-muted-foreground',
             // Last of the rules that name a border colour, and the order is
@@ -477,7 +477,7 @@ function onOpenAutoFocus(event: Event) {
             cn(
               'tabular rounded-sm px-0.5 outline-none',
               'transition-colors duration-instant ease-out',
-              'focus:bg-primary-muted focus:text-primary',
+              'focus:bg-primary-muted focus:text-primary-text',
               'data-[placeholder]:text-muted-foreground',
               item.part === 'literal' && 'text-muted-foreground',
             )

@@ -452,7 +452,7 @@ const field = useFieldControl(() => ({
           // band once. The digits themselves are the third reading — 21/20 is
           // over the limit whatever it is painted.
           band === 'near' && 'text-warning',
-          band === 'over' && 'text-destructive',
+          band === 'over' && 'text-destructive-text',
         )
       "
     >

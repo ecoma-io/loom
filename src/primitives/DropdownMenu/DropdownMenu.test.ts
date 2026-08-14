@@ -126,8 +126,8 @@ describe("DropdownMenu", () => {
 
   it("paints a danger entry in the destructive token so a destructive command is not one indistinguishable row", async () => {
     await mountMenu();
-    expect([...items()[2]!.classList]).toContain("text-destructive");
-    expect([...items()[0]!.classList]).not.toContain("text-destructive");
+    expect([...items()[2]!.classList]).toContain("text-destructive-text");
+    expect([...items()[0]!.classList]).not.toContain("text-destructive-text");
   });
 
   it("keeps the menu unmounted while closed, so a command list never sits in the DOM catching clicks", async () => {

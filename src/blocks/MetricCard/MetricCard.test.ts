@@ -36,7 +36,7 @@ describe("MetricCard", () => {
       props: { value: "1,234", label: "Active users", trend: "up", trendValue: "+12.5%" },
     });
 
-    const trend = wrapper.find("span.text-success");
+    const trend = wrapper.find("span.text-success-text");
     expect(trend.exists()).toBe(true);
     expect(trend.text()).toContain("+12.5%");
     // The arrow is an inline SVG, not an icon-library dependency.
@@ -48,7 +48,7 @@ describe("MetricCard", () => {
       props: { value: "3.2%", label: "Churn rate", trend: "down", trendValue: "-3.2%" },
     });
 
-    const trend = wrapper.find("span.text-destructive");
+    const trend = wrapper.find("span.text-destructive-text");
     expect(trend.exists()).toBe(true);
     expect(trend.text()).toContain("-3.2%");
     expect(trend.find("svg").exists()).toBe(true);
@@ -103,7 +103,7 @@ describe("MetricCard", () => {
       props: { value: "1,234", label: "Active users", trend: "up" },
     });
 
-    const trend = wrapper.find("span.text-success");
+    const trend = wrapper.find("span.text-success-text");
     expect(trend.exists()).toBe(true);
     // The arrow is present but no magnitude text follows it — the direction
     // alone is still meaningful.

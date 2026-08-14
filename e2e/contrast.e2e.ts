@@ -181,8 +181,12 @@ for (const page of documentationPages()) {
       await browserPage.goto(page);
 
       // Set the theme before measuring. Loom's dark tokens are a symmetric
-      // set, so contrast must be verified independently in each.
+      // set, so contrast must be verified independently in each. Sync both
+      // VitePress's `.dark` class and Loom's `data-theme` to reproduce the
+      // same consistent state Layout.vue maintains at runtime.
       await browserPage.evaluate((t) => {
+        if (t === "dark") document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
         document.documentElement.setAttribute("data-theme", t);
       }, theme);
 

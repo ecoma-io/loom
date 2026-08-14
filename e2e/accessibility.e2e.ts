@@ -14,29 +14,6 @@ import { documentationPages } from "./docs-pages";
 // a symmetric set (not overrides), so both must pass independently — a
 // contrast ratio that clears the floor in light mode is not guaranteed to do
 // so in dark, and vice versa.
-//
-// Dark-theme scans exclude VitePress chrome that Loom does not control (see
-// the dark-theme test body below for the list and rationale). Light-theme
-// scans have no excludes.
-
-// VitePress selectors that carry contrast defects in dark mode. Loom does not
-// author their CSS, so an exclusion is justified: the cause is outside this
-// repository's reach.
-const VP_DARK_EXCLUDES = [
-  // Shiki syntax-highlighted code blocks — Shiki paints spans with colours
-  // Loom does not choose and cannot override without breaking the
-  // highlighter's own visual language.
-  ".vp-doc div[class*='language-']",
-  // VitePress page-bottom navigation and edit link — use --vp-c-text-3
-  // which can land below 4.5:1 in dark mode.
-  ".edit-link-button",
-  ".prev",
-  ".next",
-  // VitePress sidebar.
-  ".VPSidebar",
-  // VitePress nav bar links (dark-mode contrast on some items).
-  ".VPNavBarMenuLink",
-];
 
 for (const page of documentationPages()) {
   const label = page === "." ? "/" : `/${page}`;
@@ -45,7 +22,11 @@ for (const page of documentationPages()) {
     page: browserPage,
   }) => {
     await browserPage.goto(page);
+    // Sync both theme mechanisms: VitePress's `.dark` class and Loom's
+    // `data-theme` attribute. In production, Layout.vue keeps them in sync;
+    // the test must reproduce the same consistent state.
     await browserPage.evaluate(() => {
+      document.documentElement.classList.remove("dark");
       document.documentElement.setAttribute("data-theme", "light");
     });
 
@@ -65,9 +46,10 @@ for (const page of documentationPages()) {
       //
       // What both exclusions had in common is a note that sounded like a
       // reason. An exclusion is not justified by naming a cause; it is
-      // justified by that cause being outside our reach — and neither of these
-      // was, one of them not even being the real cause. Before adding one
-      // here, find which code actually emits the failing element.
+      // justified by that cause being outside this repository's reach — and
+      // neither of these was, one of them not even being the real cause.
+      // Before adding one here, find which code actually emits the failing
+      // element.
       .analyze();
 
     const report = violations
@@ -84,30 +66,36 @@ for (const page of documentationPages()) {
     page: browserPage,
   }) => {
     await browserPage.goto(page);
+    // Sync both theme mechanisms: VitePress's `.dark` class and Loom's
+    // `data-theme` attribute. In production, Layout.vue keeps them in sync;
+    // the test must reproduce the same consistent state. Setting only
+    // `data-theme` without `.dark` leaves VitePress's own CSS in light mode,
+    // producing a state no user ever sees — and one where VitePress's
+    // light-mode chrome on Loom's dark tokens fails contrast at every turn.
     await browserPage.evaluate(() => {
+      document.documentElement.classList.add("dark");
       document.documentElement.setAttribute("data-theme", "dark");
     });
 
-    // VitePress's dark-mode CSS carries contrast defects Loom cannot fix
-    // because Loom does not write them:
-    //
-    // 1. **Shiki syntax tokens** — Shiki paints code-block spans with colours
-    //    that fall below 4.5:1 on the code-block background in dark mode.
-    // 2. **VitePress chrome** — `.edit-link-button`, `.prev/.next`, sidebar
-    //    text, and nav links use `--vp-c-text-3`, which can resolve below
-    //    4.5:1 in dark mode.
-    //
-    // An exclusion is justified when the cause is outside this repository's
-    // reach, and these are — the same principle the light-theme comment
-    // restates. Light mode is not affected, so the exclude list is only
-    // applied to dark-theme scans.
-    const builder = new AxeBuilder({ page: browserPage }).withTags([...WCAG_TAGS]);
-
-    for (const selector of VP_DARK_EXCLUDES) {
-      builder.exclude(selector);
-    }
-
-    const { violations } = await builder.analyze();
+    const { violations } = await new AxeBuilder({ page: browserPage })
+      .withTags([...WCAG_TAGS])
+      // No excludes — the same bar the light-theme test holds itself to.
+      //
+      // There were once VitePress-specific excludes here, and every one of
+      // them was wrong. The `.dark` class was missing from the test, leaving
+      // VitePress's own CSS in light mode while Loom's tokens had switched to
+      // dark — a state no user ever sees, and one that fails contrast at
+      // every turn because VitePress's light-mode chrome colours are not
+      // designed for dark backgrounds. Adding `.dark` alongside `data-theme`
+      // reproduced the real synchronised state, and the VitePress-specific
+      // failures vanished.
+      //
+      // An exclusion is not justified by naming a cause; it is justified by
+      // that cause being outside this repository's reach. The Shiki theme,
+      // the code-block background, the VitePress link colour — all are chosen
+      // by this repository, in `config.mts` and `theme.css`. Before adding
+      // an exclude here, find which code actually emits the failing element.
+      .analyze();
 
     const report = violations
       .map((violation) => {

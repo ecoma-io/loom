@@ -607,7 +607,7 @@ const inputFieldAttrs = computed(() => {
                 'transition-colors duration-fast ease-out',
                 'animate-fade-rise',
                 'data-[highlighted]:bg-subtle',
-                'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary',
+                'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary-text',
                 // Inert, but still readable. `data-[disabled]:opacity-50` took
                 // the label to 3.13:1 on the popover; the colour on the span
                 // below leaves it at 5.76:1 and still visibly lighter than the
@@ -619,7 +619,7 @@ const inputFieldAttrs = computed(() => {
             <!-- The mute lives on this span rather than on the row, and it has
                  to. `data-[disabled]:` sorts *before* `data-[state=checked]:`
                  in Tailwind's variant order, so a disabled row that is also the
-                 chosen one would take `text-primary` from the container — and a
+                 chosen one would take `text-primary-text` from the container — and a
                  container colour is only inherited. Declared here it wins
                  whatever the row resolved to. -->
             <span :class="option.disabled && 'text-muted-foreground'">{{ option.label }}</span>

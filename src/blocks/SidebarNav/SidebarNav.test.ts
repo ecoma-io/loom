@@ -97,7 +97,7 @@ describe("SidebarNav", () => {
     const wrapper = mount(SidebarNav, { props: { sections: SECTIONS } });
     const links = wrapper.findAll("a");
     expect(links[0]!.classes()).toContain("bg-primary/10");
-    expect(links[0]!.classes()).toContain("text-primary");
+    expect(links[0]!.classes()).toContain("text-primary-text");
     expect(links[0]!.classes().some((c) => c.includes("accent"))).toBe(false);
     expect(links[1]!.classes()).not.toContain("bg-primary/10");
   });

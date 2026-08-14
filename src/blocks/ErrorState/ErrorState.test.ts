@@ -61,7 +61,7 @@ describe("ErrorState", () => {
 
     expect(medallion.className).toContain("bg-destructive/10");
     expect(medallion.className).toContain("border-destructive/30");
-    expect(medallion.className).toContain("text-destructive");
+    expect(medallion.className).toContain("text-destructive-text");
   });
 
   it("does not stagger the entrance — errors demand attention immediately", () => {

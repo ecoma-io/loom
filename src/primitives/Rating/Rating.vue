@@ -298,7 +298,7 @@ function fillOf(star: number): string {
            fraction of a star drawn by clipping is the only version that stays
            a star at any width. -->
       <span class="absolute inset-y-0 left-0 overflow-hidden" :style="{ width: fillOf(star) }">
-        <Star aria-hidden="true" :class="cn(starVariants({ size }), 'fill-primary text-primary')" />
+        <Star aria-hidden="true" :class="cn(starVariants({ size }), 'fill-primary text-primary-text')" />
       </span>
     </span>
   </div>
@@ -388,7 +388,7 @@ function fillOf(star: number): string {
           :class="
             cn(
               starVariants({ size }),
-              'fill-primary text-primary opacity-0 transition-opacity duration-instant ease-out',
+              'fill-primary text-primary-text opacity-0 transition-opacity duration-instant ease-out',
               // Unavailable, the score drains to the neutral well like every
               // other control's value — solid still, so it stays distinct from
               // the hollow maximum beside it.

@@ -50,21 +50,21 @@ export const chipVariants = cva(
         // one Select's checked row already uses, so a chosen filter reads as a
         // human decision rather than as a new colour invented here.
         neutral:
-          "border-transparent bg-subtle text-subtle-foreground data-[selected]:border-primary/40 data-[selected]:bg-primary-muted data-[selected]:text-primary",
+          "border-transparent bg-subtle text-subtle-foreground data-[selected]:border-primary/40 data-[selected]:bg-primary-muted data-[selected]:text-primary-text",
         outline:
-          "border-border bg-transparent text-muted-foreground data-[selected]:border-primary/40 data-[selected]:bg-primary-muted data-[selected]:text-primary",
+          "border-border bg-transparent text-muted-foreground data-[selected]:border-primary/40 data-[selected]:bg-primary-muted data-[selected]:text-primary-text",
         // The hue-carrying variants deepen their own hue instead of jumping to
         // the primary: a reader picked this chip *because* it is the destructive
         // one, and swapping its colour on selection would throw that away.
         primary:
-          "border-transparent bg-primary/12 text-primary data-[selected]:border-primary/45 data-[selected]:bg-primary/20",
+          "border-transparent bg-primary/12 text-primary-text data-[selected]:border-primary/45 data-[selected]:bg-primary/20",
         success:
-          "border-transparent bg-success/12 text-success data-[selected]:border-success/45 data-[selected]:bg-success/20",
+          "border-transparent bg-success/12 text-success-text data-[selected]:border-success/45 data-[selected]:bg-success/20",
         warning:
           "border-transparent bg-warning/12 text-warning data-[selected]:border-warning/45 data-[selected]:bg-warning/20",
         info: "border-transparent bg-info/12 text-info data-[selected]:border-info/45 data-[selected]:bg-info/20",
         destructive:
-          "border-transparent bg-destructive/12 text-destructive data-[selected]:border-destructive/45 data-[selected]:bg-destructive/20",
+          "border-transparent bg-destructive/12 text-destructive-text data-[selected]:border-destructive/45 data-[selected]:bg-destructive/20",
         accent:
           "border-accent/40 bg-accent-muted text-accent data-[selected]:border-accent/70 data-[selected]:bg-accent/20",
       } satisfies Record<ChipVariant, string>,
@@ -162,7 +162,7 @@ const pressStyle =
 
 // The unavailable label colour, and it belongs on the label rather than on the
 // pill around it. A colour set on the container is only *inherited* here, and
-// the container already carries `data-[selected]:text-primary` — an attribute
+// the container already carries `data-[selected]:text-primary-text` — an attribute
 // selector no plain class on the same element outranks. On the label itself it
 // is a declaration rather than an inheritance, so it wins whatever the pill
 // resolved to: 4.67:1 over the drained `--color-muted` fill, 4.77:1 over the

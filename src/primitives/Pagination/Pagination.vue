@@ -230,7 +230,7 @@ function pageClass(selected: boolean): string {
     // at 6.84:1. Which page a reader is on is information, and a disabled pager
     // that forgets it has answered the question by refusing to answer it.
     selected
-      ? "disabled:cursor-not-allowed disabled:bg-primary-muted disabled:text-primary disabled:shadow-none"
+      ? "disabled:cursor-not-allowed disabled:bg-primary-muted disabled:text-primary-text disabled:shadow-none"
       : "disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
   );
 }
