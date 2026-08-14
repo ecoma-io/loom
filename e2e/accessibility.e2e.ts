@@ -21,13 +21,20 @@ for (const page of documentationPages()) {
   test(`${label} (light) has no violations against Loom's WCAG tag set`, async ({
     page: browserPage,
   }) => {
+    // Tell VitePress to start in light mode. The `vitepress-theme-appearance`
+    // key is the one VitePress's own toggle writes to; its inline script reads
+    // it before first paint to set `.dark`, and Layout.vue's watchEffect then
+    // mirrors it onto `data-theme`. Setting it before navigation reproduces the
+    // path a real user takes through the toggle — no manual DOM mutation, no
+    // risk of the reactive system reverting it mid-scan.
+    await browserPage.addInitScript(() => {
+      localStorage.setItem("vitepress-theme-appearance", "light");
+    });
     await browserPage.goto(page);
-    // Sync both theme mechanisms: VitePress's `.dark` class and Loom's
-    // `data-theme` attribute. In production, Layout.vue keeps them in sync;
-    // the test must reproduce the same consistent state.
-    await browserPage.evaluate(() => {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.setAttribute("data-theme", "light");
+    // Ensure the repaint has landed before axe reads computed colours.
+    await browserPage.waitForFunction(() => {
+      const match = /rgba?\((\d+),/.exec(getComputedStyle(document.body).backgroundColor);
+      return match && Number(match[1]) > 200;
     });
 
     const { violations } = await new AxeBuilder({ page: browserPage })
@@ -65,16 +72,24 @@ for (const page of documentationPages()) {
   test(`${label} (dark) has no violations against Loom's WCAG tag set`, async ({
     page: browserPage,
   }) => {
+    // Tell VitePress to start in dark mode. Setting the localStorage key before
+    // navigation means VitePress's inline script adds `.dark` before first paint,
+    // Layout.vue's watchEffect mirrors it onto `data-theme`, and the page arrives
+    // in the same state a real user sees after toggling — no manual DOM mutation,
+    // no risk of the reactive system reverting it mid-scan.
+    await browserPage.addInitScript(() => {
+      localStorage.setItem("vitepress-theme-appearance", "dark");
+    });
     await browserPage.goto(page);
-    // Sync both theme mechanisms: VitePress's `.dark` class and Loom's
-    // `data-theme` attribute. In production, Layout.vue keeps them in sync;
-    // the test must reproduce the same consistent state. Setting only
-    // `data-theme` without `.dark` leaves VitePress's own CSS in light mode,
-    // producing a state no user ever sees — and one where VitePress's
-    // light-mode chrome on Loom's dark tokens fails contrast at every turn.
-    await browserPage.evaluate(() => {
-      document.documentElement.classList.add("dark");
-      document.documentElement.setAttribute("data-theme", "dark");
+    // Wait for the browser to repaint with the dark theme. VitePress's inline
+    // script sets `.dark` before paint, and Layout.vue's watchEffect sets
+    // `data-theme` during hydration — but the repaint is asynchronous, and
+    // axe can run before the computed colours update, reading stale values.
+    await browserPage.waitForFunction(() => {
+      const bodyBg = getComputedStyle(document.body).backgroundColor;
+      // Dark backgrounds have very low RGB values.
+      const match = /rgba?\((\d+),/.exec(bodyBg);
+      return match && Number(match[1]) < 50;
     });
 
     const { violations } = await new AxeBuilder({ page: browserPage })

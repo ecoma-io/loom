@@ -11,7 +11,7 @@ export const linkVariants = cva(
       variant: {
         default: "text-primary-text underline underline-offset-4 hover:text-primary-text/80",
         muted: "text-muted-foreground hover:text-foreground",
-        accent: "text-accent underline underline-offset-4 hover:text-accent/80",
+        accent: "text-accent-text underline underline-offset-4 hover:text-accent-text/80",
         subtle:
           "text-foreground/80 hover:text-foreground underline underline-offset-4 decoration-border hover:decoration-foreground/50",
       } satisfies Record<LinkVariant, string>,

@@ -9,7 +9,7 @@ import InlineError from "./InlineError.vue";
       <template #action>
         <button
           type="button"
-          class="rounded-md border border-destructive/40 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/10"
+          class="rounded-md border border-destructive/40 px-2 py-1 text-xs font-medium text-destructive-text hover:bg-destructive/10"
         >
           Reload
         </button>

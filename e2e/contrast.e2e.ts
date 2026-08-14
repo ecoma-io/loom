@@ -178,17 +178,15 @@ for (const page of documentationPages()) {
     test(`${label} (${theme}) draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
       page: browserPage,
     }) => {
-      await browserPage.goto(page);
-
-      // Set the theme before measuring. Loom's dark tokens are a symmetric
-      // set, so contrast must be verified independently in each. Sync both
-      // VitePress's `.dark` class and Loom's `data-theme` to reproduce the
-      // same consistent state Layout.vue maintains at runtime.
-      await browserPage.evaluate((t) => {
-        if (t === "dark") document.documentElement.classList.add("dark");
-        else document.documentElement.classList.remove("dark");
-        document.documentElement.setAttribute("data-theme", t);
+      // Tell VitePress which theme to start in. addInitScript runs after the
+      // page has an origin but before VitePress's inline script, so the
+      // localStorage key is set before first paint — Layout.vue's watchEffect
+      // then mirrors it onto `data-theme`, reproducing the same state a real
+      // user sees after toggling.
+      await browserPage.addInitScript((t) => {
+        localStorage.setItem("vitepress-theme-appearance", t);
       }, theme);
+      await browserPage.goto(page);
 
       const { failures, skipped } = await browserPage.evaluate(measureInPage);
 

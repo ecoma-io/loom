@@ -32,7 +32,7 @@ const rows = [
             <Button
               size="icon-sm"
               variant="ghost"
-              class="hover:bg-destructive/10 hover:text-destructive"
+              class="hover:bg-destructive/10 hover:text-destructive-text"
               :aria-label="`Delete ${row.name}`"
             >
               <Trash2 />

@@ -62,11 +62,11 @@ export const chipVariants = cva(
           "border-transparent bg-success/12 text-success-text data-[selected]:border-success/45 data-[selected]:bg-success/20",
         warning:
           "border-transparent bg-warning/12 text-warning data-[selected]:border-warning/45 data-[selected]:bg-warning/20",
-        info: "border-transparent bg-info/12 text-info data-[selected]:border-info/45 data-[selected]:bg-info/20",
+        info: "border-transparent bg-info/12 text-info-text data-[selected]:border-info/45 data-[selected]:bg-info/20",
         destructive:
           "border-transparent bg-destructive/12 text-destructive-text data-[selected]:border-destructive/45 data-[selected]:bg-destructive/20",
         accent:
-          "border-accent/40 bg-accent-muted text-accent data-[selected]:border-accent/70 data-[selected]:bg-accent/20",
+          "border-accent/40 bg-accent-muted text-accent-text data-[selected]:border-accent/70 data-[selected]:bg-accent/20",
       } satisfies Record<ChipVariant, string>,
       size: {
         sm: "h-8 text-xs",

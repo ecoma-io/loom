@@ -48,7 +48,7 @@ const recentActivity = [
 
     <Surface pad="lg" class="flex flex-col gap-3 sm:col-span-2">
       <div class="flex items-center gap-2">
-        <Activity aria-hidden="true" class="text-accent" />
+        <Activity aria-hidden="true" class="text-accent-text" />
         <p class="text-title text-foreground">Active tasks</p>
       </div>
       <p class="text-body text-muted-foreground">

@@ -103,7 +103,7 @@ const text = useLabels("toast", TOAST_LABELS, () => props.labels);
 // `satisfies` binds this map to ToastVariant so a variant added to the type
 // without a matching entry here fails at compile time (Button's own idiom).
 const toastAccents = {
-  info: { icon: Info, color: "text-info" },
+  info: { icon: Info, color: "text-info-text" },
   success: { icon: CircleCheck, color: "text-success-text" },
   warning: { icon: TriangleAlert, color: "text-warning" },
   destructive: { icon: CircleX, color: "text-destructive-text" },

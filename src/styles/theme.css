@@ -101,6 +101,7 @@
    * dark block overrides each text variant to a lighter step that clears 4.5:1
    * on every dark surface (sunken through popover). */
   --color-primary-text: hsl(211 37% 32%);
+  --color-accent-text: hsl(18 56% 39%);
   --color-destructive-text: hsl(356 65% 41%);
   --color-success-text: hsl(152 45% 30%);
   --color-warning-text: hsl(38 92% 28%);
@@ -398,6 +399,7 @@
    * use a functional colour as text should use the `-text` variant instead
    * (e.g. `text-primary-text` rather than `text-primary`). */
   --color-primary-text: hsl(211 45% 65%); /* 5.38:1 on sunken, 4.50:1 on popover */
+  --color-accent-text: hsl(18 55% 62%); /* 5.77:1 on accent-muted, 6.01:1 on popover */
   --color-destructive-text: hsl(356 55% 70%); /* 7.04:1 on sunken, 4.63:1 on popover */
   --color-success-text: hsl(152 38% 55%); /* 7.43:1 on sunken, 4.88:1 on popover */
   --color-warning-text: hsl(38 80% 65%); /* 11.78:1 on sunken, 6.45:1 on popover */
