@@ -92,7 +92,8 @@ global CSS adjusts the title bar's left padding to clear the native controls.
 This is CSS-only — no JavaScript is required.
 
 See [WindowControls](/components/window-controls#platform-awareness) for the
-platform behaviour detail.
+platform behaviour detail, or [Cross-platform support](/foundations/cross-platform)
+for the full desktop and PWA story.
 
 ## What it composes
 

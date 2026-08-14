@@ -61,7 +61,9 @@ strip; a host free to put it anywhere a window's chrome needs it.
 
 The host decides which platform it is on. Loom never sniffs the OS at
 runtime, because a Tauri or Electron host already knows its platform and a
-PWA has no native window controls to compete with.
+PWA has no native window controls to compete with. See
+[Cross-platform support](/foundations/cross-platform) for the full desktop
+and PWA story.
 
 ## Design notes
 
