@@ -169,11 +169,11 @@ jobs:
   e2e:
     name: End-to-end (${{ matrix.project }}, shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
     runs-on: ubuntu-latest
-    # Each shard runs roughly a quarter of the suite, so the per-job ceiling
-    # is lower than it was when one leg held the whole run. Still generous:
-    # retries multiply a red test's time by three, and setup (install, build,
-    # browser download) is fixed per shard regardless of shard count.
-    timeout-minutes: 10
+    # Dark-mode contrast and accessibility sweeps double the test count (every
+    # page in both light and dark), so the heavier shards need more runway than
+    # the original 10 minutes allowed. 15 minutes keeps each job well under the
+    # ceiling even on Firefox — the slowest engine — with retries factored in.
+    timeout-minutes: 15
     strategy:
       # The three engines are the point. Cancelling Firefox and WebKit because
       # Chromium went red would answer "something broke" and hide whether the
@@ -202,9 +202,8 @@ jobs:
         # Playwright's `--shard` splits the test list at individual-test
         # granularity (the config already sets `fullyParallel: true`), so each
         # shard gets roughly the same number of tests. Four shards bring the
-        # per-job count from ~308 to ~77, which keeps each job well under the
-        # timeout even on Firefox — the slowest engine — with retries factored
-        # in.
+        # per-job count from ~625 to ~156 per browser, which keeps each job
+        # under the timeout even on Firefox with retries factored in.
         shardIndex: [1, 2, 3, 4]
         shardTotal: [4]
     steps:
