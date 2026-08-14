@@ -227,3 +227,12 @@
 .vp-doc div[class*="language-"] {
   border: 1px solid var(--color-border);
 }
+
+/* VitePress's fixed nav bar covers the top of the scrollport. Without this,
+ * a focused element scrolled into view sits behind the header — a WCAG 2.2
+ * SC 2.4.11 (Focus Not Obscured) violation. `scroll-padding-top` tells the
+ * browser to leave a gap when scrolling, so the focus ring is always visible.
+ * 64px is a safe upper bound for the nav height across viewports. */
+html {
+  scroll-padding-top: 64px;
+}

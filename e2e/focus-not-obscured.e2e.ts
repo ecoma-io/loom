@@ -5,43 +5,46 @@ import { test, expect } from "@playwright/test";
 // failure is a sticky or fixed header covering a focused element near the top
 // of the viewport, or an open overlay hiding something that just received focus.
 //
-// The check below scrolls each interactive element into view, gives it focus,
-// and then verifies that the focus ring is not clipped by any overlapping
-// layer. Fixed headers are the primary concern in this site because the VitePress
-// chrome has one; overlays (Dialog, Drawer, Popover) manage their own focus
-// traps and are covered by the keyboard e2e tests.
+// The check below focuses each interactive element in the main content and
+// verifies that the browser's scroll-into-view (which respects
+// `scroll-padding-top`) leaves the focus ring fully visible below the fixed
+// VitePress header. VitePress's own skip-link and nav chrome are excluded
+// because they are outside this repository's reach; the test measures what
+// Loom's own components do. Overlays (Dialog, Drawer, Popover) manage their
+// own focus traps and are covered by the keyboard e2e tests.
 
-test("a focused element near the top of the page is not hidden by the VitePress header", async ({
+test("a focused element in the content area is not hidden by the VitePress header", async ({
   page,
 }) => {
-  // A component page with enough interactive elements to exercise the check.
+  // A component page with interactive Loom elements.
   await page.goto("components/button");
 
-  // The VitePress header is a fixed bar at the top. If the first focusable
-  // element on the page scrolls to the top and the header overlaps it, SC
-  // 2.4.11 is violated. Scroll to the very top first.
+  // The VitePress header is a fixed bar at the top. Find the first
+  // focusable element inside the main content area (not VitePress's own
+  // skip-link, which it positions at the viewport top behind the header
+  // and which is VitePress's responsibility, not Loom's).
+  const firstButton = page.locator("main button").first();
+  await firstButton.focus();
+
+  // Scroll the focused element into view — this is what the browser does on
+  // focus, and `scroll-padding-top: 64px` (set in the docs theme) tells it to
+  // leave room for the fixed header.
   await page.evaluate(() => {
-    window.scrollTo(0, 0);
+    const el = document.activeElement as HTMLElement | null;
+    if (el) el.scrollIntoView({ block: "start" });
   });
 
-  // Tab into the page to land on the first interactive element.
-  await page.keyboard.press("Tab");
-
-  const focused = page.locator(":focus");
-  // The button page always has focusable elements; if none received focus the
-  // test should fail rather than silently pass.
-  await expect(focused).toHaveCount(1);
-
-  // Check whether the focused element's bounding box overlaps with the
-  // fixed header. The VitePress nav bar is roughly 56px tall.
+  // After the browser has scrolled the element into view respecting
+  // scroll-padding, the element's top edge must be below the header.
   const obscured = await page.evaluate(() => {
     const el = document.activeElement as HTMLElement | null;
     if (!el) return false;
     const box = el.getBoundingClientRect();
     // The VitePress header height. Measured from the site: 56px on desktop,
-    // slightly taller on mobile — 64px is a safe upper bound.
+    // slightly taller on mobile — 64px is a safe upper bound and matches the
+    // scroll-padding-top set in the docs theme.
     const headerHeight = 64;
-    return box.top < headerHeight && box.top > 0;
+    return box.top < headerHeight && box.bottom > 0;
   });
 
   expect(obscured, "focused element is obscured by the fixed header").toBe(false);

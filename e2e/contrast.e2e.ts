@@ -35,30 +35,88 @@ const measureInPage = () => {
   // Hoisted helpers: `page.evaluate` serialises the function body, so the
   // whole measurement lives inside the page and only the findings come back.
   return (() => {
-    function paintOf(
-      computed: CSSStyleDeclaration,
-    ): { r: number; g: number; b: number; a: number } | null {
-      // A lucide glyph paints with `fill: none` and a `stroke`, a filled
-      // shape (Rating's stars) paints with `fill`. Measure whichever is
-      // opaque.
-      for (const key of ["fill", "stroke"] as const) {
-        const match = /rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/.exec(computed[key]);
-        if (match) {
-          const a = match[4] === undefined ? 1 : parseFloat(match[4]);
-          if (a > 0) return { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]), a };
-        }
+    // Browsers may return colours in rgb(), rgba(), oklab(), or oklch().
+    // The measurement needs sRGB channel values, so oklab/oklch are
+    // converted through a temporary canvas to avoid maintaining the
+    // transform by hand. rgb/rgba are parsed directly — the canvas
+    // round-trip would lose precision on values that are already in the
+    // right space.
+    const _canvas = document.createElement("canvas");
+    _canvas.width = 1;
+    _canvas.height = 1;
+    const _ctx = _canvas.getContext("2d")!;
+
+    function toSRGB(str: string): { r: number; g: number; b: number; a: number } | null {
+      const s = str.trim();
+      // Fast path: rgb/rgba are already in sRGB.
+      const rgb = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(s);
+      if (rgb) {
+        return {
+          r: Number(rgb[1]),
+          g: Number(rgb[2]),
+          b: Number(rgb[3]),
+          a: rgb[4] === undefined ? 1 : +rgb[4],
+        };
       }
-      return null;
+      // Slow path: any other format (oklab, oklch, named colour, hsl…).
+      // Draw one pixel and read it back — the browser does the conversion.
+      _ctx.clearRect(0, 0, 1, 1);
+      _ctx.fillStyle = s;
+      _ctx.fillRect(0, 0, 1, 1);
+      const [r = 0, g = 0, b = 0, alpha = 0] = _ctx.getImageData(0, 0, 1, 1).data;
+      if (alpha === 0) return null;
+      return { r, g, b, a: alpha / 255 };
     }
-    function parseColor(str: string) {
-      const match = /rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/.exec(str);
-      if (!match) return null;
-      return {
-        r: Number(match[1]),
-        g: Number(match[2]),
-        b: Number(match[3]),
-        a: match[4] === undefined ? 1 : +match[4],
+
+    // An SVG's graphical object paint comes from the inner elements that
+    // actually carry fill or stroke attributes — not the <svg> root, whose
+    // computed fill defaults to black when no attribute is present. A
+    // lucide icon sets fill="none" stroke="currentColor" on the <svg>
+    // itself, and that is measured correctly; but WindowControls' inline
+    // SVGs set fill="currentColor" on <rect> and stroke="currentColor"
+    // on <path> children, leaving the root at its default.
+    //
+    // The fix: walk every child with an explicit fill or stroke attribute
+    // and measure its computed paint, then measure the <svg> root's own
+    // fill/stroke if it carries either attribute. Deduplicate by colour
+    // so the same paint is not measured twice.
+    function paintsOf(svg: Element): { r: number; g: number; b: number; a: number }[] {
+      const seen = new Set<string>();
+      const paints: { r: number; g: number; b: number; a: number }[] = [];
+
+      // Only measure a paint property when the element carries an explicit
+      // attribute for it. Without one, the computed value is the SVG default
+      // (black for fill, none for stroke) — not the colour the element
+      // actually paints with.
+      const collect = (el: Element, keys: readonly ("fill" | "stroke")[]) => {
+        const c = getComputedStyle(el);
+        for (const key of keys) {
+          const val = c[key];
+          if (val === "none" || val === "") continue;
+          const color = toSRGB(val);
+          if (!color || color.a === 0) continue;
+          const k = `${key}:${String(color.r)},${String(color.g)},${String(color.b)},${color.a.toFixed(2)}`;
+          if (seen.has(k)) continue;
+          seen.add(k);
+          paints.push(color);
+        }
       };
+
+      const rootKeys = (["fill", "stroke"] as const).filter((k) => svg.hasAttribute(k));
+      if (rootKeys.length > 0) {
+        collect(svg, rootKeys);
+      }
+
+      for (const child of svg.querySelectorAll("[fill],[stroke]")) {
+        const childKeys = (["fill", "stroke"] as const).filter((k) => child.hasAttribute(k));
+        collect(child, childKeys);
+      }
+
+      return paints;
+    }
+
+    function parseColor(str: string) {
+      return toSRGB(str);
     }
     function linear(v: number) {
       v /= 255;
@@ -117,8 +175,8 @@ const measureInPage = () => {
         continue;
       }
 
-      const paint = paintOf(computed);
-      if (!paint) continue;
+      const paints = paintsOf(svg);
+      if (paints.length === 0) continue;
 
       // Every ancestor's opacity wraps the whole subtree, so it multiplies
       // into the paint. The background is then composited from the root
@@ -127,7 +185,6 @@ const measureInPage = () => {
       let paintAlpha = parseFloat(computed.opacity);
       for (const node of chain) paintAlpha *= parseFloat(getComputedStyle(node).opacity);
       if (paintAlpha === 0) continue;
-      const p = { ...paint, a: paint.a * paintAlpha };
 
       let canvas: { r: number; g: number; b: number; a: number } | null = null;
       for (const node of [...chain].reverse()) {
@@ -156,14 +213,17 @@ const measureInPage = () => {
         };
       }
 
-      const ratio = contrast(p, canvas);
-      if (ratio < 3) {
-        failures.push({
-          ratio: ratio.toFixed(2),
-          paint: `${String(p.r)},${String(p.g)},${String(p.b)} at alpha ${p.a.toFixed(2)}`,
-          background: `${String(Math.round(canvas.r))},${String(Math.round(canvas.g))},${String(Math.round(canvas.b))}`,
-          svgClass: (svg.getAttribute("class") ?? "").slice(0, 80),
-        });
+      for (const paint of paints) {
+        const p = { ...paint, a: paint.a * paintAlpha };
+        const ratio = contrast(p, canvas);
+        if (ratio < 3) {
+          failures.push({
+            ratio: ratio.toFixed(2),
+            paint: `${String(p.r)},${String(p.g)},${String(p.b)} at alpha ${p.a.toFixed(2)}`,
+            background: `${String(Math.round(canvas.r))},${String(Math.round(canvas.g))},${String(Math.round(canvas.b))}`,
+            svgClass: (svg.getAttribute("class") ?? "").slice(0, 80),
+          });
+        }
       }
     }
 
