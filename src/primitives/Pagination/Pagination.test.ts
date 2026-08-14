@@ -239,7 +239,7 @@ describe("Pagination", () => {
     // 6.84:1, and still the only button in the row wearing the primary — being on
     // page 3 is information, not decoration.
     expect(current).toContain("disabled:bg-primary-muted");
-    expect(current).toContain("disabled:text-primary");
+    expect(current).toContain("disabled:text-primary-text");
   });
 
   // The counterpart verdict, and it is deliberate rather than an oversight: an

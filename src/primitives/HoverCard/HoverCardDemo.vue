@@ -40,28 +40,28 @@ import HoverCard from "./HoverCard.vue";
       <div class="flex flex-wrap items-center gap-3">
         <HoverCard side="top">
           <template #trigger>
-            <button type="button" class="text-small underline">Top</button>
+            <button type="button" class="text-small underline min-h-6 min-w-6">Top</button>
           </template>
           <p class="text-small">Anchored above the trigger.</p>
         </HoverCard>
 
         <HoverCard side="bottom">
           <template #trigger>
-            <button type="button" class="text-small underline">Bottom</button>
+            <button type="button" class="text-small underline min-h-6 min-w-6">Bottom</button>
           </template>
           <p class="text-small">Anchored below the trigger.</p>
         </HoverCard>
 
         <HoverCard side="left">
           <template #trigger>
-            <button type="button" class="text-small underline">Left</button>
+            <button type="button" class="text-small underline min-h-6 min-w-6">Left</button>
           </template>
           <p class="text-small">Anchored to the left of the trigger.</p>
         </HoverCard>
 
         <HoverCard side="right">
           <template #trigger>
-            <button type="button" class="text-small underline">Right</button>
+            <button type="button" class="text-small underline min-h-6 min-w-6">Right</button>
           </template>
           <p class="text-small">Anchored to the right of the trigger.</p>
         </HoverCard>

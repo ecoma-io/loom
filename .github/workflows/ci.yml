@@ -169,11 +169,10 @@ jobs:
   e2e:
     name: End-to-end (${{ matrix.project }}, shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
     runs-on: ubuntu-latest
-    # Each shard runs roughly a quarter of the suite, so the per-job ceiling
-    # is lower than it was when one leg held the whole run. Still generous:
-    # retries multiply a red test's time by three, and setup (install, build,
-    # browser download) is fixed per shard regardless of shard count.
-    timeout-minutes: 10
+    # Dark-mode contrast and accessibility sweeps double the test count (every
+    # page in both light and dark). Eight shards keep each job well under the
+    # ceiling even on Firefox — the slowest engine — with retries factored in.
+    timeout-minutes: 15
     strategy:
       # The three engines are the point. Cancelling Firefox and WebKit because
       # Chromium went red would answer "something broke" and hide whether the
@@ -201,12 +200,13 @@ jobs:
         project: ${{ github.event_name == 'merge_group' && fromJSON('["chromium"]') || fromJSON('["chromium", "firefox", "webkit"]') }}
         # Playwright's `--shard` splits the test list at individual-test
         # granularity (the config already sets `fullyParallel: true`), so each
-        # shard gets roughly the same number of tests. Four shards bring the
-        # per-job count from ~308 to ~77, which keeps each job well under the
-        # timeout even on Firefox — the slowest engine — with retries factored
-        # in.
-        shardIndex: [1, 2, 3, 4]
-        shardTotal: [4]
+        # shard gets roughly the same number of tests. Eight shards bring the
+        # per-job count from ~625 to ~78 per browser. Dark-mode contrast and
+        # accessibility sweeps double the test count (every page tested in both
+        # light and dark), so the heavier shards need more shards to stay under
+        # the timeout even on Firefox with retries factored in.
+        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
+        shardTotal: [8]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

@@ -634,7 +634,7 @@ function onPasteCapture(event: ClipboardEvent): void {
       <p
         v-if="message.length > 0"
         :id="messageId"
-        class="mt-1.5 flex animate-fade-rise items-start gap-2 text-small text-destructive"
+        class="mt-1.5 flex animate-fade-rise items-start gap-2 text-small text-destructive-text"
       >
         <TriangleAlert class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
         <span>{{ message }}</span>

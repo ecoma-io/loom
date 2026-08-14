@@ -29,7 +29,7 @@ const sections: SidebarNavSection[] = [
   <div class="flex flex-col gap-4">
     <fieldset class="flex items-center gap-2 text-xs text-muted-foreground">
       <legend class="sr-only">Platform</legend>
-      <label for="das-platform-windows" class="flex items-center gap-1">
+      <label for="das-platform-windows" class="flex min-h-6 items-center gap-1">
         <input
           id="das-platform-windows"
           v-model="platform"
@@ -39,7 +39,7 @@ const sections: SidebarNavSection[] = [
         />
         Windows
       </label>
-      <label for="das-platform-macos" class="flex items-center gap-1">
+      <label for="das-platform-macos" class="flex min-h-6 items-center gap-1">
         <input
           id="das-platform-macos"
           v-model="platform"
@@ -49,7 +49,7 @@ const sections: SidebarNavSection[] = [
         />
         macOS
       </label>
-      <label for="das-platform-linux" class="flex items-center gap-1">
+      <label for="das-platform-linux" class="flex min-h-6 items-center gap-1">
         <input
           id="das-platform-linux"
           v-model="platform"

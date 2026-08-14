@@ -180,7 +180,7 @@ const { attrs, rest: fieldsetAttrs } = useSplitAttrs();
       v-if="legend"
       class="mb-2 text-sm font-medium text-foreground group-disabled:text-muted-foreground"
     >
-      {{ legend }} <span v-if="required" class="text-destructive">*</span>
+      {{ legend }} <span v-if="required" class="text-destructive-text">*</span>
     </legend>
     <!-- @slot The controls in the group — Fields, most often. -->
     <slot />

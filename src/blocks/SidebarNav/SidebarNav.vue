@@ -83,7 +83,7 @@ function itemClass(item: SidebarNavItem, collapsed: boolean): string {
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
     collapsed ? "h-9 w-9 justify-center" : "h-9 w-full px-2.5",
     item.active
-      ? "bg-primary/10 font-medium text-primary"
+      ? "bg-primary/10 font-medium text-primary-text"
       : // Hover lifts the row to the raised plane rather than tinting it with
         // `--subtle`. `--subtle` is the neutral hover fill for surfaces sitting
         // on `--background` (96% L), where it lands 2% darker and reads. This

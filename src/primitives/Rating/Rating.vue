@@ -61,7 +61,7 @@ const starVariants = cva("block shrink-0", {
 });
 
 /** The row itself: the gap grows with the stars so the rhythm holds at every size. */
-const rowVariants = cva("inline-flex items-center", {
+const rowVariants = cva("inline-flex min-h-6 items-center", {
   variants: {
     size: { sm: "gap-0.5", md: "gap-1", lg: "gap-1.5" } satisfies Record<RatingSize, string>,
   },
@@ -298,7 +298,10 @@ function fillOf(star: number): string {
            fraction of a star drawn by clipping is the only version that stays
            a star at any width. -->
       <span class="absolute inset-y-0 left-0 overflow-hidden" :style="{ width: fillOf(star) }">
-        <Star aria-hidden="true" :class="cn(starVariants({ size }), 'fill-primary text-primary')" />
+        <Star
+          aria-hidden="true"
+          :class="cn(starVariants({ size }), 'fill-primary text-primary-text')"
+        />
       </span>
     </span>
   </div>
@@ -366,7 +369,7 @@ function fillOf(star: number): string {
         :key="stepValue"
         :step="stepValue"
         :aria-label="text.score({ score: stepValue, length })"
-        class="group/step absolute inset-y-0 left-0 cursor-pointer overflow-hidden rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed"
+        class="group/step absolute inset-y-0 left-0 min-h-6 cursor-pointer overflow-hidden rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed"
         style="
           width: var(--reka-rating-item-step-width);
           opacity: var(--reka-rating-item-step-opacity);
@@ -388,7 +391,7 @@ function fillOf(star: number): string {
           :class="
             cn(
               starVariants({ size }),
-              'fill-primary text-primary opacity-0 transition-opacity duration-instant ease-out',
+              'fill-primary text-primary-text opacity-0 transition-opacity duration-instant ease-out',
               // Unavailable, the score drains to the neutral well like every
               // other control's value — solid still, so it stays distinct from
               // the hollow maximum beside it.

@@ -53,16 +53,18 @@ withDefaults(
   -->
   <div :class="cn('flex h-full')" :style="{ flexWrap: 'wrap' }">
     <!--
-      The sidebar is a fixed-basis flex child that does not grow. It recedes
-      into the sunken elevation layer so work surfaces read as lifted above
-      navigation chrome.
+      The sidebar is a fixed-basis flex child that does not grow or shrink.
+      flexShrink: 0 prevents the sidebar from compressing when the container
+      narrows — instead, the content panel's min-width: 50% forces flex-wrap,
+      and both panels stack at full width. This matches MasterDetail and
+      SplitLayout, whose side panels also refuse to shrink.
     -->
     <aside
       :aria-label="sidebarAriaLabel"
       :style="{
         flexBasis: sidebarWidthRem[sidebarWidth],
         flexGrow: 0,
-        flexShrink: 1,
+        flexShrink: 0,
       }"
       :class="cn('bg-sunken w-full')"
     >

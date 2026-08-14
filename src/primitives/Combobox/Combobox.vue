@@ -522,7 +522,7 @@ const inputFieldAttrs = computed(() => {
         :model-value="query"
         :display-value="displayValue"
         :placeholder="multiple && tokens.length > 0 ? undefined : placeholder"
-        class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-muted-foreground"
+        class="min-w-6 flex-1 self-stretch bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-muted-foreground"
         @update:model-value="onQuery"
       />
       <!-- Reka takes this button out of the tab order itself, so the whole
@@ -535,7 +535,7 @@ const inputFieldAttrs = computed(() => {
            English, which no test of Loom's own strings would catch. -->
       <ComboboxTrigger
         :aria-label="text.trigger"
-        class="group shrink-0 text-muted-foreground disabled:cursor-not-allowed"
+        class="group min-h-6 min-w-6 shrink-0 text-muted-foreground disabled:cursor-not-allowed"
       >
         <ChevronDown
           class="h-4 w-4 transition-transform duration-fast ease-out group-data-[state=open]:rotate-180"
@@ -607,7 +607,7 @@ const inputFieldAttrs = computed(() => {
                 'transition-colors duration-fast ease-out',
                 'animate-fade-rise',
                 'data-[highlighted]:bg-subtle',
-                'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary',
+                'data-[state=checked]:bg-primary-muted data-[state=checked]:text-primary-text',
                 // Inert, but still readable. `data-[disabled]:opacity-50` took
                 // the label to 3.13:1 on the popover; the colour on the span
                 // below leaves it at 5.76:1 and still visibly lighter than the
@@ -619,7 +619,7 @@ const inputFieldAttrs = computed(() => {
             <!-- The mute lives on this span rather than on the row, and it has
                  to. `data-[disabled]:` sorts *before* `data-[state=checked]:`
                  in Tailwind's variant order, so a disabled row that is also the
-                 chosen one would take `text-primary` from the container — and a
+                 chosen one would take `text-primary-text` from the container — and a
                  container colour is only inherited. Declared here it wins
                  whatever the row resolved to. -->
             <span :class="option.disabled && 'text-muted-foreground'">{{ option.label }}</span>

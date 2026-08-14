@@ -77,7 +77,7 @@ const field = useFieldControl(() => ({
     :required="field.required"
     :class="
       cn(
-        'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent',
+        'relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border border-transparent',
         'transition-[background-color,filter,box-shadow] duration-instant ease-out',
         'hover:brightness-95',
         // Checked = a decision (Loom law): the track fills with primary.
@@ -98,7 +98,7 @@ const field = useFieldControl(() => ({
       "
       :class="
         cn(
-          'absolute top-1/2 left-0.5 block h-4 w-4 -translate-y-1/2 rounded-full bg-background shadow-sm',
+          'absolute top-1/2 left-0.5 block h-5 w-5 -translate-y-1/2 rounded-full bg-background shadow-sm',
           'active:scale-x-[1.15] active:scale-y-[0.85]',
           'data-[state=checked]:left-[1.125rem]',
         )

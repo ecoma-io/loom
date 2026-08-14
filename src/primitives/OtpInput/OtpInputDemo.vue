@@ -46,7 +46,7 @@ const backup = ref("");
         aria-labelledby="otp-demo-invalid"
         aria-describedby="otp-demo-invalid-error"
       />
-      <span id="otp-demo-invalid-error" class="text-xs text-destructive">
+      <span id="otp-demo-invalid-error" class="text-xs text-destructive-text">
         That code has expired. Ask for a new one.
       </span>
     </div>

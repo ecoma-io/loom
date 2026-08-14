@@ -112,7 +112,7 @@ const field = useFieldControl(() => ({
       :key="opt.value"
       :class="
         cn(
-          'flex items-start gap-2 text-sm text-foreground',
+          'flex min-h-6 items-start gap-2 text-sm text-foreground',
           // Disabled text stays readable (AA on the light ground) — only the
           // control glyph dims; quiet, not illegible.
           field.disabled || opt.disabled

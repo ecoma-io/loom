@@ -7,7 +7,7 @@ describe("InlineError", () => {
     const wrapper = mount(InlineError, { props: { message: "Could not open the project." } });
     const root = wrapper.get('[role="alert"]');
     expect(root.text()).toContain("Could not open the project.");
-    expect(root.classes()).toContain("text-destructive");
+    expect(root.classes()).toContain("text-destructive-text");
   });
 
   it("prefers slot content over the message prop when both are given", () => {

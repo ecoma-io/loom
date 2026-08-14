@@ -73,7 +73,7 @@ describe("Link", () => {
   it("uses the primary text token for the default variant", () => {
     const wrapper = mount(Link, { props: { href: "/home" } });
 
-    expect(wrapper.classes()).toContain("text-primary");
+    expect(wrapper.classes()).toContain("text-primary-text");
   });
 
   it("merges an extra class onto the rendered element", () => {

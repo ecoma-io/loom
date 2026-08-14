@@ -149,13 +149,13 @@ function choose(item: ContextMenuEntry): void {
                 // the 15.46:1 an available row wears.
                 //
                 // It takes the danger colour with it, deliberately. An
-                // attribute selector outranks the plain `text-destructive`
+                // attribute selector outranks the plain `text-destructive-text`
                 // below whatever order Tailwind emits them in, and that is the
                 // right way round: red is a warning about an action, and there
                 // is no action here to warn about.
                 'data-[disabled]:pointer-events-none data-[disabled]:text-muted-foreground',
                 item.danger &&
-                  'text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive',
+                  'text-destructive-text data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive-text',
               )
             "
             :style="{ animationDelay: listStaggerDelay(i) }"

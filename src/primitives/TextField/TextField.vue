@@ -427,7 +427,7 @@ const field = useFieldControl(() => ({
       :placeholder="placeholder"
       :disabled="field.disabled"
       :readonly="field.readonly"
-      class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+      class="min-w-0 flex-1 self-stretch bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
       @input="onInput"
     />
     <!-- The counter is an adornment like any other, and it renders inside the
@@ -452,7 +452,7 @@ const field = useFieldControl(() => ({
           // band once. The digits themselves are the third reading — 21/20 is
           // over the limit whatever it is painted.
           band === 'near' && 'text-warning',
-          band === 'over' && 'text-destructive',
+          band === 'over' && 'text-destructive-text',
         )
       "
     >

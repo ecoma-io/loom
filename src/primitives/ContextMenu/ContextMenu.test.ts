@@ -110,8 +110,8 @@ describe("ContextMenu", () => {
   it("applies destructive styling for danger items", async () => {
     await mountMenu();
     await rightClick();
-    expect([...items()[3]!.classList]).toContain("text-destructive");
-    expect([...items()[0]!.classList]).not.toContain("text-destructive");
+    expect([...items()[3]!.classList]).toContain("text-destructive-text");
+    expect([...items()[0]!.classList]).not.toContain("text-destructive-text");
   });
 
   it("applies disabled styling for disabled items", async () => {

@@ -43,7 +43,7 @@ export const avatarVariants = cva(
         // no avatar hears. The corner is left alone on purpose, because the
         // corner is Indicator's: a presence dot pinned there would land on top
         // of anything this component drew.
-        accent: "border-2 border-accent bg-accent-muted text-accent",
+        accent: "border-2 border-accent bg-accent-muted text-accent-text",
       } satisfies Record<AvatarVariant, string>,
     },
     defaultVariants: { size: "md", force: "default" },

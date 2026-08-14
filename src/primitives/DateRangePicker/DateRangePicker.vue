@@ -639,7 +639,7 @@ function onOpenAutoFocus(event: Event) {
                 cn(
                   'tabular rounded-sm px-0.5 outline-none',
                   'transition-colors duration-instant ease-out',
-                  'focus:bg-primary-muted focus:text-primary',
+                  'focus:bg-primary-muted focus:text-primary-text',
                   'data-[placeholder]:text-muted-foreground',
                   item.part === 'literal' && 'text-muted-foreground',
                 )
@@ -796,7 +796,7 @@ function onOpenAutoFocus(event: Event) {
                           'data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground',
                           'data-[selection-end]:bg-primary data-[selection-end]:text-primary-foreground',
                           '[&[data-selected]:not([data-selection-start]):not([data-selection-end])]:bg-primary-muted',
-                          '[&[data-selected]:not([data-selection-start]):not([data-selection-end])]:text-primary',
+                          '[&[data-selected]:not([data-selection-start]):not([data-selection-end])]:text-primary-text',
                           // The preview is deliberately the neutral hover
                           // surface rather than a wash of the action colour:
                           // it is a proposal, and it must not read as a range

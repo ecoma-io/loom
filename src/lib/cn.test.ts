@@ -97,7 +97,7 @@ describe("cn and Loom's named type scale", () => {
   });
 
   it("still merges two text colours, which the registration must not have broken", () => {
-    expect(cn("text-primary", "text-destructive")).toBe("text-destructive");
+    expect(cn("text-primary-text", "text-destructive-text")).toBe("text-destructive-text");
   });
 });
 

@@ -87,6 +87,26 @@
   /* Focus ring is the primary colour: keyboard focus is the primary action. */
   --color-ring: hsl(211 37% 32%);
 
+  /* ---- Text-variant tokens ------------------------------------------------
+   * These are lighter steps of the functional colours, for use when the base
+   * token serves as TEXT rather than as a background fill. In light mode the
+   * base tokens already clear 4.5:1 against every surface, so the text variants
+   * are identical — they exist so that `text-primary-text` is always a valid
+   * class, and dark mode can override them without the component needing to
+   * know which theme is active.
+   *
+   * In dark mode, `--color-primary` is calibrated for button backgrounds (white
+   * on primary at 5.05:1); as text on a dark surface it lands around 4:1,
+   * below the AA floor. The same applies to the other functional tokens. The
+   * dark block overrides each text variant to a lighter step that clears 4.5:1
+   * on every dark surface (sunken through popover). */
+  --color-primary-text: hsl(211 37% 32%);
+  --color-accent-text: hsl(18 56% 39%);
+  --color-destructive-text: hsl(356 65% 41%);
+  --color-success-text: hsl(152 45% 30%);
+  --color-warning-text: hsl(38 92% 28%);
+  --color-info-text: hsl(202 65% 35%);
+
   /* ---- Functional — hues kept distinct from both action colours ------------ */
   --color-destructive: hsl(356 65% 41%);
   --color-destructive-foreground: hsl(0 0% 100%);
@@ -370,6 +390,20 @@
   --color-secondary-foreground: hsl(213 20% 88%);
 
   --color-ring: hsl(211 33% 45%); /* matches primary; 3.50:1 on background */
+
+  /* Text-variant tokens: lighter steps of the functional colours that clear
+   * 4.5:1 as text on every dark surface (sunken 7% through popover 17%).
+   * The base tokens are calibrated for button backgrounds, where their own
+   * foreground pair provides the contrast — but `text-primary` as text on
+   * a dark surface lands around 4:1, below the AA floor. Components that
+   * use a functional colour as text should use the `-text` variant instead
+   * (e.g. `text-primary-text` rather than `text-primary`). */
+  --color-primary-text: hsl(211 45% 65%); /* 5.38:1 on sunken, 4.50:1 on popover */
+  --color-accent-text: hsl(18 55% 62%); /* 5.77:1 on accent-muted, 6.01:1 on popover */
+  --color-destructive-text: hsl(356 55% 70%); /* 7.04:1 on sunken, 4.63:1 on popover */
+  --color-success-text: hsl(152 38% 55%); /* 7.43:1 on sunken, 4.88:1 on popover */
+  --color-warning-text: hsl(38 80% 65%); /* 11.78:1 on sunken, 6.45:1 on popover */
+  --color-info-text: hsl(202 55% 62%); /* 7.42:1 on sunken, 4.64:1 on popover */
 
   /* ---- Functional — each lightened and desaturated for dark ---- */
 

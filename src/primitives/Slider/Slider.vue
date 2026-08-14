@@ -278,7 +278,7 @@ onBeforeUnmount(() => teardownDrag?.());
          which is the page's own ground, needs no dim. -->
     <SliderThumb
       v-bind="{ ...thumbAttrs, ...thumbFieldAttrs }"
-      class="block h-4 w-4 rounded-full border-2 border-primary bg-background shadow-sm transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[disabled]:pointer-events-none data-[disabled]:border-muted-foreground"
+      class="block h-6 w-6 rounded-full border-2 border-primary bg-background shadow-sm transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo data-[disabled]:pointer-events-none data-[disabled]:border-muted-foreground"
     />
   </SliderRoot>
 </template>
