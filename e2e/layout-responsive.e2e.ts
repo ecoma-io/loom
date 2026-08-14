@@ -15,12 +15,12 @@ import { test, expect } from "@playwright/test";
 
 // The narrow viewport must be below the intrinsic collapse width of every
 // layout variant. The collapse happens when the content panel (min-width: 50%)
-// can no longer fit alongside the side panel. For a 14rem side panel
-// (MasterDetail, SplitLayout — flex-shrink: 0), collapse occurs below ~448px
-// of container width. The Demo figure adds ~48px of padding, and VitePress
-// adds page margins, so 320px viewport guarantees collapse for all variants.
-// (For AppShell sm sidebar — 12rem, flex-shrink: 1 — the collapse is even
-// lower, around ~384px container.)
+// can no longer fit alongside the side panel. For a side panel with
+// flex-shrink: 0 and a basis of N rem, the flex container wraps when its width
+// falls below 2 × N (the side panel won't shrink, so the 50% content minimum
+// can't be satisfied). At 320px viewport, after VitePress page margins and the
+// Demo figure's border + padding, the figure inner width is roughly 220px —
+// well below the collapse thresholds for all sidebar sizes.
 const NARROW = 320;
 
 // Layout panels carry distinctive inline styles set by the component. The
