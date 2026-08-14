@@ -80,6 +80,10 @@ const FOUNDATIONS = pagesIn("foundations", [
   "theming",
 ]);
 
+// Patterns are worked examples that cross component boundaries — compositions
+// a reader is more likely to reach for by shape ("a form") than by name.
+const PATTERNS = pagesIn("patterns", ["forms"]);
+
 export default defineConfig({
   title: "Loom",
   description:
@@ -134,6 +138,7 @@ export default defineConfig({
       { text: "Composition", items: COMPOSITION },
       { text: "Blocks", items: BLOCKS },
       { text: "Layouts", items: LAYOUTS },
+      { text: "Patterns", items: PATTERNS },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],
     editLink: {
