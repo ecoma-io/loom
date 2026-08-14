@@ -173,8 +173,9 @@ jobs:
     # 20 was measuring a job that no longer exists. Not cut proportionally: the
     # suite grows with every component added, and `retries` is 2 in CI, so a leg
     # that ends up red spends roughly three times its green duration getting
-    # there. 15 leaves that room against the slowest leg observed so far.
-    timeout-minutes: 15
+    # there. Firefox on a single worker consistently runs closest to this limit,
+    # and the suite grows with every component added. 20 leaves that room.
+    timeout-minutes: 20
     strategy:
       # The three engines are the point. Cancelling Firefox and WebKit because
       # Chromium went red would answer "something broke" and hide whether the
