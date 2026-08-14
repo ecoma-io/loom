@@ -167,15 +167,13 @@ jobs:
       - run: pnpm docs:check-route
 
   e2e:
-    name: End-to-end (${{ matrix.project }})
+    name: End-to-end (${{ matrix.project }}, shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
     runs-on: ubuntu-latest
-    # This now bounds one engine rather than three run back to back, so the old
-    # 20 was measuring a job that no longer exists. Not cut proportionally: the
-    # suite grows with every component added, and `retries` is 2 in CI, so a leg
-    # that ends up red spends roughly three times its green duration getting
-    # there. Firefox on a single worker consistently runs closest to this limit,
-    # and the suite grows with every component added. 20 leaves that room.
-    timeout-minutes: 20
+    # Each shard runs roughly a quarter of the suite, so the per-job ceiling
+    # is lower than it was when one leg held the whole run. Still generous:
+    # retries multiply a red test's time by three, and setup (install, build,
+    # browser download) is fixed per shard regardless of shard count.
+    timeout-minutes: 10
     strategy:
       # The three engines are the point. Cancelling Firefox and WebKit because
       # Chromium went red would answer "something broke" and hide whether the
@@ -201,6 +199,14 @@ jobs:
         # break if a project were ever renamed to something Playwright does not
         # recognise as a browser.
         project: ${{ github.event_name == 'merge_group' && fromJSON('["chromium"]') || fromJSON('["chromium", "firefox", "webkit"]') }}
+        # Playwright's `--shard` splits the test list at individual-test
+        # granularity (the config already sets `fullyParallel: true`), so each
+        # shard gets roughly the same number of tests. Four shards bring the
+        # per-job count from ~308 to ~77, which keeps each job well under the
+        # timeout even on Firefox — the slowest engine — with retries factored
+        # in.
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -234,16 +240,17 @@ jobs:
         run: pnpm exec playwright install --with-deps ${{ matrix.project }}
 
       - name: Run Playwright
-        run: pnpm e2e --project=${{ matrix.project }}
+        run: pnpm e2e --project=${{ matrix.project }} --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
 
       # Named per leg because `upload-artifact` refuses a name another job in
-      # the same run has already claimed — three legs failing together under one
-      # name is an upload error on top of the test failures anyone came to read.
+      # the same run has already claimed — twelve legs failing together under
+      # one name is an upload error on top of the test failures anyone came to
+      # read.
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report-${{ matrix.project }}-${{ github.run_id }}
+          name: playwright-report-${{ matrix.project }}-shard${{ matrix.shardIndex }}-${{ github.run_id }}
           path: playwright-report/
           retention-days: 7
 
