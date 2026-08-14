@@ -21,23 +21,27 @@ import { documentationPages } from "./docs-pages";
 
 const MIN_SIZE = 24;
 
-// Selectors for interactive elements. `[role="button"]` catches elements with
-// ARIA button semantics that don't use `<button>` natively.
-const INTERACTIVE =
-  'button, a[href], input, select, textarea, [role="button"], [role="tab"], [role="menuitem"], [role="option"], [role="switch"], [role="checkbox"], [role="radio"], [role="link"], [tabindex]:not([tabindex="-1"])';
-
-// Elements whose target size is decided by the browser, not the author.
-const UA_PROVIDED = new Set([
-  "select",
-  "input[type='range']",
-  "input[type='color']",
-  "input[type='datetime-local']",
-  "input[type='date']",
-  "input[type='time']",
-]);
-
 const measureInPage = () => {
+  // Hoisted: `page.evaluate` serialises the function body, so every constant
+  // the closure reads must live inside it — outer-scope values do not cross.
   return (() => {
+    const MIN_SIZE = 24;
+
+    // Selectors for interactive elements. `[role="button"]` catches elements
+    // with ARIA button semantics that don't use `<button>` natively.
+    const INTERACTIVE =
+      'button, a[href], input, select, textarea, [role="button"], [role="tab"], [role="menuitem"], [role="option"], [role="switch"], [role="checkbox"], [role="radio"], [role="link"], [tabindex]:not([tabindex="-1"])';
+
+    // Elements whose target size is decided by the browser, not the author.
+    const UA_PROVIDED = new Set([
+      "select",
+      "input[type='range']",
+      "input[type='color']",
+      "input[type='datetime-local']",
+      "input[type='date']",
+      "input[type='time']",
+    ]);
+
     interface Finding {
       tag: string;
       selector: string;
