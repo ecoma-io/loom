@@ -73,8 +73,10 @@ const FOUNDATIONS = pagesIn("foundations", [
   "elevation",
   "motion",
   "layout",
+  "responsive-design",
   "iconography",
   "accessibility",
+  "cross-platform",
   "theming",
 ]);
 
