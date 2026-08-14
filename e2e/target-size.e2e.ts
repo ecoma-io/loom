@@ -42,6 +42,11 @@ const measureInPage = () => {
       "input[type='time']",
     ]);
 
+    // VitePress chrome — emitted by the documentation framework, not by Loom.
+    // These elements are outside this repository's reach: the skip link,
+    // the theme toggle, and the heading anchor links that VitePress injects.
+    const VP_CHROME = new Set([".VPSkipLink", ".VPSwitch", ".header-anchor"]);
+
     interface Finding {
       tag: string;
       selector: string;
@@ -53,6 +58,10 @@ const measureInPage = () => {
     for (const el of document.querySelectorAll<HTMLElement>(INTERACTIVE)) {
       // Hidden elements are not targets.
       if (el.offsetParent === null) continue;
+
+      // VitePress chrome exemption — not authored by Loom.
+      if (VP_CHROME.size > 0 && [...el.classList].some((c) => VP_CHROME.has(`.${c}`))) continue;
+
       const computed = getComputedStyle(el);
 
       // Inline exception: a link or button that sits in flowing text and
