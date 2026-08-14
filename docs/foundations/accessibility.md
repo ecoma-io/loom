@@ -11,7 +11,7 @@ accessibility bug is filed and fixed as a bug, the same as any other.
 
 ```ts
 // src/lib/a11y-scope.ts
-export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] as const;
+export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] as const;
 ```
 
 This is the exact scope Loom holds itself to when an automated tool (axe) is
@@ -22,6 +22,13 @@ about the surrounding document is the consumer's to answer, not Loom's.
 Wherever more than one process runs an axe scan against this library, this
 one array is what both read, so neither can quietly drift into disagreeing
 about what counts as a violation.
+
+`wcag22aa` is present but `wcag22a` is not, because axe does not carry one:
+WCAG 2.2 Level A introduces three new success criteria (2.4.11 Focus Not
+Obscured, 2.4.13 Focus Appearance, 2.5.8 Target Size), but axe-core tags
+all three under `wcag21a` since each is also a 2.1 A rule by inheritance.
+Loom tests for those criteria separately — the target-size and
+focus-not-obscured e2e tests cover what axe does not yet automate.
 
 ## Why it ships from `@ecoma-io/loom/a11y`
 

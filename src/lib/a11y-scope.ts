@@ -15,4 +15,4 @@
  * needs this array — a Playwright run, a CI script — can read it without
  * pulling in a single Vue component.
  */
-export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] as const;
+export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] as const;

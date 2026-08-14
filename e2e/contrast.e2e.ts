@@ -174,25 +174,33 @@ const measureInPage = () => {
 for (const page of documentationPages()) {
   const label = page === "." ? "/" : `/${page}`;
 
-  test(`${label} draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
-    page: browserPage,
-  }) => {
-    await browserPage.goto(page);
+  for (const theme of ["light", "dark"] as const) {
+    test(`${label} (${theme}) draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
+      page: browserPage,
+    }) => {
+      await browserPage.goto(page);
 
-    const { failures, skipped } = await browserPage.evaluate(measureInPage);
+      // Set the theme before measuring. Loom's dark tokens are a symmetric
+      // set, so contrast must be verified independently in each.
+      await browserPage.evaluate((t) => {
+        document.documentElement.setAttribute("data-theme", t);
+      }, theme);
 
-    // The message carries the measurement, not just the failure: which svg,
-    // what it painted, what the composited background actually was, and the
-    // ratio between them — the same shape of report the accessibility suite
-    // builds for axe violations, so a red gate says what to fix.
-    const report = failures
-      .map((f) => `${f.ratio}:1 — ${f.svgClass} painted ${f.paint} on ${f.background}`)
-      .join("\n");
+      const { failures, skipped } = await browserPage.evaluate(measureInPage);
 
-    expect(failures, report).toEqual([]);
+      // The message carries the measurement, not just the failure: which svg,
+      // what it painted, what the composited background actually was, and the
+      // ratio between them — the same shape of report the accessibility suite
+      // builds for axe violations, so a red gate says what to fix.
+      const report = failures
+        .map((f) => `${f.ratio}:1 — ${f.svgClass} painted ${f.paint} on ${f.background}`)
+        .join("\n");
 
-    // Nothing silently escapes the sweep. A gradient backdrop has no single
-    // ratio, so the elements on one are counted rather than ignored.
-    expect(skipped, `svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
-  });
+      expect(failures, report).toEqual([]);
+
+      // Nothing silently escapes the sweep. A gradient backdrop has no single
+      // ratio, so the elements on one are counted rather than ignored.
+      expect(skipped, `svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+    });
+  }
 }
