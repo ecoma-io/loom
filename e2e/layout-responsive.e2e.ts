@@ -13,9 +13,27 @@ import { test, expect } from "@playwright/test";
 // Each test drives the layout's documentation demo. The selectors target
 // elements the demo is known to contain, so conditional guards are not needed.
 
-test("AppShell sidebar stacks below 48rem and splits above", async ({ page }) => {
+// The narrow viewport must be below the intrinsic collapse width of every
+// layout variant. The collapse happens when the content panel (min-width: 50%)
+// can no longer fit alongside the side panel. For a 14rem side panel
+// (MasterDetail, SplitLayout — flex-shrink: 0), collapse occurs below ~448px
+// of container width. The Demo figure adds ~48px of padding, and VitePress
+// adds page margins, so 320px viewport guarantees collapse for all variants.
+// (For AppShell sm sidebar — 12rem, flex-shrink: 1 — the collapse is even
+// lower, around ~384px container.)
+const NARROW = 320;
+
+// Layout panels carry distinctive inline styles set by the component. The
+// flex-wrap container that holds both panels uses an inline `flex-wrap:wrap`
+// (the Demo wrapper uses a Tailwind class, not an inline style). Each layout
+// component's first child has `flex-grow:0` and the second `flex-grow:999`.
+// Vue SSR renders style properties without spaces (e.g. `flex-grow:0`), so
+// selectors must match that format.
+const FLEX_WRAP = '[style*="flex-wrap:wrap"]';
+
+test("AppShell sidebar stacks below collapse width and splits above", async ({ page }) => {
   // At narrow width, the sidebar and content should stack (both full-width).
-  await page.setViewportSize({ width: 600, height: 800 });
+  await page.setViewportSize({ width: NARROW, height: 800 });
   await page.goto("layouts/app-shell");
 
   // The demo renders a <figure> containing the AppShell. The sidebar is
@@ -49,32 +67,35 @@ test("AppShell sidebar stacks below 48rem and splits above", async ({ page }) =>
 
 test("MasterDetail stacks below collapse width and splits above", async ({ page }) => {
   // Narrow: panels should stack.
-  await page.setViewportSize({ width: 600, height: 800 });
+  await page.setViewportSize({ width: NARROW, height: 800 });
   await page.goto("layouts/master-detail");
 
-  // The demo renders a figure with two flex children (master and detail).
+  // The layout's flex container carries an inline `flex-wrap:wrap` style.
+  // Its two direct children are the master and detail panels.
   const demo = page.locator("figure").first();
-  const first = demo.locator("figure > div > div").first();
-  const second = demo.locator("figure > div > div").nth(1);
+  const layout = demo.locator(FLEX_WRAP).first();
+  const master = layout.locator("> div").first();
+  const detail = layout.locator("> div").nth(1);
 
-  const firstBox = await first.boundingBox();
-  const secondBox = await second.boundingBox();
-  expect(firstBox).toBeTruthy();
-  expect(secondBox).toBeTruthy();
-  expect(secondBox!.y).toBeGreaterThanOrEqual(firstBox!.y + firstBox!.height - 1);
+  const masterBox = await master.boundingBox();
+  const detailBox = await detail.boundingBox();
+  expect(masterBox).toBeTruthy();
+  expect(detailBox).toBeTruthy();
+  expect(detailBox!.y).toBeGreaterThanOrEqual(masterBox!.y + masterBox!.height - 1);
 
   // Wide: panels should sit side by side.
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.goto("layouts/master-detail");
 
-  const firstWide = page.locator("figure").first().locator("figure > div > div").first();
-  const secondWide = page.locator("figure").first().locator("figure > div > div").nth(1);
+  const layoutWide = page.locator("figure").first().locator(FLEX_WRAP).first();
+  const masterWide = layoutWide.locator("> div").first();
+  const detailWide = layoutWide.locator("> div").nth(1);
 
-  const firstWideBox = await firstWide.boundingBox();
-  const secondWideBox = await secondWide.boundingBox();
-  expect(firstWideBox).toBeTruthy();
-  expect(secondWideBox).toBeTruthy();
-  expect(secondWideBox!.x).toBeGreaterThan(firstWideBox!.x + firstWideBox!.width - 1);
+  const masterWideBox = await masterWide.boundingBox();
+  const detailWideBox = await detailWide.boundingBox();
+  expect(masterWideBox).toBeTruthy();
+  expect(detailWideBox).toBeTruthy();
+  expect(detailWideBox!.x).toBeGreaterThan(masterWideBox!.x + masterWideBox!.width - 1);
 });
 
 test("Centered layout bounds content at a readable max-width", async ({ page }) => {
@@ -110,29 +131,31 @@ test("Reading layout bounds line length on ultrawide", async ({ page }) => {
 
 test("SplitLayout stacks below collapse width and splits above", async ({ page }) => {
   // Narrow: panels stack.
-  await page.setViewportSize({ width: 600, height: 800 });
+  await page.setViewportSize({ width: NARROW, height: 800 });
   await page.goto("layouts/split-layout");
 
   const demo = page.locator("figure").first();
-  const first = demo.locator("figure > div > div").first();
-  const second = demo.locator("figure > div > div").nth(1);
+  const layout = demo.locator(FLEX_WRAP).first();
+  const side = layout.locator("> div").first();
+  const main = layout.locator("> div").nth(1);
 
-  const firstBox = await first.boundingBox();
-  const secondBox = await second.boundingBox();
-  expect(firstBox).toBeTruthy();
-  expect(secondBox).toBeTruthy();
-  expect(secondBox!.y).toBeGreaterThanOrEqual(firstBox!.y + firstBox!.height - 1);
+  const sideBox = await side.boundingBox();
+  const mainBox = await main.boundingBox();
+  expect(sideBox).toBeTruthy();
+  expect(mainBox).toBeTruthy();
+  expect(mainBox!.y).toBeGreaterThanOrEqual(sideBox!.y + sideBox!.height - 1);
 
   // Wide: side by side.
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.goto("layouts/split-layout");
 
-  const firstWide = page.locator("figure").first().locator("figure > div > div").first();
-  const secondWide = page.locator("figure").first().locator("figure > div > div").nth(1);
+  const layoutWide = page.locator("figure").first().locator(FLEX_WRAP).first();
+  const sideWide = layoutWide.locator("> div").first();
+  const mainWide = layoutWide.locator("> div").nth(1);
 
-  const firstWideBox = await firstWide.boundingBox();
-  const secondWideBox = await secondWide.boundingBox();
-  expect(firstWideBox).toBeTruthy();
-  expect(secondWideBox).toBeTruthy();
-  expect(secondWideBox!.x).toBeGreaterThan(firstWideBox!.x + firstWideBox!.width - 1);
+  const sideWideBox = await sideWide.boundingBox();
+  const mainWideBox = await mainWide.boundingBox();
+  expect(sideWideBox).toBeTruthy();
+  expect(mainWideBox).toBeTruthy();
+  expect(mainWideBox!.x).toBeGreaterThan(sideWideBox!.x + sideWideBox!.width - 1);
 });
