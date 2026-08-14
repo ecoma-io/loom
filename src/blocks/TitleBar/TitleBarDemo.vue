@@ -3,9 +3,11 @@ import { ref } from "vue";
 import TitleBar from "./TitleBar.vue";
 import { Hexagon } from "@lucide/vue";
 import type { MenubarMenu } from "../../primitives/Menubar/Menubar.vue";
+import type { WindowPlatform } from "../../primitives/WindowControls/WindowControls.vue";
 
 const isMaximized = ref(false);
 const last = ref("—");
+const platform = ref<WindowPlatform>("windows");
 
 const menus: MenubarMenu[] = [
   {
@@ -31,12 +33,47 @@ const menus: MenubarMenu[] = [
 
 <template>
   <div class="flex flex-col gap-4">
+    <fieldset class="flex items-center gap-2 text-xs text-muted-foreground">
+      <legend class="sr-only">Platform</legend>
+      <label for="tb-platform-windows" class="flex items-center gap-1">
+        <input
+          id="tb-platform-windows"
+          v-model="platform"
+          type="radio"
+          value="windows"
+          class="accent-primary"
+        />
+        Windows
+      </label>
+      <label for="tb-platform-macos" class="flex items-center gap-1">
+        <input
+          id="tb-platform-macos"
+          v-model="platform"
+          type="radio"
+          value="macos"
+          class="accent-primary"
+        />
+        macOS
+      </label>
+      <label for="tb-platform-linux" class="flex items-center gap-1">
+        <input
+          id="tb-platform-linux"
+          v-model="platform"
+          type="radio"
+          value="linux"
+          class="accent-primary"
+        />
+        Linux
+      </label>
+    </fieldset>
+
     <!-- rounded/overflow-hidden so the bar reads as the top of a window -->
     <div class="overflow-hidden rounded-lg border border-border shadow-sm">
       <TitleBar
         app-name="MyApp"
         title="teaser-launch.mp4 — Demo project"
         :menus="menus"
+        :platform="platform"
         :is-maximized="isMaximized"
         @select="last = $event"
         @minimize="last = 'window.minimize'"

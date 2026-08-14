@@ -15,11 +15,15 @@ import windowControlsDemoSource from "../../src/primitives/WindowControls/Window
 
 ```vue
 <script setup lang="ts">
-import { WindowControls } from "@ecoma-io/loom";
+import { WindowControls, type WindowPlatform } from "@ecoma-io/loom";
+
+// The host decides the platform — Loom never sniffs the OS at runtime.
+const platform: WindowPlatform = "windows";
 </script>
 
 <template>
   <WindowControls
+    :platform="platform"
     :is-maximized="isMaximized"
     @minimize="win.minimize()"
     @maximize="win.maximizeToggle()"
@@ -43,6 +47,23 @@ strip; a host free to put it anywhere a window's chrome needs it.
 <Demo title="Minimize, maximize/restore, close" :source="windowControlsDemoSource">
   <WindowControlsDemo />
 </Demo>
+
+## Platform awareness
+
+`platform` tells the cluster whether to render at all:
+
+| Platform  | Behaviour                                                                  |
+| --------- | -------------------------------------------------------------------------- |
+| `windows` | Default. Renders the minimize / maximize / close cluster.                  |
+| `macos`   | Renders nothing — macOS draws its own traffic-light buttons.               |
+| `linux`   | Renders the cluster. Some Linux desktops handle buttons natively; if yours |
+|           | does, set `platform="macos"` to hide this cluster.                         |
+
+The host decides which platform it is on. Loom never sniffs the OS at
+runtime, because a Tauri or Electron host already knows its platform and a
+PWA has no native window controls to compete with. See
+[Cross-platform support](/foundations/cross-platform) for the full desktop
+and PWA story.
 
 ## Design notes
 
