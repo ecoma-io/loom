@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.2.0](https://github.com/ecoma-io/loom/compare/v0.1.1...v0.2.0) (2026-08-14)
+
+
+### Features
+
+* **blocks:** add platform awareness to TitleBar, WindowControls and DesktopAppShell (Phase 7) ([#60](https://github.com/ecoma-io/loom/issues/60)) ([7d69572](https://github.com/ecoma-io/loom/commit/7d69572d35a2907e14928af89044837b27e8ff55))
+* **blocks:** add six new blocks for Phase 6 ([#57](https://github.com/ecoma-io/loom/issues/57)) ([82c9892](https://github.com/ecoma-io/loom/commit/82c9892f46dd586c7bb224b431776e1f36f5f705))
+* **ci:** shard e2e suite across 4 parallel runners ([#62](https://github.com/ecoma-io/loom/issues/62)) ([3dab785](https://github.com/ecoma-io/loom/commit/3dab785d24a11443b1a56b92a38f1ffbac37a39d))
+* **composition:** add eight layout composition primitives ([#54](https://github.com/ecoma-io/loom/issues/54)) ([993e42d](https://github.com/ecoma-io/loom/commit/993e42d8802a40c8e1f9b30501a79c235a248739))
+* **docs:** add cross-platform and responsive design foundations pages (Phase 8) ([#59](https://github.com/ecoma-io/loom/issues/59)) ([f83b67b](https://github.com/ecoma-io/loom/commit/f83b67bd9ebf42f65cddcfe81290d5aeba16f319))
+* **layouts:** add eight responsive layout components for Phase 5 ([#56](https://github.com/ecoma-io/loom/issues/56)) ([515b84b](https://github.com/ecoma-io/loom/commit/515b84b9d885f676ea418e10598def14512c1194))
+* **lib:** warn in dev mode when a Field's readonly is silently ignored ([#51](https://github.com/ecoma-io/loom/issues/51)) ([491e363](https://github.com/ecoma-io/loom/commit/491e36302e12f8f4286a18175e6a64af91b9a134))
+* **primitives:** add leading and trailing slots to Textarea ([#52](https://github.com/ecoma-io/loom/issues/52)) ([af4d2c9](https://github.com/ecoma-io/loom/commit/af4d2c9a1e5bddd5b34053570200f3f1b945502f))
+* **primitives:** add seven new primitives (Phase 4) ([#55](https://github.com/ecoma-io/loom/issues/55)) ([02b7ce4](https://github.com/ecoma-io/loom/commit/02b7ce4983e961cc0c21682257640cafad37a5cd))
+* **primitives:** add seven new primitives for Phase 4 ([02b7ce4](https://github.com/ecoma-io/loom/commit/02b7ce4983e961cc0c21682257640cafad37a5cd))
+* **primitives:** add twenty-three primitives, the Field context and the localisation seam ([#25](https://github.com/ecoma-io/loom/issues/25)) ([0f2ae8f](https://github.com/ecoma-io/loom/commit/0f2ae8f128e6937068b30d879444ad2c3046d7f6))
+* **primitives:** give group controls in Field an accessible name ([#49](https://github.com/ecoma-io/loom/issues/49)) ([14dd58a](https://github.com/ecoma-io/loom/commit/14dd58a20f764f57aa980e34aa41384be9e3c6b9)), closes [#32](https://github.com/ecoma-io/loom/issues/32)
+* **styles:** add dark mode, theme switching API, and remove Ecoma semantics ([#53](https://github.com/ecoma-io/loom/issues/53)) ([743bfd7](https://github.com/ecoma-io/loom/commit/743bfd74f50d7665a68a0dda851562a418efe107))
+
+
+### Bug Fixes
+
+* **a11y:** localise aria-valuetext for month and dayPeriod segments ([#50](https://github.com/ecoma-io/loom/issues/50)) ([1967d51](https://github.com/ecoma-io/loom/commit/1967d51d9a589b368ad5d298e2b68492ca2fd3f7))
+* **ci:** pin the Node patch so the ESLint cache key stops drifting ([#44](https://github.com/ecoma-io/loom/issues/44)) ([18b2475](https://github.com/ecoma-io/loom/commit/18b24750c1c1acdfacb0c381ca3a05747e458314))
+* **lib:** resolve .vue module types from .ts files in ESLint ([#47](https://github.com/ecoma-io/loom/issues/47)) ([2f0ee32](https://github.com/ecoma-io/loom/commit/2f0ee3226bb0b1f1810c8fcbc78e5775b08eb115))
+* **primitives:** make dismissible=false decline the swipe-dismiss gesture ([#31](https://github.com/ecoma-io/loom/issues/31)) ([#46](https://github.com/ecoma-io/loom/issues/46)) ([57e9e7a](https://github.com/ecoma-io/loom/commit/57e9e7aae45e6f82cd612f382e210605089690ef))
+* **primitives:** paint a disabled Rating in measured greys, not an alpha ([#39](https://github.com/ecoma-io/loom/issues/39)) ([1e609aa](https://github.com/ecoma-io/loom/commit/1e609aa7a049762e83e201e18ab3243fc0413adf))
+* **primitives:** paint a disabled Slider in measured greys, not an alpha ([#41](https://github.com/ecoma-io/loom/issues/41)) ([b317f61](https://github.com/ecoma-io/loom/commit/b317f61edfb827b3014a0b2560657b3127d269ff))
+
+
+### Refactoring
+
+* **lib:** share the counter vocabulary between TextField and Textarea ([#48](https://github.com/ecoma-io/loom/issues/48)) ([e946e3a](https://github.com/ecoma-io/loom/commit/e946e3afb13564699360d8bb581d8e8ea06f0897))
+
 ## [0.1.1](https://github.com/ecoma-io/loom/compare/v0.1.0...v0.1.1) (2026-08-06)
 
 
