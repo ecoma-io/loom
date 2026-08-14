@@ -399,7 +399,7 @@ const groupFieldAttrs = computed(() =>
 // dark one vanishes on a dark fill. The pair — a `background` band inside a
 // `foreground` hairline — always leaves one of the two in contrast.
 const THUMB =
-  "block size-4 rounded-full border-2 border-background bg-transparent ring-1 ring-foreground shadow-sm " +
+  "block size-6 rounded-full border-2 border-background bg-transparent ring-1 ring-foreground shadow-sm " +
   "transition-transform duration-fast ease-spring hover:scale-110 active:scale-95 " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo " +
   "data-[disabled]:pointer-events-none";
@@ -519,7 +519,7 @@ const THUMB =
         :label="text.swatch({ color: current })"
         :aria-roledescription="text.swatchRoleDescription"
         :style="{ backgroundColor: current }"
-        class="size-5 shrink-0 rounded-sm border border-border"
+        class="size-6 shrink-0 rounded-sm border border-border"
       />
       <!-- The row's three form-control answers, which the group cannot hold —
            see `groupFieldAttrs`. `aria-label` stays: it names the *field*, not
@@ -529,7 +529,7 @@ const THUMB =
         :name="field.name"
         :aria-required="field.required || undefined"
         :aria-invalid="field.invalid || undefined"
-        class="tabular min-w-0 flex-1 bg-transparent outline-none disabled:cursor-not-allowed"
+        class="tabular min-w-0 flex-1 self-stretch bg-transparent outline-none disabled:cursor-not-allowed"
       />
     </ColorFieldRoot>
 

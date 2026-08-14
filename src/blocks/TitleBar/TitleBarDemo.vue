@@ -35,7 +35,7 @@ const menus: MenubarMenu[] = [
   <div class="flex flex-col gap-4">
     <fieldset class="flex items-center gap-2 text-xs text-muted-foreground">
       <legend class="sr-only">Platform</legend>
-      <label for="tb-platform-windows" class="flex items-center gap-1">
+      <label for="tb-platform-windows" class="flex min-h-6 items-center gap-1">
         <input
           id="tb-platform-windows"
           v-model="platform"
@@ -45,7 +45,7 @@ const menus: MenubarMenu[] = [
         />
         Windows
       </label>
-      <label for="tb-platform-macos" class="flex items-center gap-1">
+      <label for="tb-platform-macos" class="flex min-h-6 items-center gap-1">
         <input
           id="tb-platform-macos"
           v-model="platform"
@@ -55,7 +55,7 @@ const menus: MenubarMenu[] = [
         />
         macOS
       </label>
-      <label for="tb-platform-linux" class="flex items-center gap-1">
+      <label for="tb-platform-linux" class="flex min-h-6 items-center gap-1">
         <input
           id="tb-platform-linux"
           v-model="platform"

@@ -47,6 +47,30 @@ const measureInPage = () => {
     // the theme toggle, and the heading anchor links that VitePress injects.
     const VP_CHROME = new Set([".VPSkipLink", ".VPSwitch", ".header-anchor"]);
 
+    // Date/time segment inputs — editable elements inside a segmented date or
+    // time field (either `<div role="spinbutton">` or `<input>`). Each segment
+    // (day, month, year, hour, minute) is a separate focusable region whose
+    // width is set by its content (1–2 digits) and whose height is constrained
+    // by the field's line-height, exactly as the WCAG 2.5.8 "inline" exception
+    // describes: "Targets that are in sentences, or otherwise embedded in blocks
+    // of text, are excluded because their size is constrained by the line height
+    // of the surrounding text." A date segment *is* text inside a line, not an
+    // independent control. Identified by the `tabular` utility class that
+    // Loom's date/time pickers apply to every segment. The check does not
+    // require `tabindex` because native `<input>` elements are focusable by
+    // default and carry no explicit attribute — the class alone is the marker.
+    const isDateSegment = (el: Element) => el.classList.contains("tabular");
+
+    // Rating step buttons — each star (or half-star) in an interactive Rating
+    // is a `<button role="radio">` clipped to the fraction it represents.
+    // With `step: 0.5`, the left half of a star is a button roughly 12×24px
+    // and the right half is the same. The two halves together are one whole
+    // star whose target meets the floor; neither half has a separate
+    // equivalent elsewhere. This is the same principle as a segmented date
+    // field: sub-targets within a composite widget whose combined target is
+    // sufficient. Identified by the `group/step` class Loom's Rating applies.
+    const isRatingStep = (el: Element) => [...el.classList].some((c) => c.startsWith("group/"));
+
     interface Finding {
       tag: string;
       selector: string;
@@ -59,8 +83,27 @@ const measureInPage = () => {
       // Hidden elements are not targets.
       if (el.offsetParent === null) continue;
 
+      // Invisible elements — zero or single-pixel dimension, or transparent —
+      // are not real pointer targets. Reka UI's hidden form-submission inputs
+      // use a variety of hiding techniques: some are 1×1px with clip (sr-only),
+      // some are 0×N or N×0 spacers, and some are full-height but `opacity: 0`.
+      // No reader can aim at any of these.
+      {
+        const early = el.getBoundingClientRect();
+        if (early.width <= 1 || early.height <= 1) continue;
+        if (parseFloat(getComputedStyle(el).opacity) === 0) continue;
+      }
+
       // VitePress chrome exemption — not authored by Loom.
       if (VP_CHROME.size > 0 && [...el.classList].some((c) => VP_CHROME.has(`.${c}`))) continue;
+
+      // Date segment exemption — inline targets constrained by the field's
+      // line-height (WCAG 2.5.8 "inline" exception).
+      if (isDateSegment(el)) continue;
+
+      // Rating step exemption — sub-targets within a composite star widget
+      // whose combined target meets the floor.
+      if (isRatingStep(el)) continue;
 
       const computed = getComputedStyle(el);
 

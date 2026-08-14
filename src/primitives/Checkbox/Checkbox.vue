@@ -127,7 +127,7 @@ const boxStyle =
     v-if="label"
     :class="
       cn(
-        'inline-flex items-center gap-2 text-sm text-foreground',
+        'inline-flex min-h-6 items-center gap-2 text-sm text-foreground',
         // Disabled text stays readable (AA on the light ground) — only the box dims.
         field.disabled ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer',
         attrs.class as string,
@@ -164,7 +164,7 @@ const boxStyle =
     :required="field.required"
     :aria-label="ariaLabel"
     :aria-labelledby="ariaLabelledby"
-    :class="cn(boxClass, 'disabled:opacity-50', attrs.class as string)"
+    :class="cn(boxClass, 'disabled:opacity-50', 'min-h-6 min-w-6', attrs.class as string)"
     :style="boxStyle"
     @update:model-value="$emit('update:modelValue', $event)"
   >

@@ -522,7 +522,7 @@ const inputFieldAttrs = computed(() => {
         :model-value="query"
         :display-value="displayValue"
         :placeholder="multiple && tokens.length > 0 ? undefined : placeholder"
-        class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-muted-foreground"
+        class="min-w-6 flex-1 self-stretch bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-muted-foreground"
         @update:model-value="onQuery"
       />
       <!-- Reka takes this button out of the tab order itself, so the whole
@@ -535,7 +535,7 @@ const inputFieldAttrs = computed(() => {
            English, which no test of Loom's own strings would catch. -->
       <ComboboxTrigger
         :aria-label="text.trigger"
-        class="group shrink-0 text-muted-foreground disabled:cursor-not-allowed"
+        class="group min-h-6 min-w-6 shrink-0 text-muted-foreground disabled:cursor-not-allowed"
       >
         <ChevronDown
           class="h-4 w-4 transition-transform duration-fast ease-out group-data-[state=open]:rotate-180"

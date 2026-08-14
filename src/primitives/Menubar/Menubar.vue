@@ -166,7 +166,7 @@ onBeforeUnmount(() => window.removeEventListener("click", close));
         role="menuitem"
         :aria-haspopup="true"
         :aria-expanded="openId === menu.id"
-        class="rounded-sm px-2 py-1 text-xs text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:bg-subtle focus-visible:text-foreground"
+        class="min-h-6 rounded-sm px-2 py-1 text-xs text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:bg-subtle focus-visible:text-foreground"
         :class="openId === menu.id && 'bg-subtle text-foreground'"
         @click.stop="toggle(menu.id)"
         @mouseenter="hover(menu.id)"

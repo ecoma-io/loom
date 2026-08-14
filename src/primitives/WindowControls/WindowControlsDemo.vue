@@ -26,7 +26,7 @@ const french = {
   <div class="flex flex-col gap-4">
     <fieldset class="flex items-center gap-2 text-xs text-muted-foreground">
       <legend class="sr-only">Platform</legend>
-      <label for="wc-platform-windows" class="flex items-center gap-1">
+      <label for="wc-platform-windows" class="flex min-h-6 items-center gap-1">
         <input
           id="wc-platform-windows"
           v-model="platform"
@@ -36,7 +36,7 @@ const french = {
         />
         Windows
       </label>
-      <label for="wc-platform-macos" class="flex items-center gap-1">
+      <label for="wc-platform-macos" class="flex min-h-6 items-center gap-1">
         <input
           id="wc-platform-macos"
           v-model="platform"
@@ -46,7 +46,7 @@ const french = {
         />
         macOS
       </label>
-      <label for="wc-platform-linux" class="flex items-center gap-1">
+      <label for="wc-platform-linux" class="flex min-h-6 items-center gap-1">
         <input
           id="wc-platform-linux"
           v-model="platform"
