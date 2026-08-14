@@ -298,7 +298,10 @@ function fillOf(star: number): string {
            fraction of a star drawn by clipping is the only version that stays
            a star at any width. -->
       <span class="absolute inset-y-0 left-0 overflow-hidden" :style="{ width: fillOf(star) }">
-        <Star aria-hidden="true" :class="cn(starVariants({ size }), 'fill-primary text-primary-text')" />
+        <Star
+          aria-hidden="true"
+          :class="cn(starVariants({ size }), 'fill-primary text-primary-text')"
+        />
       </span>
     </span>
   </div>
