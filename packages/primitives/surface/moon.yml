@@ -1,0 +1,5 @@
+project:
+  name: "surface"
+  description: "Surface primitive — elevation and padding container"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

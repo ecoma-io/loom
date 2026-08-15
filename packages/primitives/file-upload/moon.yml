@@ -1,0 +1,5 @@
+project:
+  name: "file-upload"
+  description: "FileUpload primitive — file selection with validation"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

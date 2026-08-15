@@ -14,12 +14,41 @@ const PREVIEW_PORT = 4173;
 // request for `/` produces under a non-root base.
 const BASE_URL = `http://localhost:${String(PREVIEW_PORT)}${BASE}`;
 
+const PROFILE_PROJECTS = {
+  smoke: ["chromium"],
+  standard: ["chromium", "firefox", "webkit"],
+  mobile: ["chromium-mobile", "webkit-mobile"],
+  full: ["chromium", "firefox", "webkit", "chromium-mobile", "webkit-mobile"],
+} as const;
+
+type BrowserProfile = keyof typeof PROFILE_PROJECTS;
+
+const profile = process.env.PW_PROFILE ?? "standard";
+
+if (!(profile in PROFILE_PROJECTS)) {
+  throw new Error(
+    `Unknown PW_PROFILE ${JSON.stringify(profile)}. Expected one of ${Object.keys(PROFILE_PROJECTS).join(", ")}.`,
+  );
+}
+
+const selectedProjects = PROFILE_PROJECTS[profile as BrowserProfile];
+
+const projects = {
+  chromium: { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+  firefox: { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+  webkit: { name: "webkit", use: { ...devices["Desktop Safari"] } },
+  "chromium-mobile": { name: "chromium-mobile", use: { ...devices["Pixel 5"] } },
+  "webkit-mobile": { name: "webkit-mobile", use: { ...devices["iPhone 13"] } },
+} as const;
+
 // End-to-end tests drive a real browser against the rendered component
-// documentation. They live in `e2e/` and never beside the source — a browser
-// test and a unit test fail for different reasons and must be runnable apart.
+// documentation. Cross-cutting checks live in `e2e/`; component-owned checks
+// live in `packages/**/e2e/`. Both remain separate from unit tests so either
+// browser evidence can run without turning a package's unit suite into E2E.
 export default defineConfig({
-  testDir: "./e2e",
-  testMatch: /.*\.e2e\.ts$/,
+  testDir: ".",
+  testMatch: ["e2e/**/*.e2e.ts", "packages/**/e2e/**/*.e2e.ts"],
+  testIgnore: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
 
   // A test that depends on another test's leftovers is a test that will pass
   // alone and fail in CI; full isolation makes that impossible rather than
@@ -62,9 +91,5 @@ export default defineConfig({
     timeout: 120_000,
   },
 
-  projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-    { name: "webkit", use: { ...devices["Desktop Safari"] } },
-  ],
+  projects: selectedProjects.map((name) => projects[name]),
 });

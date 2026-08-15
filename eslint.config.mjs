@@ -56,6 +56,10 @@ export default tseslint.config(
       // every minified bundle twice over.
       ".cloudflare/**",
       ".wrangler/**",
+      // Agent worktrees are isolated copies of the repository used during
+      // development — they are not part of the package surface and linting them
+      // doubles the work and reports stale references from killed agents.
+      ".claude/worktrees/**",
     ],
   },
 
@@ -131,7 +135,7 @@ export default tseslint.config(
   // implementation does — for a consumer, that is the same as a breaking change
   // nobody announced.
   {
-    files: ["src/**/*.ts"],
+    files: ["src/**/*.ts", "packages/**/*.ts"],
     rules: {
       "@typescript-eslint/explicit-module-boundary-types": "error",
     },
@@ -188,7 +192,7 @@ export default tseslint.config(
   // nobody ran — a focused test that silences its siblings, and a skipped one
   // that silences itself — plus assertions that can never fail.
   {
-    files: ["src/**/*.test.ts", "e2e/**/*.e2e.ts"],
+    files: ["src/**/*.test.ts", "packages/**/*.test.ts", "e2e/**/*.e2e.ts"],
     plugins: { vitest },
     rules: {
       ...vitest.configs.recommended.rules,

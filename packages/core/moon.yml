@@ -1,0 +1,14 @@
+# Core utilities shared by every Loom package.
+#
+# This package holds the helpers that have no dependency on any other Loom
+# package: cn(), optional(), useSplitAttrs(), motion constants, WCAG_TAGS,
+# useTheme() and applyLoomIconDefaults(). Components and other packages import
+# from here; nothing in here imports from them.
+project:
+  name: "core"
+  description: "Internal utilities shared by every Loom package"
+
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # No project-specific overrides needed — the inherited commands and
+  # options are correct for this package.

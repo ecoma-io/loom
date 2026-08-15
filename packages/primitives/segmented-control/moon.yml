@@ -1,0 +1,11 @@
+tags: ["e2e"]
+
+project:
+  name: "segmented-control"
+  description: "SegmentedControl primitive — visible single-choice option group"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  e2e:
+    args: ["packages/primitives/segmented-control/e2e"]
+    env:
+      PW_PROFILE: "smoke"

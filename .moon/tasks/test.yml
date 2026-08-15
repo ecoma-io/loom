@@ -1,0 +1,17 @@
+# Shared test task. Inherited by all projects.
+#
+# --root $workspaceRoot: during the dual-architecture migration, all packages
+# share the root vite.config.ts and vitest.setup.ts. Without --root, vitest
+# would look for those files relative to the project directory, which fails for
+# packages under packages/. Per-project vitest configs will replace this when
+# the migration reaches Step 3.
+#
+# maxWorkers: 1 is deliberate — creating a jsdom per isolated file dominates
+# the run, so several at once oversubscribe the machine and turn timing-sensitive
+# tests flaky rather than faster.
+tasks:
+  test:
+    command: "vitest run --root $workspaceRoot"
+    options:
+      cache: true
+      runInCI: affected

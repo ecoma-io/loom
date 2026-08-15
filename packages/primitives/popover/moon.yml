@@ -1,0 +1,5 @@
+project:
+  name: "popover"
+  description: "Popover primitive — floating content panel anchored to a trigger"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

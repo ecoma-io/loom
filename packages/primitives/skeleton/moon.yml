@@ -1,0 +1,5 @@
+project:
+  name: "skeleton"
+  description: "Skeleton primitive — content-loading placeholder for a known layout"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

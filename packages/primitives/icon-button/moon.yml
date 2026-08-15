@@ -1,0 +1,5 @@
+project:
+  name: "icon-button"
+  description: "IconButton primitive — a compact button containing only an icon"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

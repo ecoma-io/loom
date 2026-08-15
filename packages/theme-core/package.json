@@ -1,0 +1,14 @@
+{
+  "name": "@ecoma-io/loom-theme-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./theme.css": "./src/theme.css",
+    "./global.css": "./src/global.css",
+    "./fonts.css": "./src/fonts.css"
+  },
+  "dependencies": {
+    "@ecoma-io/loom": "workspace:*"
+  }
+}

@@ -1,0 +1,10 @@
+# Shared lint task. Inherited by all projects unless overridden.
+#
+# Each project gets its own ESLint pass scoped to that project's files. The
+# shared configuration in eslint.config.mjs at workspace root applies to all.
+tasks:
+  lint:
+    command: "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0"
+    options:
+      cache: true
+      runInCI: affected

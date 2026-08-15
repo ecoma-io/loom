@@ -1,0 +1,5 @@
+project:
+  name: "number-field"
+  description: "NumberField primitive — constrained number input with scrub-drag"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

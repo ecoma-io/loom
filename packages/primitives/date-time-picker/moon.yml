@@ -1,0 +1,5 @@
+project:
+  name: "date-time-picker"
+  description: "DateTimePicker primitive — date and time selection"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

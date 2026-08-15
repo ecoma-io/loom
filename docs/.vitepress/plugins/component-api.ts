@@ -20,16 +20,24 @@ import { fileURLToPath } from "node:url";
 import { parse, type ComponentDoc, type PropDescriptor } from "vue-docgen-api";
 
 const SRC = fileURLToPath(new URL("../../../src/", import.meta.url));
+// During the dual-architecture migration, components may live under packages/
+// as well as src/. The plugin indexes both trees so `@api` markers resolve
+// regardless of where the component currently lives.
+const PACKAGES = fileURLToPath(new URL("../../../packages/", import.meta.url));
 
 const MARKER = /^[ \t]*<!--[ \t]*@api[ \t]+([A-Za-z][A-Za-z0-9]*)[ \t]*-->[ \t]*$/gm;
 
-/** Every `.vue` under `src/`, indexed by component name. Built once per run. */
+/** Every `.vue` under `src/` and `packages/`, indexed by component name. Built once per run. */
 async function indexComponents(): Promise<Map<string, string>> {
-  const entries = await readdir(SRC, { recursive: true, withFileTypes: true });
   const index = new Map<string, string>();
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith(".vue")) continue;
-    index.set(entry.name.slice(0, -".vue".length), `${entry.parentPath}/${entry.name}`);
+  // Scan both trees; packages/ entries take priority (last-write-wins) so
+  // a migrated component in packages/ shadows its legacy copy in src/.
+  for (const root of [SRC, PACKAGES]) {
+    const entries = await readdir(root, { recursive: true, withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith(".vue")) continue;
+      index.set(entry.name.slice(0, -".vue".length), `${entry.parentPath}/${entry.name}`);
+    }
   }
   return index;
 }

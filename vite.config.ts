@@ -5,6 +5,7 @@ import { defineConfig, type Plugin } from "vite";
 import vue from "@vitejs/plugin-vue";
 
 const src = (path: string) => fileURLToPath(new URL(`src/${path}`, import.meta.url));
+const pkg = (path: string) => fileURLToPath(new URL(`packages/${path}`, import.meta.url));
 
 /**
  * The stylesheets ship as authored, not as built.
@@ -29,6 +30,116 @@ function copyStylesheets(): Plugin {
 
 export default defineConfig({
   plugins: [vue(), copyStylesheets()],
+  resolve: {
+    // Internal workspace packages are resolved to source so Vite (and Vitest)
+    // can follow the imports without needing them installed in node_modules.
+    // These aliases mirror the tsconfig paths and must stay in sync.
+    alias: {
+      "@ecoma-io/loom-core": pkg("core/src/index.ts"),
+      "@ecoma-io/loom-labels": pkg("labels/src/index.ts"),
+      // The facade and component package aliases. These are needed by Vitest so
+      // it can follow imports without node_modules installation. The library
+      // build does not use these paths (it starts from src/index.ts and follows
+      // relative imports). Each component package alias is added as it migrates.
+      "@ecoma-io/loom-facade": pkg("loom/src/index.ts"),
+      "@ecoma-io/loom-hover-card": pkg("primitives/hover-card/src/index.ts"),
+      "@ecoma-io/loom-progress": pkg("primitives/progress/src/index.ts"),
+      "@ecoma-io/loom-radial-progress": pkg("primitives/radial-progress/src/index.ts"),
+      "@ecoma-io/loom-scroll-area": pkg("primitives/scroll-area/src/index.ts"),
+      "@ecoma-io/loom-separator": pkg("primitives/separator/src/index.ts"),
+      "@ecoma-io/loom-skeleton": pkg("primitives/skeleton/src/index.ts"),
+      "@ecoma-io/loom-spinner": pkg("primitives/spinner/src/index.ts"),
+      "@ecoma-io/loom-surface": pkg("primitives/surface/src/index.ts"),
+      "@ecoma-io/loom-accordion": pkg("primitives/accordion/src/index.ts"),
+      "@ecoma-io/loom-avatar": pkg("primitives/avatar/src/index.ts"),
+      "@ecoma-io/loom-badge": pkg("primitives/badge/src/index.ts"),
+      "@ecoma-io/loom-breadcrumb": pkg("primitives/breadcrumb/src/index.ts"),
+      "@ecoma-io/loom-button": pkg("primitives/button/src/index.ts"),
+      "@ecoma-io/loom-chip": pkg("primitives/chip/src/index.ts"),
+      "@ecoma-io/loom-context-menu": pkg("primitives/context-menu/src/index.ts"),
+      "@ecoma-io/loom-dropdown-menu": pkg("primitives/dropdown-menu/src/index.ts"),
+      "@ecoma-io/loom-icon-button": pkg("primitives/icon-button/src/index.ts"),
+      "@ecoma-io/loom-inline-error": pkg("primitives/inline-error/src/index.ts"),
+      "@ecoma-io/loom-link": pkg("primitives/link/src/index.ts"),
+      "@ecoma-io/loom-menubar": pkg("primitives/menubar/src/index.ts"),
+      "@ecoma-io/loom-popover": pkg("primitives/popover/src/index.ts"),
+      "@ecoma-io/loom-speed-dial": pkg("primitives/speed-dial/src/index.ts"),
+      "@ecoma-io/loom-tabs": pkg("primitives/tabs/src/index.ts"),
+      "@ecoma-io/loom-tooltip": pkg("primitives/tooltip/src/index.ts"),
+      "@ecoma-io/loom-alert-dialog": pkg("primitives/alert-dialog/src/index.ts"),
+      "@ecoma-io/loom-avatar-group": pkg("primitives/avatar-group/src/index.ts"),
+      "@ecoma-io/loom-checkbox": pkg("primitives/checkbox/src/index.ts"),
+      "@ecoma-io/loom-color-picker": pkg("primitives/color-picker/src/index.ts"),
+      "@ecoma-io/loom-dialog": pkg("primitives/dialog/src/index.ts"),
+      "@ecoma-io/loom-drawer": pkg("primitives/drawer/src/index.ts"),
+      "@ecoma-io/loom-field": pkg("primitives/field/src/index.ts"),
+      "@ecoma-io/loom-fieldset": pkg("primitives/fieldset/src/index.ts"),
+      "@ecoma-io/loom-indicator": pkg("primitives/indicator/src/index.ts"),
+      "@ecoma-io/loom-number-field": pkg("primitives/number-field/src/index.ts"),
+      "@ecoma-io/loom-otp-input": pkg("primitives/otp-input/src/index.ts"),
+      "@ecoma-io/loom-radio-group": pkg("primitives/radio-group/src/index.ts"),
+      "@ecoma-io/loom-rating": pkg("primitives/rating/src/index.ts"),
+      "@ecoma-io/loom-segmented-control": pkg("primitives/segmented-control/src/index.ts"),
+      "@ecoma-io/loom-select": pkg("primitives/select/src/index.ts"),
+      "@ecoma-io/loom-slider": pkg("primitives/slider/src/index.ts"),
+      "@ecoma-io/loom-stepper": pkg("primitives/stepper/src/index.ts"),
+      "@ecoma-io/loom-switch": pkg("primitives/switch/src/index.ts"),
+      "@ecoma-io/loom-toast": pkg("primitives/toast/src/index.ts"),
+      "@ecoma-io/loom-window-controls": pkg("primitives/window-controls/src/index.ts"),
+      "@ecoma-io/loom-combobox": pkg("primitives/combobox/src/index.ts"),
+      "@ecoma-io/loom-date-picker": pkg("primitives/date-picker/src/index.ts"),
+      "@ecoma-io/loom-date-range-picker": pkg("primitives/date-range-picker/src/index.ts"),
+      "@ecoma-io/loom-date-time-picker": pkg("primitives/date-time-picker/src/index.ts"),
+      "@ecoma-io/loom-date-time-range-picker": pkg(
+        "primitives/date-time-range-picker/src/index.ts",
+      ),
+      "@ecoma-io/loom-editable": pkg("primitives/editable/src/index.ts"),
+      "@ecoma-io/loom-file-upload": pkg("primitives/file-upload/src/index.ts"),
+      "@ecoma-io/loom-pagination": pkg("primitives/pagination/src/index.ts"),
+      "@ecoma-io/loom-tags-input": pkg("primitives/tags-input/src/index.ts"),
+      "@ecoma-io/loom-textarea": pkg("primitives/textarea/src/index.ts"),
+      "@ecoma-io/loom-text-field": pkg("primitives/text-field/src/index.ts"),
+      "@ecoma-io/loom-time-picker": pkg("primitives/time-picker/src/index.ts"),
+      // Compositions.
+      "@ecoma-io/loom-center": pkg("composition/center/src/index.ts"),
+      "@ecoma-io/loom-frame": pkg("composition/frame/src/index.ts"),
+      "@ecoma-io/loom-grid": pkg("composition/grid/src/index.ts"),
+      "@ecoma-io/loom-inline": pkg("composition/inline/src/index.ts"),
+      "@ecoma-io/loom-scroll-reel": pkg("composition/scroll-reel/src/index.ts"),
+      "@ecoma-io/loom-sidebar": pkg("composition/sidebar/src/index.ts"),
+      "@ecoma-io/loom-split": pkg("composition/split/src/index.ts"),
+      "@ecoma-io/loom-stack": pkg("composition/stack/src/index.ts"),
+      // Layouts.
+      "@ecoma-io/loom-app-shell": pkg("layouts/app-shell/src/index.ts"),
+      "@ecoma-io/loom-centered": pkg("layouts/centered/src/index.ts"),
+      "@ecoma-io/loom-dashboard": pkg("layouts/dashboard/src/index.ts"),
+      "@ecoma-io/loom-form-layout": pkg("layouts/form-layout/src/index.ts"),
+      "@ecoma-io/loom-master-detail": pkg("layouts/master-detail/src/index.ts"),
+      "@ecoma-io/loom-reading": pkg("layouts/reading/src/index.ts"),
+      "@ecoma-io/loom-settings": pkg("layouts/settings/src/index.ts"),
+      "@ecoma-io/loom-split-layout": pkg("layouts/split-layout/src/index.ts"),
+      // Blocks.
+      "@ecoma-io/loom-app-header": pkg("blocks/app-header/src/index.ts"),
+      "@ecoma-io/loom-dashboard-grid": pkg("blocks/dashboard-grid/src/index.ts"),
+      "@ecoma-io/loom-desktop-app-shell": pkg("blocks/desktop-app-shell/src/index.ts"),
+      "@ecoma-io/loom-empty-state": pkg("blocks/empty-state/src/index.ts"),
+      "@ecoma-io/loom-error-state": pkg("blocks/error-state/src/index.ts"),
+      "@ecoma-io/loom-form-actions": pkg("blocks/form-actions/src/index.ts"),
+      "@ecoma-io/loom-form-section": pkg("blocks/form-section/src/index.ts"),
+      "@ecoma-io/loom-loading-state": pkg("blocks/loading-state/src/index.ts"),
+      "@ecoma-io/loom-metric-card": pkg("blocks/metric-card/src/index.ts"),
+      "@ecoma-io/loom-page-header": pkg("blocks/page-header/src/index.ts"),
+      "@ecoma-io/loom-row-actions": pkg("blocks/row-actions/src/index.ts"),
+      "@ecoma-io/loom-sidebar-nav": pkg("blocks/sidebar-nav/src/index.ts"),
+      "@ecoma-io/loom-title-bar": pkg("blocks/title-bar/src/index.ts"),
+      "@ecoma-io/loom-toast-stack": pkg("blocks/toast-stack/src/index.ts"),
+      // Needed by packages/labels/src/label-registry.ts, which imports
+      // component label types from the public surface. The alias points to
+      // source so Vitest can follow it; the library build does not use this
+      // path (it starts from src/index.ts and follows relative imports).
+      "@ecoma-io/loom": src("index.ts"),
+    },
+  },
   build: {
     // Library mode: consumers bundle this package, so nothing is minified for
     // them and no peer framework is ever inlined.
@@ -74,7 +185,13 @@ export default defineConfig({
     // of `theme.css`, and both are ordinary code that can be ordinarily wrong.
     // A defect there fails the same way a missing page does — the site builds,
     // nothing errors, and the only symptom is a reader seeing the wrong thing.
-    include: ["src/**/*.test.ts", "docs/**/*.test.ts"],
+    //
+    // `packages/` is included so that Moon can run `vitest run` against
+    // individual foundation packages (core, labels, theme-core) and find their
+    // tests. During the dual-architecture period the src/ and packages/ copies
+    // coexist; the coverage include below stays scoped to src/ so the published
+    // surface is what the thresholds guard.
+    include: ["src/**/*.test.ts", "packages/**/*.test.ts", "docs/**/*.test.ts"],
     setupFiles: ["./vitest.setup.ts"],
     // One worker, deliberately. Creating a jsdom per isolated file dominates
     // the run, so several at once oversubscribe the machine and turn
