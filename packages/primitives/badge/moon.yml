@@ -1,0 +1,5 @@
+project:
+  name: "badge"
+  description: "Badge primitive — a compact status or category label"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

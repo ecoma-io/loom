@@ -1,0 +1,9 @@
+project:
+  name: "loom"
+  description: "Public facade — re-exports from foundation and component packages"
+
+# The facade depends on every package it re-exports. Component packages are
+# added here as they migrate; until then, the legacy src/ tree provides the
+# component exports and this project re-exports only the foundation layers.
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

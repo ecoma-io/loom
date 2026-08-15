@@ -1,0 +1,5 @@
+project:
+  name: "tags-input"
+  description: "TagsInput primitive — multi-value token input"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

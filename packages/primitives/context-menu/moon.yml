@@ -1,0 +1,5 @@
+project:
+  name: "context-menu"
+  description: "ContextMenu primitive — right-click activated menu"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

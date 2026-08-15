@@ -1,0 +1,280 @@
+/**
+ * Loom — the stylesheet a host imports.
+ * =====================================
+ * One import gets you the Tailwind engine, the Loom theme, the self-hosted
+ * faces, the base element styling and the motion keyframe library:
+ *
+ *   @import "@ecoma-io/loom/styles/global.css";
+ *
+ * A host assembling its own entry can take `theme.css` and `fonts.css`
+ * separately instead — they are exported for exactly that — but it then owns
+ * the import order, and Tailwind must come first or `@theme` has no engine to
+ * register against.
+ *
+ * Nothing here reaches the network. The faces are vendored (./fonts/), and
+ * there is no CDN import to fail on a plane or leak a page view to a third
+ * party.
+ */
+@import "tailwindcss";
+@import "./theme.css";
+@import "./fonts.css";
+
+/* Loom's own components, registered as a scan target.
+ *
+ * Tailwind's automatic source detection skips `node_modules` — sensible for a
+ * consumer, fatal for us: every class a Loom component renders lives in the
+ * package the consumer installed, so without this line the utilities those
+ * components need are never generated and the library ships unstyled.
+ *
+ * The path is `../` in both trees by construction. In the repository this file
+ * is `src/styles/global.css`, so `../` is `src/`; in the published package it
+ * is `dist/styles/global.css`, so `../` is `dist/`. One relative path, no
+ * build-time rewrite. */
+@source "../";
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: light dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv01", "ss01"; /* Geist's stylistic alternates */
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-primary) 22%, transparent);
+  }
+
+  /* The brand focus ring — intentional, never an afterthought, and never
+   * removed without something at least as visible replacing it. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Tabular, aligned numerics wherever a number carries meaning: identifiers,
+ * counts, anything a reader scans down a column. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* ---- Vendor corrections ----------------------------------------------------
+ * Rules that exist only because a dependency renders something Loom cannot
+ * reach from its own markup. Each one is coupled to that dependency's DOM, so
+ * each names what it couples to and is pinned by an end-to-end test.
+ *
+ * `StepperRoot` renders its own position announcement — "Step 3 of 5" — as a
+ * text node inside its render function. There is no prop, no slot and no
+ * attribute for it, so it is the one string in this library that a binding on
+ * Loom's side cannot replace, and it is English however the host is localised.
+ * `Stepper.vue` renders a translatable one beside it and this takes Reka's out
+ * of the accessibility tree, leaving exactly one region to announce a step
+ * change instead of two saying it in two languages.
+ *
+ * `display: none` rather than `aria-hidden="true"`, and the difference is not
+ * stylistic. `aria-hidden` on an element that is *already* a live region is not
+ * something the ARIA specification settles — implementations differ on whether
+ * a region that was live at announcement time is silenced by it — and a fix
+ * whose correctness cannot be checked without a screen reader on every platform
+ * is not a fix. Removal from the box tree is unambiguous: an element that
+ * generates no box is in no accessibility tree, so nothing announces it.
+ *
+ * Scoped to `[data-loom-stepper]`, so a host mounting Reka's Stepper directly
+ * keeps its own behaviour. `:not([data-loom-live])` is what spares Loom's — the
+ * two are told apart by what Loom marked, not by which came first, so neither
+ * a change in Reka's render order nor one in Loom's can silence the wrong one. */
+[data-loom-stepper] > [role="status"]:not([data-loom-live]) {
+  display: none;
+}
+
+/* ---- PWA window controls overlay ------------------------------------------
+ * When a PWA is installed and the `window-controls-overlay` feature is visible,
+ * the browser draws native minimize/maximize/close buttons over the app's title
+ * bar. The app must leave space for them. This is a PWA concern (not Electron
+ * or Tauri, which handle their own chrome), and it is CSS-only — no JavaScript
+ * runtime dependency.
+ *
+ * The overlay region is exposed through `env(titlebar-area-x)` and friends.
+ * The `[data-loom-titlebar]` attribute is set by TitleBar, which knows its own
+ * layout. When the overlay is active, the brand cluster's left padding expands
+ * to clear the native controls on the left edge (same corner as macOS), and
+ * the drag region continues to work over the full bar width. */
+@supports (window-controls-overlay: visible) {
+  [data-loom-titlebar] {
+    /* Narrow the drag spacer so the title text is not pushed too far right.
+     * The brand cluster already handles its own left offset via the platform
+     * prop; this rule is for PWA installs where the host did not set macOS. */
+    padding-left: env(titlebar-area-x, 0px);
+  }
+}
+
+/* ---- The motion keyframe library ------------------------------------------
+ * Named and reusable; `theme.css` maps each to an `animate-*` utility. All of
+ * them are short and purposeful, and nothing loops for decoration except the
+ * loaders — where the loop IS the message.
+ */
+
+/* A plain opacity fade, for a surface that must not move: a modal backdrop,
+ * where fade-rise's 4px lift would either read as wrong or, across a full
+ * viewport, as invisible clutter. */
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---- The exits. Each mirrors the entrance above it, and the pairing is the
+ * point: a surface that rose 4px on the way in falls 4px on the way out rather
+ * than dissolving in place, so the eye reads one gesture reversed instead of
+ * two unrelated ones. `theme.css` carries the timing argument for why they are
+ * not simply the entrances run backwards. */
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-fall {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+/* An edge-anchored panel leaving along its own axis.
+ *
+ * These animate `translate`, not `transform`, and the distinction is the whole
+ * reason they are usable: Reka writes a live swipe onto a drawer as `transform`
+ * and leaves the rendering to the component, so a keyframe on `transform` would
+ * overwrite a gesture mid-drag. On `translate` the two properties compose, the
+ * same way the entry `@starting-style` transition already does.
+ *
+ * Only the `to` frame is declared. The implicit `from` is the element's own
+ * computed value, so a panel that is already part-way out under a finger leaves
+ * from where it actually sits rather than snapping back to the origin first. */
+@keyframes slide-out-to-left {
+  to {
+    translate: -100% 0;
+  }
+}
+
+@keyframes slide-out-to-right {
+  to {
+    translate: 100% 0;
+  }
+}
+
+@keyframes slide-out-to-top {
+  to {
+    translate: 0 -100%;
+  }
+}
+
+@keyframes slide-out-to-bottom {
+  to {
+    translate: 0 100%;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -180% 0;
+  }
+  to {
+    background-position: 180% 0;
+  }
+}
+
+/* Indeterminate progress: a short segment sweeping the track. Motion says
+ * "working" when there is no percentage to paint. */
+@keyframes progress-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+/* A toast entering: it slides in from the viewport's right edge — the same
+ * axis it is swiped away on — and settles with a restrained spring. Applied
+ * to the toast's inner card and never to the swipe-transformed root, so a
+ * filled transform cannot fight the swipe gesture. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Respect the reader. Motion is meaning, but it is never a barrier. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

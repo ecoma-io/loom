@@ -1,8 +1,16 @@
-# pnpm's settings file. This repository is a single package, not a workspace —
-# the file exists because pnpm moved its settings out of `package.json` into
-# here, and pnpm 11 no longer reads the `pnpm` field there at all. There is
-# deliberately no `packages:` key: adding one would make this a workspace, which
-# is the shape extracting Loom out of a monorepo was meant to leave behind.
+# pnpm's workspace and settings file. The packages globs mirror Moon's project
+# discovery: Moon projects and npm packages are separate concepts, but every
+# npm package that a Moon project owns must also be visible to pnpm so workspace
+# dependencies resolve locally.
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "packages/primitives/*"
+  - "packages/composition/*"
+  - "packages/blocks/*"
+  - "packages/layouts/*"
+  - "e2e"
+  - "tooling/*"
 
 # Every dependency install script is blocked until it is decided on here, and
 # pnpm fails the install while any decision is missing — so an unreviewed

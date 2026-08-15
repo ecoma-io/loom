@@ -43,8 +43,11 @@ async function settledPanel(panel: Locator) {
 /** Drags from the panel's middle toward its anchored edge, the way a dismiss travels. */
 async function dragTowardEdge(page: Page, panel: Locator, edge: "right" | "bottom") {
   await settledPanel(panel);
-  const box = (await panel.boundingBox())!;
-  const viewport = page.viewportSize()!;
+  const box = await panel.boundingBox();
+  const viewport = page.viewportSize();
+  if (!box || !viewport) {
+    throw new Error("The open drawer panel must have a bounding box and viewport.");
+  }
   const startX = box.x + box.width / 2;
   const startY = box.y + box.height / 2;
   // Well past Reka's 40px threshold, and a straight line, so the release reads

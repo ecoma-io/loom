@@ -1,0 +1,11 @@
+tags: ["e2e"]
+
+project:
+  name: "drawer"
+  description: "Drawer primitive — slide-in panel from screen edge"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  e2e:
+    args: ["packages/primitives/drawer/e2e"]
+    env:
+      PW_PROFILE: "smoke"

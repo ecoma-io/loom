@@ -1,0 +1,19 @@
+{
+  "name": "@ecoma-io/loom-hover-card",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "dependencies": {
+    "@ecoma-io/loom-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "reka-ui": "^2.10.0",
+    "vue": "^3.5.0"
+  }
+}

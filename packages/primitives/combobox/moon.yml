@@ -1,0 +1,5 @@
+project:
+  name: "combobox"
+  description: "Combobox primitive — searchable list selection"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

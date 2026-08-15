@@ -1,0 +1,16 @@
+# Shared task for the root cross-cutting suite and primitives that own browser
+# evidence. Both drive the VitePress dogfood site, so each task runs from the
+# workspace root and shares this mutex rather than racing for preview port 4173.
+inheritedBy:
+  tags: e2e
+
+tasks:
+  e2e:
+    command: "playwright test"
+    options:
+      cache: false
+      runInCI: affected
+      runFromWorkspaceRoot: true
+      mutex: docs-preview
+      # E2E is slow and non-deterministic enough that caching is unsafe.
+      timeout: 300

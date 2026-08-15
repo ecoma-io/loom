@@ -1,0 +1,5 @@
+project:
+  name: "breadcrumb"
+  description: "Breadcrumb primitive — hierarchical navigation trail"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

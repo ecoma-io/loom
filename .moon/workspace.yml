@@ -1,0 +1,36 @@
+# Moon workspace configuration for Loom.
+#
+# During the monorepo migration, projects live under both the legacy src/ tree
+# and the new packages/ tree. The globs below cover the final target structure;
+# projects that don't exist yet are simply not found, which is safe — moon
+# logs a warning but does not fail.
+
+projects:
+  # Foundation packages.
+  - "packages/core"
+  - "packages/theme-core"
+  - "packages/labels"
+  # Component packages (one Moon project per component).
+  - "packages/primitives/*"
+  - "packages/composition/*"
+  - "packages/blocks/*"
+  - "packages/layouts/*"
+  # The public facade.
+  - "packages/loom"
+  # Applications.
+  - "apps/docs"
+  # Cross-cutting E2E.
+  - "e2e"
+  # Tooling.
+  - "tooling/*"
+
+vcs:
+  client: git
+  defaultBranch: main
+
+# Constraints enforce the dependency direction.
+# - library projects may depend on other libraries but not on applications
+# - application projects may depend on libraries
+# This prevents a component from accidentally importing the public facade.
+constraints:
+  enforceLayerRelationships: true

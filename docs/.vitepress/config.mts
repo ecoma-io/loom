@@ -158,6 +158,280 @@ export default defineConfig({
         // no consumer can write; the alias keeps every snippet on this site
         // copy-pasteable into a real application.
         "@ecoma-io/loom": fileURLToPath(new URL("../../src/index.ts", import.meta.url)),
+        // Internal workspace packages, resolved to source so the VitePress dev
+        // server and build can follow imports without node_modules. These mirror
+        // the tsconfig paths and the root Vite config aliases. Each component
+        // package alias is added as it migrates.
+        "@ecoma-io/loom-core": fileURLToPath(
+          new URL("../../packages/core/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-labels": fileURLToPath(
+          new URL("../../packages/labels/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-facade": fileURLToPath(
+          new URL("../../packages/loom/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-hover-card": fileURLToPath(
+          new URL("../../packages/primitives/hover-card/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-progress": fileURLToPath(
+          new URL("../../packages/primitives/progress/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-radial-progress": fileURLToPath(
+          new URL("../../packages/primitives/radial-progress/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-scroll-area": fileURLToPath(
+          new URL("../../packages/primitives/scroll-area/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-separator": fileURLToPath(
+          new URL("../../packages/primitives/separator/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-skeleton": fileURLToPath(
+          new URL("../../packages/primitives/skeleton/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-spinner": fileURLToPath(
+          new URL("../../packages/primitives/spinner/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-surface": fileURLToPath(
+          new URL("../../packages/primitives/surface/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-accordion": fileURLToPath(
+          new URL("../../packages/primitives/accordion/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-avatar": fileURLToPath(
+          new URL("../../packages/primitives/avatar/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-badge": fileURLToPath(
+          new URL("../../packages/primitives/badge/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-breadcrumb": fileURLToPath(
+          new URL("../../packages/primitives/breadcrumb/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-button": fileURLToPath(
+          new URL("../../packages/primitives/button/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-chip": fileURLToPath(
+          new URL("../../packages/primitives/chip/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-context-menu": fileURLToPath(
+          new URL("../../packages/primitives/context-menu/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-dropdown-menu": fileURLToPath(
+          new URL("../../packages/primitives/dropdown-menu/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-icon-button": fileURLToPath(
+          new URL("../../packages/primitives/icon-button/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-inline-error": fileURLToPath(
+          new URL("../../packages/primitives/inline-error/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-link": fileURLToPath(
+          new URL("../../packages/primitives/link/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-menubar": fileURLToPath(
+          new URL("../../packages/primitives/menubar/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-popover": fileURLToPath(
+          new URL("../../packages/primitives/popover/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-speed-dial": fileURLToPath(
+          new URL("../../packages/primitives/speed-dial/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-tabs": fileURLToPath(
+          new URL("../../packages/primitives/tabs/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-tooltip": fileURLToPath(
+          new URL("../../packages/primitives/tooltip/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-alert-dialog": fileURLToPath(
+          new URL("../../packages/primitives/alert-dialog/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-avatar-group": fileURLToPath(
+          new URL("../../packages/primitives/avatar-group/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-checkbox": fileURLToPath(
+          new URL("../../packages/primitives/checkbox/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-color-picker": fileURLToPath(
+          new URL("../../packages/primitives/color-picker/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-dialog": fileURLToPath(
+          new URL("../../packages/primitives/dialog/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-drawer": fileURLToPath(
+          new URL("../../packages/primitives/drawer/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-field": fileURLToPath(
+          new URL("../../packages/primitives/field/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-fieldset": fileURLToPath(
+          new URL("../../packages/primitives/fieldset/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-indicator": fileURLToPath(
+          new URL("../../packages/primitives/indicator/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-number-field": fileURLToPath(
+          new URL("../../packages/primitives/number-field/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-otp-input": fileURLToPath(
+          new URL("../../packages/primitives/otp-input/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-radio-group": fileURLToPath(
+          new URL("../../packages/primitives/radio-group/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-rating": fileURLToPath(
+          new URL("../../packages/primitives/rating/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-segmented-control": fileURLToPath(
+          new URL("../../packages/primitives/segmented-control/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-select": fileURLToPath(
+          new URL("../../packages/primitives/select/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-slider": fileURLToPath(
+          new URL("../../packages/primitives/slider/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-stepper": fileURLToPath(
+          new URL("../../packages/primitives/stepper/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-switch": fileURLToPath(
+          new URL("../../packages/primitives/switch/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-toast": fileURLToPath(
+          new URL("../../packages/primitives/toast/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-window-controls": fileURLToPath(
+          new URL("../../packages/primitives/window-controls/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-combobox": fileURLToPath(
+          new URL("../../packages/primitives/combobox/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-date-picker": fileURLToPath(
+          new URL("../../packages/primitives/date-picker/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-date-range-picker": fileURLToPath(
+          new URL("../../packages/primitives/date-range-picker/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-date-time-picker": fileURLToPath(
+          new URL("../../packages/primitives/date-time-picker/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-date-time-range-picker": fileURLToPath(
+          new URL("../../packages/primitives/date-time-range-picker/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-editable": fileURLToPath(
+          new URL("../../packages/primitives/editable/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-file-upload": fileURLToPath(
+          new URL("../../packages/primitives/file-upload/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-pagination": fileURLToPath(
+          new URL("../../packages/primitives/pagination/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-tags-input": fileURLToPath(
+          new URL("../../packages/primitives/tags-input/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-textarea": fileURLToPath(
+          new URL("../../packages/primitives/textarea/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-text-field": fileURLToPath(
+          new URL("../../packages/primitives/text-field/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-time-picker": fileURLToPath(
+          new URL("../../packages/primitives/time-picker/src/index.ts", import.meta.url),
+        ),
+        // Compositions.
+        "@ecoma-io/loom-center": fileURLToPath(
+          new URL("../../packages/composition/center/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-frame": fileURLToPath(
+          new URL("../../packages/composition/frame/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-grid": fileURLToPath(
+          new URL("../../packages/composition/grid/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-inline": fileURLToPath(
+          new URL("../../packages/composition/inline/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-scroll-reel": fileURLToPath(
+          new URL("../../packages/composition/scroll-reel/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-sidebar": fileURLToPath(
+          new URL("../../packages/composition/sidebar/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-split": fileURLToPath(
+          new URL("../../packages/composition/split/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-stack": fileURLToPath(
+          new URL("../../packages/composition/stack/src/index.ts", import.meta.url),
+        ),
+        // Layouts.
+        "@ecoma-io/loom-app-shell": fileURLToPath(
+          new URL("../../packages/layouts/app-shell/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-centered": fileURLToPath(
+          new URL("../../packages/layouts/centered/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-dashboard": fileURLToPath(
+          new URL("../../packages/layouts/dashboard/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-form-layout": fileURLToPath(
+          new URL("../../packages/layouts/form-layout/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-master-detail": fileURLToPath(
+          new URL("../../packages/layouts/master-detail/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-reading": fileURLToPath(
+          new URL("../../packages/layouts/reading/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-settings": fileURLToPath(
+          new URL("../../packages/layouts/settings/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-split-layout": fileURLToPath(
+          new URL("../../packages/layouts/split-layout/src/index.ts", import.meta.url),
+        ),
+        // Blocks.
+        "@ecoma-io/loom-app-header": fileURLToPath(
+          new URL("../../packages/blocks/app-header/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-dashboard-grid": fileURLToPath(
+          new URL("../../packages/blocks/dashboard-grid/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-desktop-app-shell": fileURLToPath(
+          new URL("../../packages/blocks/desktop-app-shell/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-empty-state": fileURLToPath(
+          new URL("../../packages/blocks/empty-state/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-error-state": fileURLToPath(
+          new URL("../../packages/blocks/error-state/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-form-actions": fileURLToPath(
+          new URL("../../packages/blocks/form-actions/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-form-section": fileURLToPath(
+          new URL("../../packages/blocks/form-section/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-loading-state": fileURLToPath(
+          new URL("../../packages/blocks/loading-state/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-metric-card": fileURLToPath(
+          new URL("../../packages/blocks/metric-card/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-page-header": fileURLToPath(
+          new URL("../../packages/blocks/page-header/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-row-actions": fileURLToPath(
+          new URL("../../packages/blocks/row-actions/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-sidebar-nav": fileURLToPath(
+          new URL("../../packages/blocks/sidebar-nav/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-title-bar": fileURLToPath(
+          new URL("../../packages/blocks/title-bar/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-toast-stack": fileURLToPath(
+          new URL("../../packages/blocks/toast-stack/src/index.ts", import.meta.url),
+        ),
       },
     },
   },

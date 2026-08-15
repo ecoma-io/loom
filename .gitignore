@@ -3,6 +3,9 @@ dist/
 coverage/
 .vite/
 
+# Moonrepo local cache — task outputs, hash manifests, and CAS blobs.
+.moon/cache/
+
 # Playwright
 test-results/
 playwright-report/

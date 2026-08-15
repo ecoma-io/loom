@@ -1,0 +1,13 @@
+tags: ["e2e"]
+
+project:
+  name: "e2e"
+  description: "Cross-cutting browser checks over the built documentation site"
+
+tasks:
+  e2e:
+    # A bare `e2e` argument is a substring filter and also selects package
+    # paths. The absolute-root fragment can only match root-owned specs.
+    args: ["loom/e2e/"]
+    env:
+      PW_PROFILE: "standard"

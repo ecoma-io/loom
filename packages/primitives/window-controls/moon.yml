@@ -1,0 +1,5 @@
+project:
+  name: "window-controls"
+  description: "WindowControls primitive — minimize/maximize/close cluster for frameless windows"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

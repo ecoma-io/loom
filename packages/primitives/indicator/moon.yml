@@ -1,0 +1,5 @@
+project:
+  name: "indicator"
+  description: "Indicator primitive — a presence dot or count pill pinned onto content"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

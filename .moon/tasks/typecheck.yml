@@ -1,0 +1,7 @@
+# Shared typecheck task. Inherited by all projects.
+tasks:
+  typecheck:
+    command: "vue-tsc --noEmit"
+    options:
+      cache: true
+      runInCI: affected

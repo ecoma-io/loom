@@ -1,0 +1,5 @@
+project:
+  name: "alert-dialog"
+  description: "AlertDialog primitive — modal confirmation requiring explicit action"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

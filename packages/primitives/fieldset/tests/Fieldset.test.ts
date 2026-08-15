@@ -1,0 +1,259 @@
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
+import { defineComponent, h, useAttrs } from "vue";
+import Fieldset from "../src/Fieldset.vue";
+import { useFieldControl } from "@ecoma-io/loom-labels";
+
+// Unit tier: the internal collaborator is isolated
+// (local/no-unmocked-internal-imports). The stub keeps only the seam this
+// file's behavior is defined against — whether Fieldset renders InlineError
+// at all, and what it hands it — not what InlineError does with the message.
+//
+// The stub's props are read from the real component at mock time, so a rename
+// of InlineError's `message` prop changes the shape the stub declares and the
+// test that passes `message` to it breaks.
+vi.mock("@ecoma-io/loom-inline-error", async () => {
+  const actual = await vi.importActual("@ecoma-io/loom-inline-error");
+  const c = (actual as { default: { props?: Record<string, unknown> } }).default;
+  return {
+    default: {
+      name: "InlineError",
+      props: c.props ? Object.keys(c.props) : [],
+      template: "<div />",
+    },
+  };
+});
+
+// A stand-in for any Loom form control, opting into the group through the same
+// composable every real control uses. A real TextField here would make this an
+// integration test; what is pinned is what the group publishes.
+const ProbeControl = defineComponent({
+  inheritAttrs: false,
+  setup() {
+    const attrs = useAttrs();
+    const field = useFieldControl(() => ({
+      id: attrs.id as string | undefined,
+      describedBy: attrs["aria-describedby"] as string | undefined,
+    }));
+    return () =>
+      h("input", {
+        ...attrs,
+        ...field.attrs,
+        disabled: field.disabled,
+        readonly: field.readonly,
+      });
+  },
+});
+
+describe("Fieldset", () => {
+  // The reason the component exists rather than a `div role="group"`: the
+  // slotted control is one Fieldset holds no reference to and could never
+  // pass a `disabled` prop to. jsdom implements the "actually disabled"
+  // rule, so `:disabled` here is the real inheritance and not a proxy for it.
+  it("disables a slotted control it has no reference to, and stops when the group is enabled again", async () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Notifications", disabled: true },
+      slots: { default: '<input aria-label="Nested" />' },
+    });
+    expect(wrapper.get("input").element.matches(":disabled")).toBe(true);
+
+    await wrapper.setProps({ disabled: false });
+    expect(wrapper.get("input").element.matches(":disabled")).toBe(false);
+  });
+
+  // The defect this pins, and it was the worst instance of it in the library
+  // because opacity composites and therefore multiplies. The group's own 50%
+  // ran over the 50% a Switch or a Select applies to itself, so a control
+  // inside a disabled group rendered at 25% effective alpha — 1.65:1 — and the
+  // group's hint, dimmed once rather than twice, still measured 2.05:1. No
+  // amount of fixing the controls could reach either number, because neither
+  // was the controls' doing.
+  //
+  // Asserting the absence of a class is weak on its own, which is why the two
+  // halves of the replacement are asserted beside it: the fieldset is the
+  // `group` the legend reads its state from, and the legend names the measured
+  // colour it drops to.
+  it("dims nothing itself, so a control inside a disabled group is never dimmed twice", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Notifications", disabled: true, hint: "Available once enabled" },
+      slots: { default: '<input aria-label="Nested" class="disabled:opacity-50" />' },
+    });
+    const fieldset = wrapper.get("fieldset");
+
+    expect(fieldset.classes().some((c) => c.includes("opacity"))).toBe(false);
+    expect(fieldset.classes()).toContain("group");
+    // What a nested control is left computing: its own treatment and nothing
+    // multiplied on top of it.
+    expect(wrapper.get("input").classes()).toEqual(["disabled:opacity-50"]);
+  });
+
+  // The other half of the same answer, and it is a claim about a fill rather
+  // than about an alpha. Every unavailable control in the library drains to
+  // `bg-muted`, so a `bg-muted` at group scale would be that exact colour
+  // running edge-to-edge behind them: the two fills meet at 1:1 and a row of
+  // disabled controls reads as one grey slab with no controls in it. The group
+  // is a grouping, not a surface — it paints no fill in any state, and the
+  // legend, the native attribute and each control's own treatment carry the
+  // fact instead.
+  it("paints no fill of its own, in any state, so a nested control's own fill still reads", async () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Notifications", disabled: true, readonly: true },
+    });
+    const fills = (): string[] =>
+      wrapper
+        .get("fieldset")
+        .classes()
+        .filter((c) => /(^|:)bg-/.test(c));
+
+    expect(fills()).toEqual([]);
+
+    await wrapper.setProps({ disabled: false, readonly: false });
+    expect(fills()).toEqual([]);
+  });
+
+  it("mutes the legend to say the group is unavailable, rather than fading the whole block", async () => {
+    const wrapper = mount(Fieldset, { props: { legend: "Notifications", disabled: true } });
+    // 14.09:1 available, 5.25:1 not — `group-disabled:` reads the real
+    // `:disabled` on the fieldset, so there is no second copy of the state.
+    expect(wrapper.get("legend").classes()).toContain("group-disabled:text-muted-foreground");
+
+    await wrapper.setProps({ disabled: false });
+    expect(wrapper.get("fieldset").attributes("disabled")).toBeUndefined();
+  });
+
+  it("names the group with a real legend inside a real fieldset", () => {
+    const wrapper = mount(Fieldset, { props: { legend: "Shipping address" } });
+    expect(wrapper.html()).toMatch(/^<fieldset/);
+    expect(wrapper.get("fieldset").get("legend").text()).toContain("Shipping address");
+  });
+
+  it("renders no legend at all rather than an empty one when none is given", () => {
+    const wrapper = mount(Fieldset, { slots: { default: "<input aria-label='Nested' />" } });
+    expect(wrapper.find("legend").exists()).toBe(false);
+  });
+
+  it("renders InlineError with the error message and hides the hint when an error is present", () => {
+    const withError = mount(Fieldset, {
+      props: {
+        legend: "Shipping address",
+        id: "shipping",
+        hint: "Where the order goes",
+        error: "Enter a street and a city",
+      },
+    });
+    const inlineError = withError.findComponent({ name: "InlineError" });
+    expect(inlineError.exists()).toBe(true);
+    expect(inlineError.props("message")).toBe("Enter a street and a city");
+    expect(withError.text()).not.toContain("Where the order goes");
+
+    const withHint = mount(Fieldset, {
+      props: { legend: "Shipping address", id: "shipping", hint: "Where the order goes" },
+    });
+    expect(withHint.findComponent({ name: "InlineError" }).exists()).toBe(false);
+    expect(withHint.text()).toContain("Where the order goes");
+  });
+
+  it("describes the group with its own hint, and publishes that id for a consumer to reuse", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Shipping address", id: "shipping", hint: "Where the order goes" },
+    });
+    expect(wrapper.get("p").attributes("id")).toBe("shipping-description");
+    expect(wrapper.attributes("aria-describedby")).toBe("shipping-description");
+  });
+
+  it("hands that same description id to InlineError once an error replaces the hint", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Shipping address", id: "shipping", error: "Enter a street and a city" },
+    });
+    expect(wrapper.findComponent({ name: "InlineError" }).attributes("id")).toBe(
+      "shipping-description",
+    );
+    expect(wrapper.attributes("aria-describedby")).toBe("shipping-description");
+  });
+
+  it("assigns no description id when there is no id to derive one from", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Shipping address", hint: "Where the order goes" },
+    });
+    expect(wrapper.get("p").attributes("id")).toBeUndefined();
+    expect(wrapper.attributes("aria-describedby")).toBeUndefined();
+  });
+
+  // A described-by pointing at an element that was never rendered is a
+  // dangling IDREF, which a screen reader resolves to nothing.
+  it("leaves aria-describedby off entirely when the group carries no message", () => {
+    const wrapper = mount(Fieldset, { props: { legend: "Shipping address", id: "shipping" } });
+    expect(wrapper.attributes("aria-describedby")).toBeUndefined();
+  });
+
+  it("shows a required asterisk only when required is set", () => {
+    const required = mount(Fieldset, { props: { legend: "Shipping address", required: true } });
+    expect(required.get("legend").text()).toContain("*");
+
+    const optional = mount(Fieldset, { props: { legend: "Shipping address" } });
+    expect(optional.get("legend").text()).not.toContain("*");
+  });
+
+  // `min-w-0` is what stops the UA's `min-inline-size: min-content` from
+  // blowing out a form grid, and it is also the utility a consumer is most
+  // likely to want back. Concatenated fallthrough would leave which one wins
+  // to Tailwind's emission order; the cn() merge makes the caller's the
+  // later declaration and drops ours.
+  it("lets a caller's width utility replace the root's own, and lands other attributes on the fieldset", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Shipping address" },
+      attrs: { class: "min-w-full", "data-testid": "shipping-group" },
+    });
+    expect(wrapper.classes()).toContain("min-w-full");
+    expect(wrapper.classes()).not.toContain("min-w-0");
+    expect(wrapper.attributes("data-testid")).toBe("shipping-group");
+  });
+
+  it("renders every control in the group read-only, which no native fieldset attribute can do", () => {
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Shipping address", readonly: true },
+      slots: { default: h(ProbeControl) },
+    });
+    const input = wrapper.get("input").element as HTMLInputElement;
+
+    expect(input.readOnly).toBe(true);
+    expect(input.disabled).toBe(false);
+  });
+
+  it("keeps its required, error and description to itself rather than restating them on every control", () => {
+    // A mandatory group is not fifteen mandatory controls, and a group-level
+    // error does not make each control in it individually wrong — both would be
+    // false statements to the only audience that hears them. The group's own
+    // `aria-describedby` already carries the message once.
+    const wrapper = mount(Fieldset, {
+      props: {
+        legend: "Shipping address",
+        id: "shipping",
+        error: "Enter a street and a city",
+        required: true,
+      },
+      slots: { default: h(ProbeControl) },
+    });
+    const input = wrapper.get("input");
+
+    expect(input.attributes("aria-required")).toBeUndefined();
+    expect(input.attributes("aria-invalid")).toBeUndefined();
+    expect(input.attributes("aria-describedby")).toBeUndefined();
+    expect(input.attributes("id")).toBeUndefined();
+  });
+
+  it("disables the group through the element alone, never a second time through a prop", () => {
+    // One fact carried two ways is one fact that can disagree with itself: a
+    // control written `:disabled="false"` would beat a context and still be
+    // disabled by the element, leaving a live-looking control that refuses
+    // input. The `<fieldset>` reaches further anyway.
+    const wrapper = mount(Fieldset, {
+      props: { legend: "Notifications", disabled: true },
+      slots: { default: h(ProbeControl) },
+    });
+    const input = wrapper.get("input");
+
+    expect(input.attributes("disabled")).toBeUndefined();
+    expect(input.element.matches(":disabled")).toBe(true);
+  });
+});

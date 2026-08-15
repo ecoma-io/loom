@@ -233,9 +233,13 @@ export type {
   TagsInputRejectReason,
 } from "./primitives/TagsInput/TagsInput.vue";
 export { default as Textarea } from "./primitives/Textarea/Textarea.vue";
-export type { TextareaResize } from "./primitives/Textarea/Textarea.vue";
+export type { TextareaLabels, TextareaResize } from "./primitives/Textarea/Textarea.vue";
 export { default as TextField } from "./primitives/TextField/TextField.vue";
-export type { TextFieldSize, TextFieldType } from "./primitives/TextField/TextField.vue";
+export type {
+  TextFieldLabels,
+  TextFieldSize,
+  TextFieldType,
+} from "./primitives/TextField/TextField.vue";
 export { default as TimePicker } from "./primitives/TimePicker/TimePicker.vue";
 export type { TimePickerLabels } from "./primitives/TimePicker/TimePicker.vue";
 export { default as Toast, TOAST_LABELS } from "./primitives/Toast/Toast.vue";

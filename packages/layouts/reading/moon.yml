@@ -1,0 +1,7 @@
+tasks:
+  typecheck:
+    deps: ["@ecoma-io/loom-core:typecheck"]
+    command: vue-tsc --noEmit
+  test:
+    deps: ["@ecoma-io/loom-core:typecheck"]
+    command: vitest run

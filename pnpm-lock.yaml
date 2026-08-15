@@ -42,25 +42,28 @@ importers:
         version: 21.2.0
       '@eslint/js':
         specifier: ^10.0.1
-        version: 10.0.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))
+        version: 10.0.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
+      '@moonrepo/cli':
+        specifier: ^2.4.6
+        version: 2.4.6
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1
       '@tailwindcss/vite':
         specifier: ^4.3.3
-        version: 4.3.3(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))
+        version: 4.3.3(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))
       '@types/node':
         specifier: ^26.1.2
         version: 26.1.2
       '@vitejs/plugin-vue':
         specifier: ^6.0.8
-        version: 6.0.8(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))(vue@3.5.40(typescript@5.9.3))
+        version: 6.0.8(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))(vue@3.5.40(typescript@5.9.3))
       '@vitest/coverage-v8':
         specifier: ^4.1.10
         version: 4.1.10(vitest@4.1.10)
       '@vitest/eslint-plugin':
         specifier: ^1.6.26
-        version: 1.6.26(@typescript-eslint/eslint-plugin@8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)(vitest@4.1.10)
+        version: 1.6.26(@typescript-eslint/eslint-plugin@8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)(vitest@4.1.10)
       '@vue/test-utils':
         specifier: ^2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.40)(@vue/server-renderer@3.5.40)(vue@3.5.40(typescript@5.9.3))
@@ -69,19 +72,19 @@ importers:
         version: 3.3.9(typescript@5.9.3)
       eslint:
         specifier: ^10.8.0
-        version: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+        version: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-config-prettier:
         specifier: ^10.1.8
-        version: 10.1.8(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))
+        version: 10.1.8(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
       eslint-plugin-playwright:
         specifier: ^2.11.0
-        version: 2.11.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))
+        version: 2.11.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
       eslint-plugin-vue:
         specifier: ^10.10.0
-        version: 10.10.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(vue-eslint-parser@10.4.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0))
+        version: 10.10.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(vue-eslint-parser@10.4.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2))
       eslint-plugin-vuejs-accessibility:
         specifier: ^2.5.0
-        version: 2.5.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(globals@17.9.0)(supports-color@10.2.2)
+        version: 2.5.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(globals@17.9.0)(supports-color@10.2.2)
       fast-check:
         specifier: ^4.9.0
         version: 4.9.0
@@ -108,16 +111,16 @@ importers:
         version: 5.9.3
       typescript-eslint:
         specifier: ^8.66.0
-        version: 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
+        version: 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
       vite:
         specifier: ^8.2.0
-        version: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)
+        version: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)
       vitepress:
         specifier: ^1.6.4
         version: 1.6.4(@algolia/client-search@5.56.0)(@types/node@26.1.2)(jiti@2.7.0)(lightningcss@1.33.0)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3)
       vitest:
         specifier: ^4.1.10
-        version: 4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))
+        version: 4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))
       vue:
         specifier: ^3.5.40
         version: 3.5.40(typescript@5.9.3)
@@ -126,13 +129,1453 @@ importers:
         version: 4.79.2(vue@3.5.40(typescript@5.9.3))
       vue-eslint-parser:
         specifier: ^10.4.1
-        version: 10.4.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)
+        version: 10.4.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
       vue-tsc:
         specifier: ^3.3.9
         version: 3.3.9(typescript@5.9.3)
       wrangler:
         specifier: ^4.118.0
         version: 4.118.0
+
+  packages/blocks/app-header:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/dashboard-grid:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/desktop-app-shell:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-menubar':
+        specifier: workspace:*
+        version: link:../../primitives/menubar
+      '@ecoma-io/loom-title-bar':
+        specifier: workspace:*
+        version: link:../title-bar
+      '@ecoma-io/loom-window-controls':
+        specifier: workspace:*
+        version: link:../../primitives/window-controls
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/empty-state:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/error-state:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/form-actions:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/form-section:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-fieldset':
+        specifier: workspace:*
+        version: link:../../primitives/fieldset
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/loading-state:
+    dependencies:
+      '@ecoma-io/loom-skeleton':
+        specifier: workspace:*
+        version: link:../../primitives/skeleton
+      '@ecoma-io/loom-spinner':
+        specifier: workspace:*
+        version: link:../../primitives/spinner
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/metric-card:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/page-header:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/row-actions:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/sidebar-nav:
+    dependencies:
+      '@ecoma-io/loom-badge':
+        specifier: workspace:*
+        version: link:../../primitives/badge
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-separator':
+        specifier: workspace:*
+        version: link:../../primitives/separator
+      '@ecoma-io/loom-tooltip':
+        specifier: workspace:*
+        version: link:../../primitives/tooltip
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/title-bar:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-menubar':
+        specifier: workspace:*
+        version: link:../../primitives/menubar
+      '@ecoma-io/loom-window-controls':
+        specifier: workspace:*
+        version: link:../../primitives/window-controls
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/blocks/toast-stack:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@ecoma-io/loom-toast':
+        specifier: workspace:*
+        version: link:../../primitives/toast
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/center:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/frame:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/grid:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/inline:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/scroll-reel:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/sidebar:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/split:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/composition/stack:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/core:
+    dependencies:
+      '@ecoma-io/loom':
+        specifier: workspace:*
+        version: link:../..
+
+  packages/labels:
+    dependencies:
+      '@ecoma-io/loom':
+        specifier: workspace:*
+        version: link:../..
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/layouts/app-shell:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/layouts/centered:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/layouts/dashboard:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/layouts/form-layout:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/layouts/master-detail:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/layouts/reading:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/layouts/settings:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/layouts/split-layout:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/loom:
+    dependencies:
+      '@ecoma-io/loom-accordion':
+        specifier: workspace:*
+        version: link:../primitives/accordion
+      '@ecoma-io/loom-alert-dialog':
+        specifier: workspace:*
+        version: link:../primitives/alert-dialog
+      '@ecoma-io/loom-app-header':
+        specifier: workspace:*
+        version: link:../blocks/app-header
+      '@ecoma-io/loom-app-shell':
+        specifier: workspace:*
+        version: link:../layouts/app-shell
+      '@ecoma-io/loom-avatar':
+        specifier: workspace:*
+        version: link:../primitives/avatar
+      '@ecoma-io/loom-avatar-group':
+        specifier: workspace:*
+        version: link:../primitives/avatar-group
+      '@ecoma-io/loom-badge':
+        specifier: workspace:*
+        version: link:../primitives/badge
+      '@ecoma-io/loom-breadcrumb':
+        specifier: workspace:*
+        version: link:../primitives/breadcrumb
+      '@ecoma-io/loom-button':
+        specifier: workspace:*
+        version: link:../primitives/button
+      '@ecoma-io/loom-center':
+        specifier: workspace:*
+        version: link:../composition/center
+      '@ecoma-io/loom-centered':
+        specifier: workspace:*
+        version: link:../layouts/centered
+      '@ecoma-io/loom-checkbox':
+        specifier: workspace:*
+        version: link:../primitives/checkbox
+      '@ecoma-io/loom-chip':
+        specifier: workspace:*
+        version: link:../primitives/chip
+      '@ecoma-io/loom-color-picker':
+        specifier: workspace:*
+        version: link:../primitives/color-picker
+      '@ecoma-io/loom-combobox':
+        specifier: workspace:*
+        version: link:../primitives/combobox
+      '@ecoma-io/loom-context-menu':
+        specifier: workspace:*
+        version: link:../primitives/context-menu
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../core
+      '@ecoma-io/loom-dashboard':
+        specifier: workspace:*
+        version: link:../layouts/dashboard
+      '@ecoma-io/loom-dashboard-grid':
+        specifier: workspace:*
+        version: link:../blocks/dashboard-grid
+      '@ecoma-io/loom-date-picker':
+        specifier: workspace:*
+        version: link:../primitives/date-picker
+      '@ecoma-io/loom-date-range-picker':
+        specifier: workspace:*
+        version: link:../primitives/date-range-picker
+      '@ecoma-io/loom-date-time-picker':
+        specifier: workspace:*
+        version: link:../primitives/date-time-picker
+      '@ecoma-io/loom-date-time-range-picker':
+        specifier: workspace:*
+        version: link:../primitives/date-time-range-picker
+      '@ecoma-io/loom-desktop-app-shell':
+        specifier: workspace:*
+        version: link:../blocks/desktop-app-shell
+      '@ecoma-io/loom-dialog':
+        specifier: workspace:*
+        version: link:../primitives/dialog
+      '@ecoma-io/loom-drawer':
+        specifier: workspace:*
+        version: link:../primitives/drawer
+      '@ecoma-io/loom-dropdown-menu':
+        specifier: workspace:*
+        version: link:../primitives/dropdown-menu
+      '@ecoma-io/loom-editable':
+        specifier: workspace:*
+        version: link:../primitives/editable
+      '@ecoma-io/loom-empty-state':
+        specifier: workspace:*
+        version: link:../blocks/empty-state
+      '@ecoma-io/loom-error-state':
+        specifier: workspace:*
+        version: link:../blocks/error-state
+      '@ecoma-io/loom-field':
+        specifier: workspace:*
+        version: link:../primitives/field
+      '@ecoma-io/loom-fieldset':
+        specifier: workspace:*
+        version: link:../primitives/fieldset
+      '@ecoma-io/loom-file-upload':
+        specifier: workspace:*
+        version: link:../primitives/file-upload
+      '@ecoma-io/loom-form-actions':
+        specifier: workspace:*
+        version: link:../blocks/form-actions
+      '@ecoma-io/loom-form-layout':
+        specifier: workspace:*
+        version: link:../layouts/form-layout
+      '@ecoma-io/loom-form-section':
+        specifier: workspace:*
+        version: link:../blocks/form-section
+      '@ecoma-io/loom-frame':
+        specifier: workspace:*
+        version: link:../composition/frame
+      '@ecoma-io/loom-grid':
+        specifier: workspace:*
+        version: link:../composition/grid
+      '@ecoma-io/loom-hover-card':
+        specifier: workspace:*
+        version: link:../primitives/hover-card
+      '@ecoma-io/loom-icon-button':
+        specifier: workspace:*
+        version: link:../primitives/icon-button
+      '@ecoma-io/loom-indicator':
+        specifier: workspace:*
+        version: link:../primitives/indicator
+      '@ecoma-io/loom-inline':
+        specifier: workspace:*
+        version: link:../composition/inline
+      '@ecoma-io/loom-inline-error':
+        specifier: workspace:*
+        version: link:../primitives/inline-error
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../labels
+      '@ecoma-io/loom-link':
+        specifier: workspace:*
+        version: link:../primitives/link
+      '@ecoma-io/loom-loading-state':
+        specifier: workspace:*
+        version: link:../blocks/loading-state
+      '@ecoma-io/loom-master-detail':
+        specifier: workspace:*
+        version: link:../layouts/master-detail
+      '@ecoma-io/loom-menubar':
+        specifier: workspace:*
+        version: link:../primitives/menubar
+      '@ecoma-io/loom-metric-card':
+        specifier: workspace:*
+        version: link:../blocks/metric-card
+      '@ecoma-io/loom-number-field':
+        specifier: workspace:*
+        version: link:../primitives/number-field
+      '@ecoma-io/loom-otp-input':
+        specifier: workspace:*
+        version: link:../primitives/otp-input
+      '@ecoma-io/loom-page-header':
+        specifier: workspace:*
+        version: link:../blocks/page-header
+      '@ecoma-io/loom-pagination':
+        specifier: workspace:*
+        version: link:../primitives/pagination
+      '@ecoma-io/loom-popover':
+        specifier: workspace:*
+        version: link:../primitives/popover
+      '@ecoma-io/loom-progress':
+        specifier: workspace:*
+        version: link:../primitives/progress
+      '@ecoma-io/loom-radial-progress':
+        specifier: workspace:*
+        version: link:../primitives/radial-progress
+      '@ecoma-io/loom-radio-group':
+        specifier: workspace:*
+        version: link:../primitives/radio-group
+      '@ecoma-io/loom-rating':
+        specifier: workspace:*
+        version: link:../primitives/rating
+      '@ecoma-io/loom-reading':
+        specifier: workspace:*
+        version: link:../layouts/reading
+      '@ecoma-io/loom-row-actions':
+        specifier: workspace:*
+        version: link:../blocks/row-actions
+      '@ecoma-io/loom-scroll-area':
+        specifier: workspace:*
+        version: link:../primitives/scroll-area
+      '@ecoma-io/loom-scroll-reel':
+        specifier: workspace:*
+        version: link:../composition/scroll-reel
+      '@ecoma-io/loom-segmented-control':
+        specifier: workspace:*
+        version: link:../primitives/segmented-control
+      '@ecoma-io/loom-select':
+        specifier: workspace:*
+        version: link:../primitives/select
+      '@ecoma-io/loom-separator':
+        specifier: workspace:*
+        version: link:../primitives/separator
+      '@ecoma-io/loom-settings':
+        specifier: workspace:*
+        version: link:../layouts/settings
+      '@ecoma-io/loom-sidebar':
+        specifier: workspace:*
+        version: link:../composition/sidebar
+      '@ecoma-io/loom-sidebar-nav':
+        specifier: workspace:*
+        version: link:../blocks/sidebar-nav
+      '@ecoma-io/loom-skeleton':
+        specifier: workspace:*
+        version: link:../primitives/skeleton
+      '@ecoma-io/loom-slider':
+        specifier: workspace:*
+        version: link:../primitives/slider
+      '@ecoma-io/loom-speed-dial':
+        specifier: workspace:*
+        version: link:../primitives/speed-dial
+      '@ecoma-io/loom-spinner':
+        specifier: workspace:*
+        version: link:../primitives/spinner
+      '@ecoma-io/loom-split':
+        specifier: workspace:*
+        version: link:../composition/split
+      '@ecoma-io/loom-split-layout':
+        specifier: workspace:*
+        version: link:../layouts/split-layout
+      '@ecoma-io/loom-stack':
+        specifier: workspace:*
+        version: link:../composition/stack
+      '@ecoma-io/loom-stepper':
+        specifier: workspace:*
+        version: link:../primitives/stepper
+      '@ecoma-io/loom-surface':
+        specifier: workspace:*
+        version: link:../primitives/surface
+      '@ecoma-io/loom-switch':
+        specifier: workspace:*
+        version: link:../primitives/switch
+      '@ecoma-io/loom-tabs':
+        specifier: workspace:*
+        version: link:../primitives/tabs
+      '@ecoma-io/loom-tags-input':
+        specifier: workspace:*
+        version: link:../primitives/tags-input
+      '@ecoma-io/loom-text-field':
+        specifier: workspace:*
+        version: link:../primitives/text-field
+      '@ecoma-io/loom-textarea':
+        specifier: workspace:*
+        version: link:../primitives/textarea
+      '@ecoma-io/loom-time-picker':
+        specifier: workspace:*
+        version: link:../primitives/time-picker
+      '@ecoma-io/loom-title-bar':
+        specifier: workspace:*
+        version: link:../blocks/title-bar
+      '@ecoma-io/loom-toast':
+        specifier: workspace:*
+        version: link:../primitives/toast
+      '@ecoma-io/loom-toast-stack':
+        specifier: workspace:*
+        version: link:../blocks/toast-stack
+      '@ecoma-io/loom-tooltip':
+        specifier: workspace:*
+        version: link:../primitives/tooltip
+      '@ecoma-io/loom-window-controls':
+        specifier: workspace:*
+        version: link:../primitives/window-controls
+
+  packages/primitives/accordion:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/alert-dialog:
+    dependencies:
+      '@ecoma-io/loom-button':
+        specifier: workspace:*
+        version: link:../button
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/avatar:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/avatar-group:
+    dependencies:
+      '@ecoma-io/loom-avatar':
+        specifier: workspace:*
+        version: link:../avatar
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/badge:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/breadcrumb:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/button:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/checkbox:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/chip:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/color-picker:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/combobox:
+    dependencies:
+      '@ecoma-io/loom-chip':
+        specifier: workspace:*
+        version: link:../chip
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/context-menu:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/date-picker:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@internationalized/date':
+        specifier: ^3.12.0
+        version: 3.12.3
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/date-range-picker:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@internationalized/date':
+        specifier: ^3.12.0
+        version: 3.12.3
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/date-time-picker:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@internationalized/date':
+        specifier: ^3.12.0
+        version: 3.12.3
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/date-time-range-picker:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@internationalized/date':
+        specifier: ^3.12.0
+        version: 3.12.3
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/dialog:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/drawer:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/dropdown-menu:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/editable:
+    dependencies:
+      '@ecoma-io/loom-button':
+        specifier: workspace:*
+        version: link:../button
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/field:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-inline-error':
+        specifier: workspace:*
+        version: link:../inline-error
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/fieldset:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-inline-error':
+        specifier: workspace:*
+        version: link:../inline-error
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/file-upload:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/hover-card:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/icon-button:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/indicator:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/inline-error:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/link:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/menubar:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/number-field:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/otp-input:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/pagination:
+    dependencies:
+      '@ecoma-io/loom-button':
+        specifier: workspace:*
+        version: link:../button
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/popover:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/progress:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/radial-progress:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/radio-group:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/rating:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/scroll-area:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/segmented-control:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/select:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/separator:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/skeleton:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/slider:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/speed-dial:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/spinner:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/stepper:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/surface:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/switch:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/tabs:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/tags-input:
+    dependencies:
+      '@ecoma-io/loom-chip':
+        specifier: workspace:*
+        version: link:../chip
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-field':
+        specifier: workspace:*
+        version: link:../field
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/text-field:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/textarea:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/time-picker:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@internationalized/date':
+        specifier: ^3.12.0
+        version: 3.12.3
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/toast:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/tooltip:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/window-controls:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/theme-core:
+    dependencies:
+      '@ecoma-io/loom':
+        specifier: workspace:*
+        version: link:../..
 
 packages:
 
@@ -1041,6 +2484,49 @@ packages:
     resolution: {integrity: sha512-cO89UyNM/0i2Srdi04nFWeEOQkqzDZlM2ehtWyBhcMpRTJDKpMZPCGAVlmVBgBgr5HaeL5L6FsU8RHsOdwXtKw==}
     peerDependencies:
       vue: '>=3.0.1'
+
+  '@moonrepo/cli@2.4.6':
+    resolution: {integrity: sha512-HtkRuq+ACiIVP9VCjSoFb4+eAqPRm2LHP+O4w6BV3vBe1l5L0tsiqiu5kBOQXjQLY8amcg9YHRdi2eAnt9nUgA==}
+    hasBin: true
+
+  '@moonrepo/core-linux-arm64-gnu@2.4.6':
+    resolution: {integrity: sha512-0ebdsO6QphnWNIkDcr/G9utPQzWCHzvhekAf5W4F5/UlzemhFkeHgPzPMeq00IBfRBr2HKgfVrbxdT3dq2mSWQ==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@moonrepo/core-linux-arm64-musl@2.4.6':
+    resolution: {integrity: sha512-I92xgOYIjKud4O/R+jiw2owDRZ0ZJdNy6VKpZ+hrq7bFmw2I7mPNRUCz0f6k/Khdr0MhrpD1T320qNk4mbkUaA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@moonrepo/core-linux-x64-gnu@2.4.6':
+    resolution: {integrity: sha512-6ADpz7l/mVra6enk7ktfL5Mhe6m6byOGZ2UD3RO+K++sURnP72G51WcRsw5TceMyPJYQ1h/21f1F/CGf18oZ8Q==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@moonrepo/core-linux-x64-musl@2.4.6':
+    resolution: {integrity: sha512-irQGyg4aMDNp5vBtel6bijTAujchNZjw3RJDWQtDREnd/6HHpHlq0MRhFgQvx9ddU7QaZDAsiXdF5zWgxb6Uew==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@moonrepo/core-macos-arm64@2.4.6':
+    resolution: {integrity: sha512-JOpEN4cyZK6RjrheCXS2iYUeeyi58xRcoE0pi22Q7nMqB55BHQ2VDDXas/XXA32M143IaQQrLu8+fcH0ypmeQw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@moonrepo/core-macos-x64@2.4.6':
+    resolution: {integrity: sha512-6Nxlc3KRGpRleTui2a7hiDnlnA2Er3ZYUHlxbQyJottTSRVl4iroo9c0WPcPTRM0j8Kgrkk0plskkZfcTQhbCQ==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@moonrepo/core-windows-x64-msvc@2.4.6':
+    resolution: {integrity: sha512-bIyOiXQT7Pk8hOxLPHmJTVQL1CD4ZkSmQmv/l597fgiYbC9O1AzVzMi83LfZwxf9l/Czg5RgjhXMzgCLxeGXzg==}
+    cpu: [x64]
+    os: [win32]
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
@@ -4031,17 +5517,17 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
-  '@eslint-community/eslint-utils@4.10.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))':
+  '@eslint-community/eslint-utils@4.10.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))':
     dependencies:
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-visitor-keys: 3.4.3
 
   '@eslint-community/regexpp@4.12.2': {}
 
-  '@eslint/config-array@0.23.5(supports-color@7.2.0)':
+  '@eslint/config-array@0.23.5(supports-color@10.2.2)':
     dependencies:
       '@eslint/object-schema': 3.0.5
-      debug: 4.4.3(supports-color@7.2.0)
+      debug: 4.4.3(supports-color@10.2.2)
       minimatch: 10.2.6
     transitivePeerDependencies:
       - supports-color
@@ -4054,9 +5540,9 @@ snapshots:
     dependencies:
       '@types/json-schema': 7.0.15
 
-  '@eslint/js@10.0.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))':
+  '@eslint/js@10.0.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))':
     optionalDependencies:
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
 
   '@eslint/object-schema@3.0.5': {}
 
@@ -4259,6 +5745,39 @@ snapshots:
   '@lucide/vue@1.28.0(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       vue: 3.5.40(typescript@5.9.3)
+
+  '@moonrepo/cli@2.4.6':
+    dependencies:
+      detect-libc: 2.1.2
+    optionalDependencies:
+      '@moonrepo/core-linux-arm64-gnu': 2.4.6
+      '@moonrepo/core-linux-arm64-musl': 2.4.6
+      '@moonrepo/core-linux-x64-gnu': 2.4.6
+      '@moonrepo/core-linux-x64-musl': 2.4.6
+      '@moonrepo/core-macos-arm64': 2.4.6
+      '@moonrepo/core-macos-x64': 2.4.6
+      '@moonrepo/core-windows-x64-msvc': 2.4.6
+
+  '@moonrepo/core-linux-arm64-gnu@2.4.6':
+    optional: true
+
+  '@moonrepo/core-linux-arm64-musl@2.4.6':
+    optional: true
+
+  '@moonrepo/core-linux-x64-gnu@2.4.6':
+    optional: true
+
+  '@moonrepo/core-linux-x64-musl@2.4.6':
+    optional: true
+
+  '@moonrepo/core-macos-arm64@2.4.6':
+    optional: true
+
+  '@moonrepo/core-macos-x64@2.4.6':
+    optional: true
+
+  '@moonrepo/core-windows-x64-msvc@2.4.6':
+    optional: true
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
@@ -4522,12 +6041,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.3
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.3
 
-  '@tailwindcss/vite@4.3.3(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))':
+  '@tailwindcss/vite@4.3.3(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))':
     dependencies:
       '@tailwindcss/node': 4.3.3
       '@tailwindcss/oxide': 4.3.3
       tailwindcss: 4.3.3
-      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)
+      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)
 
   '@tanstack/virtual-core@3.17.7': {}
 
@@ -4574,15 +6093,15 @@ snapshots:
 
   '@types/web-bluetooth@0.0.21': {}
 
-  '@typescript-eslint/eslint-plugin@8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)':
+  '@typescript-eslint/eslint-plugin@8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
       '@typescript-eslint/scope-manager': 8.66.0
-      '@typescript-eslint/type-utils': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
-      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/type-utils': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
       '@typescript-eslint/visitor-keys': 8.66.0
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       ignore: 7.0.6
       natural-compare: 1.4.0
       ts-api-utils: 2.5.0(typescript@5.9.3)
@@ -4590,14 +6109,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)':
+  '@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.66.0
       '@typescript-eslint/types': 8.66.0
       '@typescript-eslint/typescript-estree': 8.66.0(supports-color@10.2.2)(typescript@5.9.3)
       '@typescript-eslint/visitor-keys': 8.66.0
       debug: 4.4.3(supports-color@10.2.2)
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -4620,13 +6139,13 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
-  '@typescript-eslint/type-utils@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)':
+  '@typescript-eslint/type-utils@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)':
     dependencies:
       '@typescript-eslint/types': 8.66.0
       '@typescript-eslint/typescript-estree': 8.66.0(supports-color@10.2.2)(typescript@5.9.3)
-      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
       debug: 4.4.3(supports-color@10.2.2)
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       ts-api-utils: 2.5.0(typescript@5.9.3)
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -4649,13 +6168,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)':
+  '@typescript-eslint/utils@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
       '@typescript-eslint/scope-manager': 8.66.0
       '@typescript-eslint/types': 8.66.0
       '@typescript-eslint/typescript-estree': 8.66.0(supports-color@10.2.2)(typescript@5.9.3)
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -4672,10 +6191,10 @@ snapshots:
       vite: 6.4.3(@types/node@26.1.2)(jiti@2.7.0)(lightningcss@1.33.0)
       vue: 3.5.40(typescript@5.9.3)
 
-  '@vitejs/plugin-vue@6.0.8(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))(vue@3.5.40(typescript@5.9.3))':
+  '@vitejs/plugin-vue@6.0.8(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)
+      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)
       vue: 3.5.40(typescript@5.9.3)
 
   '@vitest/coverage-v8@4.1.10(vitest@4.1.10)':
@@ -4690,17 +6209,17 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))
+      vitest: 4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))
 
-  '@vitest/eslint-plugin@1.6.26(@typescript-eslint/eslint-plugin@8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)(vitest@4.1.10)':
+  '@vitest/eslint-plugin@1.6.26(@typescript-eslint/eslint-plugin@8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)(vitest@4.1.10)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.66.0
-      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
     optionalDependencies:
-      '@typescript-eslint/eslint-plugin': 8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/eslint-plugin': 8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
       typescript: 5.9.3
-      vitest: 4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))
+      vitest: 4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -4713,13 +6232,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.1
 
-  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))':
+  '@vitest/mocker@4.1.10(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))':
     dependencies:
       '@vitest/spy': 4.1.10
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)
+      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)
 
   '@vitest/pretty-format@4.1.10':
     dependencies:
@@ -5128,12 +6647,6 @@ snapshots:
     optionalDependencies:
       supports-color: 10.2.2
 
-  debug@4.4.3(supports-color@7.2.0):
-    dependencies:
-      ms: 2.1.3
-    optionalDependencies:
-      supports-color: 7.2.0
-
   decimal.js@10.6.0: {}
 
   deep-is@0.1.4: {}
@@ -5264,34 +6777,34 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-config-prettier@10.1.8(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0)):
+  eslint-config-prettier@10.1.8(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2)):
     dependencies:
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
 
-  eslint-plugin-playwright@2.11.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0)):
+  eslint-plugin-playwright@2.11.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2)):
     dependencies:
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       globals: 17.9.0
 
-  eslint-plugin-vue@10.10.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(vue-eslint-parser@10.4.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)):
+  eslint-plugin-vue@10.10.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(vue-eslint-parser@10.4.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)):
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       natural-compare: 1.4.0
       nth-check: 2.1.1
       postcss-selector-parser: 7.1.4
       semver: 7.8.5
-      vue-eslint-parser: 10.4.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)
+      vue-eslint-parser: 10.4.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
       xml-name-validator: 5.0.0
     optionalDependencies:
-      '@typescript-eslint/parser': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
 
-  eslint-plugin-vuejs-accessibility@2.5.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(globals@17.9.0)(supports-color@10.2.2):
+  eslint-plugin-vuejs-accessibility@2.5.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(globals@17.9.0)(supports-color@10.2.2):
     dependencies:
       aria-query: 5.3.2
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       globals: 17.9.0
-      vue-eslint-parser: 10.4.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)
+      vue-eslint-parser: 10.4.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -5306,11 +6819,11 @@ snapshots:
 
   eslint-visitor-keys@5.0.1: {}
 
-  eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0):
+  eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2):
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
       '@eslint-community/regexpp': 4.12.2
-      '@eslint/config-array': 0.23.5(supports-color@7.2.0)
+      '@eslint/config-array': 0.23.5(supports-color@10.2.2)
       '@eslint/config-helpers': 0.7.0
       '@eslint/core': 1.2.1
       '@eslint/plugin-kit': 0.7.2
@@ -5320,7 +6833,7 @@ snapshots:
       '@types/estree': 1.0.9
       ajv: 6.15.0
       cross-spawn: 7.0.6
-      debug: 4.4.3(supports-color@7.2.0)
+      debug: 4.4.3(supports-color@10.2.2)
       escape-string-regexp: 4.0.0
       eslint-scope: 9.1.2
       eslint-visitor-keys: 5.0.1
@@ -5339,7 +6852,7 @@ snapshots:
       natural-compare: 1.4.0
       optionator: 0.9.4
     optionalDependencies:
-      jiti: 2.6.1
+      jiti: 2.7.0
     transitivePeerDependencies:
       - supports-color
 
@@ -6351,13 +7864,13 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
 
-  typescript-eslint@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3):
+  typescript-eslint@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3):
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
-      '@typescript-eslint/parser': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/eslint-plugin': 8.66.0(@typescript-eslint/parser@8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3))(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
       '@typescript-eslint/typescript-estree': 8.66.0(supports-color@10.2.2)(typescript@5.9.3)
-      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2)(typescript@5.9.3)
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      '@typescript-eslint/utils': 8.66.0(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -6427,7 +7940,7 @@ snapshots:
       jiti: 2.7.0
       lightningcss: 1.33.0
 
-  vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1):
+  vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
@@ -6438,7 +7951,7 @@ snapshots:
       '@types/node': 26.1.2
       esbuild: 0.28.1
       fsevents: 2.3.3
-      jiti: 2.6.1
+      jiti: 2.7.0
 
   vitepress@1.6.4(@algolia/client-search@5.56.0)(@types/node@26.1.2)(jiti@2.7.0)(lightningcss@1.33.0)(postcss@8.5.25)(search-insights@2.17.3)(typescript@5.9.3):
     dependencies:
@@ -6493,10 +8006,10 @@ snapshots:
       - universal-cookie
       - yaml
 
-  vitest@4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)):
+  vitest@4.1.10(@types/node@26.1.2)(@vitest/coverage-v8@4.1.10)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)):
     dependencies:
       '@vitest/expect': 4.1.10
-      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1))
+      '@vitest/mocker': 4.1.10(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))
       '@vitest/pretty-format': 4.1.10
       '@vitest/runner': 4.1.10
       '@vitest/snapshot': 4.1.10
@@ -6513,7 +8026,7 @@ snapshots:
       tinyexec: 1.3.0
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.1
-      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)
+      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 26.1.2
@@ -6556,22 +8069,10 @@ snapshots:
       vue: 3.5.40(typescript@5.9.3)
       vue-inbrowser-compiler-independent-utils: 4.71.1(vue@3.5.40(typescript@5.9.3))
 
-  vue-eslint-parser@10.4.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@10.2.2):
+  vue-eslint-parser@10.4.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
-      eslint-scope: 9.1.2
-      eslint-visitor-keys: 5.0.1
-      espree: 11.2.0
-      esquery: 1.7.0
-      semver: 7.8.5
-    transitivePeerDependencies:
-      - supports-color
-
-  vue-eslint-parser@10.4.1(eslint@10.8.0(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0):
-    dependencies:
-      debug: 4.4.3(supports-color@7.2.0)
-      eslint: 10.8.0(jiti@2.6.1)(supports-color@7.2.0)
+      eslint: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
       eslint-scope: 9.1.2
       eslint-visitor-keys: 5.0.1
       espree: 11.2.0

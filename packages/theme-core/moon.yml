@@ -1,0 +1,14 @@
+# Design tokens and styles — the single source of truth for every colour,
+# radius, elevation and duration in the library.
+#
+# theme.css is a `@theme` block consumed by Tailwind; global.css opens with
+# `@import "tailwindcss"`. Both ship as authored, not as built, because the
+# consumer's own Tailwind has to see the source. Font files and their licence
+# are copied alongside.
+project:
+  name: "theme-core"
+  description: "Design tokens and styles (theme.css, global.css, fonts)"
+
+tasks:
+  # No build task — styles ship as authored CSS, not as compiled output.
+  # Inherit lint, typecheck and test from .moon/tasks/*.yml.

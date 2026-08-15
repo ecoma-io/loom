@@ -1,0 +1,5 @@
+project:
+  name: "checkbox"
+  description: "Checkbox primitive — binary selection control"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

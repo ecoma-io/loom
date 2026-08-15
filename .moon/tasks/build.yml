@@ -1,0 +1,11 @@
+# Shared build task. Inherited by all projects that produce build output.
+tasks:
+  build:
+    command: "vite build"
+    deps:
+      - "~:typecheck"
+    outputs:
+      - "dist"
+    options:
+      cache: true
+      runInCI: affected

@@ -1,0 +1,15 @@
+# Label and form-context subsystem.
+#
+# The localisation seam (provideLoomLabels / useLabels) and the field context
+# system (provideFieldContext / useFieldControl) live here, alongside the
+# date-family shared vocabularies and the ancestor-disabled composable.
+#
+# Depends on `@ecoma-io/loom-core` for `optional()`.
+# `label-registry.ts` imports component label types from `@ecoma-io/loom`
+# (import type only — no runtime cycle).
+project:
+  name: "labels"
+  description: "Localisation seam and field context for Loom components"
+
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

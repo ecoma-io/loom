@@ -1,0 +1,11 @@
+tags: ["e2e"]
+
+project:
+  name: "dialog"
+  description: "Dialog primitive — modal overlay for focused tasks"
+tasks:
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  e2e:
+    args: ["packages/primitives/dialog/e2e"]
+    env:
+      PW_PROFILE: "smoke"
