@@ -8,8 +8,8 @@ container is too narrow.
 
 <script setup lang="ts">
 import { SplitLayout } from "@ecoma-io/loom";
-import SplitLayoutDemo from "../../src/layouts/SplitLayout/SplitLayoutDemo.vue";
-import splitLayoutDemoSource from "../../src/layouts/SplitLayout/SplitLayoutDemo.vue?raw";
+import SplitLayoutDemo from "../demos/SplitLayoutDemo.vue";
+import splitLayoutDemoSource from "../demos/SplitLayoutDemo.vue?raw";
 </script>
 
 ## Usage

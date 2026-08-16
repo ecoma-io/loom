@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SidebarComponent from "./Sidebar.vue";
+import SidebarComponent from "@ecoma-io/loom-sidebar";
 </script>
 
 <template>

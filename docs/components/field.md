@@ -15,8 +15,8 @@ and forgetting one is no longer a silent defect.
 
 <script setup lang="ts">
 import { Field, TextField } from "@ecoma-io/loom";
-import FieldDemo from "../../src/primitives/Field/FieldDemo.vue";
-import fieldDemoSource from "../../src/primitives/Field/FieldDemo.vue?raw";
+import FieldDemo from "../demos/FieldDemo.vue";
+import fieldDemoSource from "../demos/FieldDemo.vue?raw";
 </script>
 
 ## Usage

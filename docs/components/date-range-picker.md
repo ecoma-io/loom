@@ -25,8 +25,8 @@ something the calendar cannot hold.
 <script setup lang="ts">
 import { ref } from "vue";
 import { DateRangePicker } from "@ecoma-io/loom";
-import DateRangePickerDemo from "../../src/primitives/DateRangePicker/DateRangePickerDemo.vue";
-import dateRangePickerDemoSource from "../../src/primitives/DateRangePicker/DateRangePickerDemo.vue?raw";
+import DateRangePickerDemo from "../demos/DateRangePickerDemo.vue";
+import dateRangePickerDemoSource from "../demos/DateRangePickerDemo.vue?raw";
 
 const report = ref({ start: "2026-03-01", end: "2026-03-31" });
 const empty = ref();

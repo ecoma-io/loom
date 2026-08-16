@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Popover from "./Popover.vue";
-import Button from "../Button/Button.vue";
+import Popover from "@ecoma-io/loom-popover";
+import Button from "@ecoma-io/loom-button";
 
 const filtersOpen = ref(false);
 const showDrafts = ref(true);

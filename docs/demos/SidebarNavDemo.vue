@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Bell, Boxes, LayoutDashboard, Settings, Users, Workflow } from "@lucide/vue";
-import SidebarNav, { type SidebarNavSection } from "./SidebarNav.vue";
-import Switch from "../../primitives/Switch/Switch.vue";
+import SidebarNav, { type SidebarNavSection } from "@ecoma-io/loom-sidebar-nav";
+import Switch from "@ecoma-io/loom-switch";
 
 const collapsed = ref(false);
 

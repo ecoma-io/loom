@@ -1,7 +1,8 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref, type PropType } from "vue";
-import FileUpload, { type FileUploadRejection } from "../src/FileUpload.vue";
+import FileUpload from "../src/FileUpload.vue";
+import type { FileUploadRejection } from "@ecoma-io/loom-labels";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 

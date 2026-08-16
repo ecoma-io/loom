@@ -4,8 +4,8 @@ A styled anchor for navigating to destinations within the current context or on 
 
 <script setup lang="ts">
 import { Link } from "@ecoma-io/loom";
-import LinkDemo from "../../src/primitives/Link/LinkDemo.vue";
-import linkDemoSource from "../../src/primitives/Link/LinkDemo.vue?raw";
+import LinkDemo from "../demos/LinkDemo.vue";
+import linkDemoSource from "../demos/LinkDemo.vue?raw";
 </script>
 
 ## Usage

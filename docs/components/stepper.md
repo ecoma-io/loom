@@ -19,8 +19,8 @@ and the connector between two of them is what says so.
 <script setup lang="ts">
 import { ref } from "vue";
 import { Stepper } from "@ecoma-io/loom";
-import StepperDemo from "../../src/primitives/Stepper/StepperDemo.vue";
-import stepperDemoSource from "../../src/primitives/Stepper/StepperDemo.vue?raw";
+import StepperDemo from "../demos/StepperDemo.vue";
+import stepperDemoSource from "../demos/StepperDemo.vue?raw";
 
 const checkout = [
   { title: "Cart", description: "Two items" },

@@ -1,6 +1,6 @@
 <script lang="ts">
+import type { AvatarGroupLabels } from "@ecoma-io/loom-labels";
 import type { AvatarShape, AvatarSize, AvatarVariant } from "@ecoma-io/loom-avatar";
-import type { LabelOf } from "@ecoma-io/loom-labels";
 
 /** One face in the row. */
 export interface AvatarGroupItem {
@@ -18,26 +18,6 @@ export interface AvatarGroupItem {
 export type AvatarGroupSurface = "background" | "card" | "sunken" | "popover";
 
 /**
- * The two sentences the row says that are not a member's own name.
- *
- * **`accent` is one key and not a name, a comma and a qualifier.** Where the
- * qualifier sits relative to the name, and whether a comma is what separates
- * them at all, is a property of the language — Loom joining `${who}, ${what}`
- * has already answered both, in English, for every host that translates the
- * two halves. The name arrives raw because it is the caller's own data rather
- * than anything Loom formatted, and the empty case arrives too: a face with no
- * `alt` and no `fallback` still carries the accent variant, and the accent
- * label alone is the honest reading of it.
- *
- * `overflow` takes the count for the reason every counted message here does —
- * "3 more" is a plural category English collapses and Russian does not.
- */
-export interface AvatarGroupLabels {
-  /** The counter tile at the end of the row, named for how many faces it stands in for. */
-  readonly overflow: LabelOf<{ count: number }>;
-  /** One member's whole name, with the accent qualifier already worked into it. `name` is empty when the member gave neither an `alt` nor a `fallback`. */
-  readonly accent: LabelOf<{ name: string }>;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

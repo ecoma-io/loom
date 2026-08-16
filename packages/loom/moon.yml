@@ -2,8 +2,120 @@ project:
   name: "loom"
   description: "Public facade — re-exports from foundation and component packages"
 
-# The facade depends on every package it re-exports. Component packages are
-# added here as they migrate; until then, the legacy src/ tree provides the
-# component exports and this project re-exports only the foundation layers.
+# The facade is the single source of truth for the published `@ecoma-io/loom`.
+# It re-exports every component package, so it depends on all of them — inside
+# moon, that means the facade's own tasks run only after each re-exported
+# package has built, linted and type-checked. `deps` here mirror the imports in
+# src/index.ts; a package added to the facade without a matching entry here
+# would silently drop out of the build graph.
+deps:
+  - "core"
+  - "labels"
+  - "accordion"
+  - "alert-dialog"
+  - "app-header"
+  - "app-shell"
+  - "avatar"
+  - "avatar-group"
+  - "badge"
+  - "breadcrumb"
+  - "button"
+  - "center"
+  - "centered"
+  - "checkbox"
+  - "chip"
+  - "color-picker"
+  - "combobox"
+  - "context-menu"
+  - "dashboard"
+  - "dashboard-grid"
+  - "date-picker"
+  - "date-range-picker"
+  - "date-time-picker"
+  - "date-time-range-picker"
+  - "desktop-app-shell"
+  - "dialog"
+  - "drawer"
+  - "dropdown-menu"
+  - "editable"
+  - "empty-state"
+  - "error-state"
+  - "field"
+  - "fieldset"
+  - "file-upload"
+  - "form-actions"
+  - "form-layout"
+  - "form-section"
+  - "frame"
+  - "grid"
+  - "hover-card"
+  - "icon-button"
+  - "indicator"
+  - "inline"
+  - "inline-error"
+  - "link"
+  - "loading-state"
+  - "master-detail"
+  - "menubar"
+  - "metric-card"
+  - "number-field"
+  - "otp-input"
+  - "page-header"
+  - "pagination"
+  - "popover"
+  - "progress"
+  - "radial-progress"
+  - "radio-group"
+  - "rating"
+  - "reading"
+  - "row-actions"
+  - "scroll-area"
+  - "scroll-reel"
+  - "segmented-control"
+  - "select"
+  - "separator"
+  - "settings"
+  - "sidebar"
+  - "sidebar-nav"
+  - "skeleton"
+  - "slider"
+  - "speed-dial"
+  - "spinner"
+  - "split"
+  - "split-layout"
+  - "stack"
+  - "stepper"
+  - "surface"
+  - "switch"
+  - "tabs"
+  - "tags-input"
+  - "textarea"
+  - "text-field"
+  - "time-picker"
+  - "title-bar"
+  - "toast"
+  - "toast-stack"
+  - "tooltip"
+  - "window-controls"
+
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # `build` is the published library build, overridden here because the shared
+  # build task (a type-check, for source-export packages) is not what the facade
+  # ships. The shared template's `vue-tsc --noEmit` is replaced cleanly:
+  # `mergeArgs: replace` stops the template's `--noEmit` from being appended to
+  # `pnpm build` (which would yield `pnpm --noEmit build`). It runs from the
+  # workspace root where vite.config.ts and tsconfig.build.json live and
+  # produces `dist`. No `outputs` is declared because moon forbids `..` paths
+  # and this artifact lives at the repo root — as a CI gate the build needs no
+  # cache key, only a pass/fail.
+  build:
+    command: "pnpm build"
+    options:
+      cache: true
+      mergeArgs: replace
+      runInCI: affected
+      runFromWorkspaceRoot: true
+
+# Everything else (lint, typecheck, test) is inherited from the shared
+# templates.
+# Inherit lint, typecheck and test from .moon/tasks/*.yml.

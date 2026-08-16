@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Spinner from "./Spinner.vue";
+import Spinner from "@ecoma-io/loom-spinner";
 </script>
 
 <template>

@@ -1,45 +1,8 @@
 <script lang="ts">
+import type { ComboboxLabels } from "@ecoma-io/loom-labels";
 import { cva } from "class-variance-authority";
-import type { LabelOf } from "@ecoma-io/loom-labels";
 
 /**
- * Everything this control says that does not come from the host's own options.
- *
- * `trigger` replaces a name Reka UI writes in English of its own accord:
- * `ComboboxTrigger` puts `aria-label="Show popup"` in its own vnode props and
- * exposes no prop for it, so without this the chevron is the one control on a
- * fully localised form still speaking English. A binding on the Loom side
- * arrives as a fallthrough attribute, which Vue merges onto the root vnode
- * after Reka's render function produced it, and `mergeProps` is last-write-wins
- * for everything that is not `class`, `style` or `on*` — so it replaces Reka's
- * rather than competing with it.
- *
- * `empty` is Loom's own, and it is the default beneath the `emptyMessage`
- * prop rather than a competitor to it: the prop is the wording for one box —
- * "No country by that name" — and this is what every other box says.
- *
- * The two multi-select keys take the **number**, never a formatted string, for
- * the reason `src/lib/labels.ts` gives at length: "3 selected" has one plural
- * form in Vietnamese, two in English and six in Arabic, and `+47` is a
- * punctuation choice made in one language. A host handed the integer reaches
- * `Intl.PluralRules` for the category and `Intl.NumberFormat` for the digits.
- */
-export interface ComboboxLabels {
-  /** The chevron that opens the list. It is not a Tab stop; this is what a screen reader reads on it. */
-  readonly trigger: string;
-  /** The row shown in place of the list when the filter matches nothing, unless `emptyMessage` says otherwise. */
-  readonly empty: string;
-  /**
-   * How many options are chosen, read out when the box takes focus.
-   *
-   * Multi-select only, and the only thing that tells a reader the size of a
-   * selection without walking the list: the trigger shows the first few tokens
-   * and a count for the rest, and neither is announced on its own.
-   */
-  readonly count: LabelOf<{ count: number }>;
-  /** The visible summary standing in for the tokens the trigger did not have room for. */
-  readonly overflow: LabelOf<{ hidden: number }>;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import TimePicker from "./TimePicker.vue";
+import TimePicker from "@ecoma-io/loom-time-picker";
 
 const standup = ref("09:30");
 const shift = ref("22:00");

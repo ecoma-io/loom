@@ -5,8 +5,8 @@ with a thin track that expands on hover. Built on Reka UI's ScrollArea primitive
 
 <script setup lang="ts">
 import { ScrollArea } from "@ecoma-io/loom";
-import ScrollAreaDemo from "../../src/primitives/ScrollArea/ScrollAreaDemo.vue";
-import scrollAreaDemoSource from "../../src/primitives/ScrollArea/ScrollAreaDemo.vue?raw";
+import ScrollAreaDemo from "../demos/ScrollAreaDemo.vue";
+import scrollAreaDemoSource from "../demos/ScrollAreaDemo.vue?raw";
 </script>
 
 ## Usage

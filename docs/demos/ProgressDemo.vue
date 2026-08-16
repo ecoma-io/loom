@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Progress from "./Progress.vue";
+import Progress from "@ecoma-io/loom-progress";
 </script>
 
 <template>

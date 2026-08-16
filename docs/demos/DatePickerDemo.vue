@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import DatePicker from "./DatePicker.vue";
+import DatePicker from "@ecoma-io/loom-date-picker";
 
 const due = ref("2026-03-14");
 // Unset rather than an empty string, because that is what a form starts with:

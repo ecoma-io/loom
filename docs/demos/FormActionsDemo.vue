@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import FormActions from "./FormActions.vue";
-import Button from "../../primitives/Button/Button.vue";
+import FormActions from "@ecoma-io/loom-form-actions";
+import Button from "@ecoma-io/loom-button";
 </script>
 
 <template>

@@ -6,8 +6,8 @@ cannot see the icon meets an unnamed button.
 
 <script setup lang="ts">
 import { IconButton } from "@ecoma-io/loom";
-import IconButtonDemo from "../../src/primitives/IconButton/IconButtonDemo.vue";
-import iconButtonDemoSource from "../../src/primitives/IconButton/IconButtonDemo.vue?raw";
+import IconButtonDemo from "../demos/IconButtonDemo.vue";
+import iconButtonDemoSource from "../demos/IconButtonDemo.vue?raw";
 </script>
 
 ## Usage

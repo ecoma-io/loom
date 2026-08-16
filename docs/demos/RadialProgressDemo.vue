@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import RadialProgress from "./RadialProgress.vue";
+import RadialProgress from "@ecoma-io/loom-radial-progress";
 </script>
 
 <template>

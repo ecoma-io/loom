@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { LabelOverrides } from "../../lib/labels";
-import Pagination, { type PaginationLabels } from "./Pagination.vue";
+import type { LabelOverrides } from "@ecoma-io/loom-labels";
+import Pagination, { type PaginationLabels } from "@ecoma-io/loom-pagination";
 
 const invoices = ref(4);
 // Deep into a hundred-page set, which is where both ellipses appear at once.

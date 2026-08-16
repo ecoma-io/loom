@@ -1,6 +1,6 @@
 <script lang="ts">
+import type { IndicatorLabels } from "@ecoma-io/loom-labels";
 import { cva } from "class-variance-authority";
-import type { LabelOf } from "@ecoma-io/loom-labels";
 
 /** A presence dot, or a number. */
 export type IndicatorVariant = "dot" | "count";
@@ -91,34 +91,6 @@ const STATUS_TONES = {
 } satisfies Record<IndicatorStatus, IndicatorTone>;
 
 /**
- * What a screen reader is told when the caller passes no `label` — which is
- * every string this component can utter, because a marker that renders nothing
- * but a coloured circle has no text of its own to fall back on.
- *
- * The four presence keys are named for the four `IndicatorStatus` members and
- * resolved by lookup, so a status added to the union without a name for it is a
- * compile error rather than an unnamed dot.
- *
- * `count` takes the number and not a formatted string: "3 unread" is a plural
- * category in most languages and a digit shape in several, and a component
- * whose whole job is to show a small integer has no business deciding either.
- * It also reports the *real* figure rather than the clamped `99+` — see the
- * comment on `name` below.
- */
-export interface IndicatorLabels {
-  /** The `online` dot. */
-  readonly online: string;
-  /** The `offline` dot. */
-  readonly offline: string;
-  /** The `busy` dot. */
-  readonly busy: string;
-  /** The `away` dot. */
-  readonly away: string;
-  /** The `count` pill, named for how many things it counts. */
-  readonly count: LabelOf<{ count: number }>;
-  /** A dot with no `status`: something changed here, and nothing more specific. */
-  readonly attention: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

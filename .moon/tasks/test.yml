@@ -11,7 +11,12 @@
 # tests flaky rather than faster.
 tasks:
   test:
+    # The vitest suite is whole-repo: coverage is scoped to the legacy src/ tree
+    # and its thresholds are a repository-wide contract. Running it once per
+    # affected project would multiply the run, so CI owns it as a single global
+    # `pnpm test` (kept out of moon ci, hence `skip`). This task stays for local
+    # per-project runs.
     command: "vitest run --root $workspaceRoot"
     options:
       cache: true
-      runInCI: affected
+      runInCI: skip

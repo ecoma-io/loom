@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { FileText, ClipboardPaste } from "@lucide/vue";
-import Textarea from "./Textarea.vue";
+import Textarea from "@ecoma-io/loom-textarea";
 
 const bio = ref("Visual director, 8 years cutting ad films.");
 const notes = ref("");

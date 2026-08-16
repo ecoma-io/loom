@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SplitComponent from "./Split.vue";
+import SplitComponent from "@ecoma-io/loom-split";
 </script>
 
 <template>

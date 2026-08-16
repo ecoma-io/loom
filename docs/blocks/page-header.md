@@ -10,8 +10,8 @@ needs a header.
 
 <script setup lang="ts">
 import { PageHeader } from "@ecoma-io/loom";
-import PageHeaderDemo from "../../src/blocks/PageHeader/PageHeaderDemo.vue";
-import pageHeaderDemoSource from "../../src/blocks/PageHeader/PageHeaderDemo.vue?raw";
+import PageHeaderDemo from "../demos/PageHeaderDemo.vue";
+import pageHeaderDemoSource from "../demos/PageHeaderDemo.vue?raw";
 </script>
 
 ## Usage

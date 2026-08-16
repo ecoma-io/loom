@@ -38,6 +38,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The affected step below diffs this branch against a base commit, so
+          # that base and every commit since it must be available locally — a
+          # shallow single-commit checkout cannot resolve the ref. Full history
+          # is the price of not pulling every ref.
+          fetch-depth: 0
 
       # Reads the pnpm version from `packageManager` in package.json, so the
       # runner uses the same pnpm a contributor's Corepack fetches.
@@ -145,11 +150,48 @@ jobs:
       # cache above worth restoring at all: the default keys each entry on size
       # and mtime, and a fresh checkout writes a new mtime on every file — a
       # perfectly restored metadata cache would then miss on all of it.
-      - run: pnpm lint
+      #
+      # That cache is why lint still runs moon-side for every affected project:
+      # moon gives lint a restore-able hash key of its own, but dropping the
+      # shared ESLint cache would re-lint every file of every affected project
+      # on the first affected run after a base change.
+      #
+      # Otherwise the lint step here is retired: moon now owns lint, typecheck
+      # and the published build, running each on this branch's affected projects
+      # only. The three root scripts it replaces ran everything, every time.
+      - name: Resolve affected base
+        id: base
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        # `moon ci` supports --base / --head and diffs this branch against the
+        # base ref to select affected projects. On a pull request the base is
+        # the merge commit it will land on; on a push to main it is the commit
+        # this one grew from. On the very first commit (a repository seed, or a
+        # base that predates the checkout depth) `before` is the all-zero SHA,
+        # which would diff against a commit that does not exist — so fall back
+        # to the parent commit. Everything arrives via the environment, never
+        # via `${{ }}` interpolation, so a branch name cannot run shell.
+        run: |
+          if [ "$PR_BASE" != "" ]; then
+            echo "base=$PR_BASE" >> "$GITHUB_OUTPUT"
+          elif [ "${PUSH_BEFORE//0/}" != "" ]; then
+            echo "base=$PUSH_BEFORE" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          fi
 
-      - run: pnpm typecheck
+      # `pnpm lint` also ran `tools/check-component-artifacts.ts` — the
+      # five-artifacts-per-component gate — which has no moon task. It is
+      # hoisted out of the lint script into its own step so a component's
+      # artifacts are checked on every run, not just the local one.
+      - name: Check component artifacts
+        run: node tools/check-component-artifacts.ts
+
+      - name: Moon affected lint, typecheck, build
+        run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
+
       - run: pnpm test
-      - run: pnpm build
 
       # The route, and not the build. A page that fails to build is still
       # caught before the merge — every `e2e` leg builds the site through

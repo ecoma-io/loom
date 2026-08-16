@@ -7,8 +7,8 @@ of freezing under a spinner.
 
 <script setup lang="ts">
 import { Button } from "@ecoma-io/loom";
-import ButtonDemo from "../../src/primitives/Button/ButtonDemo.vue";
-import buttonDemoSource from "../../src/primitives/Button/ButtonDemo.vue?raw";
+import ButtonDemo from "../demos/ButtonDemo.vue";
+import buttonDemoSource from "../demos/ButtonDemo.vue?raw";
 </script>
 
 ## Usage

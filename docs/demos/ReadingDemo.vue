@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Reading from "./Reading.vue";
+import Reading from "@ecoma-io/loom-reading";
 </script>
 
 <template>

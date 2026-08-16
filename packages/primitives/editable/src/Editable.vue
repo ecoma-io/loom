@@ -1,52 +1,7 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
+import type { EditableLabels } from "@ecoma-io/loom-labels";
 
 /**
- * Everything this control publishes to assistive technology — and every one of
- * these replaces a name Reka UI would otherwise supply in English of its own
- * accord.
- *
- * `input` stands in for the `aria-label="editable input"` Reka writes into
- * `EditableInput`'s own vnode; `submit` and `cancel` for the `aria-label`s and
- * the visible `Submit` / `Cancel` text its two triggers render. A binding on
- * the Loom side arrives as a fallthrough attribute, which Vue merges onto the
- * root vnode *after* the render function produced it, and `mergeProps` is
- * last-write-wins for everything that is not `class`, `style` or `on*` — so
- * these replace Reka's rather than competing with it. Removing one does not
- * fall back to nothing: it falls back to Reka's English, which no test of
- * Loom's own strings would catch, and which `Editable.test.ts` therefore pins
- * by reading the rendered attribute back.
- *
- * `edit` is Loom's own, and it is the one that decides whether this component
- * is accessible at all. Edit-in-place fails a screen reader by looking like
- * text and therefore reading like text; this word is what the preview appends
- * to its value so it announces as something a reader can act on.
- */
-export interface EditableLabels {
-  /**
-   * Appended to the preview's accessible name, after the value, so the text
-   * announces as a control rather than as prose. It is what a reader hears at
-   * the end of "Quarterly report, Edit, button".
-   */
-  readonly edit: string;
-  /**
-   * The editor's own name, used only where nothing else names it — no
-   * wrapping [Field](../Field/Field.vue), no `ariaLabel`, no `aria-labelledby`.
-   * Naming the *kind* of value it holds beats naming the widget.
-   */
-  readonly input: string;
-  /** The button that commits the edit. */
-  readonly submit: string;
-  /** The button that abandons it and restores the previous value. */
-  readonly cancel: string;
-  /**
-   * Announced when a submit is refused because the box was left empty and
-   * `allowEmpty` is off. The value is the one that was restored, so a host can
-   * say what came back rather than only that something did — see `LabelOf` in
-   * `src/lib/labels.ts` for why it arrives as a value and not as a sentence.
-   */
-  readonly restored: LabelOf<{ value: string }>;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it: a

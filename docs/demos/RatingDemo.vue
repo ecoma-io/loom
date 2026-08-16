@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Rating from "./Rating.vue";
+import Rating from "@ecoma-io/loom-rating";
 
 const quality = ref(3);
 const accuracy = ref(3.5);

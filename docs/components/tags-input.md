@@ -21,8 +21,8 @@ the same size.
 
 <script setup lang="ts">
 import { TagsInput, Field } from "@ecoma-io/loom";
-import TagsInputDemo from "../../src/primitives/TagsInput/TagsInputDemo.vue";
-import tagsInputDemoSource from "../../src/primitives/TagsInput/TagsInputDemo.vue?raw";
+import TagsInputDemo from "../demos/TagsInputDemo.vue";
+import tagsInputDemoSource from "../demos/TagsInputDemo.vue?raw";
 </script>
 
 ## Usage

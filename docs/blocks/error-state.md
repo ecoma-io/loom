@@ -10,8 +10,8 @@ site.
 
 <script setup lang="ts">
 import { ErrorState } from "@ecoma-io/loom";
-import ErrorStateDemo from "../../src/blocks/ErrorState/ErrorStateDemo.vue";
-import errorStateDemoSource from "../../src/blocks/ErrorState/ErrorStateDemo.vue?raw";
+import ErrorStateDemo from "../demos/ErrorStateDemo.vue";
+import errorStateDemoSource from "../demos/ErrorStateDemo.vue?raw";
 </script>
 
 ## Usage

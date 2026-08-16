@@ -21,8 +21,8 @@ nothing here will let a reader write something the calendar cannot hold.
 <script setup lang="ts">
 import { ref } from "vue";
 import { DatePicker } from "@ecoma-io/loom";
-import DatePickerDemo from "../../src/primitives/DatePicker/DatePickerDemo.vue";
-import datePickerDemoSource from "../../src/primitives/DatePicker/DatePickerDemo.vue?raw";
+import DatePickerDemo from "../demos/DatePickerDemo.vue";
+import datePickerDemoSource from "../demos/DatePickerDemo.vue?raw";
 
 const due = ref("2026-03-14");
 const empty = ref<string>();

@@ -7,8 +7,8 @@ when a visible line belongs there.
 
 <script setup lang="ts">
 import { Separator } from "@ecoma-io/loom";
-import SeparatorDemo from "../../src/primitives/Separator/SeparatorDemo.vue";
-import separatorDemoSource from "../../src/primitives/Separator/SeparatorDemo.vue?raw";
+import SeparatorDemo from "../demos/SeparatorDemo.vue";
+import separatorDemoSource from "../demos/SeparatorDemo.vue?raw";
 </script>
 
 ## Usage

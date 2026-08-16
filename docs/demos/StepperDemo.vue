@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Stepper, { type StepperStep } from "./Stepper.vue";
+import Stepper, { type StepperStep } from "@ecoma-io/loom-stepper";
 
 const checkout: StepperStep[] = [
   { title: "Cart", description: "Two items" },

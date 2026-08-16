@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Eye, Pencil, Trash2 } from "@lucide/vue";
-import RowActions from "./RowActions.vue";
-import Button from "../../primitives/Button/Button.vue";
-import Surface from "../../primitives/Surface/Surface.vue";
+import RowActions from "@ecoma-io/loom-row-actions";
+import Button from "@ecoma-io/loom-button";
+import Surface from "@ecoma-io/loom-surface";
 
 const rows = [
   { name: "Daily video digest builder", meta: "2 steps · cron every 60 min" },

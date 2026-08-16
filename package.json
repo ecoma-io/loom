@@ -81,7 +81,8 @@
     "docs:build": "vitepress build docs",
     "docs:stage": "node tools/stage-docs.ts",
     "docs:check-route": "node tools/stage-docs.ts --check",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "moon": "MOON_CONCURRENCY=${MOON_CONCURRENCY:-4} exec moon"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

@@ -11,8 +11,8 @@ viewport.
 
 <script setup lang="ts">
 import { DashboardGrid } from "@ecoma-io/loom";
-import DashboardGridDemo from "../../src/blocks/DashboardGrid/DashboardGridDemo.vue";
-import dashboardGridDemoSource from "../../src/blocks/DashboardGrid/DashboardGridDemo.vue?raw";
+import DashboardGridDemo from "../demos/DashboardGridDemo.vue";
+import dashboardGridDemoSource from "../demos/DashboardGridDemo.vue?raw";
 </script>
 
 ## Usage

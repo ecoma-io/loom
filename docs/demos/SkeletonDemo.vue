@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Skeleton from "./Skeleton.vue";
+import Skeleton from "@ecoma-io/loom-skeleton";
 </script>
 
 <template>

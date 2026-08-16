@@ -8,8 +8,8 @@ site to call site.
 
 <script setup lang="ts">
 import { MetricCard } from "@ecoma-io/loom";
-import MetricCardDemo from "../../src/blocks/MetricCard/MetricCardDemo.vue";
-import metricCardDemoSource from "../../src/blocks/MetricCard/MetricCardDemo.vue?raw";
+import MetricCardDemo from "../demos/MetricCardDemo.vue";
+import metricCardDemoSource from "../demos/MetricCardDemo.vue?raw";
 </script>
 
 ## Usage

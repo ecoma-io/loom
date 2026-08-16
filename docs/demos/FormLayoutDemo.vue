@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormLayout from "./FormLayout.vue";
+import FormLayout from "@ecoma-io/loom-form-layout";
 </script>
 
 <template>

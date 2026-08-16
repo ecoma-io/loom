@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FrameComponent from "./Frame.vue";
+import FrameComponent from "@ecoma-io/loom-frame";
 </script>
 
 <template>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Fieldset from "./Fieldset.vue";
-import Field from "../Field/Field.vue";
-import Checkbox from "../Checkbox/Checkbox.vue";
-import TextField from "../TextField/TextField.vue";
+import Fieldset from "@ecoma-io/loom-fieldset";
+import Field from "@ecoma-io/loom-field";
+import Checkbox from "@ecoma-io/loom-checkbox";
+import TextField from "@ecoma-io/loom-text-field";
 
 const street = ref("12 Oak Lane");
 const city = ref("");

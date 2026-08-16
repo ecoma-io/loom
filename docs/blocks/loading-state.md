@@ -7,8 +7,8 @@ never show EmptyState before the real result is known.
 
 <script setup lang="ts">
 import { LoadingState } from "@ecoma-io/loom";
-import LoadingStateDemo from "../../src/blocks/LoadingState/LoadingStateDemo.vue";
-import loadingStateDemoSource from "../../src/blocks/LoadingState/LoadingStateDemo.vue?raw";
+import LoadingStateDemo from "../demos/LoadingStateDemo.vue";
+import loadingStateDemoSource from "../demos/LoadingStateDemo.vue?raw";
 </script>
 
 ## Usage

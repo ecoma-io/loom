@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MasterDetail from "./MasterDetail.vue";
+import MasterDetail from "@ecoma-io/loom-master-detail";
 </script>
 
 <template>

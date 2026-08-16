@@ -6,8 +6,8 @@ press a button, select text.
 
 <script setup lang="ts">
 import { HoverCard } from "@ecoma-io/loom";
-import HoverCardDemo from "../../src/primitives/HoverCard/HoverCardDemo.vue";
-import hoverCardDemoSource from "../../src/primitives/HoverCard/HoverCardDemo.vue?raw";
+import HoverCardDemo from "../demos/HoverCardDemo.vue";
+import hoverCardDemoSource from "../demos/HoverCardDemo.vue?raw";
 </script>
 
 ## Usage

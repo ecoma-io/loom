@@ -11,8 +11,8 @@ by hand.
 
 <script setup lang="ts">
 import { AppHeader } from "@ecoma-io/loom";
-import AppHeaderDemo from "../../src/blocks/AppHeader/AppHeaderDemo.vue";
-import appHeaderDemoSource from "../../src/blocks/AppHeader/AppHeaderDemo.vue?raw";
+import AppHeaderDemo from "../demos/AppHeaderDemo.vue";
+import appHeaderDemoSource from "../demos/AppHeaderDemo.vue?raw";
 </script>
 
 ## Usage

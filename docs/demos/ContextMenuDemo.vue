@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import ContextMenu, { type ContextMenuEntry } from "./ContextMenu.vue";
+import ContextMenu, { type ContextMenuEntry } from "@ecoma-io/loom-context-menu";
 
 const lastCommand = ref("—");
 

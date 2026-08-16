@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import NumberField from "./NumberField.vue";
+import NumberField from "@ecoma-io/loom-number-field";
 
 const x = ref(120);
 const rotation = ref(45);

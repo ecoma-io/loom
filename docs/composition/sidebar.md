@@ -6,8 +6,8 @@ content can't fit its minimum — no media query, no JavaScript.
 
 <script setup lang="ts">
 import { Sidebar } from "@ecoma-io/loom";
-import SidebarDemo from "../../src/composition/Sidebar/SidebarDemo.vue";
-import sidebarDemoSource from "../../src/composition/Sidebar/SidebarDemo.vue?raw";
+import SidebarDemo from "../demos/SidebarDemo.vue";
+import sidebarDemoSource from "../demos/SidebarDemo.vue?raw";
 </script>
 
 ## Usage

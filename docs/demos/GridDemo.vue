@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GridComponent from "./Grid.vue";
+import GridComponent from "@ecoma-io/loom-grid";
 </script>
 
 <template>

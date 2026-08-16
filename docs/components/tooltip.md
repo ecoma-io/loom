@@ -5,8 +5,8 @@ label for an icon-only button, or one terse explanation of a control.
 
 <script setup lang="ts">
 import { Tooltip, Button } from "@ecoma-io/loom";
-import TooltipDemo from "../../src/primitives/Tooltip/TooltipDemo.vue";
-import tooltipDemoSource from "../../src/primitives/Tooltip/TooltipDemo.vue?raw";
+import TooltipDemo from "../demos/TooltipDemo.vue";
+import tooltipDemoSource from "../demos/TooltipDemo.vue?raw";
 </script>
 
 <Demo title="Tooltip">

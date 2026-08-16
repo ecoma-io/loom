@@ -7,8 +7,8 @@ second set.
 
 <script setup lang="ts">
 import { WindowControls } from "@ecoma-io/loom";
-import WindowControlsDemo from "../../src/primitives/WindowControls/WindowControlsDemo.vue";
-import windowControlsDemoSource from "../../src/primitives/WindowControls/WindowControlsDemo.vue?raw";
+import WindowControlsDemo from "../demos/WindowControlsDemo.vue";
+import windowControlsDemoSource from "../demos/WindowControlsDemo.vue?raw";
 </script>
 
 ## Usage

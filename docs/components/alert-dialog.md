@@ -22,8 +22,8 @@ wanted to be asked.
 
 <script setup lang="ts">
 import { AlertDialog, Button } from "@ecoma-io/loom";
-import AlertDialogDemo from "../../src/primitives/AlertDialog/AlertDialogDemo.vue";
-import alertDialogDemoSource from "../../src/primitives/AlertDialog/AlertDialogDemo.vue?raw";
+import AlertDialogDemo from "../demos/AlertDialogDemo.vue";
+import alertDialogDemoSource from "../demos/AlertDialogDemo.vue?raw";
 </script>
 
 <Demo title="AlertDialog">

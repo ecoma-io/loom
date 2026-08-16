@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Drawer from "./Drawer.vue";
-import Button from "../Button/Button.vue";
-import Checkbox from "../Checkbox/Checkbox.vue";
+import Drawer from "@ecoma-io/loom-drawer";
+import Button from "@ecoma-io/loom-button";
+import Checkbox from "@ecoma-io/loom-checkbox";
 
 const filtersOpen = ref(false);
 const navigationOpen = ref(false);

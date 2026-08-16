@@ -7,8 +7,8 @@ started but has no percentage yet.
 
 <script setup lang="ts">
 import { Progress } from "@ecoma-io/loom";
-import ProgressDemo from "../../src/primitives/Progress/ProgressDemo.vue";
-import progressDemoSource from "../../src/primitives/Progress/ProgressDemo.vue?raw";
+import ProgressDemo from "../demos/ProgressDemo.vue";
+import progressDemoSource from "../demos/ProgressDemo.vue?raw";
 </script>
 
 ## Usage

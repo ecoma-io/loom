@@ -1,65 +1,7 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
+import type { ColorPickerLabels } from "@ecoma-io/loom-labels";
 
 /**
- * Everything this picker publishes to assistive technology, and none of it is
- * optional: a saturation surface, two thumbs and a row of coloured squares
- * carry no text at all, so a name missing here is a control announced as
- * "slider" and nothing else.
- *
- * Six of the nine replace a string Reka UI writes in English inside its own
- * render function, with no prop to reach it — `ColorAreaThumb`'s
- * `Saturation, Brightness`, `ColorSliderThumb`'s `Hue`, the three
- * `aria-roledescription`s (`Color picker`, `Color thumb`, `color swatch`) and
- * the colour *name* `ColorSwatch` and `ColorSwatchPickerItem` derive from the
- * hex. Loom binds over each one, which works for the reason
- * `docs/foundations/localisation.md` sets out: Vue merges a caller's
- * fallthrough attributes after the render function that produced the vnode, and
- * for everything but `class`, `style` and `on*` the later value wins.
- *
- * **`swatch` defaults to the hex rather than to a colour name**, and that is a
- * deliberate loss. Reka answers "vibrant red"; its `getColorName` is not part
- * of the package's public surface, so Loom cannot delegate to it, and inventing
- * a second English colour vocabulary here would be shipping translations — the
- * one thing this seam exists to avoid. `#ef4444` is at least the value itself,
- * in no language, and a host with real colour names supplies them through this
- * key.
- *
- * `aria-roledescription` is exposed rather than suppressed because an empty one
- * is not a neutral choice either: it drops the phrase and leaves the screen
- * reader's own localised role announcement, which is what a host may well want
- * — setting the key to `""` is how they ask for it.
- */
-export interface ColorPickerLabels {
-  /** The saturation/brightness surface. Reka gives it `role="application"` and hands it every key press, so this name is what tells a reader where those keys are going. */
-  readonly area: string;
-  /** Replaces Reka's `aria-roledescription` on that surface (`Color picker`). */
-  readonly areaRoleDescription: string;
-  /** The two-axis thumb inside the surface. */
-  readonly areaThumb: string;
-  /** Replaces Reka's `aria-roledescription` on that thumb (`Color thumb`). */
-  readonly areaThumbRoleDescription: string;
-  /**
-   * What that thumb reports as its value on every arrow key, replacing the
-   * `aria-valuetext="Saturation 60, Brightness 80"` Reka builds from its own
-   * English channel names.
-   *
-   * It is the one string in this control a reader hears repeatedly rather than
-   * once, and both numbers arrive raw so a host can order the sentence its own
-   * way and put the digits through `Intl.NumberFormat`.
-   */
-  readonly areaValue: LabelOf<{ saturation: number; brightness: number }>;
-  /** The hue slider's thumb. */
-  readonly hue: string;
-  /** The hex field — the picker's one non-colour channel, and its only real form control. */
-  readonly hex: string;
-  /** The preset row, which is a listbox. */
-  readonly presets: string;
-  /** One colour named: the swatch beside the hex field and every preset square. */
-  readonly swatch: LabelOf<{ color: string }>;
-  /** Replaces Reka's `aria-roledescription` on the swatch beside the hex field (`color swatch`). */
-  readonly swatchRoleDescription: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

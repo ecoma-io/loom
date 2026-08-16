@@ -8,8 +8,8 @@ instead.
 
 <script setup lang="ts">
 import { RadioGroup } from "@ecoma-io/loom";
-import RadioGroupDemo from "../../src/primitives/RadioGroup/RadioGroupDemo.vue";
-import radioGroupDemoSource from "../../src/primitives/RadioGroup/RadioGroupDemo.vue?raw";
+import RadioGroupDemo from "../demos/RadioGroupDemo.vue";
+import radioGroupDemoSource from "../demos/RadioGroupDemo.vue?raw";
 </script>
 
 ## Usage

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ChevronDown } from "@lucide/vue";
-import DropdownMenu, { type DropdownMenuEntry } from "./DropdownMenu.vue";
-import Button from "../Button/Button.vue";
+import DropdownMenu, { type DropdownMenuEntry } from "@ecoma-io/loom-dropdown-menu";
+import Button from "@ecoma-io/loom-button";
 
 const lastCommand = ref("—");
 

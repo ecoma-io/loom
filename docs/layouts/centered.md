@@ -8,8 +8,8 @@ fill the screen.
 
 <script setup lang="ts">
 import { Centered } from "@ecoma-io/loom";
-import CenteredDemo from "../../src/layouts/Centered/CenteredDemo.vue";
-import centeredDemoSource from "../../src/layouts/Centered/CenteredDemo.vue?raw";
+import CenteredDemo from "../demos/CenteredDemo.vue";
+import centeredDemoSource from "../demos/CenteredDemo.vue?raw";
 </script>
 
 ## Usage

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HoverCard from "./HoverCard.vue";
+import HoverCard from "@ecoma-io/loom-hover-card";
 </script>
 
 <template>

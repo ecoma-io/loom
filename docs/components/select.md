@@ -12,8 +12,8 @@ combobox, which is a different control rather than a longer version of this one.
 
 <script setup lang="ts">
 import { Select } from "@ecoma-io/loom";
-import SelectDemo from "../../src/primitives/Select/SelectDemo.vue";
-import selectDemoSource from "../../src/primitives/Select/SelectDemo.vue?raw";
+import SelectDemo from "../demos/SelectDemo.vue";
+import selectDemoSource from "../demos/SelectDemo.vue?raw";
 
 const languages = [
   { value: "en", label: "English" },

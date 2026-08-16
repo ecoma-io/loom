@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InlineError from "./InlineError.vue";
+import InlineError from "@ecoma-io/loom-inline-error";
 </script>
 
 <template>

@@ -1,11 +1,19 @@
 # Shared build task. Inherited by all projects that produce build output.
+#
+# Component and foundation packages are source-exports: they don't bundle to a
+# dist — the public `@ecoma-io/loom` facade does that at the repository root.
+# Their `build` is therefore a type-check (the same gate `typecheck` runs);
+# `vite build` would fail for each of them with [UNRESOLVED_ENTRY] because no
+# package directory carries an index.html. The root project overrides `build`
+# with the real library build, which produces `dist` (declared there, not here,
+# because these projects emit nothing).
 tasks:
   build:
-    command: "vite build"
+    command: "vue-tsc"
+    args:
+      - "--noEmit"
     deps:
       - "~:typecheck"
-    outputs:
-      - "dist"
     options:
       cache: true
       runInCI: affected

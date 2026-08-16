@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Users, DollarSign, AlertTriangle, Activity } from "@lucide/vue";
-import MetricCard from "./MetricCard.vue";
+import MetricCard from "@ecoma-io/loom-metric-card";
 </script>
 
 <template>

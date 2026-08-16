@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle } from "@lucide/vue";
-import ErrorState from "./ErrorState.vue";
-import Button from "../../primitives/Button/Button.vue";
+import ErrorState from "@ecoma-io/loom-error-state";
+import Button from "@ecoma-io/loom-button";
 </script>
 
 <template>

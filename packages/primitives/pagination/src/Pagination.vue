@@ -1,50 +1,8 @@
 <script lang="ts">
+import type { PaginationLabels } from "@ecoma-io/loom-labels";
 import { cva } from "class-variance-authority";
-import type { LabelOf } from "@ecoma-io/loom-labels";
 
 /**
- * Everything this control publishes to assistive technology — including the six
- * names Reka would otherwise supply in English of its own accord.
- *
- * `first`, `previous`, `next`, `last` and `page` are not decoration. Reka's
- * `PaginationFirst` and its siblings write `aria-label="First Page"` into their
- * own vnode props and expose no prop for it; `PaginationListItem` writes
- * `` `Page ${value}` ``. A binding on the Loom side arrives as a fallthrough
- * attribute, which Vue merges onto the root vnode *after* the render function
- * produced it, and `mergeProps` is last-write-wins for everything that is not
- * `class`, `style` or `on*`. So these replace Reka's rather than competing with
- * it — the same mechanism `DateRangePicker`'s cell triggers have relied on
- * since they landed, and `Pagination.test.ts` pins it by asserting the
- * *capitalisation* Loom uses and Reka does not.
- *
- * `page` and `position` take the numbers rather than a formatted string, so an
- * `ar-EG` host reaches `Intl.NumberFormat` for Eastern Arabic digits and a
- * language that orders "of" differently can order it differently. See
- * `LabelOf` in `src/lib/labels.ts`.
- */
-export interface PaginationLabels {
-  /**
-   * The `<nav>` landmark's own name. A page commonly carries two of these —
-   * above and below a table — and two `<nav>`s named the same thing are as
-   * confusing to a screen reader as two named nothing, so give each one a name
-   * that says which it is.
-   */
-  readonly nav: string;
-  /** The button that jumps to page one. */
-  readonly first: string;
-  /** The button that steps back one page. */
-  readonly previous: string;
-  /** The button that steps on one page. */
-  readonly next: string;
-  /** The button that jumps to the last page. */
-  readonly last: string;
-  /** One numbered button in the `full` variant, named for the page it reaches. */
-  readonly page: LabelOf<{ page: number }>;
-  /** The position readout the `compact` and `simple` variants publish. */
-  readonly position: LabelOf<{ page: number; pageCount: number }>;
-  /** The ellipsis standing in for the pages the window had no room for. */
-  readonly ellipsis: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it: a

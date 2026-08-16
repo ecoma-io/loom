@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LoadingState from "./LoadingState.vue";
+import LoadingState from "@ecoma-io/loom-loading-state";
 </script>
 
 <template>

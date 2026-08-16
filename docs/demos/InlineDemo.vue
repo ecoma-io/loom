@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InlineComponent from "./Inline.vue";
+import InlineComponent from "@ecoma-io/loom-inline";
 </script>
 
 <template>

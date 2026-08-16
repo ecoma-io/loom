@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import Combobox, { type ComboboxOption } from "./Combobox.vue";
+import Combobox, { type ComboboxOption } from "@ecoma-io/loom-combobox";
 
 const countries: ComboboxOption[] = [
   { value: "au", label: "Australia" },

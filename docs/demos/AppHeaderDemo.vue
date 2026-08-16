@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Bell, ChevronDown, Hexagon, Search } from "@lucide/vue";
-import AppHeader from "./AppHeader.vue";
-import Button from "../../primitives/Button/Button.vue";
-import TextField from "../../primitives/TextField/TextField.vue";
-import DropdownMenu, {
-  type DropdownMenuEntry,
-} from "../../primitives/DropdownMenu/DropdownMenu.vue";
-import Avatar from "../../primitives/Avatar/Avatar.vue";
-import Surface from "../../primitives/Surface/Surface.vue";
+import AppHeader from "@ecoma-io/loom-app-header";
+import Button from "@ecoma-io/loom-button";
+import TextField from "@ecoma-io/loom-text-field";
+import DropdownMenu, { type DropdownMenuEntry } from "@ecoma-io/loom-dropdown-menu";
+import Avatar from "@ecoma-io/loom-avatar";
+import Surface from "@ecoma-io/loom-surface";
 
 const query = ref("");
 

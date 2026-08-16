@@ -1,47 +1,7 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
+import type { StepperLabels } from "@ecoma-io/loom-labels";
 
 /**
- * Everything the spine publishes that is not one of the host's own step
- * titles — and two of the three exist because Reka UI says them in English of
- * its own accord.
- *
- * `group` replaces the literal `aria-label="progress"` that `StepperRoot`
- * writes into its own vnode props, which it exposes no prop for. `position`
- * replaces the live region it renders as a bare text node inside its render
- * function, which no attribute can reach at all — `src/styles/global.css`
- * carries how that one is taken out of the accessibility tree, and why it has
- * to be taken out rather than translated in place.
- *
- * `position` and `completed` take values rather than returning fragments Loom
- * would join. "Step 3 of 12" is not four keys and a preposition; it is one
- * sentence a translator has to be able to re-order, and the same is true of
- * where a language puts a qualifier relative to the thing it qualifies. See
- * `LabelOf` in `src/lib/labels.ts`.
- */
-export interface StepperLabels {
-  /**
-   * The name of the whole spine, as a group. A page carrying two flows should
-   * name each one for what it steps through rather than leaving both
-   * "Progress"; a caller's own `aria-label` on `<Stepper>` still wins over
-   * this, for the instance that needs it.
-   */
-  readonly group: string;
-  /**
-   * The position, announced politely each time the flow advances. It takes the
-   * two numbers raw, so a language can order them its own way and
-   * `Intl.NumberFormat` can write the digits.
-   */
-  readonly position: LabelOf<{ step: number; stepCount: number }>;
-  /**
-   * A finished step's whole accessible name, built from its title. ARIA has a
-   * value for "you are here" and none for "done", and the check glyph is
-   * invisible to a screen reader, so the word has to join the name — and where
-   * it joins is a property of the language, which is why this receives the
-   * title rather than being a suffix Loom appends to it.
-   */
-  readonly completed: LabelOf<{ title: string }>;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

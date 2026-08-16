@@ -7,8 +7,8 @@ even though both look like "choose one of several."
 
 <script setup lang="ts">
 import { Tabs } from "@ecoma-io/loom";
-import TabsDemo from "../../src/primitives/Tabs/TabsDemo.vue";
-import tabsDemoSource from "../../src/primitives/Tabs/TabsDemo.vue?raw";
+import TabsDemo from "../demos/TabsDemo.vue";
+import tabsDemoSource from "../demos/TabsDemo.vue?raw";
 </script>
 
 ## Usage

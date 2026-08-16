@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Settings from "./Settings.vue";
+import Settings from "@ecoma-io/loom-settings";
 </script>
 
 <template>

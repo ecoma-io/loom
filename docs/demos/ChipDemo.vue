@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import Chip from "./Chip.vue";
-import Button from "../Button/Button.vue";
+import Chip from "@ecoma-io/loom-chip";
+import Button from "@ecoma-io/loom-button";
 
 const severities = [
   { value: "error", label: "Errors", variant: "destructive" },

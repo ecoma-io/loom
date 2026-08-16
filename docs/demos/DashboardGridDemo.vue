@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Activity, TrendingDown, TrendingUp } from "@lucide/vue";
-import DashboardGrid from "./DashboardGrid.vue";
-import Surface from "../../primitives/Surface/Surface.vue";
-import Badge from "../../primitives/Badge/Badge.vue";
-import Separator from "../../primitives/Separator/Separator.vue";
+import DashboardGrid from "@ecoma-io/loom-dashboard-grid";
+import Surface from "@ecoma-io/loom-surface";
+import Badge from "@ecoma-io/loom-badge";
+import Separator from "@ecoma-io/loom-separator";
 
 /** KPI row — label, big tabular value, and a delta as a status Badge. */
 const kpis = [

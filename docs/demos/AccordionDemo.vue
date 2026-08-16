@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Accordion, { type AccordionItem } from "./Accordion.vue";
+import Accordion, { type AccordionItem } from "@ecoma-io/loom-accordion";
 
 const sections: AccordionItem[] = [
   { value: "overview", label: "Overview" },

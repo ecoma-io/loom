@@ -11,6 +11,6 @@
   },
   "dependencies": {
     "@ecoma-io/loom-core": "workspace:*",
-    "@ecoma-io/loom": "workspace:*"
+    "@internationalized/date": "^3.12.3"
   }
 }

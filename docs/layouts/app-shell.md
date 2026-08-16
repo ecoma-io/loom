@@ -6,8 +6,8 @@ content is bounded at a readable max-width on ultra-wide monitors.
 
 <script setup lang="ts">
 import { AppShell } from "@ecoma-io/loom";
-import AppShellDemo from "../../src/layouts/AppShell/AppShellDemo.vue";
-import appShellDemoSource from "../../src/layouts/AppShell/AppShellDemo.vue?raw";
+import AppShellDemo from "../demos/AppShellDemo.vue";
+import appShellDemoSource from "../demos/AppShellDemo.vue?raw";
 </script>
 
 ## Usage

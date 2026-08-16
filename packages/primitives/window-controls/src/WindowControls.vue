@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { WindowControlsLabels } from "@ecoma-io/loom-labels";
 /**
  * WindowControls — the minimize / maximize / close cluster for a frameless
  * (custom-chrome) window. Presentational only: it emits intents; the host wires
@@ -19,24 +20,6 @@
 export type WindowPlatform = "windows" | "macos" | "linux";
 
 /**
- * The three buttons' accessible names. There are four, because the middle
- * button is one control in two states and a language may well name them with
- * unrelated words.
- *
- * Every glyph here is an inline SVG marked `aria-hidden`, so these names are
- * the only thing a screen reader has to go on — a missing one is not a degraded
- * label but an unnamed button.
- */
-export interface WindowControlsLabels {
-  /** Send the window to the taskbar. */
-  readonly minimize: string;
-  /** Fill the screen. The middle button's name while the window is restored. */
-  readonly maximize: string;
-  /** Return to the previous size. The same button's name while maximized. */
-  readonly restore: string;
-  /** Close the window. */
-  readonly close: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

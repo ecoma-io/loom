@@ -10,8 +10,8 @@ somewhere else).
 
 <script setup lang="ts">
 import { EmptyState } from "@ecoma-io/loom";
-import EmptyStateDemo from "../../src/blocks/EmptyState/EmptyStateDemo.vue";
-import emptyStateDemoSource from "../../src/blocks/EmptyState/EmptyStateDemo.vue?raw";
+import EmptyStateDemo from "../demos/EmptyStateDemo.vue";
+import emptyStateDemoSource from "../demos/EmptyStateDemo.vue?raw";
 </script>
 
 ## Usage

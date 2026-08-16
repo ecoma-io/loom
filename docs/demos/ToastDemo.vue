@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Toast, { type ToastVariant } from "./Toast.vue";
-import Button from "../Button/Button.vue";
+import Toast, { type ToastVariant } from "@ecoma-io/loom-toast";
+import Button from "@ecoma-io/loom-button";
 
 const open = ref(false);
 const variant = ref<ToastVariant>("success");

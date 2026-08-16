@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ScrollArea from "./ScrollArea.vue";
+import ScrollArea from "@ecoma-io/loom-scroll-area";
 
 const items = Array.from({ length: 20 }, (_, i) => `Item ${i + 1}`);
 </script>

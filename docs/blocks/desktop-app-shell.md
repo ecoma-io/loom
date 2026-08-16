@@ -6,8 +6,8 @@ hand-tunes the flex relationship between window chrome and application body.
 
 <script setup lang="ts">
 import { DesktopAppShell } from "@ecoma-io/loom";
-import DesktopAppShellDemo from "../../src/blocks/DesktopAppShell/DesktopAppShellDemo.vue";
-import desktopAppShellDemoSource from "../../src/blocks/DesktopAppShell/DesktopAppShellDemo.vue?raw";
+import DesktopAppShellDemo from "../demos/DesktopAppShellDemo.vue";
+import desktopAppShellDemoSource from "../demos/DesktopAppShellDemo.vue?raw";
 </script>
 
 ## Usage

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Editable from "./Editable.vue";
-import Field from "../Field/Field.vue";
+import Editable from "@ecoma-io/loom-editable";
+import Field from "@ecoma-io/loom-field";
 
 const title = ref("Q3 operations review");
 const owner = ref("Mai Phương");

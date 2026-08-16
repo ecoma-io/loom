@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SplitLayout from "./SplitLayout.vue";
+import SplitLayout from "@ecoma-io/loom-split-layout";
 </script>
 
 <template>

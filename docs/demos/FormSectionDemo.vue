@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormSection from "./FormSection.vue";
+import FormSection from "@ecoma-io/loom-form-section";
 </script>
 
 <template>

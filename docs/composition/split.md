@@ -7,8 +7,8 @@ is too narrow.
 
 <script setup lang="ts">
 import { Split } from "@ecoma-io/loom";
-import SplitDemo from "../../src/composition/Split/SplitDemo.vue";
-import splitDemoSource from "../../src/composition/Split/SplitDemo.vue?raw";
+import SplitDemo from "../demos/SplitDemo.vue";
+import splitDemoSource from "../demos/SplitDemo.vue?raw";
 </script>
 
 ## Usage

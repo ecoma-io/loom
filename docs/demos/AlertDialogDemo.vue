@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import AlertDialog from "./AlertDialog.vue";
-import Button from "../Button/Button.vue";
+import AlertDialog from "@ecoma-io/loom-alert-dialog";
+import Button from "@ecoma-io/loom-button";
 
 const deleteOpen = ref(false);
 const discardOpen = ref(false);

@@ -17,8 +17,8 @@ projects:
   - "packages/layouts/*"
   # The public facade.
   - "packages/loom"
-  # Applications.
-  - "apps/docs"
+  # The documentation site.
+  - "docs"
   # Cross-cutting E2E.
   - "e2e"
   # Tooling.

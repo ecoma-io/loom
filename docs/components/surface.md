@@ -6,8 +6,8 @@ heavy shadows ("hairline over shadow").
 
 <script setup lang="ts">
 import { Surface } from "@ecoma-io/loom";
-import SurfaceDemo from "../../src/primitives/Surface/SurfaceDemo.vue";
-import surfaceDemoSource from "../../src/primitives/Surface/SurfaceDemo.vue?raw";
+import SurfaceDemo from "../demos/SurfaceDemo.vue";
+import surfaceDemoSource from "../demos/SurfaceDemo.vue?raw";
 </script>
 
 ## Usage

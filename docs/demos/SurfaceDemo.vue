@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Surface from "./Surface.vue";
+import Surface from "@ecoma-io/loom-surface";
 </script>
 
 <template>

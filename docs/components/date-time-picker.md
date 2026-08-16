@@ -22,8 +22,8 @@ separate and the wrong one when they are not.
 <script setup lang="ts">
 import { ref } from "vue";
 import { DateTimePicker } from "@ecoma-io/loom";
-import DateTimePickerDemo from "../../src/primitives/DateTimePicker/DateTimePickerDemo.vue";
-import dateTimePickerDemoSource from "../../src/primitives/DateTimePicker/DateTimePickerDemo.vue?raw";
+import DateTimePickerDemo from "../demos/DateTimePickerDemo.vue";
+import dateTimePickerDemoSource from "../demos/DateTimePickerDemo.vue?raw";
 
 const send = ref("2026-03-14T09:30");
 const empty = ref<string>();

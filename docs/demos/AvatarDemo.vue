@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Avatar from "./Avatar.vue";
+import Avatar from "@ecoma-io/loom-avatar";
 
 // A tiny inline data-URI so the "working image" example never depends on a
 // network fetch — a flat coral circle, enough to prove the AvatarImage path

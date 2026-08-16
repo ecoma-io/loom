@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CenterComponent from "./Center.vue";
+import CenterComponent from "@ecoma-io/loom-center";
 </script>
 
 <template>

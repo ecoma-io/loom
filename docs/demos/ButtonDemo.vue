@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Button from "./Button.vue";
+import Button from "@ecoma-io/loom-button";
 
 const loading = ref(false);
 function runBriefly() {

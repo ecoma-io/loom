@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Select, { type SelectOption } from "./Select.vue";
+import Select, { type SelectOption } from "@ecoma-io/loom-select";
 
 const languages: SelectOption[] = [
   { value: "en", label: "English" },

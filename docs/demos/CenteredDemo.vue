@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Centered from "./Centered.vue";
+import Centered from "@ecoma-io/loom-centered";
 </script>
 
 <template>

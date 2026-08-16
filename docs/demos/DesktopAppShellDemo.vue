@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import DesktopAppShell from "./DesktopAppShell.vue";
-import SidebarNav from "../SidebarNav/SidebarNav.vue";
+import DesktopAppShell from "@ecoma-io/loom-desktop-app-shell";
+import SidebarNav from "@ecoma-io/loom-sidebar-nav";
 import { Hexagon, Home, Settings, Bell, Search } from "@lucide/vue";
-import type { SidebarNavSection } from "../SidebarNav/SidebarNav.vue";
-import type { WindowPlatform } from "../../primitives/WindowControls/WindowControls.vue";
+import type { SidebarNavSection } from "@ecoma-io/loom-sidebar-nav";
+import type { WindowPlatform } from "@ecoma-io/loom-window-controls";
 
 const isMaximized = ref(false);
 const last = ref("—");

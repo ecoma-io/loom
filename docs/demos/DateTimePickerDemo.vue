@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import DateTimePicker from "./DateTimePicker.vue";
+import DateTimePicker from "@ecoma-io/loom-date-time-picker";
 
 const send = ref("2026-03-14T09:30");
 // Unset rather than an empty string, because that is what a form starts with:

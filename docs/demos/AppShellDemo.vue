@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppShell from "./AppShell.vue";
+import AppShell from "@ecoma-io/loom-app-shell";
 </script>
 
 <template>

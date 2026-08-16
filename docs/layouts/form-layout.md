@@ -7,8 +7,8 @@ never stretches across an ultrawide monitor.
 
 <script setup lang="ts">
 import { FormLayout } from "@ecoma-io/loom";
-import FormLayoutDemo from "../../src/layouts/FormLayout/FormLayoutDemo.vue";
-import formLayoutDemoSource from "../../src/layouts/FormLayout/FormLayoutDemo.vue?raw";
+import FormLayoutDemo from "../demos/FormLayoutDemo.vue";
+import formLayoutDemoSource from "../demos/FormLayoutDemo.vue?raw";
 </script>
 
 ## Usage

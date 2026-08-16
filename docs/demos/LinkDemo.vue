@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Link from "./Link.vue";
+import Link from "@ecoma-io/loom-link";
 </script>
 
 <template>

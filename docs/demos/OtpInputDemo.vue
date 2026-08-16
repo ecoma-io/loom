@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import OtpInput from "./OtpInput.vue";
+import OtpInput from "@ecoma-io/loom-otp-input";
 
 const code = ref("");
 const confirmed = ref("");

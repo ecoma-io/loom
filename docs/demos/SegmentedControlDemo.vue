@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import SegmentedControl from "./SegmentedControl.vue";
+import SegmentedControl from "@ecoma-io/loom-segmented-control";
 
 const theme = ref("system");
 const density = ref("compact");

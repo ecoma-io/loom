@@ -7,8 +7,8 @@ a setting that takes effect the instant it's touched, with no surrounding
 
 <script setup lang="ts">
 import { Checkbox } from "@ecoma-io/loom";
-import CheckboxDemo from "../../src/primitives/Checkbox/CheckboxDemo.vue";
-import checkboxDemoSource from "../../src/primitives/Checkbox/CheckboxDemo.vue?raw";
+import CheckboxDemo from "../demos/CheckboxDemo.vue";
+import checkboxDemoSource from "../demos/CheckboxDemo.vue?raw";
 </script>
 
 ## Usage

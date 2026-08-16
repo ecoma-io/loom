@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Separator } from "@ecoma-io/loom";
-import Stack from "./Stack.vue";
+import Stack from "@ecoma-io/loom-stack";
 </script>
 
 <template>

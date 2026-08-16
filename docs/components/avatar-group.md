@@ -14,8 +14,8 @@ name and a keyboard path that a 40px circle cannot.
 
 <script setup lang="ts">
 import { AvatarGroup } from "@ecoma-io/loom";
-import AvatarGroupDemo from "../../src/primitives/AvatarGroup/AvatarGroupDemo.vue";
-import avatarGroupDemoSource from "../../src/primitives/AvatarGroup/AvatarGroupDemo.vue?raw";
+import AvatarGroupDemo from "../demos/AvatarGroupDemo.vue";
+import avatarGroupDemoSource from "../demos/AvatarGroupDemo.vue?raw";
 
 const team = [
   { alt: "Ada Lovelace", fallback: "AL" },

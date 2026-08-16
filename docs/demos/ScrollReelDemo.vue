@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ScrollReelComponent from "./ScrollReel.vue";
+import ScrollReelComponent from "@ecoma-io/loom-scroll-reel";
 </script>
 
 <template>

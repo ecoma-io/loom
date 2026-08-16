@@ -24,8 +24,8 @@ focus stays in the input and the active row is pointed at rather than moved to.
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Combobox } from "@ecoma-io/loom";
-import ComboboxDemo from "../../src/primitives/Combobox/ComboboxDemo.vue";
-import comboboxDemoSource from "../../src/primitives/Combobox/ComboboxDemo.vue?raw";
+import ComboboxDemo from "../demos/ComboboxDemo.vue";
+import comboboxDemoSource from "../demos/ComboboxDemo.vue?raw";
 
 const countries = [
   { value: "au", label: "Australia" },

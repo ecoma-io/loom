@@ -14,8 +14,8 @@ clothes.
 
 <script setup lang="ts">
 import { RadialProgress } from "@ecoma-io/loom";
-import RadialProgressDemo from "../../src/primitives/RadialProgress/RadialProgressDemo.vue";
-import radialProgressDemoSource from "../../src/primitives/RadialProgress/RadialProgressDemo.vue?raw";
+import RadialProgressDemo from "../demos/RadialProgressDemo.vue";
+import radialProgressDemoSource from "../demos/RadialProgressDemo.vue?raw";
 </script>
 
 ## Usage

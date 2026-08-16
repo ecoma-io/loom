@@ -20,8 +20,8 @@ at all across twelve pixels.
 
 <script setup lang="ts">
 import { Indicator, Avatar } from "@ecoma-io/loom";
-import IndicatorDemo from "../../src/primitives/Indicator/IndicatorDemo.vue";
-import indicatorDemoSource from "../../src/primitives/Indicator/IndicatorDemo.vue?raw";
+import IndicatorDemo from "../demos/IndicatorDemo.vue";
+import indicatorDemoSource from "../demos/IndicatorDemo.vue?raw";
 </script>
 
 ## Usage

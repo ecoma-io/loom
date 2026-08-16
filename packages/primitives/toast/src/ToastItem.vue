@@ -1,42 +1,7 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
+import type { ToastLabels } from "@ecoma-io/loom-labels";
 
 /**
- * Everything a toast publishes that is not the host's own copy — including the
- * two strings Reka UI would otherwise supply in English of its own accord.
- *
- * Declared here rather than in `Toast.vue`, which is where a reader would look
- * for it, and the reason is a module cycle rather than a preference.
- * `Toast.vue` imports this file; this file needs the defaults for the close
- * control it renders. Declaring them in `Toast.vue` and importing them back
- * would make that a real runtime cycle where today it is a type-only one, and
- * it would cost the block that reuses this card — `ToastStack` mounts
- * `ToastItem` directly through its own provider — the whole seam. Owning them
- * here means every card resolves its own names wherever it is mounted.
- *
- * `announce` and `region` are not decoration. Reka's `ToastProvider` defaults
- * its `label` to "Notification" and reads it out ahead of every toast's own
- * text in a hidden live region; its `ToastViewport` names the list
- * "Notifications ({hotkey})". Both are real props rather than hard-coded
- * vnode attributes, so these are set rather than overridden — but leaving
- * either unset falls back to English, not to nothing.
- */
-export interface ToastLabels {
-  /** The ✕ control on the card. */
-  readonly close: string;
-  /**
-   * Spoken before each toast's own title, in a hidden live region, to say what
-   * kind of thing has just arrived. Keep it to one word — it is a prefix on
-   * every announcement, not a sentence.
-   */
-  readonly announce: string;
-  /**
-   * The name of the list the toasts stack in. `hotkey` is the key that focuses
-   * it, as the environment reports it ("F8"), handed over raw so a language
-   * can put it wherever it belongs in the phrase.
-   */
-  readonly region: LabelOf<{ hotkey: string }>;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Info, Scissors, WandSparkles } from "@lucide/vue";
-import Tooltip from "./Tooltip.vue";
-import Button from "../Button/Button.vue";
+import Tooltip from "@ecoma-io/loom-tooltip";
+import Button from "@ecoma-io/loom-button";
 </script>
 
 <template>

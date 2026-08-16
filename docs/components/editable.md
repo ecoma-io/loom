@@ -13,8 +13,8 @@ argument points at a [select](./select) — an editable is for free text.
 
 <script setup lang="ts">
 import { Editable, Field } from "@ecoma-io/loom";
-import EditableDemo from "../../src/primitives/Editable/EditableDemo.vue";
-import editableDemoSource from "../../src/primitives/Editable/EditableDemo.vue?raw";
+import EditableDemo from "../demos/EditableDemo.vue";
+import editableDemoSource from "../demos/EditableDemo.vue?raw";
 </script>
 
 ## Usage

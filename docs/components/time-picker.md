@@ -25,8 +25,8 @@ a [NumberField](./number-field) says so.
 <script setup lang="ts">
 import { ref } from "vue";
 import { TimePicker } from "@ecoma-io/loom";
-import TimePickerDemo from "../../src/primitives/TimePicker/TimePickerDemo.vue";
-import timePickerDemoSource from "../../src/primitives/TimePicker/TimePickerDemo.vue?raw";
+import TimePickerDemo from "../demos/TimePickerDemo.vue";
+import timePickerDemoSource from "../demos/TimePickerDemo.vue?raw";
 
 const standup = ref("09:30");
 const twelve = ref("13:30");

@@ -6,8 +6,8 @@ naturally at the container edge and tightens its gutter one step below the
 
 <script setup lang="ts">
 import { Inline } from "@ecoma-io/loom";
-import InlineDemo from "../../src/composition/Inline/InlineDemo.vue";
-import inlineDemoSource from "../../src/composition/Inline/InlineDemo.vue?raw";
+import InlineDemo from "../demos/InlineDemo.vue";
+import inlineDemoSource from "../demos/InlineDemo.vue?raw";
 </script>
 
 ## Usage

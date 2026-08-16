@@ -6,8 +6,8 @@ list that sets a field's value is a select; a list of things to do is this.
 
 <script setup lang="ts">
 import { DropdownMenu, Button } from "@ecoma-io/loom";
-import DropdownMenuDemo from "../../src/primitives/DropdownMenu/DropdownMenuDemo.vue";
-import dropdownMenuDemoSource from "../../src/primitives/DropdownMenu/DropdownMenuDemo.vue?raw";
+import DropdownMenuDemo from "../demos/DropdownMenuDemo.vue";
+import dropdownMenuDemoSource from "../demos/DropdownMenuDemo.vue?raw";
 
 const quickItems = [
   { label: "Duplicate", value: "duplicate", shortcut: "⌘D" },

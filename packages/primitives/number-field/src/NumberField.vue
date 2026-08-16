@@ -1,35 +1,6 @@
 <script lang="ts">
+import type { NumberFieldLabels } from "@ecoma-io/loom-labels";
 /**
- * Everything this control publishes to assistive technology — and all three of
- * these are names Reka UI would otherwise supply in English of its own accord.
- *
- * `increment` and `decrement` are the stepper buttons, which Reka labels
- * `Increase` and `Decrease` inside its own render function with no prop to
- * reach them by. `roleDescription` replaces the `aria-roledescription="Number
- * field"` Reka writes on the spinbutton itself — the phrase a screen reader
- * announces *in place of* "spin button", so leaving it unreachable means a
- * fully localised form still names its own control in English.
- *
- * A binding on the Loom side arrives as a fallthrough attribute, which Vue
- * merges onto the root vnode after Reka's render function produced it, and
- * `mergeProps` is last-write-wins for everything that is not `class`, `style`
- * or `on*`. So these replace Reka's rather than competing with it, and
- * `NumberField.test.ts` pins that by overriding each one and reading the DOM
- * back — the check the wording alone cannot make, since Loom's English for the
- * role description is the same phrase Reka chose.
- */
-export interface NumberFieldLabels {
-  /** The stepper's up button. */
-  readonly increment: string;
-  /** The stepper's down button. */
-  readonly decrement: string;
-  /**
-   * What the field calls itself, announced in place of "spin button". Set it
-   * to the kind of number the field holds — "Rotation, in degrees" — where
-   * that is more use to a reader than the control's generic name.
-   */
-  readonly roleDescription: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and
