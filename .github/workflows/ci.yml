@@ -188,8 +188,17 @@ jobs:
       - name: Check component artifacts
         run: node tools/check-component-artifacts.ts
 
-      - name: Moon affected lint, typecheck, build
+      - name: Moon affected lint and build
         run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
+
+      # The type-check is a repository-wide verdict and moon ci no longer runs
+      # it (see .moon/tasks/typecheck.yml) — the shared moon typecheck task is
+      # per-project, and running a whole-repo vue-tsc once per affected project
+      # is what pushed verify past its timeout on a fresh runner with no moon
+      # cache. It is gated here as the one global pass `pnpm typecheck` was
+      # always meant to be, the same way `pnpm test` gates the whole-repo
+      # vitest suite below.
+      - run: pnpm typecheck
 
       - run: pnpm test
 

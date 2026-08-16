@@ -7,13 +7,21 @@
 # package directory carries an index.html. The root project overrides `build`
 # with the real library build, which produces `dist` (declared there, not here,
 # because these projects emit nothing).
+#
+# `~:typecheck` is no longer a dependency: a full-repo `vue-tsc` is nearly a
+# second copy of the build itself, and per-project type-checking is gone from
+# CI entirely (see the shared typecheck task). A source-export build without a
+# type-check is an unverified claim, so the repository's single build gate is
+# the facade's `pnpm build` - the root project builds `dist` from every
+# package's true source (tsconfig.build.json), declaring each one's types. The
+# build a consumer runs is the one that proves the packages compile.
+#
+# `$moonProjectDir` is replaced with the acting project's directory; without
+# it, `vue-tsc` here would resolve tsconfig.json (whole-repo) the way the real
+# typecheck does, instead of the acting package's own files.
 tasks:
   build:
-    command: "vue-tsc"
-    args:
-      - "--noEmit"
-    deps:
-      - "~:typecheck"
+    command: "vue-tsc --noEmit $moonProjectDir"
     options:
       cache: true
       runInCI: affected
