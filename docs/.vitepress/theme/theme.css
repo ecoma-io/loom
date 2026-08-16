@@ -59,10 +59,16 @@
 @import "tailwindcss/utilities.css";
 @import "../../../packages/theme-core/src/global.css";
 
-/* Loom's `global.css` registers the packages as a scan target, which covers
- * the components. These are the site's own files — the markdown pages and
- * the theme's components — where the demos' classes are actually written. */
+/* Loom's `global.css` registers the package it ships as a scan target, which
+ * covers the compiled modules a consumer resolves. In this repository the site
+ * builds against source, not `dist/`, so the components under `packages/` are
+ * not inside that scan — a utility a component renders and the site never
+ * writes (e.g. `text-destructive-foreground`) would be generated for a
+ * consumer and silently missing here. So the packages are scanned too, and
+ * these are the site's own files — the markdown pages and the theme's
+ * components — where the demos' classes are actually written. */
 @source "../../";
+@source "../../../packages/";
 
 /* ---- VitePress, wearing Loom's tokens -------------------------------------
  * VitePress's default theme is driven entirely by CSS variables, so re-pointing
