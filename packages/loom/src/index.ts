@@ -1,14 +1,10 @@
-// The public facade of `@ecoma-io/loom`.
+// The public surface of `@ecoma-io/loom`.
 //
-// During the dual-architecture migration, this barrel re-exports from the new
-// foundation packages (core, labels) and will progressively re-export from
-// component packages as they migrate from src/ to packages/. Until a component
-// has its own Moon project under packages/<tier>/<name>/, it remains exported
-// from the legacy src/index.ts — this file does not duplicate those exports.
-//
-// When the migration completes (Step 8), this file becomes the single source
-// of truth that the published `@ecoma-io/loom` package resolves to, and src/
-// is removed entirely.
+// This file is the single source of truth for the published package. Roots in
+// the foundation packages (core, labels) and re-exports every component
+// package under packages/<tier>/<name>/ plus the utilities and types a
+// consumer needs. Nothing in a component package imports this file — the
+// dependency direction runs core ↑ theme-core ↑ components ↑ … ↑ this facade.
 
 // Core utilities — the utilities every component reaches for.
 export { cn } from "@ecoma-io/loom-core";

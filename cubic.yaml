@@ -87,7 +87,7 @@ reviews:
         theme it was cloned from, so the first dark-mode or rebrand pass is
         where such a literal surfaces — in a consumer's product, not here.
       include:
-        - src/**
+        - packages/**
 
     - name: Focus and dismissal are restored, not just moved
       description: >
@@ -98,7 +98,7 @@ reviews:
         to a click but not to Escape. Each of these passes a rendering test and
         fails only for someone navigating by keyboard.
       include:
-        - src/**
+        - packages/**
 
     - name: pull_request_target never executes head code
       description: >

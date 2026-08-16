@@ -6,8 +6,8 @@ needs a fixed proportion.
 
 <script setup lang="ts">
 import { Frame } from "@ecoma-io/loom";
-import FrameDemo from "../../src/composition/Frame/FrameDemo.vue";
-import frameDemoSource from "../../src/composition/Frame/FrameDemo.vue?raw";
+import FrameDemo from "../demos/FrameDemo.vue";
+import frameDemoSource from "../demos/FrameDemo.vue?raw";
 </script>
 
 ## Usage

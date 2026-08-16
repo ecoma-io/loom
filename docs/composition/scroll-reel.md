@@ -6,8 +6,8 @@ items, `Home`/`End` jump to the start or end of the strip.
 
 <script setup lang="ts">
 import { ScrollReel } from "@ecoma-io/loom";
-import ScrollReelDemo from "../../src/composition/ScrollReel/ScrollReelDemo.vue";
-import scrollReelDemoSource from "../../src/composition/ScrollReel/ScrollReelDemo.vue?raw";
+import ScrollReelDemo from "../demos/ScrollReelDemo.vue";
+import scrollReelDemoSource from "../demos/ScrollReelDemo.vue?raw";
 </script>
 
 ## Usage

@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
+import type { DateTimeRangeLabels } from "@ecoma-io/loom-labels";
 import type {
   CalendarPanelLabels,
   DateSegmentLabels,
@@ -26,54 +26,6 @@ export interface DateTimeRange {
   start?: string | undefined;
   /** The instant the span closes at, ISO `"YYYY-MM-DDTHH:mm"`. Absent while only the start has been chosen. */
   end?: string | undefined;
-}
-
-/**
- * The strings this control says that no other member of the family says: the
- * two half-group names and the status line above the grids.
- *
- * They are **not** shared with `DateRangePicker`, which says both in different
- * words and from different facts — `Start date` against `Start date and time`,
- * a count of whole days against a signed duration. A key shared between them
- * would have to be a sentence that is never true of both. Its calendar cells'
- * names *are* shared, in `rangeCell`, because those differ in neither.
- *
- * The segment names and the calendar chrome, which every one of the five
- * shares, come from `src/lib/date-labels.ts` too.
- */
-export interface DateTimeRangeLabels {
-  /** The group holding the first half of the field. Reka names a segment `hour` or `year` alone, which is ten segments and two identical sets of five names with nothing to tell the ends apart. */
-  readonly startDate: string;
-  /** The group holding the second half of the field. */
-  readonly endDate: string;
-  /**
-   * The `role="status"` line above the grids — what has been chosen, what is
-   * wanted next, how long the finished span is, and whether it runs backwards.
-   *
-   * **One message rather than four sentences and a joiner**, and that collapse
-   * is what deleted this control's hand-rolled pluraliser rather than moving
-   * it. `minutes` is the whole duration as a number, so a host builds "2 days
-   * 3 hours" with `Intl.DurationFormat`, `Intl.PluralRules` or their own
-   * translation file — Loom ships no plural engine and appends no `"s"`.
-   *
-   * `minutes` is **signed**: negative means the end falls before the start,
-   * which within a single day only the times can decide and which nothing in
-   * the grid distinguishes. It is `undefined` while the range is half made.
-   *
-   * `locale`, `hour12` and `seconds` arrive only because Loom's own English
-   * default has to format the two instants somehow, and they are the control's
-   * own props rather than anything it has already decided. A host replacing
-   * this formats with whatever their application already uses and ignores all
-   * three.
-   */
-  readonly status: LabelOf<{
-    locale: string;
-    start: DateValue | undefined;
-    end: DateValue | undefined;
-    minutes: number | undefined;
-    hour12: boolean | undefined;
-    seconds: boolean;
-  }>;
 }
 
 const MINUTES_PER_HOUR = 60;

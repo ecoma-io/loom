@@ -20,8 +20,8 @@ is this.
 
 <script setup lang="ts">
 import { Drawer, Button } from "@ecoma-io/loom";
-import DrawerDemo from "../../src/primitives/Drawer/DrawerDemo.vue";
-import drawerDemoSource from "../../src/primitives/Drawer/DrawerDemo.vue?raw";
+import DrawerDemo from "../demos/DrawerDemo.vue";
+import drawerDemoSource from "../demos/DrawerDemo.vue?raw";
 </script>
 
 <Demo title="Drawer">

@@ -6,8 +6,8 @@ never hovers, presses, or takes focus — it is not a button in disguise.
 
 <script setup lang="ts">
 import { Badge } from "@ecoma-io/loom";
-import BadgeDemo from "../../src/primitives/Badge/BadgeDemo.vue";
-import badgeDemoSource from "../../src/primitives/Badge/BadgeDemo.vue?raw";
+import BadgeDemo from "../demos/BadgeDemo.vue";
+import badgeDemoSource from "../demos/BadgeDemo.vue?raw";
 </script>
 
 ## Usage

@@ -1,18 +1,6 @@
 <script lang="ts">
+import type { DrawerLabels } from "@ecoma-io/loom-labels";
 /**
- * The one thing this component says on its own account. The title, the
- * description, the body and the footer are all the host's; the drag handle is
- * `aria-hidden` and unfocusable by Reka's own design, so it says nothing at
- * all.
- *
- * The close control's glyph is `aria-hidden`, which makes this name the only
- * thing a screen reader has to go on — and unlike Dialog's, this control is
- * unconditional, so a drawer always publishes it.
- */
-export interface DrawerLabels {
-  /** The corner control that dismisses the panel. */
-  readonly close: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

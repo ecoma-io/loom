@@ -8,8 +8,5 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     }
-  },
-  "dependencies": {
-    "@ecoma-io/loom": "workspace:*"
   }
 }

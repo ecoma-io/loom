@@ -14,8 +14,8 @@ is one undo entry rather than a hundred.
 
 <script setup lang="ts">
 import { Slider } from "@ecoma-io/loom";
-import SliderDemo from "../../src/primitives/Slider/SliderDemo.vue";
-import sliderDemoSource from "../../src/primitives/Slider/SliderDemo.vue?raw";
+import SliderDemo from "../demos/SliderDemo.vue";
+import sliderDemoSource from "../demos/SliderDemo.vue?raw";
 </script>
 
 ## Usage

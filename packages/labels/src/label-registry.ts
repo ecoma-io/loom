@@ -28,7 +28,7 @@ import type {
   TextareaLabels,
   ToastLabels,
   WindowControlsLabels,
-} from "@ecoma-io/loom";
+} from "./component-shapes";
 
 /**
  * Every slot a host can localise, and nothing else. One line per component that
@@ -42,11 +42,13 @@ import type {
  * not check a misspelled slot and a consumer would have no single place to see
  * what the library can be asked to say.
  *
- * Every import here is `import type`, so this module emits nothing and the
- * apparent cycle — component imports `useLabels`, `useLabels` imports this,
- * this imports the component — exists only in the type graph, where TypeScript
- * resolves it lazily. A value import in this file would turn the whole library
- * into one chunk and cost every consumer the components they did not use.
+ * Every import here is `import type`, so this module emits nothing. The label
+ * types come straight from the component packages that declare them — a
+ * dependency edge in the type graph only, never a value import, so a consumer
+ * importing `provideLoomLabels` alone ships no component bytes. The direction
+ * runs components → labels-registry (types in, values out), never the reverse.
+ * A value import in this file would turn the whole library into one chunk and
+ * cost every consumer the components they did not use.
  *
  * Adding a component to the sweep is one line. Adding it in the wrong shape is
  * a compile error at that component's own `useLabels` call, not here.

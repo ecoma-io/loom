@@ -8,8 +8,8 @@ implicit live region.
 
 <script setup lang="ts">
 import { InlineError } from "@ecoma-io/loom";
-import InlineErrorDemo from "../../src/primitives/InlineError/InlineErrorDemo.vue";
-import inlineErrorDemoSource from "../../src/primitives/InlineError/InlineErrorDemo.vue?raw";
+import InlineErrorDemo from "../demos/InlineErrorDemo.vue";
+import inlineErrorDemoSource from "../demos/InlineErrorDemo.vue?raw";
 </script>
 
 ## Usage

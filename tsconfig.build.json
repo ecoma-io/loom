@@ -17,12 +17,20 @@
     "declarationMap": true,
     "emitDeclarationOnly": true,
     "outDir": "dist",
-    "rootDir": "src"
+    // The facade re-exports the package surfaces under `packages/*/src`, so a
+    // build that emits declarations for them has to be rooted at the repository
+    // rather than at the facade. Each file's declaration still lands under its
+    // own package path (packages/*/src/...), which is what a consumer resolves.
+    "rootDir": "."
   },
-  "include": ["src/**/*"],
+  "include": ["packages/loom/src/**/*"],
   // A demo and a test are documentation and proof respectively. Neither is
   // part of the surface a consumer imports, so neither earns a declaration.
-  // `src/testing/` is the same story a third way: fixtures the test suites
-  // import from each other, never from a consumer.
-  "exclude": ["src/**/*.test.ts", "src/**/*Demo.vue", "src/testing/**"]
+  // The package's `testing/` is the same story a third way: fixtures its test
+  // suites import from each other, never from a consumer.
+  "exclude": [
+    "packages/loom/src/**/*.test.ts",
+    "packages/loom/src/**/*Demo.vue",
+    "packages/loom/src/testing/**"
+  ]
 }

@@ -18,8 +18,8 @@ cells whatever it is for.
 
 <script setup lang="ts">
 import { OtpInput } from "@ecoma-io/loom";
-import OtpInputDemo from "../../src/primitives/OtpInput/OtpInputDemo.vue";
-import otpInputDemoSource from "../../src/primitives/OtpInput/OtpInputDemo.vue?raw";
+import OtpInputDemo from "../demos/OtpInputDemo.vue";
+import otpInputDemoSource from "../demos/OtpInputDemo.vue?raw";
 </script>
 
 ## Usage

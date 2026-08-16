@@ -17,8 +17,8 @@ split-attrs convention shared with TextField.
 <script setup lang="ts">
 import { ref } from "vue";
 import { Textarea } from "@ecoma-io/loom";
-import TextareaDemo from "../../src/primitives/Textarea/TextareaDemo.vue";
-import textareaDemoSource from "../../src/primitives/Textarea/TextareaDemo.vue?raw";
+import TextareaDemo from "../demos/TextareaDemo.vue";
+import textareaDemoSource from "../demos/TextareaDemo.vue?raw";
 
 const docSummary = ref("A short account of what changed and why.");
 const docOverrun = ref("A short account of what changed and why, written well past the room the form allowed for it.");

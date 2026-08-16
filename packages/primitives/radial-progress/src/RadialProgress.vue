@@ -1,24 +1,8 @@
 <script lang="ts">
+import type { RadialProgressLabels } from "@ecoma-io/loom-labels";
 import { cva } from "class-variance-authority";
-import type { LabelOf } from "@ecoma-io/loom-labels";
 
 /**
- * The one thing this ring prints, and the placeholder it prints instead when
- * there is no percentage yet. `Progress`'s keys, for the reason its whole
- * contract is `Progress`'s — see `ProgressLabels` for why both raw numbers go
- * over and nothing is formatted first.
- *
- * A separate slot rather than a shared one, though, and that is deliberate:
- * the readout beside a bar has a line to itself, where this one sits inside a
- * 40px circle at `text-micro`. "42% uploaded" fits the first and overflows the
- * second, and one shared slot would leave a host no way to say so.
- */
-export interface RadialProgressLabels {
-  /** The readout in the ring's centre, from the clamped value and the scale it is out of. */
-  readonly value: LabelOf<{ value: number; max: number }>;
-  /** What the readout prints while there is no percentage — never a false zero. */
-  readonly indeterminate: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

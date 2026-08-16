@@ -12,8 +12,8 @@ input it clears, not as a second control next to it.
 <script setup lang="ts">
 import { ref } from "vue";
 import { TextField } from "@ecoma-io/loom";
-import TextFieldDemo from "../../src/primitives/TextField/TextFieldDemo.vue";
-import textFieldDemoSource from "../../src/primitives/TextField/TextFieldDemo.vue?raw";
+import TextFieldDemo from "../demos/TextFieldDemo.vue";
+import textFieldDemoSource from "../demos/TextFieldDemo.vue?raw";
 
 const docHeadline = ref("Weaving interfaces that hold together");
 const docOverrun = ref("A headline written before anyone mentioned the limit");

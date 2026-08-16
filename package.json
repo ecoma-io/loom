@@ -51,8 +51,7 @@
       "default": "./dist/a11y.js"
     },
     "./theme": {
-      "types": "./dist/lib/theme.d.ts",
-      "default": "./dist/theme.js"
+      "default": "./dist/styles/theme.css"
     },
     "./styles/global.css": "./dist/styles/global.css",
     "./styles/theme.css": "./dist/styles/theme.css",
@@ -81,7 +80,8 @@
     "docs:build": "vitepress build docs",
     "docs:stage": "node tools/stage-docs.ts",
     "docs:check-route": "node tools/stage-docs.ts --check",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "moon": "MOON_CONCURRENCY=${MOON_CONCURRENCY:-4} exec moon"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

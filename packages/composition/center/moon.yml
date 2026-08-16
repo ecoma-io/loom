@@ -1,7 +1,2 @@
 tasks:
-  typecheck:
-    deps: ["@ecoma-io/loom-core:typecheck"]
-    command: vue-tsc --noEmit
-  test:
-    deps: ["@ecoma-io/loom-core:typecheck"]
-    command: vitest run
+  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.

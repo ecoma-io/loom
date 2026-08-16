@@ -9,8 +9,8 @@ place app logic lives.
 
 <script setup lang="ts">
 import { Menubar } from "@ecoma-io/loom";
-import MenubarDemo from "../../src/primitives/Menubar/MenubarDemo.vue";
-import menubarDemoSource from "../../src/primitives/Menubar/MenubarDemo.vue?raw";
+import MenubarDemo from "../demos/MenubarDemo.vue";
+import menubarDemoSource from "../demos/MenubarDemo.vue?raw";
 </script>
 
 ## Usage

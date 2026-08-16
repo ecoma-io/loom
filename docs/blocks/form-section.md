@@ -8,8 +8,8 @@ a layout decision the block can own once.
 
 <script setup lang="ts">
 import { FormSection } from "@ecoma-io/loom";
-import FormSectionDemo from "../../src/blocks/FormSection/FormSectionDemo.vue";
-import formSectionDemoSource from "../../src/blocks/FormSection/FormSectionDemo.vue?raw";
+import FormSectionDemo from "../demos/FormSectionDemo.vue";
+import formSectionDemoSource from "../demos/FormSectionDemo.vue?raw";
 </script>
 
 ## Usage

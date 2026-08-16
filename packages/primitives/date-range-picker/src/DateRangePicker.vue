@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
+import type { DateRangeLabels } from "@ecoma-io/loom-labels";
 import type {
   CalendarPanelLabels,
   DateSegmentLabels,
@@ -29,47 +29,6 @@ export interface DateRange {
 }
 
 /**
- * The strings this control says that no other member of the family says: the
- * two half-group names and the status line above the grids.
- *
- * They are **not** shared with `DateTimeRangePicker`, which says both in
- * different words and from different facts — `Start date` against `Start date
- * and time`, a count of whole days against a signed duration. A key shared
- * between them would have to be a sentence that is never true of both. Its
- * calendar cells' names *are* shared, in `rangeCell`, because those differ in
- * neither.
- *
- * The segment names and the calendar chrome, which every one of the five
- * shares, come from `src/lib/date-labels.ts` too.
- */
-export interface DateRangeLabels {
-  /** The group holding the first half of the field. Reka names a segment `day` or `year` alone, which is two identical sets of three names with nothing to tell the ends apart. */
-  readonly startDate: string;
-  /** The group holding the second half of the field. */
-  readonly endDate: string;
-  /**
-   * The `role="status"` line above the grids — what has been chosen, what is
-   * wanted next, and how long the finished span is.
-   *
-   * One message rather than four phrases and a joiner. Which end is chosen,
-   * whether a count follows the dates or precedes them, and how "7 days" is
-   * written are all properties of a language, and a control that emitted them
-   * as separate nodes would have decided all three in English.
-   *
-   * `days` counts **both ends**, which is how a reader counts a booking: the
-   * 14th to the 20th is seven days. It arrives as a number so the plural
-   * category is the host's to select — Loom ships no plural engine — and
-   * `locale` arrives with it only because Loom's own English default has to
-   * format the two dates somehow. A host replacing this formats with whatever
-   * their application already uses and ignores it.
-   */
-  readonly status: LabelOf<{
-    locale: string;
-    start: DateValue | undefined;
-    end: DateValue | undefined;
-    days: number | undefined;
-  }>;
-}
 
 /** A day, month and year in the control's locale — the status line's own shape, without the weekday a cell's name carries. */
 function formatDay(locale: string, date: DateValue): string {

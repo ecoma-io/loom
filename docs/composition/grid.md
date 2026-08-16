@@ -7,8 +7,8 @@ alike.
 
 <script setup lang="ts">
 import { Grid } from "@ecoma-io/loom";
-import GridDemo from "../../src/composition/Grid/GridDemo.vue";
-import gridDemoSource from "../../src/composition/Grid/GridDemo.vue?raw";
+import GridDemo from "../demos/GridDemo.vue";
+import gridDemoSource from "../demos/GridDemo.vue?raw";
 </script>
 
 ## Usage

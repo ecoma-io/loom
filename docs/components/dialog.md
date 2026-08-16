@@ -9,8 +9,8 @@ is unreachable: not dimmed, unreachable.
 
 <script setup lang="ts">
 import { Dialog, Button } from "@ecoma-io/loom";
-import DialogDemo from "../../src/primitives/Dialog/DialogDemo.vue";
-import dialogDemoSource from "../../src/primitives/Dialog/DialogDemo.vue?raw";
+import DialogDemo from "../demos/DialogDemo.vue";
+import dialogDemoSource from "../demos/DialogDemo.vue?raw";
 </script>
 
 <Demo title="Dialog">

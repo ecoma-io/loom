@@ -13,8 +13,8 @@ and a gesture that ends where it started leaves no entry at all.
 
 <script setup lang="ts">
 import { NumberField } from "@ecoma-io/loom";
-import NumberFieldDemo from "../../src/primitives/NumberField/NumberFieldDemo.vue";
-import numberFieldDemoSource from "../../src/primitives/NumberField/NumberFieldDemo.vue?raw";
+import NumberFieldDemo from "../demos/NumberFieldDemo.vue";
+import numberFieldDemoSource from "../demos/NumberFieldDemo.vue?raw";
 </script>
 
 ## Usage

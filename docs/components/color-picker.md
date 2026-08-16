@@ -18,8 +18,8 @@ the picker falls back to `#000000` instead of throwing inside a render.
 
 <script setup lang="ts">
 import { ColorPicker } from "@ecoma-io/loom";
-import ColorPickerDemo from "../../src/primitives/ColorPicker/ColorPickerDemo.vue";
-import colorPickerDemoSource from "../../src/primitives/ColorPicker/ColorPickerDemo.vue?raw";
+import ColorPickerDemo from "../demos/ColorPickerDemo.vue";
+import colorPickerDemoSource from "../demos/ColorPickerDemo.vue?raw";
 
 const brand = ["#1f3a5f", "#3366cc", "#2f7a5b", "#b5502a", "#8a2f4d", "#4b4b4b"];
 </script>

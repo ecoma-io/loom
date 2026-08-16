@@ -7,8 +7,8 @@ instead.
 
 <script setup lang="ts">
 import { Switch } from "@ecoma-io/loom";
-import SwitchDemo from "../../src/primitives/Switch/SwitchDemo.vue";
-import switchDemoSource from "../../src/primitives/Switch/SwitchDemo.vue?raw";
+import SwitchDemo from "../demos/SwitchDemo.vue";
+import switchDemoSource from "../demos/SwitchDemo.vue?raw";
 </script>
 
 ## Usage

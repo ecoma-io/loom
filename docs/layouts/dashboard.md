@@ -14,8 +14,8 @@ sidebar+grid row.
 
 <script setup lang="ts">
 import { Dashboard } from "@ecoma-io/loom";
-import DashboardDemo from "../../src/layouts/Dashboard/DashboardDemo.vue";
-import dashboardDemoSource from "../../src/layouts/Dashboard/DashboardDemo.vue?raw";
+import DashboardDemo from "../demos/DashboardDemo.vue";
+import dashboardDemoSource from "../demos/DashboardDemo.vue?raw";
 </script>
 
 ## Usage

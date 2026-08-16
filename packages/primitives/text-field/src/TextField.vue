@@ -1,34 +1,12 @@
 <script lang="ts">
-import {
-  COUNT_LABELS,
-  warningWindow,
-  type CountBand,
-  type CountLabels,
-} from "@ecoma-io/loom-labels";
+import type { TextFieldLabels } from "@ecoma-io/loom-labels";
+import { COUNT_LABELS, warningWindow, type CountBand } from "@ecoma-io/loom-labels";
 
 export type TextFieldType = "text" | "email" | "password" | "search" | "url" | "tel";
 
 export type TextFieldSize = "sm" | "md" | "lg";
 
 /**
- * Everything this control says out loud, and every word of it is Loom's own —
- * a bare `<input>` renders no English of anybody else's, so a dropped key here
- * falls back to nothing rather than to a stray untranslated string.
- *
- * The five counter keys are shared with Textarea by name and by argument shape
- * — a host that has already worded a character counter can copy that bag across
- * unchanged. They come from `src/lib/count-labels.ts` rather than being declared
- * a second time. This slot also carries `reveal`, a password toggle a textarea
- * has no use for.
- */
-export interface TextFieldLabels extends CountLabels {
-  /**
-   * The password reveal toggle, named for what pressing it does. The name is
-   * **stable across both states** and `aria-pressed` carries which state the
-   * field is in, so word it as an action ("Show password"), not as a report.
-   */
-  readonly reveal: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

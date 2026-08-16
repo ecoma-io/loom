@@ -7,8 +7,8 @@ the menu and the window controls tell it.
 
 <script setup lang="ts">
 import { TitleBar } from "@ecoma-io/loom";
-import TitleBarDemo from "../../src/blocks/TitleBar/TitleBarDemo.vue";
-import titleBarDemoSource from "../../src/blocks/TitleBar/TitleBarDemo.vue?raw";
+import TitleBarDemo from "../demos/TitleBarDemo.vue";
+import titleBarDemoSource from "../demos/TitleBarDemo.vue?raw";
 </script>
 
 ## Usage

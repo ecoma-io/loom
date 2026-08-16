@@ -21,8 +21,8 @@ none-of-them is a valid answer.
 <script setup lang="ts">
 import { ref } from "vue";
 import { Chip } from "@ecoma-io/loom";
-import ChipDemo from "../../src/primitives/Chip/ChipDemo.vue";
-import chipDemoSource from "../../src/primitives/Chip/ChipDemo.vue?raw";
+import ChipDemo from "../demos/ChipDemo.vue";
+import chipDemoSource from "../demos/ChipDemo.vue?raw";
 
 const overdue = ref(true);
 const unassigned = ref(false);

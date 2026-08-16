@@ -7,8 +7,8 @@ needed is a generic "working" signal, reach for Spinner instead.
 
 <script setup lang="ts">
 import { Skeleton } from "@ecoma-io/loom";
-import SkeletonDemo from "../../src/primitives/Skeleton/SkeletonDemo.vue";
-import skeletonDemoSource from "../../src/primitives/Skeleton/SkeletonDemo.vue?raw";
+import SkeletonDemo from "../demos/SkeletonDemo.vue";
+import skeletonDemoSource from "../demos/SkeletonDemo.vue?raw";
 </script>
 
 ## Usage

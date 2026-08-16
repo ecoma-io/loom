@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 import vue from "@vitejs/plugin-vue";
 
-const src = (path: string) => fileURLToPath(new URL(`src/${path}`, import.meta.url));
 const pkg = (path: string) => fileURLToPath(new URL(`packages/${path}`, import.meta.url));
 
 /**
@@ -21,7 +20,7 @@ function copyStylesheets(): Plugin {
     name: "loom:copy-stylesheets",
     apply: "build",
     async closeBundle() {
-      await cp(src("styles"), fileURLToPath(new URL("dist/styles", import.meta.url)), {
+      await cp(pkg("theme-core/src"), fileURLToPath(new URL("dist/styles", import.meta.url)), {
         recursive: true,
       });
     },
@@ -37,11 +36,10 @@ export default defineConfig({
     alias: {
       "@ecoma-io/loom-core": pkg("core/src/index.ts"),
       "@ecoma-io/loom-labels": pkg("labels/src/index.ts"),
-      // The facade and component package aliases. These are needed by Vitest so
-      // it can follow imports without node_modules installation. The library
-      // build does not use these paths (it starts from src/index.ts and follows
-      // relative imports). Each component package alias is added as it migrates.
-      "@ecoma-io/loom-facade": pkg("loom/src/index.ts"),
+      // Component package aliases. These are needed by Vitest so it can follow
+      // imports without node_modules installation. The library build does not
+      // use these paths (it starts from the loom entry and follows relative
+      // imports). Each component package alias is added as it migrates.
       "@ecoma-io/loom-hover-card": pkg("primitives/hover-card/src/index.ts"),
       "@ecoma-io/loom-progress": pkg("primitives/progress/src/index.ts"),
       "@ecoma-io/loom-radial-progress": pkg("primitives/radial-progress/src/index.ts"),
@@ -137,14 +135,17 @@ export default defineConfig({
       // component label types from the public surface. The alias points to
       // source so Vitest can follow it; the library build does not use this
       // path (it starts from src/index.ts and follows relative imports).
-      "@ecoma-io/loom": src("index.ts"),
+      "@ecoma-io/loom": pkg("loom/src/index.ts"),
     },
   },
   build: {
     // Library mode: consumers bundle this package, so nothing is minified for
     // them and no peer framework is ever inlined.
     lib: {
-      entry: { index: src("index.ts"), a11y: src("a11y.ts"), theme: src("lib/theme.ts") },
+      entry: {
+        index: pkg("loom/src/index.ts"),
+        a11y: pkg("loom/src/a11y.ts"),
+      },
       formats: ["es"],
     },
     minify: false,
@@ -168,7 +169,7 @@ export default defineConfig({
         // through a shared chunk, and preserved modules make that true without
         // depending on how clever their bundler is.
         preserveModules: true,
-        preserveModulesRoot: "src",
+        preserveModulesRoot: "packages/loom/src",
         entryFileNames: "[name].js",
       },
     },
@@ -188,10 +189,8 @@ export default defineConfig({
     //
     // `packages/` is included so that Moon can run `vitest run` against
     // individual foundation packages (core, labels, theme-core) and find their
-    // tests. During the dual-architecture period the src/ and packages/ copies
-    // coexist; the coverage include below stays scoped to src/ so the published
-    // surface is what the thresholds guard.
-    include: ["src/**/*.test.ts", "packages/**/*.test.ts", "docs/**/*.test.ts"],
+    // tests. The legacy `src/` tree is gone; coverage now guards the packages.
+    include: ["packages/**/*.test.ts", "docs/**/*.test.ts"],
     setupFiles: ["./vitest.setup.ts"],
     // One worker, deliberately. Creating a jsdom per isolated file dominates
     // the run, so several at once oversubscribe the machine and turn
@@ -207,11 +206,17 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       enabled: true,
-      include: ["src/**/*.{ts,vue}"],
+      include: ["packages/**/*.{ts,vue}"],
       // A demo is documentation that happens to compile. The docs site renders
       // it and the end-to-end suite drives it, so it is covered where covering
       // it means something — not by a unit test asserting a gallery renders.
-      exclude: ["src/**/*.test.ts", "src/**/*Demo.vue", "src/**/*.d.ts"],
+      // Playwright specs are the same class of thing and exclude themselves.
+      exclude: [
+        "packages/**/*.test.ts",
+        "packages/**/*Demo.vue",
+        "packages/**/*.d.ts",
+        "packages/**/e2e/**",
+      ],
       // Set just under what the suite actually reaches (measured: 96.65 lines /
       // 94.94 functions / 91.83 branches / 95.27 statements), not at a round
       // number well below it. A floor with fifteen points of headroom cannot go

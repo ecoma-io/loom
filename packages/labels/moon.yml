@@ -4,9 +4,11 @@
 # system (provideFieldContext / useFieldControl) live here, alongside the
 # date-family shared vocabularies and the ancestor-disabled composable.
 #
-# Depends on `@ecoma-io/loom-core` for `optional()`.
-# `label-registry.ts` imports component label types from `@ecoma-io/loom`
-# (import type only — no runtime cycle).
+# Depends on `@ecoma-io/loom-core` for `optional()` and draws the component
+# label vocabulary shapes from the local `component-shapes.ts`, so every
+# label type the library exports is reachable without an edge back into a
+# component package.
+
 project:
   name: "labels"
   description: "Localisation seam and field context for Loom components"

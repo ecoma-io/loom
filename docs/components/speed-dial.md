@@ -19,8 +19,8 @@ that has grown past four or five actions has become a menu and should be one.
 <script setup lang="ts">
 import { SpeedDial } from "@ecoma-io/loom";
 import { FilePlus, Upload, UserPlus } from "@lucide/vue";
-import SpeedDialDemo from "../../src/primitives/SpeedDial/SpeedDialDemo.vue";
-import speedDialDemoSource from "../../src/primitives/SpeedDial/SpeedDialDemo.vue?raw";
+import SpeedDialDemo from "../demos/SpeedDialDemo.vue";
+import speedDialDemoSource from "../demos/SpeedDialDemo.vue?raw";
 
 const quickActions = [
   { label: "New document", icon: FilePlus },

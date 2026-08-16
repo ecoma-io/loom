@@ -15,8 +15,8 @@ definition, and it is the maximum that gives a star its meaning.
 
 <script setup lang="ts">
 import { Rating } from "@ecoma-io/loom";
-import RatingDemo from "../../src/primitives/Rating/RatingDemo.vue";
-import ratingDemoSource from "../../src/primitives/Rating/RatingDemo.vue?raw";
+import RatingDemo from "../demos/RatingDemo.vue";
+import ratingDemoSource from "../demos/RatingDemo.vue?raw";
 </script>
 
 ## Usage

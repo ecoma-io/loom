@@ -1,0 +1,28 @@
+project:
+  name: "docs"
+  description: "The VitePress documentation site, built out of the library"
+
+# The docs site has no package.json of its own — its build and route-check live
+# in the root workspace package, so both tasks run with the shared flags and
+# runFromWorkspaceRoot. Making the site a project means a change under docs/
+# marks it affected, and `moon ci` runs the docs build/route-check instead of
+# every diff silently skipping the site.
+tasks:
+  build:
+    command: "pnpm docs:build"
+    options:
+      cache: true
+      # The shared build template appends `--noEmit` to every project's build.
+      # docs:build is a real build (VitePress), not a type-check-as-build, so
+      # the inherited flag must be dropped — otherwise moon runs
+      # `pnpm --noEmit docs:build`, which pnpm rejects and fails the task.
+      mergeArgs: replace
+      runInCI: affected
+      runFromWorkspaceRoot: true
+
+  route-check:
+    command: "pnpm docs:check-route"
+    options:
+      cache: true
+      runInCI: affected
+      runFromWorkspaceRoot: true

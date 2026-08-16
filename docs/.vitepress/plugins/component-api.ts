@@ -13,31 +13,24 @@
 //
 //     <!-- @api Button -->
 //
-// The name resolves to `src/**/<Name>.vue`. There is no path to keep in sync
-// with a move, and a typo is a build error rather than a silently empty table.
+// The name resolves to `packages/**/<Name>.vue`. There is no path to keep in
+// sync with a move, and a typo is a build error rather than a silently empty
+// table.
 import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parse, type ComponentDoc, type PropDescriptor } from "vue-docgen-api";
 
-const SRC = fileURLToPath(new URL("../../../src/", import.meta.url));
-// During the dual-architecture migration, components may live under packages/
-// as well as src/. The plugin indexes both trees so `@api` markers resolve
-// regardless of where the component currently lives.
 const PACKAGES = fileURLToPath(new URL("../../../packages/", import.meta.url));
 
 const MARKER = /^[ \t]*<!--[ \t]*@api[ \t]+([A-Za-z][A-Za-z0-9]*)[ \t]*-->[ \t]*$/gm;
 
-/** Every `.vue` under `src/` and `packages/`, indexed by component name. Built once per run. */
+/** Every `.vue` under `packages/`, indexed by component name. Built once per run. */
 async function indexComponents(): Promise<Map<string, string>> {
   const index = new Map<string, string>();
-  // Scan both trees; packages/ entries take priority (last-write-wins) so
-  // a migrated component in packages/ shadows its legacy copy in src/.
-  for (const root of [SRC, PACKAGES]) {
-    const entries = await readdir(root, { recursive: true, withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isFile() || !entry.name.endsWith(".vue")) continue;
-      index.set(entry.name.slice(0, -".vue".length), `${entry.parentPath}/${entry.name}`);
-    }
+  const entries = await readdir(PACKAGES, { recursive: true, withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(".vue")) continue;
+    index.set(entry.name.slice(0, -".vue".length), `${entry.parentPath}/${entry.name}`);
   }
   return index;
 }
@@ -199,7 +192,7 @@ export function componentApi() {
         const file = components.get(name);
         if (file === undefined) {
           throw new Error(
-            `${id}: <!-- @api ${name} --> names a component that does not exist under src/. ` +
+            `${id}: <!-- @api ${name} --> names a component that does not exist under packages/. ` +
               `Known: ${[...components.keys()].sort().join(", ")}`,
           );
         }

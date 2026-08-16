@@ -1,28 +1,8 @@
 <script lang="ts">
+import type { ProgressLabels } from "@ecoma-io/loom-labels";
 import { cva } from "class-variance-authority";
-import type { LabelOf } from "@ecoma-io/loom-labels";
 
 /**
- * The one thing this bar prints, and the placeholder it prints instead when
- * there is no percentage yet.
- *
- * **`value` takes both raw numbers and no formatting at all.** A hand-built
- * `${Math.round(pct)}%` has already decided three things a component cannot
- * know: that the sign trails the digits — Turkish writes `%42` — that the
- * digits are Western Arabic, and that a percentage is the right reading of the
- * pair at all. Handed `value` and `max`, a host reaches
- * `Intl.NumberFormat(locale, { style: "percent" })` for the first two and can
- * answer "3 of 4 steps" instead of "75%" for the third.
- *
- * The rounding therefore lives in Loom's default rather than in the component,
- * so it is a wording choice a host replaces along with the words.
- */
-export interface ProgressLabels {
-  /** The readout beside the track, from the clamped value and the scale it is out of. */
-  readonly value: LabelOf<{ value: number; max: number }>;
-  /** What the readout prints while there is no percentage — never a false zero. */
-  readonly indeterminate: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

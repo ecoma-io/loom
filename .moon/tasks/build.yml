@@ -1,11 +1,19 @@
 # Shared build task. Inherited by all projects that produce build output.
+#
+# Component and foundation packages are source-exports: they don't bundle to a
+# dist — the public `@ecoma-io/loom` facade does that at the repository root.
+# Their `build` is therefore a project-normalised gate, skipped in CI because
+# the repository's real, consumer-shaped build is the facade's `pnpm build`
+# (tsconfig.build.json emits declarations for every package's true source). A
+# per-package `vue-tsc` on a source-export is either a whole-repo re-check
+# (they all resolve the root tsconfig's `packages/**/*` include) or a coverage
+# hole that breaks the internal aliases — so CI's type verdict is the global
+# `pnpm typecheck` step, not a 92-project multiplication of it. The root
+# project overrides `build` with the real library build, producing `dist`
+# (declared there, not here, because these projects emit nothing).
 tasks:
   build:
-    command: "vite build"
-    deps:
-      - "~:typecheck"
-    outputs:
-      - "dist"
+    command: "vue-tsc --noEmit"
     options:
       cache: true
-      runInCI: affected
+      runInCI: skip

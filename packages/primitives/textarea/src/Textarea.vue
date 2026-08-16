@@ -3,25 +3,10 @@ import {
   COUNT_LABELS,
   warningWindow,
   type CountBand,
-  type CountLabels,
+  type TextareaLabels,
 } from "@ecoma-io/loom-labels";
 
 export type TextareaResize = "none" | "vertical";
-
-/**
- * Everything this control says out loud, and every word of it is Loom's own —
- * a bare `<textarea>` renders no English of anybody else's, so a dropped key
- * here falls back to nothing rather than to a stray untranslated string.
- *
- * These are TextField's five counter keys, by name and by argument shape, and
- * deliberately so: a host that has already worded a character counter should be
- * able to copy that bag across unchanged. They come from
- * `src/lib/count-labels.ts` rather than being declared a second time. They are
- * a slot of their own rather than a share of `textField`'s because that slot
- * also carries `reveal`, and handing a textarea's translator a password-toggle
- * key to fill in is asking a question the control cannot answer.
- */
-export type TextareaLabels = CountLabels;
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

@@ -4,8 +4,8 @@ A navigation trail showing the page's position in the site hierarchy.
 
 <script setup lang="ts">
 import { Breadcrumb } from "@ecoma-io/loom";
-import BreadcrumbDemo from "../../src/primitives/Breadcrumb/BreadcrumbDemo.vue";
-import breadcrumbDemoSource from "../../src/primitives/Breadcrumb/BreadcrumbDemo.vue?raw";
+import BreadcrumbDemo from "../demos/BreadcrumbDemo.vue";
+import breadcrumbDemoSource from "../demos/BreadcrumbDemo.vue?raw";
 </script>
 
 ## Usage

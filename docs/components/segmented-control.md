@@ -8,8 +8,8 @@ list, or options that need a description, reach for
 
 <script setup lang="ts">
 import { SegmentedControl } from "@ecoma-io/loom";
-import SegmentedControlDemo from "../../src/primitives/SegmentedControl/SegmentedControlDemo.vue";
-import segmentedControlDemoSource from "../../src/primitives/SegmentedControl/SegmentedControlDemo.vue?raw";
+import SegmentedControlDemo from "../demos/SegmentedControlDemo.vue";
+import segmentedControlDemoSource from "../demos/SegmentedControlDemo.vue?raw";
 </script>
 
 ## Usage

@@ -8,8 +8,8 @@ rather than three utility classes copied at every call site.
 
 <script setup lang="ts">
 import { RowActions } from "@ecoma-io/loom";
-import RowActionsDemo from "../../src/blocks/RowActions/RowActionsDemo.vue";
-import rowActionsDemoSource from "../../src/blocks/RowActions/RowActionsDemo.vue?raw";
+import RowActionsDemo from "../demos/RowActionsDemo.vue";
+import rowActionsDemoSource from "../demos/RowActionsDemo.vue?raw";
 </script>
 
 ## Usage

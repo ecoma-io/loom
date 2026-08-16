@@ -8,8 +8,8 @@ intentional whitespace, never to stretching lines.
 
 <script setup lang="ts">
 import { Reading } from "@ecoma-io/loom";
-import ReadingDemo from "../../src/layouts/Reading/ReadingDemo.vue";
-import readingDemoSource from "../../src/layouts/Reading/ReadingDemo.vue?raw";
+import ReadingDemo from "../demos/ReadingDemo.vue";
+import readingDemoSource from "../demos/ReadingDemo.vue?raw";
 </script>
 
 ## Usage

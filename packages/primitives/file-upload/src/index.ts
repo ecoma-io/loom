@@ -3,4 +3,4 @@ export type {
   FileUploadLabels,
   FileUploadRejectReason,
   FileUploadRejection,
-} from "./FileUpload.vue";
+} from "@ecoma-io/loom-labels";

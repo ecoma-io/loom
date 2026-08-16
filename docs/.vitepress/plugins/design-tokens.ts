@@ -18,7 +18,9 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-const THEME_CSS = fileURLToPath(new URL("../../../src/styles/theme.css", import.meta.url));
+const THEME_CSS = fileURLToPath(
+  new URL("../../../packages/theme-core/src/theme.css", import.meta.url),
+);
 
 const MARKER = /^[ \t]*<!--[ \t]*@tokens[ \t]+([A-Za-z][\w-]*)[ \t]*-->[ \t]*$/gm;
 

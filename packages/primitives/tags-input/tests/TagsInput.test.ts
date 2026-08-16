@@ -1,7 +1,8 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
-import TagsInput, { type TagsInputRejection } from "../src/TagsInput.vue";
+import TagsInput from "../src/TagsInput.vue";
+import type { TagsInputRejection } from "@ecoma-io/loom-labels";
 import Field from "@ecoma-io/loom-field";
 
 // Several tests read `document.activeElement`, which only means anything for a

@@ -6,8 +6,8 @@ settings pages: pick from a list, read the content.
 
 <script setup lang="ts">
 import { MasterDetail } from "@ecoma-io/loom";
-import MasterDetailDemo from "../../src/layouts/MasterDetail/MasterDetailDemo.vue";
-import masterDetailDemoSource from "../../src/layouts/MasterDetail/MasterDetailDemo.vue?raw";
+import MasterDetailDemo from "../demos/MasterDetailDemo.vue";
+import masterDetailDemoSource from "../demos/MasterDetailDemo.vue?raw";
 </script>
 
 ## Usage

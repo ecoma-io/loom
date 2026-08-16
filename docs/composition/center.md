@@ -7,8 +7,8 @@ stretching lines of text or card grids.
 
 <script setup lang="ts">
 import { Center } from "@ecoma-io/loom";
-import CenterDemo from "../../src/composition/Center/CenterDemo.vue";
-import centerDemoSource from "../../src/composition/Center/CenterDemo.vue?raw";
+import CenterDemo from "../demos/CenterDemo.vue";
+import centerDemoSource from "../demos/CenterDemo.vue?raw";
 </script>
 
 ## Usage

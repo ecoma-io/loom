@@ -4,7 +4,7 @@ import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vu
 import OtpInput from "../src/OtpInput.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
-import { attachToBody } from "../../../../src/testing/attach-to-body";
+import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
 
 // Reka moves real focus between the cells, and focus only works for a tree
 // that is actually in the document.

@@ -1,9 +1,4 @@
 # Moon workspace configuration for Loom.
-#
-# During the monorepo migration, projects live under both the legacy src/ tree
-# and the new packages/ tree. The globs below cover the final target structure;
-# projects that don't exist yet are simply not found, which is safe — moon
-# logs a warning but does not fail.
 
 projects:
   # Foundation packages.
@@ -17,8 +12,8 @@ projects:
   - "packages/layouts/*"
   # The public facade.
   - "packages/loom"
-  # Applications.
-  - "apps/docs"
+  # The documentation site.
+  - "docs"
   # Cross-cutting E2E.
   - "e2e"
   # Tooling.

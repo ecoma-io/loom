@@ -10,8 +10,8 @@ hand would drift on.
 
 <script setup lang="ts">
 import { SidebarNav } from "@ecoma-io/loom";
-import SidebarNavDemo from "../../src/blocks/SidebarNav/SidebarNavDemo.vue";
-import sidebarNavDemoSource from "../../src/blocks/SidebarNav/SidebarNavDemo.vue?raw";
+import SidebarNavDemo from "../demos/SidebarNavDemo.vue";
+import sidebarNavDemoSource from "../demos/SidebarNavDemo.vue?raw";
 </script>
 
 ## Usage

@@ -1,31 +1,8 @@
 <script lang="ts">
+import type { RatingLabels } from "@ecoma-io/loom-labels";
 import { cva } from "class-variance-authority";
-import type { LabelOf } from "@ecoma-io/loom-labels";
 
 /**
- * The one thing this control says out loud — and it carries both numbers,
- * because a row of star glyphs announces nothing at all on its own.
- *
- * **One key, not a score plus a joiner plus a noun.** "4 of 5 stars" is three
- * language decisions in one sentence: where the qualifier sits relative to the
- * numbers, how the digits are written, and which plural form "stars" takes at
- * 1, at 4 and at 0.5 — a category English does not distinguish and Russian
- * does. Handing over both raw numbers is what lets a host make all three of
- * those; a `${score} of ${length} stars` template with holes in it has already
- * made the first two, in English.
- *
- * Rounding to two decimals lives in Loom's default rather than in the
- * component, so it is a wording choice a host replaces along with the words:
- * it is what turns a half step's `4.0` into `4`.
- */
-export interface RatingLabels {
-  /**
-   * The score out of the scale. It names the read-only picture, and it names
-   * every radio in the interactive branch — which is what turns a bare "4"
-   * into "4 of 5 stars" at the moment a reader arrives on it.
-   */
-  readonly score: LabelOf<{ score: number; length: number }>;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

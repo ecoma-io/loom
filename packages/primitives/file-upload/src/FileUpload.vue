@@ -1,16 +1,5 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
-
-/** Why a file the reader offered was not added to the list. */
-export type FileUploadRejectReason = "too-large" | "type" | "duplicate" | "too-many";
-
-/** One refused file, paired with the rule that refused it. */
-export interface FileUploadRejection {
-  /** The file as the browser handed it over — untouched, so a host can report on it. */
-  file: File;
-  /** Which rule turned it away. */
-  reason: FileUploadRejectReason;
-}
+import type { FileUploadLabels, FileUploadRejection } from "@ecoma-io/loom-labels";
 
 const BYTE_UNITS = ["B", "KB", "MB", "GB"] as const;
 
@@ -37,44 +26,6 @@ function formatBytes(bytes: number): string {
   }
   const rounded = step > 0 && value < 10 ? Math.round(value * 10) / 10 : Math.round(value);
   return `${String(rounded)} ${BYTE_UNITS[step] ?? "B"}`;
-}
-
-/**
- * Everything this control puts in front of a reader that is not a file name —
- * and it is the most prose in the library, which is why every one of these
- * takes raw values and returns a finished string.
- *
- * **Every size arrives as a byte count, never as `"5 MB"`.** The unit ladder,
- * the decimal separator and the space before the unit are all language
- * decisions: `formatBytes` above writes `1,5 MB` nowhere and `%42` never, and
- * a host handed the number reaches `Intl.NumberFormat` for both. Handing over
- * a string Loom had already formatted would make Loom's English the only
- * arithmetic anyone could do.
- *
- * **`rejected` takes the whole list, not one refusal at a time.** Loom joined
- * four sentences with a space before this, and a joiner is a fragment — the
- * character between two sentences is a property of the script, and a language
- * that would rather say "3 files were refused" than list them cannot get there
- * from a per-file message. One function over the list can say either.
- *
- * **`remove` and `rejected` are handed the `File` itself**, not its name, for
- * the same reason: a host that would rather name the row by index, or truncate
- * a long name from the middle, has the whole object to work from.
- */
-export interface FileUploadLabels {
-  /** The zone's own line of copy, which is also the file input's accessible name. The `label` prop overrides it for one zone. */
-  readonly zone: LabelOf<{ multiple: boolean }>;
-  /** The smaller line under it, stating the size limit. The `hint` prop overrides it for one zone. */
-  readonly hint: LabelOf<{ maxSize: number }>;
-  /** The size shown against one chosen file. */
-  readonly size: LabelOf<{ bytes: number }>;
-  /** The button that takes one file back out of the list. */
-  readonly remove: LabelOf<{ file: File }>;
-  /** Everything refused by one interaction, as one message. `maxSize` is `undefined` when no limit is set. */
-  readonly rejected: LabelOf<{
-    rejections: readonly FileUploadRejection[];
-    maxSize: number | undefined;
-  }>;
 }
 
 /**

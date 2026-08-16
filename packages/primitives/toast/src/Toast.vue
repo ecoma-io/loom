@@ -6,7 +6,7 @@ export type ToastVariant = "info" | "success" | "warning" | "destructive" | "acc
 // it names is rendered, and which `ToastStack` mounts without this file in the
 // picture at all — and that file's docblock carries why the direction cannot
 // be reversed.
-export type { ToastLabels } from "./ToastItem.vue";
+export type { ToastLabels } from "@ecoma-io/loom-labels";
 export { TOAST_LABELS } from "./ToastItem.vue";
 </script>
 
@@ -14,8 +14,8 @@ export { TOAST_LABELS } from "./ToastItem.vue";
 import { computed } from "vue";
 import { ToastProvider, ToastViewport } from "reka-ui";
 import { optional } from "@ecoma-io/loom-core";
-import { useLabels, type LabelOverrides } from "@ecoma-io/loom-labels";
-import ToastItem, { TOAST_LABELS, type ToastLabels } from "./ToastItem.vue";
+import { useLabels, type LabelOverrides, type ToastLabels } from "@ecoma-io/loom-labels";
+import ToastItem, { TOAST_LABELS } from "./ToastItem.vue";
 
 /**
  * Toast — a transient, self-dismissing notification the user need not act on

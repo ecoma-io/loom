@@ -7,12 +7,11 @@
 // file that was never written — so the pairing is asserted here rather than
 // left to whoever reviews the pull request remembering all four.
 //
-// During the dual-architecture migration, components may live under either the
-// legacy src/ tree (PascalCase directories) or the new packages/ tree
-// (kebab-case directories). The tool discovers both, and checks each
-// component's artifacts against the tree it actually lives in. A component
-// that has migrated to packages/ is checked against the new layout; one that
-// remains in src/ is checked against the old layout.
+// The tree is packages/ (kebab-case directories under a tier), and a
+// component's artifacts are checked against the layout it has there. Its demo
+// lives in the documentation site (`docs/demos/`), which renders it, so the
+// demo is not re-asserted here as a file — the docs page that must carry the
+// `@api` marker is what ties the component to the site.
 //
 // Run: `node tools/check-component-artifacts.ts`
 import { readdir, readFile } from "node:fs/promises";
@@ -22,32 +21,16 @@ const ROOT = new URL("../", import.meta.url);
 /**
  * A tier of component, and the directories that differ between them.
  *
- * During the dual-architecture migration, a tier has two possible source
- * locations: the legacy `src/<tier>/` and the new `packages/<tier>/`. A
- * component that has migrated to `packages/` is checked against the new
- * artifact layout; one that remains in `src/` is checked against the old one.
+ * Components live under `packages/<tier>/<kebab-name>/`, with their source
+ * file in `src/` and their test in `tests/`, and a documentation page under
+ * `docs/`.
  */
 const TIERS = [
-  {
-    noun: "primitive",
-    legacy: "src/primitives",
-    modern: "packages/primitives",
-    docs: "docs/components",
-  },
-  {
-    noun: "composition",
-    legacy: "src/composition",
-    modern: "packages/composition",
-    docs: "docs/composition",
-  },
-  { noun: "block", legacy: "src/blocks", modern: "packages/blocks", docs: "docs/blocks" },
-  { noun: "layout", legacy: "src/layouts", modern: "packages/layouts", docs: "docs/layouts" },
+  { noun: "primitive", tier: "packages/primitives", docs: "docs/components" },
+  { noun: "composition", tier: "packages/composition", docs: "docs/composition" },
+  { noun: "block", tier: "packages/blocks", docs: "docs/blocks" },
+  { noun: "layout", tier: "packages/layouts", docs: "docs/layouts" },
 ] as const;
-
-/** `PressableCard` → `pressable-card`, the docs page and package directory name. */
-function toKebab(name: string): string {
-  return name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-}
 
 /** `pressable-card` → `PressableCard`, the component and file name. */
 function toPascal(name: string): string {
@@ -73,109 +56,53 @@ async function subdirectories(url: URL): Promise<string[]> {
   }
 }
 
-// During the migration, components may be exported from either src/index.ts or
-// packages/loom/src/index.ts. Both are checked so that a migrated component is
-// found in the facade and an unmigrated one is found in the legacy barrel.
-const legacyIndexSource = await readFile(new URL("src/index.ts", ROOT), "utf8");
-let facadeIndexSource = "";
-try {
-  facadeIndexSource = await readFile(new URL("packages/loom/src/index.ts", ROOT), "utf8");
-} catch {
-  // The facade doesn't exist yet — early in the migration this is expected.
-}
+// Every component must be exported from the facade — that is what makes it
+// reachable. The export read is matched against the import path rather than
+// the identifier, because a re-export can be renamed and the path cannot.
+const facadeIndexSource = await readFile(new URL("packages/loom/src/index.ts", ROOT), "utf8");
 
 const failures: string[] = [];
 const counts: string[] = [];
 
 for (const tier of TIERS) {
-  const legacyRoot = new URL(`${tier.legacy}/`, ROOT);
-  const modernRoot = new URL(`${tier.modern}/`, ROOT);
+  const root = new URL(`${tier.tier}/`, ROOT);
 
-  // Legacy directories are PascalCase (Button, Separator). Modern directories
-  // are kebab-case (button, separator). Both are keyed to PascalCase for
-  // uniform checking — that is the name the component file, the docs @api
-  // marker, and the export identifier all use.
-  const legacyDirs = await subdirectories(legacyRoot);
-  const modernKebabs = await subdirectories(modernRoot);
-  const modernByPascal = new Map<string, string>();
-  for (const kebab of modernKebabs) {
-    modernByPascal.set(toPascal(kebab), kebab);
-  }
+  // Package directories are kebab-case (button, separator). They are keyed to
+  // PascalCase for uniform checking — that is the name the component file, the
+  // docs @api marker, and the export identifier all use.
+  const kebabs = await subdirectories(root);
+  const byPascal = new Map<string, string>();
+  for (const kebab of kebabs) byPascal.set(toPascal(kebab), kebab);
 
-  // A component may exist in both trees briefly during migration; that is fine
-  // — it is checked once from the modern tree when it exists there.
-  const allPascal = new Set([...legacyDirs, ...modernByPascal.keys()]);
-  counts.push(`${String(allPascal.size)} ${tier.noun}(s)`);
+  // The tool discovers from the tree, so the count is the true membership.
+  counts.push(`${String(byPascal.size)} ${tier.noun}(s)`);
 
-  for (const pascalName of allPascal) {
-    const kebabName = toKebab(pascalName);
+  for (const [pascalName, kebabName] of byPascal) {
+    const srcDir = new URL(`${kebabName}/src/`, root);
+    const testsDir = new URL(`${kebabName}/tests/`, root);
     const pagePath = `${tier.docs}/${kebabName}.md`;
     const page = new URL(pagePath, ROOT);
-    const isModern = modernByPascal.has(pascalName);
 
-    if (isModern) {
-      // New layout: packages/<tier>/<kebab>/src/<Pascal>.vue,
-      // packages/<tier>/<kebab>/tests/<Pascal>.test.ts.
-      const kebabDir = modernByPascal.get(pascalName);
-      // `isModern` is true, so the map has the entry — but the type system
-      // cannot see that. The fallback is never reached in practice.
-      if (kebabDir === undefined) continue;
-      const srcDir = new URL(`${kebabDir}/src/`, modernRoot);
-      const testsDir = new URL(`${kebabDir}/tests/`, modernRoot);
+    const checks: [string, boolean][] = [
+      [
+        `${tier.tier}/${kebabName}/src/${pascalName}.vue`,
+        await exists(new URL(`${pascalName}.vue`, srcDir)),
+      ],
+      [
+        `${tier.tier}/${kebabName}/tests/${pascalName}.test.ts`,
+        await exists(new URL(`${pascalName}.test.ts`, testsDir)),
+      ],
+      [pagePath, await exists(page)],
+    ];
 
-      const checks: [string, boolean][] = [
-        [
-          `${tier.modern}/${kebabName}/src/${pascalName}.vue`,
-          await exists(new URL(`${pascalName}.vue`, srcDir)),
-        ],
-        [
-          `${tier.modern}/${kebabName}/tests/${pascalName}.test.ts`,
-          await exists(new URL(`${pascalName}.test.ts`, testsDir)),
-        ],
-      ];
+    // The export is what makes the component reachable at all.
+    const facadeSpecifier = `@ecoma-io/loom-${kebabName}`;
+    if (!facadeIndexSource.includes(facadeSpecifier)) {
+      failures.push(`${pascalName}: not exported from packages/loom/src/index.ts`);
+    }
 
-      // A migrated component must be exported from the facade.
-      const facadeSpecifier = `@ecoma-io/loom-${kebabName}`;
-      if (!facadeIndexSource.includes(facadeSpecifier)) {
-        failures.push(`${pascalName}: not exported from packages/loom/src/index.ts`);
-      }
-
-      for (const [path, ok] of checks) {
-        if (!ok) failures.push(`${pascalName}: missing ${path}`);
-      }
-    } else {
-      // Legacy layout: src/<tier>/<Pascal>/<Pascal>.vue,
-      // src/<tier>/<Pascal>/<Pascal>.test.ts, src/<tier>/<Pascal>/<Pascal>Demo.vue.
-      const dir = new URL(`${pascalName}/`, legacyRoot);
-
-      const checks: [string, boolean][] = [
-        [
-          `${tier.legacy}/${pascalName}/${pascalName}.vue`,
-          await exists(new URL(`${pascalName}.vue`, dir)),
-        ],
-        [
-          `${tier.legacy}/${pascalName}/${pascalName}.test.ts`,
-          await exists(new URL(`${pascalName}.test.ts`, dir)),
-        ],
-        [
-          `${tier.legacy}/${pascalName}/${pascalName}Demo.vue`,
-          await exists(new URL(`${pascalName}Demo.vue`, dir)),
-        ],
-        [pagePath, await exists(page)],
-      ];
-
-      for (const [path, ok] of checks) {
-        if (!ok) failures.push(`${pascalName}: missing ${path}`);
-      }
-
-      // The export is what makes the component reachable at all. Matched against
-      // the import path rather than the identifier, because a re-export can be
-      // renamed and the path cannot. `src/` is dropped because `src/index.ts`
-      // writes the specifier relative to itself.
-      const specifier = `./${tier.legacy.slice("src/".length)}/${pascalName}/${pascalName}.vue`;
-      if (!legacyIndexSource.includes(specifier)) {
-        failures.push(`${pascalName}: not exported from src/index.ts`);
-      }
+    for (const [path, ok] of checks) {
+      if (!ok) failures.push(`${pascalName}: missing ${path}`);
     }
 
     // A documentation page with no `@api` marker prints prose about a component
@@ -194,7 +121,7 @@ if (failures.length > 0) {
   for (const failure of failures) console.error(`  • ${failure}`);
   console.error(
     `\nEvery component needs a component, a unit test, a demo, ` +
-      `a documentation page carrying its @api marker, and an export from the barrel (src/index.ts or packages/loom/src/index.ts).`,
+      `a documentation page carrying its @api marker, and an export from packages/loom/src/index.ts.`,
   );
   process.exit(1);
 }

@@ -157,7 +157,9 @@ export default defineConfig({
         // `../../src` import would work and would also quietly document a path
         // no consumer can write; the alias keeps every snippet on this site
         // copy-pasteable into a real application.
-        "@ecoma-io/loom": fileURLToPath(new URL("../../src/index.ts", import.meta.url)),
+        "@ecoma-io/loom": fileURLToPath(
+          new URL("../../packages/loom/src/index.ts", import.meta.url),
+        ),
         // Internal workspace packages, resolved to source so the VitePress dev
         // server and build can follow imports without node_modules. These mirror
         // the tsconfig paths and the root Vite config aliases. Each component
@@ -167,9 +169,6 @@ export default defineConfig({
         ),
         "@ecoma-io/loom-labels": fileURLToPath(
           new URL("../../packages/labels/src/index.ts", import.meta.url),
-        ),
-        "@ecoma-io/loom-facade": fileURLToPath(
-          new URL("../../packages/loom/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-hover-card": fileURLToPath(
           new URL("../../packages/primitives/hover-card/src/index.ts", import.meta.url),

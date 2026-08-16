@@ -114,7 +114,7 @@ pnpm format      # Prettier, in place
 ```
 
 The component surface is landing in the open, one primitive at a time —
-`src/index.ts` is always the complete export list. Follow along or ask for
+`packages/loom/src/index.ts` is always the complete export list. Follow along or ask for
 something specific in [the issues](https://github.com/ecoma-io/loom/issues).
 
 ## Contributing

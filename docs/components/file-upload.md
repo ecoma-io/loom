@@ -20,8 +20,8 @@ announced, named on screen, and reported through `reject`.
 
 <script setup lang="ts">
 import { FileUpload } from "@ecoma-io/loom";
-import FileUploadDemo from "../../src/primitives/FileUpload/FileUploadDemo.vue";
-import fileUploadDemoSource from "../../src/primitives/FileUpload/FileUploadDemo.vue?raw";
+import FileUploadDemo from "../demos/FileUploadDemo.vue";
+import fileUploadDemoSource from "../demos/FileUploadDemo.vue?raw";
 </script>
 
 ## Usage

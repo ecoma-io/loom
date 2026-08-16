@@ -33,8 +33,8 @@ before the first.
 <script setup lang="ts">
 import { ref } from "vue";
 import { DateTimeRangePicker } from "@ecoma-io/loom";
-import DateTimeRangePickerDemo from "../../src/primitives/DateTimeRangePicker/DateTimeRangePickerDemo.vue";
-import dateTimeRangePickerDemoSource from "../../src/primitives/DateTimeRangePicker/DateTimeRangePickerDemo.vue?raw";
+import DateTimeRangePickerDemo from "../demos/DateTimeRangePickerDemo.vue";
+import dateTimeRangePickerDemoSource from "../demos/DateTimeRangePickerDemo.vue?raw";
 
 const meeting = ref({ start: "2026-03-16T09:00", end: "2026-03-16T10:00" });
 const empty = ref();

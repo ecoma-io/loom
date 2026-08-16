@@ -49,7 +49,7 @@ Six steps, and what each is for:
 --font-mono: "Geist Mono", ui-monospace, "SF Mono", "JetBrains Mono", monospace;
 ```
 
-`src/styles/fonts.css` vendors both faces as variable `woff2` files (weight
+`packages/theme-core/src/fonts.css` vendors both faces as variable `woff2` files (weight
 100–900) under the SIL Open Font License, rather than pulling them from a
 CDN. That is the same offline-safe rule the rest of the library follows:
 nothing about rendering the library's own type depends on a network request

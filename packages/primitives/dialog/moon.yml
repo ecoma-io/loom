@@ -6,6 +6,10 @@ project:
 tasks:
   # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
   e2e:
+    # Owned by the component suite (packages/<tier>/<name>/e2e) and by the
+    # dedicated matrix job in ci.yml. moon ci must not run it again.
+    options:
+      runInCI: skip
     args: ["packages/primitives/dialog/e2e"]
     env:
       PW_PROFILE: "smoke"

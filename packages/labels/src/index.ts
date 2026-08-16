@@ -11,6 +11,39 @@ export type { LabelOf, LabelOverrides, LoomLabelOverrides } from "./labels";
 // The label registry — the central namespace a host's vocabulary keys into.
 export type { LoomLabels } from "./label-registry";
 
+// The component vocabulary shapes. Declared here (below every component) and
+// re-exported from each component's barrel; the registry's keys are these.
+export type {
+  AlertDialogLabels,
+  AvatarGroupLabels,
+  ColorPickerLabels,
+  ComboboxLabels,
+  DateRangeLabels,
+  DateTimeRangeLabels,
+  DialogLabels,
+  DrawerLabels,
+  EditableLabels,
+  FileUploadLabels,
+  FileUploadRejectReason,
+  FileUploadRejection,
+  IndicatorLabels,
+  NumberFieldLabels,
+  OtpInputLabels,
+  OtpInputType,
+  PaginationLabels,
+  ProgressLabels,
+  RadialProgressLabels,
+  RatingLabels,
+  StepperLabels,
+  TagsInputLabels,
+  TagsInputRejectReason,
+  TagsInputRejection,
+  TextFieldLabels,
+  TextareaLabels,
+  ToastLabels,
+  WindowControlsLabels,
+} from "./component-shapes";
+
 // The date family's shared vocabulary.
 export {
   CALENDAR_PANEL_LABELS,

@@ -5,7 +5,7 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import DateTimeRangePicker from "../src/DateTimeRangePicker.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
-import { attachToBody } from "../../../../src/testing/attach-to-body";
+import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
 
 // The same jsdom gaps both parents' suites stub, for the same reason: the panel
 // is portalled and Reka drives it with real pointer capture, focus and layout

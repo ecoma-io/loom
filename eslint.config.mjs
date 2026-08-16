@@ -135,7 +135,7 @@ export default tseslint.config(
   // implementation does — for a consumer, that is the same as a breaking change
   // nobody announced.
   {
-    files: ["src/**/*.ts", "packages/**/*.ts"],
+    files: ["packages/**/*.ts"],
     rules: {
       "@typescript-eslint/explicit-module-boundary-types": "error",
     },
@@ -192,7 +192,7 @@ export default tseslint.config(
   // nobody ran — a focused test that silences its siblings, and a skipped one
   // that silences itself — plus assertions that can never fail.
   {
-    files: ["src/**/*.test.ts", "packages/**/*.test.ts", "e2e/**/*.e2e.ts"],
+    files: ["packages/**/*.test.ts", "e2e/**/*.e2e.ts"],
     plugins: { vitest },
     rules: {
       ...vitest.configs.recommended.rules,

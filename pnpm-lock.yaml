@@ -356,20 +356,16 @@ importers:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
 
-  packages/core:
-    dependencies:
-      '@ecoma-io/loom':
-        specifier: workspace:*
-        version: link:../..
+  packages/core: {}
 
   packages/labels:
     dependencies:
-      '@ecoma-io/loom':
-        specifier: workspace:*
-        version: link:../..
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../core
+      '@internationalized/date':
+        specifier: ^3.12.3
+        version: 3.12.3
 
   packages/layouts/app-shell:
     dependencies:
@@ -1571,11 +1567,7 @@ importers:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
 
-  packages/theme-core:
-    dependencies:
-      '@ecoma-io/loom':
-        specifier: workspace:*
-        version: link:../..
+  packages/theme-core: {}
 
 packages:
 

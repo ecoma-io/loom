@@ -1,17 +1,6 @@
 <script lang="ts">
+import type { DialogLabels } from "@ecoma-io/loom-labels";
 /**
- * The one thing this component says on its own account.
- *
- * Everything else on the surface is the host's — `title`, `description`, the
- * body and the footer all arrive as props or slots — so the corner close
- * control is the whole of Dialog's vocabulary. Its glyph is `aria-hidden` by
- * construction, which makes this name the only thing a screen reader has to go
- * on rather than a nicety on top of visible text.
- */
-export interface DialogLabels {
-  /** The corner control that dismisses the dialog. */
-  readonly close: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

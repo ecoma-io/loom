@@ -1,32 +1,5 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
-
-/**
- * What a cell accepts, and what keyboard a phone raises for it. `numeric` is
- * digits only; `text` takes any character, for an alphanumeric backup code.
- */
-export type OtpInputType = "numeric" | "text";
-
-/**
- * The one name this control publishes, and it replaces one Reka writes in
- * English of its own accord: `PinInputInput` labels every cell
- * `` `pin input ${index + 1} of ${length}` `` and exposes no prop for it.
- *
- * **One key, not "Digit" plus "Character" plus a joiner plus a position.** The
- * noun and the two numbers arrive together in one argument object, and the
- * variant — whether this row takes digits or any character — arrives with
- * them, because which word a language uses for a cell and where the position
- * sits relative to it are one decision rather than two. Four fragment keys
- * Loom then joined would be a sentence no translator could reorder.
- *
- * `index` is 1-based: it is a position a person is being read, not an offset
- * into an array, and handing over the 0-based one would make every override
- * write `index + 1` before it could say anything.
- */
-export interface OtpInputLabels {
-  /** One cell, named for what it takes and where it sits in the row. */
-  readonly cell: LabelOf<{ index: number; length: number; type: OtpInputType }>;
-}
+import type { OtpInputLabels, OtpInputType } from "@ecoma-io/loom-labels";
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

@@ -1,7 +1,7 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
-import { attachToBody } from "../../../../src/testing/attach-to-body";
+import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 import AlertDialog from "../src/AlertDialog.vue";
 

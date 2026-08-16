@@ -60,7 +60,7 @@ checkbox's box scaling back in.
 
 <!-- @tokens animate -->
 
-The keyframes themselves live in `src/styles/global.css`; the table above is
+The keyframes themselves live in `packages/theme-core/src/global.css`; the table above is
 each one paired with the duration and easing it plays at, under the name a
 component actually reaches for (`animate-fade-rise`, not the bare
 `fade-rise` keyframe). A few, in the words of their own source comments:

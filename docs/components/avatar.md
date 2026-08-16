@@ -16,8 +16,8 @@ draws nothing there, precisely so the corner stays free.
 
 <script setup lang="ts">
 import { Avatar } from "@ecoma-io/loom";
-import AvatarDemo from "../../src/primitives/Avatar/AvatarDemo.vue";
-import avatarDemoSource from "../../src/primitives/Avatar/AvatarDemo.vue?raw";
+import AvatarDemo from "../demos/AvatarDemo.vue";
+import avatarDemoSource from "../demos/AvatarDemo.vue?raw";
 </script>
 
 ## Usage

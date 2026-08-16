@@ -7,8 +7,8 @@ scrolling past one to find the other.
 
 <script setup lang="ts">
 import { Settings } from "@ecoma-io/loom";
-import SettingsDemo from "../../src/layouts/Settings/SettingsDemo.vue";
-import settingsDemoSource from "../../src/layouts/Settings/SettingsDemo.vue?raw";
+import SettingsDemo from "../demos/SettingsDemo.vue";
+import settingsDemoSource from "../demos/SettingsDemo.vue?raw";
 </script>
 
 ## Usage

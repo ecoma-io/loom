@@ -1,58 +1,9 @@
 <script lang="ts">
-import type { LabelOf } from "@ecoma-io/loom-labels";
-
-/** Which rule turned a value away. */
-export type TagsInputRejectReason = "duplicate" | "max";
-
-/** One value the field would not take, and the rule that refused it. */
-export interface TagsInputRejection {
-  /** The value as it would have been committed — trimmed, exactly as a token would read. */
-  readonly value: string;
-  /** Which rule refused it. */
-  readonly reason: TagsInputRejectReason;
-}
-
-/**
- * Everything this control says out loud, and every word of it is Loom's own.
- *
- * That is worth stating because it is the exception in this library. Reka's
- * `Pagination` writes `aria-label="Next Page"` into its own vnode props, and
- * `Pagination.vue` carries a paragraph about replacing rather than competing
- * with it. Reka's TagsInput family writes **no** name and **no** English at
- * all: the root and the item are unlabelled `div`s, and the one string
- * `TagsInputItemText` renders is `displayValue(value)` — the host's own token.
- * So nothing here falls back to English when a key is dropped; it falls back to
- * nothing, which is the louder failure and the easier one to notice.
- *
- * `count` takes the number rather than a formatted string, for the reason
- * `src/lib/labels.ts` gives at length: "3 tags" has one plural form in
- * Vietnamese, two in English and six in Arabic, and a host handed the number
- * reaches `Intl.PluralRules` and `Intl.NumberFormat` for both the category and
- * the digits.
- *
- * `remove` takes the token because a row of six buttons all called "Remove" is
- * six identical announcements and one guess about which one a reader is on —
- * the same rule `FileUpload` applies to its file rows.
- */
-export interface TagsInputLabels {
-  /** One token's remove control, named for the token it takes out. */
-  readonly remove: LabelOf<{ value: string }>;
-  /**
-   * How many tokens are in the field, read out when the text box takes focus.
-   *
-   * `max` is `undefined` when the field has no limit, so a host can word the
-   * bounded and unbounded cases differently rather than being handed "3 of
-   * undefined".
-   */
-  readonly count: LabelOf<{ count: number; max: number | undefined }>;
-  /** Everything one interaction refused, as one message. Fires once per interaction, not once per value. */
-  readonly rejected: LabelOf<{
-    rejections: readonly TagsInputRejection[];
-    max: number | undefined;
-  }>;
-  /** The control that empties the field. */
-  readonly clear: string;
-}
+import type {
+  TagsInputLabels,
+  TagsInputRejectReason,
+  TagsInputRejection,
+} from "@ecoma-io/loom-labels";
 
 /**
  * Every refusal names the value, because a reader looking at eight tokens

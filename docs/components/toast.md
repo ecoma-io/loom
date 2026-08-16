@@ -7,8 +7,8 @@ hover/focus, and is dismissible by swipe or `Esc`.
 
 <script setup lang="ts">
 import { Toast, Button } from "@ecoma-io/loom";
-import ToastDemo from "../../src/primitives/Toast/ToastDemo.vue";
-import toastDemoSource from "../../src/primitives/Toast/ToastDemo.vue?raw";
+import ToastDemo from "../demos/ToastDemo.vue";
+import toastDemoSource from "../demos/ToastDemo.vue?raw";
 </script>
 
 ## Usage

@@ -19,8 +19,8 @@ group's fate.
 
 <script setup lang="ts">
 import { Checkbox, Field, Fieldset, Slider, TextField } from "@ecoma-io/loom";
-import FieldsetDemo from "../../src/primitives/Fieldset/FieldsetDemo.vue";
-import fieldsetDemoSource from "../../src/primitives/Fieldset/FieldsetDemo.vue?raw";
+import FieldsetDemo from "../demos/FieldsetDemo.vue";
+import fieldsetDemoSource from "../demos/FieldsetDemo.vue?raw";
 </script>
 
 ## Usage

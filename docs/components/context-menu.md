@@ -6,8 +6,8 @@ instead of from a visible button.
 
 <script setup lang="ts">
 import { ContextMenu, type ContextMenuEntry } from "@ecoma-io/loom";
-import ContextMenuDemo from "../../src/primitives/ContextMenu/ContextMenuDemo.vue";
-import contextMenuDemoSource from "../../src/primitives/ContextMenu/ContextMenuDemo.vue?raw";
+import ContextMenuDemo from "../demos/ContextMenuDemo.vue";
+import contextMenuDemoSource from "../demos/ContextMenuDemo.vue?raw";
 </script>
 
 ## Usage

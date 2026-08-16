@@ -1,32 +1,6 @@
 <script lang="ts">
+import type { AlertDialogLabels } from "@ecoma-io/loom-labels";
 /**
- * The two buttons, which are the whole of what this component says on its own
- * account: the title and the consequence line are the host's, and there is no
- * body slot for anything else to arrive through.
- *
- * These were `confirmLabel` and `cancelLabel` props, and folding them in here
- * is not a rename. A prop default is per-instance by construction, so
- * "Confirm" and "Cancel" were the two strings in this library that a host
- * could correct at every call site and nowhere else — an application in
- * Vietnamese had to restate `cancelLabel` on every alert it rendered, and
- * forgetting one left an English button in the middle of a Vietnamese
- * decision. As a slot, `cancel` is set once for the application and `confirm`
- * is corrected per instance, which is the split these two actually want.
- */
-export interface AlertDialogLabels {
-  /**
-   * The action button. **Replace it with the verb it performs** — "Delete",
-   * "Discard", "Leave without saving". The default is a placeholder: "Confirm"
-   * tells a reader they are confirming and not what.
-   */
-  readonly confirm: string;
-  /**
-   * The way out, and the control that opens with focus. Unlike `confirm` this
-   * one usually is the same word everywhere in an application, which is what
-   * makes a vocabulary rather than a prop the right home for it.
-   */
-  readonly cancel: string;
-}
 
 /**
  * Loom's English, co-located with the component so it tree-shakes with it, and

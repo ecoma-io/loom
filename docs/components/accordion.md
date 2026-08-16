@@ -6,8 +6,8 @@ collapses the rest (single mode) or lets several panels stay open at once
 
 <script setup lang="ts">
 import { Accordion, type AccordionItem } from "@ecoma-io/loom";
-import AccordionDemo from "../../src/primitives/Accordion/AccordionDemo.vue";
-import accordionDemoSource from "../../src/primitives/Accordion/AccordionDemo.vue?raw";
+import AccordionDemo from "../demos/AccordionDemo.vue";
+import accordionDemoSource from "../demos/AccordionDemo.vue?raw";
 
 const quickItems: AccordionItem[] = [
   { value: "overview", label: "Overview" },

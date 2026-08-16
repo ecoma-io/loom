@@ -5,8 +5,8 @@ predict how long the wait will be and no known layout for what's coming.
 
 <script setup lang="ts">
 import { Spinner } from "@ecoma-io/loom";
-import SpinnerDemo from "../../src/primitives/Spinner/SpinnerDemo.vue";
-import spinnerDemoSource from "../../src/primitives/Spinner/SpinnerDemo.vue?raw";
+import SpinnerDemo from "../demos/SpinnerDemo.vue";
+import spinnerDemoSource from "../demos/SpinnerDemo.vue?raw";
 </script>
 
 ## Usage

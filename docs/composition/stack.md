@@ -6,8 +6,8 @@ have no room to waste on air.
 
 <script setup lang="ts">
 import { Stack } from "@ecoma-io/loom";
-import StackDemo from "../../src/composition/Stack/StackDemo.vue";
-import stackDemoSource from "../../src/composition/Stack/StackDemo.vue?raw";
+import StackDemo from "../demos/StackDemo.vue";
+import stackDemoSource from "../demos/StackDemo.vue?raw";
 </script>
 
 ## Usage

@@ -21,8 +21,8 @@ one.
 <script setup lang="ts">
 import { ref } from "vue";
 import { Pagination } from "@ecoma-io/loom";
-import PaginationDemo from "../../src/primitives/Pagination/PaginationDemo.vue";
-import paginationDemoSource from "../../src/primitives/Pagination/PaginationDemo.vue?raw";
+import PaginationDemo from "../demos/PaginationDemo.vue";
+import paginationDemoSource from "../demos/PaginationDemo.vue?raw";
 
 const invoices = ref(4);
 const deep = ref(37);

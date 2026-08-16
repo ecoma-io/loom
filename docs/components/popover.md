@@ -7,8 +7,8 @@ and lighter than a dialog, which blocks the screen until it is resolved.
 
 <script setup lang="ts">
 import { Popover, Button } from "@ecoma-io/loom";
-import PopoverDemo from "../../src/primitives/Popover/PopoverDemo.vue";
-import popoverDemoSource from "../../src/primitives/Popover/PopoverDemo.vue?raw";
+import PopoverDemo from "../demos/PopoverDemo.vue";
+import popoverDemoSource from "../demos/PopoverDemo.vue?raw";
 </script>
 
 <Demo title="Popover">

@@ -7,8 +7,8 @@ each host page re-deriving the spacing and alignment from scratch.
 
 <script setup lang="ts">
 import { FormActions } from "@ecoma-io/loom";
-import FormActionsDemo from "../../src/blocks/FormActions/FormActionsDemo.vue";
-import formActionsDemoSource from "../../src/blocks/FormActions/FormActionsDemo.vue?raw";
+import FormActionsDemo from "../demos/FormActionsDemo.vue";
+import formActionsDemoSource from "../demos/FormActionsDemo.vue?raw";
 </script>
 
 ## Usage

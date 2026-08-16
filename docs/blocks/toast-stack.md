@@ -10,8 +10,8 @@ it, and nothing short of composing the two together gets it right.
 
 <script setup lang="ts">
 import { ToastStack } from "@ecoma-io/loom";
-import ToastStackDemo from "../../src/blocks/ToastStack/ToastStackDemo.vue";
-import toastStackDemoSource from "../../src/blocks/ToastStack/ToastStackDemo.vue?raw";
+import ToastStackDemo from "../demos/ToastStackDemo.vue";
+import toastStackDemoSource from "../demos/ToastStackDemo.vue?raw";
 </script>
 
 ## Usage

@@ -4,7 +4,7 @@ import { defineComponent, h, nextTick, type VNode } from "vue";
 import Select, { type SelectOption } from "../src/Select.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { LIST_STAGGER_STEP_MS, listStaggerDelay } from "@ecoma-io/loom-core";
-import { attachToBody } from "../../../../src/testing/attach-to-body";
+import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
 
 const options: SelectOption[] = [
   { value: "en", label: "English" },
