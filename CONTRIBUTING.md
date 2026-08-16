@@ -16,7 +16,7 @@ belongs in that product.
 Two consequences, one in each direction:
 
 - **Consume before you hand-roll.** Before writing a generic control in a
-  product, read `src/index.ts` — it is the complete export list.
+  product, read `packages/loom/src/index.ts` — it is the complete export list.
 - **Graduate upstream.** A generic affordance drafted inside a product is in the
   wrong package. Build it here, then consume it there.
 
@@ -143,8 +143,8 @@ Two tiers live beside the source, distinguished by filename, and one lives apart
 
 | Tier            | File                                                      | What it may touch                                                                                                                 |
 | --------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Unit**        | `src/**/<Name>.test.ts`                                   | The unit alone. Every project-internal collaborator is stubbed; third-party libraries are not.                                    |
-| **Integration** | `src/**/<Name>.integration.test.ts`                       | Real collaborators — justified only when that interaction _is_ the behaviour being pinned. "Isolating it was annoying" never is.  |
+| **Unit**        | `packages/**/<Name>.test.ts`                              | The unit alone. Every project-internal collaborator is stubbed; third-party libraries are not.                                    |
+| **Integration** | `packages/**/<Name>.integration.test.ts`                  | Real collaborators — justified only when that interaction _is_ the behaviour being pinned. "Isolating it was annoying" never is.  |
 | **End-to-end**  | `e2e/**/<name>.e2e.ts` or `packages/**/e2e/<name>.e2e.ts` | A real browser, through Playwright. Root owns cross-cutting documentation checks; a component owns its specific browser evidence. |
 
 Two things a reviewer will check:

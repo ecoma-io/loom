@@ -45,7 +45,8 @@
  * ahead of it that moves the utilities out of their layer. Everything a reader
  * is looking at — tokens, components, variants — is still the library's; what
  * differs is a cascade position that exists to cancel VitePress, which no
- * consumer has. Nothing in `src/` changes, so the package is unaffected.
+ * consumer has. Nothing in the library's own stylesheets changes, so the
+ * package is unaffected.
  *
  * The one thing to watch on a Tailwind upgrade is that emit-once behaviour. If
  * a future version emits at every point instead, the layered copy comes back
@@ -56,11 +57,11 @@
  * Delete this line and the site still compiles, every test that does not read a
  * computed colour still passes, and every button on the site goes transparent. */
 @import "tailwindcss/utilities.css";
-@import "../../../src/styles/global.css";
+@import "../../../packages/theme-core/src/global.css";
 
-/* Loom's `global.css` registers `src/` as a scan target, which covers the
- * components. These are the site's own files — the markdown pages and the
- * theme's components — where the demos' classes are actually written. */
+/* Loom's `global.css` registers the packages as a scan target, which covers
+ * the components. These are the site's own files — the markdown pages and
+ * the theme's components — where the demos' classes are actually written. */
 @source "../../";
 
 /* ---- VitePress, wearing Loom's tokens -------------------------------------

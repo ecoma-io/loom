@@ -11,26 +11,27 @@ any one file will not tell you.
 
 ## What lives where
 
-| Path                   | What it holds                                                                                      |
-| ---------------------- | -------------------------------------------------------------------------------------------------- |
-| `src/primitives/`      | Generic controls, one directory per component                                                      |
-| `src/blocks/`          | Compositions of primitives, same shape                                                             |
-| `src/lib/`             | Internal helpers, not part of the public surface                                                   |
-| `src/styles/theme.css` | **The token source of truth** — every colour, radius, elevation and duration is declared once here |
-| `src/a11y.ts`          | `WCAG_TAGS`, the tag set the library holds itself to                                               |
-| `docs/`                | The VitePress site, which imports the library rather than describing it                            |
-| `e2e/`                 | Playwright, driving the _built_ site                                                               |
-| `tools/`               | Repository scripts, run from `package.json` and from CI                                            |
-| `.github/semgrep/`     | This repository's own analysis rules, with their fixtures beside them                              |
+| Path                        | What it holds                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `packages/primitives/`      | Generic controls, one directory per component                                   |
+| `packages/blocks/`          | Compositions of primitives, same shape                                          |
+| `packages/core/`            | `cn`, props merging, motion — the shared helpers components are built from      |
+| `packages/theme-core/`      | `theme.css` — **the token source of truth** — plus `global.css` and `fonts.css` |
+| `packages/loom/src/a11y.ts` | `WCAG_TAGS`, the tag set the library holds itself to                            |
+| `docs/`                     | The VitePress site, which imports the library rather than describing it         |
+| `e2e/`                      | Playwright, driving the _built_ site                                            |
+| `tools/`                    | Repository scripts, run from `package.json` and from CI                         |
+| `.github/semgrep/`          | This repository's own analysis rules, with their fixtures beside them           |
 
-`src/index.ts` is the complete public surface and says so in its own docblock, including
-the two things that deliberately are not in it.
+`packages/loom/src/index.ts` is the complete public surface and says so in its own docblock,
+including the two things that deliberately are not in it.
 
 ## Five artifacts per component, and a script that says so
 
-A component is not done when it renders. `src/<tier>/<Name>/` must carry `<Name>.vue`,
-`<Name>.test.ts` and `<Name>Demo.vue`; `docs/components/<name>.md` (or `docs/blocks/`)
-must exist and carry an `<!-- @api <Name> -->` marker; and `src/index.ts` must export it.
+A component is not done when it renders. `packages/<tier>/<name>/` must carry
+`src/<Name>.vue` and `tests/<Name>.test.ts`, with its demo in `docs/demos/` and a
+`docs/components/<name>.md` (or `docs/blocks/`) page carrying an `<!-- @api <Name> -->`
+marker; and `packages/loom/src/index.ts` must export it.
 
 `node tools/check-component-artifacts.ts` runs inside `pnpm lint` and fails naming each
 missing file. Every one of those failures is otherwise silent — a component nobody
@@ -44,9 +45,10 @@ Adding one: the `add-component` skill in `.claude/skills/` walks the whole seque
 `docs/.vitepress/theme/` imports the real components, so a page rendering one is a live
 demonstration of it. Two consequences that catch people out:
 
-- **Generated, never transcribed.** Token tables come from `src/styles/theme.css` via
-  `docs/.vitepress/plugins/design-tokens.ts`, and API tables from the component's own
-  `defineProps` via `docs/.vitepress/plugins/component-api.ts`. A value copied into a
+- **Generated, never transcribed.** Token tables come from
+  `packages/theme-core/src/theme.css` via `docs/.vitepress/plugins/design-tokens.ts`,
+  and API tables from the component's own `defineProps` via
+  `docs/.vitepress/plugins/component-api.ts`. A value copied into a
   markdown page is right on the day it is written and wrong afterwards, with nothing to
   warn you — prose cannot be type-checked.
 - **Those generated tables are raw HTML**, which markdown-it passes through as an
@@ -60,7 +62,8 @@ evidence, and stop it afterwards.
 
 ## One accessibility tag set, two readers
 
-`WCAG_TAGS` in `src/a11y.ts` is imported by the `axe` gate in `e2e/accessibility.e2e.ts`
+`WCAG_TAGS` in `packages/loom/src/a11y.ts` is imported by the `axe` gate in
+`e2e/accessibility.e2e.ts`
 **and** by the documentation site's accessibility page. The gate and the published claim
 are the same array by construction; widening or narrowing it moves both, which is the
 point and the reason it is a literal in neither.

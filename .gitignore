@@ -3,6 +3,12 @@ dist/
 coverage/
 .vite/
 
+# Declaration emit from `pnpm build`'s vue-tsc pass. With rootDir at the repo
+# root, declarations land under each source package's own `src/` — alongside
+# the source, but they are build output, not part of the checked-in tree.
+**/*.d.ts
+**/*.d.ts.map
+
 # Moonrepo local cache — task outputs, hash manifests, and CAS blobs.
 .moon/cache/
 

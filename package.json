@@ -51,8 +51,7 @@
       "default": "./dist/a11y.js"
     },
     "./theme": {
-      "types": "./dist/lib/theme.d.ts",
-      "default": "./dist/theme.js"
+      "default": "./dist/styles/theme.css"
     },
     "./styles/global.css": "./dist/styles/global.css",
     "./styles/theme.css": "./dist/styles/theme.css",

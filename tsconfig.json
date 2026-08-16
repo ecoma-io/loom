@@ -52,17 +52,16 @@
     // resolves them to source rather than to a built output. The `@ecoma-io/loom`
     // mapping covers the `import type` from `@ecoma-io/loom` in
     // `packages/labels/src/label-registry.ts` — it is type-only, so there is
-    // no runtime cycle despite the apparent one.
+    // no runtime cycle despite the apparent one. With the legacy `src/` tree
+    // gone, the facade and its `/a11y` subpath resolve to `packages/loom`.
     "paths": {
-      "@ecoma-io/loom": ["./src/index.ts"],
-      "@ecoma-io/loom/a11y": ["./src/a11y.ts"],
+      "@ecoma-io/loom": ["./packages/loom/src/index.ts"],
+      "@ecoma-io/loom/a11y": ["./packages/loom/src/a11y.ts"],
+      "@ecoma-io/loom/theme": ["./packages/core/src/theme.ts"],
       "@ecoma-io/loom-core": ["./packages/core/src/index.ts"],
       "@ecoma-io/loom-labels": ["./packages/labels/src/index.ts"],
       // Internal component packages. Each one is added as it migrates from src/
-      // to packages/<tier>/<name>/. The facade entry will replace the root
-      // @ecoma-io/loom mapping when the migration completes (Step 8).
-      "@ecoma-io/loom-facade": ["./packages/loom/src/index.ts"],
-      "@ecoma-io/loom-facade/a11y": ["./packages/loom/src/a11y.ts"],
+      // to packages/<tier>/<name>/.
       "@ecoma-io/loom-hover-card": ["./packages/primitives/hover-card/src/index.ts"],
       "@ecoma-io/loom-progress": ["./packages/primitives/progress/src/index.ts"],
       "@ecoma-io/loom-radial-progress": ["./packages/primitives/radial-progress/src/index.ts"],
@@ -156,13 +155,11 @@
       "@ecoma-io/loom-toast-stack": ["./packages/blocks/toast-stack/src/index.ts"]
     }
   },
-  // Everything that is type-checked, which is everything: components, tests,
-  // the documentation site and its build plugins, the repo's own tooling, and
-  // the foundation packages being extracted under packages/. A file outside
-  // this list is a file `pnpm typecheck` silently skips, so adding a top-level
-  // script means adding it here in the same commit.
+  // Everything that is type-checked, which is everything: packages, tests,
+  // the documentation site and its build plugins, and the repo's own tooling.
+  // A file outside this list is a file `pnpm typecheck` silently skips, so
+  // adding a top-level script means adding it here in the same commit.
   "include": [
-    "src/**/*",
     "packages/**/*",
     "e2e/**/*",
     "docs/**/*",

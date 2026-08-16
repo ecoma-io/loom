@@ -1,6 +1,6 @@
 # Colour
 
-`src/styles/theme.css` is the only place a colour is declared. Nothing in a
+`packages/theme-core/src/theme.css` is the only place a colour is declared. Nothing in a
 component is a literal hex or `hsl()` — every fill, border and text colour a
 component renders is one of the custom properties below, reached through a
 Tailwind utility (`bg-primary`, `text-muted-foreground`, `border-border`).

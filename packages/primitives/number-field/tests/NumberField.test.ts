@@ -5,7 +5,7 @@ import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vu
 import NumberField from "../src/NumberField.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
-import { attachToBody } from "../../../../src/testing/attach-to-body";
+import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
 
 function mountField(props: Partial<InstanceType<typeof NumberField>["$props"]> = {}) {
   return mount(NumberField, { props: { modelValue: 10, ...props } });

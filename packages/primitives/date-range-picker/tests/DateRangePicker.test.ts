@@ -5,7 +5,7 @@ import { getLocalTimeZone, today, type DateValue } from "@internationalized/date
 import DateRangePicker from "../src/DateRangePicker.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
-import { attachToBody } from "../../../../src/testing/attach-to-body";
+import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
 
 // The same jsdom gaps DatePicker's suite stubs, for the same reason: the panel
 // is portalled and Reka drives it with real pointer capture, focus and layout

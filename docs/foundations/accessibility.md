@@ -10,7 +10,7 @@ accessibility bug is filed and fixed as a bug, the same as any other.
 ## `WCAG_TAGS`
 
 ```ts
-// src/lib/a11y-scope.ts
+// packages/core/src/a11y-scope.ts
 export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] as const;
 ```
 
@@ -33,8 +33,8 @@ focus-not-obscured e2e tests cover what axe does not yet automate.
 ## Why it ships from `@ecoma-io/loom/a11y`
 
 ```ts
-// src/a11y.ts — the complete file
-export { WCAG_TAGS } from "./lib/a11y-scope";
+// packages/loom/src/a11y.ts
+export { WCAG_TAGS } from "@ecoma-io/loom-core";
 ```
 
 The package's main entry re-exports every component, which makes it
@@ -47,7 +47,7 @@ rest of the library.
 ## Focus rings are a promise
 
 ```css
-/* src/styles/global.css */
+/* packages/theme-core/src/global.css */
 :focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
