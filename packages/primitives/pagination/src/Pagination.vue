@@ -163,7 +163,13 @@ const { attrs, rest: navAttrs } = useSplitAttrs();
 // used.
 const edgeClass = cn(
   buttonVariants({ variant: "ghost", size: "icon-sm" }),
-  "disabled:cursor-not-allowed disabled:opacity-50",
+  // The edges assert `w-8`, a fixed 32px square, but they sit in a flex row
+  // with `flex-shrink: 1` and no min-width, so a row narrower than its content
+  // (a phone-width column) collapses them to the 16px chevron — a touch target
+  // below WCAG 2.5.8's 24px floor. The page numbers already floor themselves
+  // with `min-w-8`; the edges must refuse to shrink instead, leaving the row to
+  // overflow rather than ever compressing a control's own target.
+  "shrink-0 disabled:cursor-not-allowed disabled:opacity-50",
 );
 
 // The page buttons borrow Button's own variants rather than restating its
