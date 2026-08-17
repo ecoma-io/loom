@@ -63,7 +63,9 @@ withDefaults(
           <a
             :href="item.href"
             :class="
-              cn('text-muted-foreground hover:text-foreground transition-colors duration-fast')
+              cn(
+                'inline-flex min-h-6 items-center text-muted-foreground hover:text-foreground transition-colors duration-fast',
+              )
             "
           >
             {{ item.label }}

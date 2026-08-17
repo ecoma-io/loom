@@ -15,11 +15,17 @@ export const badgeVariants = cva(
       variant: {
         neutral: "border-transparent bg-subtle text-subtle-foreground",
         outline: "border-border bg-transparent text-muted-foreground",
-        primary: "border-transparent bg-primary/12 text-primary-text",
-        success: "border-transparent bg-success/12 text-success-text",
-        warning: "border-transparent bg-warning/12 text-warning",
-        info: "border-transparent bg-info/12 text-info-text",
-        destructive: "border-transparent bg-destructive/12 text-destructive-text",
+        // The tinted washes use the opaque `*-muted` tokens, not an alpha of
+        // the base hue: `bg-*-/12` composites against the surface behind it, so
+        // the same badge renders at 4.46:1 on `bg-card` and differently on
+        // `bg-sunken` — under the AA floor and inconsistent. `*-muted` is mixed
+        // to hold ≥4.5:1 against its own `*-text` in both themes (see
+        // theme.css), which is what these variants were named for.
+        primary: "border-transparent bg-primary-muted text-primary-text",
+        success: "border-transparent bg-success-muted text-success-text",
+        warning: "border-transparent bg-warning-muted text-warning",
+        info: "border-transparent bg-info-muted text-info-text",
+        destructive: "border-transparent bg-destructive-muted text-destructive-text",
         accent: "border-accent/40 bg-accent-muted text-accent-text",
       } satisfies Record<BadgeVariant, string>,
     },

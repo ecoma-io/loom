@@ -22,10 +22,12 @@ export type ChipSize = "sm" | "md";
  * interactive node — see the docblock below for why that separation is the
  * whole component.
  *
- * Selection is a state the fill *deepens*; it is never the fill alone that
- * says so. Every selected chip also carries `aria-pressed="true"` and a check
- * glyph, which is what keeps the signal legible to a reader who cannot resolve
- * a 12% wash from a 20% one.
+ * Selection is a state the *edges* deepen: the hue-carrying variants draw a
+ * stronger border around the wash they already sit in, the hueless ones swap
+ * their fill for the primary wash. It is never any one signal alone that says
+ * so — every selected chip also carries `aria-pressed="true"` and a check
+ * glyph, which is what keeps the state legible to a reader who cannot resolve
+ * a deepened edge from a resting one.
  */
 export const chipVariants = cva(
   [
@@ -56,17 +58,30 @@ export const chipVariants = cva(
         // The hue-carrying variants deepen their own hue instead of jumping to
         // the primary: a reader picked this chip *because* it is the destructive
         // one, and swapping its colour on selection would throw that away.
+        // The tinted washes use the opaque `*-muted` tokens, not an alpha of
+        // the base hue: `bg-*-/12` composites against the surface behind it, so
+        // a chip renders at 4.46:1 on `bg-card` and differently on `bg-sunken`
+        // — under the AA floor and inconsistent. `*-muted` is mixed to hold
+        // ≥4.5:1 against its own `*-text` in both themes (see theme.css),
+        // which is what these variants were named for.
+        //
+        // Selection deepens the border, not the fill: a `data-[selected]:bg-*-/20`
+        // over the wash drops the text to ~4.2:1 in light mode (success, warning,
+        // info, destructive), below the same floor the unselected state holds.
+        // `*-muted` is the theme's "selected/active fill" anyway, so the state is
+        // carried by the deeper border, the check glyph and `aria-pressed` — the
+        // signals the docblock below already names as what makes selection legible.
         primary:
-          "border-transparent bg-primary/12 text-primary-text data-[selected]:border-primary/45 data-[selected]:bg-primary/20",
+          "border-transparent bg-primary-muted text-primary-text data-[selected]:border-primary/45",
         success:
-          "border-transparent bg-success/12 text-success-text data-[selected]:border-success/45 data-[selected]:bg-success/20",
+          "border-transparent bg-success-muted text-success-text data-[selected]:border-success/45",
         warning:
-          "border-transparent bg-warning/12 text-warning data-[selected]:border-warning/45 data-[selected]:bg-warning/20",
-        info: "border-transparent bg-info/12 text-info-text data-[selected]:border-info/45 data-[selected]:bg-info/20",
+          "border-transparent bg-warning-muted text-warning data-[selected]:border-warning/45",
+        info: "border-transparent bg-info-muted text-info-text data-[selected]:border-info/45",
         destructive:
-          "border-transparent bg-destructive/12 text-destructive-text data-[selected]:border-destructive/45 data-[selected]:bg-destructive/20",
+          "border-transparent bg-destructive-muted text-destructive-text data-[selected]:border-destructive/45",
         accent:
-          "border-accent/40 bg-accent-muted text-accent-text data-[selected]:border-accent/70 data-[selected]:bg-accent/20",
+          "border-accent/40 bg-accent-muted text-accent-text data-[selected]:border-accent/70",
       } satisfies Record<ChipVariant, string>,
       size: {
         sm: "h-8 text-xs",

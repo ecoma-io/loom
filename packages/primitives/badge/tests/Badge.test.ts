@@ -6,11 +6,11 @@ describe("Badge", () => {
   it("paints each status variant in its own semantic token so a warning chip never reads as a success one", () => {
     const tokens: readonly (readonly [BadgeVariant, string])[] = [
       ["neutral", "bg-subtle"],
-      ["primary", "bg-primary/12"],
-      ["success", "bg-success/12"],
-      ["warning", "bg-warning/12"],
-      ["info", "bg-info/12"],
-      ["destructive", "bg-destructive/12"],
+      ["primary", "bg-primary-muted"],
+      ["success", "bg-success-muted"],
+      ["warning", "bg-warning-muted"],
+      ["info", "bg-info-muted"],
+      ["destructive", "bg-destructive-muted"],
     ];
     for (const [variant, token] of tokens) {
       const wrapper = mount(Badge, { props: { variant }, slots: { default: "3" } });
@@ -21,8 +21,8 @@ describe("Badge", () => {
   it("falls back to the neutral chip when no variant is given, so an unclassified label never borrows a status colour", () => {
     const classes = mount(Badge, { slots: { default: "3" } }).classes();
     expect(classes).toContain("bg-subtle");
-    expect(classes).not.toContain("bg-success/12");
-    expect(classes).not.toContain("bg-destructive/12");
+    expect(classes).not.toContain("bg-success-muted");
+    expect(classes).not.toContain("bg-destructive-muted");
   });
 
   it("carries the accent colour on the accent variant and on no other — a second semantic category is signalled, never decorative", () => {
