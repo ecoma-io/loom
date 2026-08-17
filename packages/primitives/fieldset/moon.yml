@@ -1,3 +1,7 @@
+deps:
+  - "core"
+  - "labels"
+  - "inline-error"
 project:
   name: "fieldset"
   description: "Fieldset primitive — grouped form fields with legend"

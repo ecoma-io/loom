@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "dropdown-menu"
   description: "DropdownMenu primitive — button-activated command list"

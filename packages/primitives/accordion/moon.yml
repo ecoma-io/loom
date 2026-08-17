@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "accordion"
   description: "Accordion primitive — vertically collapsing content panels"

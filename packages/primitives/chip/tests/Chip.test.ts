@@ -32,7 +32,7 @@ describe("Chip", () => {
     expect(wrapper.get("button").attributes("aria-pressed")).toBe("true");
   });
 
-  it("shows a check glyph alongside the deepened fill, so selection never rides on colour alone", async () => {
+  it("shows a check glyph alongside the selection's border and fill changes, so selection never rides on colour alone", async () => {
     const wrapper = mount(Chip, { props: { selected: true }, slots: { default: "Overdue" } });
     expect(wrapper.find("svg").exists()).toBe(true);
     expect(wrapper.attributes("data-selected")).toBe("true");
@@ -164,11 +164,11 @@ describe("Chip", () => {
   it("paints each variant in the same semantic token Badge uses, so a chip and a badge never disagree", () => {
     const tokens: readonly (readonly [ChipVariant, string])[] = [
       ["neutral", "bg-subtle"],
-      ["primary", "bg-primary/12"],
-      ["success", "bg-success/12"],
-      ["warning", "bg-warning/12"],
-      ["info", "bg-info/12"],
-      ["destructive", "bg-destructive/12"],
+      ["primary", "bg-primary-muted"],
+      ["success", "bg-success-muted"],
+      ["warning", "bg-warning-muted"],
+      ["info", "bg-info-muted"],
+      ["destructive", "bg-destructive-muted"],
       ["accent", "bg-accent-muted"],
     ];
     for (const [variant, token] of tokens) {

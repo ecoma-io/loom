@@ -1,16 +1,38 @@
 # Shared task for the root cross-cutting suite and primitives that own browser
-# evidence. Both drive the VitePress dogfood site, so each task runs from the
-# workspace root and shares this mutex rather than racing for preview port 4173.
+# evidence.
+#
+# Two configs share the `e2e` task name:
+# - a component project (tag `e2e`) runs its own specs under
+#   `packages/<tier>/<name>/e2e/` through the lightweight harness — a Vite dev
+#   server mounting the component's demo, no docs build. The command below
+#   drives that config.
+# - the root `e2e` project runs the cross-cutting suite against the built docs
+#   site, so it overrides `e2e` with the root config explicitly (`playwright
+#   test --config playwright.config.ts`).
+# The mutex serialises them: both boot a server on a fixed port, and two such
+# servers at once would fight.
 inheritedBy:
   tags: e2e
 
+# `$projectRoot/e2e` scopes a component's run to its own specs. Without it the
+# harness config's own testMatch (`**/packages/**/e2e/*.e2e.ts`) collects every
+# e2e-tagged component's specs at once, so a button change would run the whole
+# suite — the exact over-collection this affected model exists to avoid.
+# The shared task's args append the harness axe gate, because Playwright's
+# positional args override the config's testMatch, and the gate file lives in
+# `playwright/harness/`, outside `$projectRoot/e2e`. `MOON_PROJECT_ID` (injected
+# by moon, the kebab project id — button, alert-dialog, …) is what tells the
+# gate which demo to sweep, since the moon run has no `matrix.demos` to pass.
 tasks:
   e2e:
-    command: "playwright test"
+    command: "playwright test --config playwright/harness/playwright.config.ts"
     options:
       cache: false
-      runInCI: affected
+      runInCI: skip
       runFromWorkspaceRoot: true
       mutex: docs-preview
       # E2E is slow and non-deterministic enough that caching is unsafe.
       timeout: 300
+    args:
+      - "$projectRoot/e2e"
+      - "playwright/harness/accessibility.e2e.ts"

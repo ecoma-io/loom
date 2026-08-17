@@ -192,7 +192,7 @@ export default tseslint.config(
   // nobody ran — a focused test that silences its siblings, and a skipped one
   // that silences itself — plus assertions that can never fail.
   {
-    files: ["packages/**/*.test.ts", "e2e/**/*.e2e.ts"],
+    files: ["packages/**/*.test.ts", "e2e/**/*.e2e.ts", "playwright/harness/**/*.e2e.ts"],
     plugins: { vitest },
     rules: {
       ...vitest.configs.recommended.rules,
@@ -212,7 +212,7 @@ export default tseslint.config(
   },
 
   {
-    files: ["e2e/**/*.e2e.ts"],
+    files: ["e2e/**/*.e2e.ts", "playwright/harness/**/*.e2e.ts"],
     ...playwright.configs["flat/recommended"],
   },
 

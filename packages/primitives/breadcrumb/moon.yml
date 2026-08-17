@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "breadcrumb"
   description: "Breadcrumb primitive — hierarchical navigation trail"

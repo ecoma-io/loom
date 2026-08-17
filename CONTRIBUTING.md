@@ -46,14 +46,45 @@ yourself bumping it by hand, that is the reason not to.
 
 ## The commands
 
-| Command             | What it does                                                                                                    |
-| ------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `pnpm lint`         | ESLint, with type information, zero warnings tolerated                                                          |
-| `pnpm typecheck`    | `tsc --noEmit` — the build strips types without checking them, so this is the only place a type error is caught |
-| `pnpm test`         | Vitest, unit and integration                                                                                    |
-| `pnpm e2e`          | Playwright, in a real browser                                                                                   |
-| `pnpm format`       | Prettier, in place                                                                                              |
-| `pnpm format:check` | Prettier, read-only — what CI runs                                                                              |
+| Command             | What it does                                                                                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`         | ESLint, with type information, zero warnings tolerated                                                                                                            |
+| `pnpm typecheck`    | `vue-tsc --noEmit` — checks SFCs too (tsc alone cannot parse them); also the only place a type error is caught since the build strips types without checking them |
+| `pnpm test`         | Vitest, unit and integration — the **whole repository**. CI runs it on the merge queue and pushes to `main`                                                       |
+| `pnpm test:full`    | Alias of `pnpm test` — the full suite with coverage thresholds, the way `pnpm e2e:full` is the full browser spread                                                |
+| `pnpm e2e`          | Playwright, in a real browser — default `standard` profile (Chromium, Firefox, WebKit) against the built site                                                     |
+| `pnpm e2e:full`     | The whole browser matrix — all five projects (desktop + mobile engines) — for when the wide evidence is needed                                                    |
+| `pnpm format`       | Prettier, in place                                                                                                                                                |
+| `pnpm format:check` | Prettier, read-only — what CI runs                                                                                                                                |
+
+### Affected workflows
+
+Loom's CI runs whatever a change affects, not everything on every pull request.
+Moon owns the per-package test and component-E2E tasks; the boundary between a
+small closed change and a repository-wide investigation is the dependency graph.
+
+- `moon :test --affected` — the unit + integration tests of the projects this
+  branch directly touches. The base is picked by `MOON_BASE`, the same env `moon
+ci --base` uses.
+- `MOON_BASE=<ref> node --experimental-strip-types tools/affected-tests.ts` — the
+  same tests, closed over the dependency graph: the projects above plus the
+  transitive dependents a shared change reaches (a `core` edit re-runs every
+  consumer, however many edges down). Moon's own `--affected` selects only
+  directly-changed projects, so this tool is how the unit side gets the same
+  transitive closure the browser side computes (`--downstream deep` in
+  `tools/e2e-plan.ts`). CI runs it after `moon ci`.
+- `moon :e2e --affected` — same, for the projects that own browser evidence
+  (`tags: [e2e]`).
+- `pnpm exec moon ci --base <ref>` — the whole affected pipeline: lint, build,
+  test and component E2E, cached per project and keyed by the graph. On the
+  test and E2E sides it runs the directly-changed projects; the dependents are
+  covered by the two closure tools above.
+
+The full guarantees above are still enforced — just only when the whole
+repository is the appropriate object: `pnpm test` on the merge queue and pushes,
+and `pnpm e2e:full` on demand, on the nightly/release path, or before merging a
+change that edits browser-shared infrastructure (`playwright/`, the harness, or
+the root config).
 
 Before you push, run all of them. A shorter local run just moves the red to the
 pull request.
@@ -147,6 +178,19 @@ Two tiers live beside the source, distinguished by filename, and one lives apart
 | **Integration** | `packages/**/<Name>.integration.test.ts`                  | Real collaborators — justified only when that interaction _is_ the behaviour being pinned. "Isolating it was annoying" never is.  |
 | **End-to-end**  | `e2e/**/<name>.e2e.ts` or `packages/**/e2e/<name>.e2e.ts` | A real browser, through Playwright. Root owns cross-cutting documentation checks; a component owns its specific browser evidence. |
 
+### The two browser configurations
+
+Component-owned E2E never pays for VitePress. Two Playwright configs share the
+browser profiles:
+
+- **Root** (`playwright.config.ts`) runs the cross-cutting suite — accessibility,
+  contrast, target-size, keyboard, focus-not-obscured, responsive — against the
+  **built** documentation site. `pnpm e2e` drives this.
+- **Harness** (`playwright/harness/playwright.config.ts`) mounts one demo per
+  component through a Vite dev server in seconds. A component's `e2e/*.e2e.ts`
+  runs against this when its `moon.yml` carries `tags: [e2e]`, so a small
+  component change gets browser evidence without a full docs build.
+
 Two things a reviewer will check:
 
 - **A test pins intent, not just current output.** If the logic that matters
@@ -158,10 +202,12 @@ Never commit a focused or skipped test. `it.only` silences the rest of the suite
 while still reporting green; `it.skip` reports green for something nobody ran.
 An unimplemented case is `it.todo`, which is visible.
 
-`pnpm e2e` defaults to the desktop `standard` profile (Chromium, Firefox and
-WebKit). Package-owned E2E tasks default to Chromium `smoke`; use
-`PW_PROFILE=mobile` for the two phone engines or `PW_PROFILE=full` for every
-configured browser when a change needs that wider evidence.
+`pnpm e2e` runs the root suite at the desktop `standard` profile (Chromium,
+Firefox and WebKit). The harness defaults to Chromium-only `smoke`; a component
+that needs wider engine evidence raises `PW_PROFILE` in its own moon `e2e` task.
+Use `PW_PROFILE=mobile` for the two phone engines or `PW_PROFILE=full` for every
+configured browser — `pnpm e2e:full` is that last one, and it is the command to
+reach for when a change edits the browsers or the harness themselves.
 
 ## The rules Semgrep enforces
 

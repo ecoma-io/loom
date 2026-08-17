@@ -1,9 +1,10 @@
 import { test, expect, type Locator } from "@playwright/test";
 
 // jsdom runs no native Tab-key behaviour, so the unit suite cannot prove the
-// browser's actual focus trap or restoration. The docs site is the real
-// consumer surface, and the size-gallery instance is the one with enough stops
-// to demonstrate wrapping rather than merely trapping a single close control.
+// browser's actual focus trap or restoration. Where the docs site used to be
+// the consumer surface for that, the harness now mounts the same demo through
+// a Vite dev server — the component, its real public API, and the browser's own
+// focus machinery, without a site build.
 
 /** A fingerprint stable enough to prove the same control across two reads. */
 async function identify(locator: Locator): Promise<string> {
@@ -15,9 +16,10 @@ async function identify(locator: Locator): Promise<string> {
 test("Dialog traps real Tab focus inside the panel, wraps at both ends, and restores focus to the trigger on Escape", async ({
   page,
 }) => {
-  await page.goto("components/dialog");
-  // `.last()`: the intro's duplicate trigger has no footer and therefore cannot
-  // show a meaningful wrap through more than one focusable control.
+  await page.goto("/?component=dialog");
+  // `.last()`: the raw string is also on the settings and authoring dialogs'
+  // triggers, and the confirm one is the gallery's focusable instance. The
+  // intro duplicate is absent from the harness mount, so the sole match works.
   const trigger = page.getByRole("button", { name: "Delete scene" }).last();
   await trigger.click();
 

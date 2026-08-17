@@ -70,8 +70,8 @@ async function dragTowardEdge(page: Page, panel: Locator, edge: "right" | "botto
 }
 
 test("a drag on the panel body toward the anchored edge dismisses a drawer", async ({ page }) => {
-  await page.goto("components/drawer");
-  await page.getByRole("button", { name: "Open detail" }).click();
+  await page.goto("/?component=drawer");
+  await page.getByRole("button", { name: "Detail (right, md)" }).click();
 
   const panel = page.locator('[role="dialog"]');
   await expect(panel).toBeVisible();
@@ -87,7 +87,7 @@ test("a drag on the panel body toward the anchored edge dismisses a drawer", asy
 test("a non-dismissible drawer declines the same drag — dismissible=false covers the swipe", async ({
   page,
 }) => {
-  await page.goto("components/drawer");
+  await page.goto("/?component=drawer");
   await page.getByRole("button", { name: "Edit caption (bottom sheet)" }).click();
 
   const panel = page.locator('[role="dialog"]');

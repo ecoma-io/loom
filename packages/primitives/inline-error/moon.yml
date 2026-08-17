@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "inline-error"
   description: "InlineError primitive — compact validation message"

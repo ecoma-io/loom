@@ -1,3 +1,7 @@
+deps:
+  - "core"
+  - "labels"
+  - "button"
 project:
   name: "editable"
   description: "Editable primitive — inline text editing"

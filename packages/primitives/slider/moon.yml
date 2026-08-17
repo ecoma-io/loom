@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "labels"
 project:
   name: "slider"
   description: "Slider primitive — continuous bounded value control"

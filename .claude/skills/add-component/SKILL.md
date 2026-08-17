@@ -117,6 +117,17 @@ Each component is a Moon project. These three files are needed:
     # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
   ```
 
+  If the component's package.json lists any `@ecoma-io/loom-*` workspace
+  dependencies, mirror them into the moon `deps:` block — the cross-component
+  affected graph is driven by those edges, so a change to a dependency must mark
+  this component's tests and (if it owns them) browser specs affected too. The
+  mechanical sync for already-landed components is `node
+tools/sync-moon-deps.ts --fix`; hand-add a `# preserved` line for an edge
+  `package.json` cannot express (theme-core is the canonical one). If the
+  component has interactive behaviour that only a browser can prove, add
+  `tags: [e2e]` — that opts it into the shared e2e task, which runs through the
+  lightweight harness, not VitePress.
+
 - Add the path alias in `tsconfig.json` under `paths`:
 
   ```json
@@ -151,16 +162,33 @@ the old exclusions used to be before you consider adding one.
 ## 4. Run the gate
 
 ```bash
-pnpm lint        # includes tools/check-component-artifacts.ts, which names any missing artifact
+pnpm lint        # includes tools/check-component-artifacts.ts AND tools/check-architecture.ts
 pnpm typecheck
-pnpm test
 pnpm docs:build
-pnpm e2e
+MOON_BASE=<base> node --experimental-strip-types tools/affected-tests.ts
+                 # your project's tests plus its dependents' — the same closure
+                 # the e2e plan computes (Moon's own --affected is direct-only)
 ```
 
-`pnpm e2e` builds the site and drives it in Chromium, Firefox and WebKit. It is the only
-place a runtime-only regression can surface, and some of its checks are meaningful only
-outside Chromium — see the root `CLAUDE.md`.
+For interactive behaviour that owns browser evidence, the affected e2e is the
+same shape:
+
+```bash
+pnpm exec moon :e2e --affected    # your component's specs, through the harness
+```
+
+`check-architecture.ts` in `pnpm lint` keeps three things mechanically true that
+the five-artifact check cannot see: the moon `deps:` blocks equal the
+package.json workspace deps, no `@ecoma-io/loom` facade import appears inside
+`packages/*/src` (the one documented exception is `packages/labels`, type-only),
+and every `packages/**/e2e/*.e2e.ts` lives in a project tagged `e2e`. A component
+that imports a sibling needs its moon `deps:` edge first or that gate — and the
+affected graph — will be wrong.
+
+The full browser suite (`pnpm e2e`, the built docs site in Chromium, Firefox and
+WebKit) is worth running before a risky merge, but the affected harness is the
+fast loop: a component change proves its own spec in seconds without a
+`docs:build`.
 
 ## Renaming or removing one
 

@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "labels"
 project:
   name: "indicator"
   description: "Indicator primitive — a presence dot or count pill pinned onto content"

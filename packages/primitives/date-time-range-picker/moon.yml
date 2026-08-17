@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "labels"
 project:
   name: "date-time-range-picker"
   description: "DateTimeRangePicker primitive — combined date+time range selection"

@@ -22,7 +22,7 @@ import { test, expect } from "@playwright/test";
 test("a Loom stepper exposes exactly one live region, and its words are Loom's", async ({
   page,
 }) => {
-  await page.goto("components/stepper");
+  await page.goto("/?component=stepper");
 
   const stepper = page.locator("[data-loom-stepper]").first();
   await expect(stepper).toBeVisible();
@@ -44,7 +44,7 @@ test("a Loom stepper exposes exactly one live region, and its words are Loom's",
 test("advancing the flow repaints the one live region rather than leaving it on the old step", async ({
   page,
 }) => {
-  await page.goto("components/stepper");
+  await page.goto("/?component=stepper");
 
   const stepper = page.locator("[data-loom-stepper]").first();
   const live = stepper.locator("[data-loom-live]");

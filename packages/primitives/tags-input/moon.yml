@@ -1,3 +1,8 @@
+deps:
+  - "core"
+  - "labels"
+  - "chip"
+  - "field"
 project:
   name: "tags-input"
   description: "TagsInput primitive — multi-value token input"

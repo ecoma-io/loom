@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "speed-dial"
   description: "SpeedDial primitive — expanding fan of quick actions"

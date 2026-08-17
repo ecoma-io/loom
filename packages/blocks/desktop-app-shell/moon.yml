@@ -1,3 +1,8 @@
+deps:
+  - "core"
+  - "menubar"
+  - "title-bar"
+  - "window-controls"
 project:
   name: "desktop-app-shell"
   description: "Migrated block component"

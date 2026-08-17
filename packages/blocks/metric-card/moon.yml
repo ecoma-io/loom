@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "metric-card"
   description: "Migrated block component"

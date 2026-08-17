@@ -22,6 +22,8 @@ any one file will not tell you.
 | `e2e/`                      | Playwright, driving the _built_ site                                            |
 | `tools/`                    | Repository scripts, run from `package.json` and from CI                         |
 | `.github/semgrep/`          | This repository's own analysis rules, with their fixtures beside them           |
+| `playwright/`               | The component E2E harness — mounts one demo via Vite, no VitePress build        |
+| `playwright/profiles.ts`    | The browser profiles, single-sourced to the two Playwright configs              |
 
 `packages/loom/src/index.ts` is the complete public surface and says so in its own docblock,
 including the two things that deliberately are not in it.
@@ -59,6 +61,42 @@ demonstration of it. Two consequences that catch people out:
 
 `pnpm docs:dev` is a long-running server. Start it only when a task needs runtime
 evidence, and stop it afterwards.
+
+## Two browser suites, one matrix
+
+Component evidence and the site-wide quality sweeps run through two different
+Playwright configs that share `playwright/profiles.ts`:
+
+- **Root** (`playwright.config.ts`) — the cross-cutting suite (`e2e/`: axe,
+  contrast, target-size, keyboard, focus-not-obscured, responsive) against the
+  **built** site. `pnpm e2e` is this, and it is what a prose change still needs.
+- **Harness** (`playwright/harness/`) — mounts `docs/demos/<X>Demo.vue` via a
+  Vite dev server in seconds. A component's `e2e/*.e2e.ts` runs here, so its
+  browser evidence never pays for VitePress.
+
+Which legs run on a pull request is decided by `tools/e2e-plan.ts` (a pure
+function of the changed file set), consumed by the `e2e-discover` → `e2e-run`
+jobs in `.github/workflows/ci.yml`. The scenarios it classifies are documented
+at the top of that tool; the short version is that a component change runs only
+the affected components' own specs at `smoke` (a component without own specs
+still has its demo swept by the harness axe gate, so a Badge.vue edit costs one
+chromium leg, not the whole-repo sweep), a docs or theme change runs the root
+sweep, an infra change runs everything, and nothing relevant runs nothing.
+The full matrix (`PW_PROFILE=full`, all five browser projects) stays available
+for a change that edits `playwright/` itself, the harness, or the root config —
+and is what `pnpm e2e:full` runs.
+
+The unit-test side gets the same affected boundary from
+`tools/affected-tests.ts` — Moon's own `--affected` selects only directly-changed
+projects, so a button edit would otherwise prove button's tests but not
+alert-dialog's; the tool closes that closure transitively by running the same
+Moon `test` tasks over the `--downstream deep` set `tools/e2e-plan.ts` computes.
+CI runs it after `moon ci`.
+
+Moon owns the affected-boundary of this: package graphs are real moon `deps:`
+(see `tools/sync-moon-deps.ts`, with `# preserved` for hand-declared edges that
+`package.json` cannot express), so `moon :e2e --affected` and `moon ci --base`
+walk the true dependency closure rather than a flat list.
 
 ## One accessibility tag set, two readers
 

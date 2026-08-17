@@ -1,5 +1,23 @@
+deps:
+  - "core"
+  - "labels"
+  - "button"
+tags: ["e2e"]
 project:
   name: "alert-dialog"
   description: "AlertDialog primitive — modal confirmation requiring explicit action"
 tasks:
   # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  e2e:
+    # Runs this component's own browser evidence through the lightweight
+    # harness (playwright/harness/playwright.config.ts), which mounts the
+    # demo via a Vite dev server — no docs build. `runInCI: skip`: the
+    # dedicated e2e matrix job owns component browser evidence on PRs; moon ci
+    # in verify never runs it, so verify does not need browsers installed.
+    # `moon run :e2e --affected` still fires it, scoped to this component's
+    # own e2e dir.
+    options:
+      runInCI: skip
+    args: ["packages/primitives/alert-dialog/e2e"]
+    env:
+      PW_PROFILE: "smoke"

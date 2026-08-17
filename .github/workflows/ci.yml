@@ -184,26 +184,58 @@ jobs:
       # `pnpm lint` also ran `tools/check-component-artifacts.ts` — the
       # five-artifacts-per-component gate — which has no moon task. It is
       # hoisted out of the lint script into its own step so a component's
-      # artifacts are checked on every run, not just the local one.
+      # artifacts are checked on every run, not just the local one. The same
+      # goes for `tools/check-architecture.ts`, which keeps the Moon dependency
+      # graph, the facade-import boundary and the component-E2E ownership rules
+      # mechanically enforced rather than review-recalled.
       - name: Check component artifacts
         run: node tools/check-component-artifacts.ts
 
+      - name: Check architecture
+        run: node --experimental-strip-types tools/check-architecture.ts
+
       - name: Moon affected lint and build
         run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
+
+      # `moon ci` selects the directly-changed projects for their tasks — the
+      # dependent's tests do not run (see tools/affected-tests.ts). A button
+      # edit proves button's 8 tests but not alert-dialog's, whose suite mounts
+      # the very button that changed. The e2e side closes that closure already;
+      # this step gives the unit suite the same coverage by re-driving the same
+      # Moon test tasks over the downstream-closed set — a cache no-op for the
+      # projects moon ci just ran, fresh tests only for the dependents.
+      - name: Affected unit-test closure
+        env:
+          MOON_BASE: ${{ steps.base.outputs.base }}
+        run: node --experimental-strip-types tools/affected-tests.ts
 
       # The type-check is a repository-wide verdict and moon ci no longer runs
       # it (see .moon/tasks/typecheck.yml) — the shared moon typecheck task is
       # per-project, and running a whole-repo vue-tsc once per affected project
       # is what pushed verify past its timeout on a fresh runner with no moon
       # cache. It is gated here as the one global pass `pnpm typecheck` was
-      # always meant to be, the same way `pnpm test` gates the whole-repo
-      # vitest suite below.
+      # always meant to be, the same way the full vitest suite is gated on the
+      # merge queue and pushes.
       - run: pnpm typecheck
 
-      - run: pnpm test
+      # The whole-repo unit suite has moved off the pull-request path: `moon ci`
+      # above already runs the affected projects' tests, with cross-component
+      # imports now real moon deps (see tools/sync-moon-deps.ts), so a component
+      # change proves its own tree's tests rather than all ~90 projects'. Vitest
+      # re-runs those same files again here on every PR — that was the fixed
+      # ~204s global suite the Phase 2 brief removed.
+      #
+      # The full suite is instead gated where it is the *reason for existing*:
+      # the merge queue runs checks against `main + every PR ahead + this one`,
+      # which is the only place two independently-green PRs can turn out to have
+      # conflicting unit expectations, and a push to main re-proves the whole
+      # repository on the commit that will be released.
+      - name: Full repository unit suite (merge queue and pushes only)
+        if: github.event_name != 'pull_request'
+        run: pnpm test
 
       # The route, and not the build. A page that fails to build is still
-      # caught before the merge — every `e2e` leg builds the site through
+      # caught before the merge — every root `e2e` leg builds the site through
       # Playwright's `webServer`, so the build already runs once per leg in
       # this same run, and building it again here re-proved what those had
       # proved. What no leg does is run `docs:stage`: nothing else before a
@@ -217,47 +249,83 @@ jobs:
       # that passes and then fails copying a directory nobody made.
       - run: pnpm docs:check-route
 
-  e2e:
-    name: End-to-end (${{ matrix.project }}, shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
+  # One discovery step replaces the fixed 3-browser × 8-shard matrix. `e2e-plan`
+  # classifies what actually changed (see tools/e2e-plan.ts) and emits the exact
+  # set of browser workloads the run needs: a docs-only change runs the axe
+  # sweep at `standard`, a component change runs only the affected components'
+  # own specs through the harness at `smoke`, a theme change runs both the sweep
+  # and the theme-sensitive components, and a no-op (nothing relevant changed)
+  # emits an empty `include` — `e2e-run` expands to zero legs and passes.
+  #
+  # The base is the same one `verify` resolves: on a pull request it is the
+  # merge commit this branch will land on, on a push to main the commit it grew
+  # from, and the `HEAD~1 || HEAD` fallback covers the very first commit.
+  e2e-discover:
+    name: E2E discovery
     runs-on: ubuntu-latest
-    # Dark-mode contrast and accessibility sweeps double the test count (every
-    # page in both light and dark). Eight shards keep each job well under the
-    # ceiling even on Firefox — the slowest engine — with retries factored in.
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # `e2e-plan` diffs the branch against the base, so that base and every
+          # commit since it must be present locally — the same full-history price
+          # `verify` pays.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+
+      # `tools/e2e-plan.ts` imports only node: built-ins, but it resolves the
+      # affected set by shelling out to `moon` (`pnpm exec moon query projects
+      # --affected`), which resolves through `node_modules/` — so the install is
+      # required and deliberate, not skipped.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Resolve affected base
+        id: base
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$PR_BASE" != "" ]; then
+            echo "base=$PR_BASE" >> "$GITHUB_OUTPUT"
+          elif [ "${PUSH_BEFORE//0/}" != "" ]; then
+            echo "base=$PUSH_BEFORE" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
+      # `e2e-plan` resolves the affected set against the base itself; the step
+      # above only supplies that base. The tool prints the full report (scenario,
+      # changed count, affected ids and the rows); the matrix consumes only the
+      # `include` array, so the diagnostic fields never leak into a leg.
+      - name: Compute the E2E matrix
+        id: plan
+        env:
+          MOON_BASE: ${{ steps.base.outputs.base }}
+        run: |
+          node --experimental-strip-types tools/e2e-plan.ts --print > matrix.json
+          NODE=$(node -e 'const m=require("./matrix.json"); process.stdout.write(JSON.stringify(m.include))')
+          echo "matrix=$NODE" >> "$GITHUB_OUTPUT"
+
+  e2e-run:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: e2e-discover
     timeout-minutes: 15
     strategy:
-      # The three engines are the point. Cancelling Firefox and WebKit because
-      # Chromium went red would answer "something broke" and hide whether the
-      # break is engine-specific — which is the first thing anyone asks, and the
-      # only question three separate legs are here to answer.
+      # One battery failing in engine A must not hose the other engines' answer
+      # to "is the break engine-specific?" — the question the browser spread
+      # exists to answer.
       fail-fast: false
       matrix:
-        # Chromium alone in the merge queue. A rendering or engine difference
-        # that only shows in Firefox or WebKit is a property of the change
-        # itself, and the pull-request run already exercised all three against
-        # it; what the queue is testing is whether the changes still agree with
-        # each other, which one engine answers. The push to main re-runs all
-        # three.
-        #
-        # Written as the matrix rather than as `exclude` because `ci-gate`
-        # treats a skipped dependency as a failure: the reduction has to leave
-        # a leg that actually runs, and a one-element matrix does, where a job
-        # made conditional would not.
-        #
-        # These strings are Playwright's own browser names as well as the
-        # project names in `playwright.config.ts` — `--project` and
-        # `playwright install` below are both fed from here, and both would
-        # break if a project were ever renamed to something Playwright does not
-        # recognise as a browser.
-        project: ${{ github.event_name == 'merge_group' && fromJSON('["chromium"]') || fromJSON('["chromium", "firefox", "webkit"]') }}
-        # Playwright's `--shard` splits the test list at individual-test
-        # granularity (the config already sets `fullyParallel: true`), so each
-        # shard gets roughly the same number of tests. Eight shards bring the
-        # per-job count from ~625 to ~78 per browser. Dark-mode contrast and
-        # accessibility sweeps double the test count (every page tested in both
-        # light and dark), so the heavier shards need more shards to stay under
-        # the timeout even on Firefox with retries factored in.
-        shardIndex: [1, 2, 3, 4, 5, 6, 7, 8]
-        shardTotal: [8]
+        include: ${{ fromJSON(needs.e2e-discover.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -272,36 +340,41 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Browser binaries are the slowest thing in this workflow and they change
-      # only when Playwright does — which, in a lockfile-pinned repository,
-      # means only when the lockfile does.
-      #
-      # Keyed per browser because a leg now installs only its own. Under one
-      # shared key the legs race to save a cache holding a single browser, and
-      # whichever wins is a hit for the other two and a miss for what they
-      # actually need — so they re-download every run and the shared entry never
-      # becomes complete. Three keys each describe exactly what they hold.
-      - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('pnpm-lock.yaml') }}
-
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps ${{ matrix.project }}
+        # The matrix legs only ever reference one of the three engine browsers:
+        # the root suite's projects are the engine project ids, and a harness
+        # leg's `install` is its engine's browser name. Installing the three
+        # engines unconditionally covers every profile — the mobile project ids
+        # are viewports, not engines — and drops the per-leg install branching
+        # that a fixed matrix paid for once and every leg repeated.
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
 
+      # A harness leg mounts demos through a Vite dev server (seconds); a root
+      # leg builds the docs site once through Playwright's webServer and runs
+      # the cross-cutting suite against it. `e2e-plan` fixed the profile, the
+      # project and the config per row; `--project` pins a leg to exactly one
+      # engine even when the profile names more, and `${{ matrix.specs }}` from
+      # `join` is the set of harness paths a component leg runs — the affected
+      # components' e2e dirs plus the harness axe gate, empty for a root leg,
+      # whose config's `testMatch` scopes it to the six crossing specs. The same
+      # projects feed `matrix.demos`, which becomes `HARNESS_DEMOS` so the axe
+      # gate sweeps exactly the demos the leg's component specs drive.
       - name: Run Playwright
-        run: pnpm e2e --project=${{ matrix.project }} --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        env:
+          PW_PROFILE: ${{ matrix.profile }}
+          HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
+        run: >-
+          pnpm exec playwright test
+          --project ${{ matrix.browser }}
+          --config ${{ matrix.config }}
+          ${{ join(matrix.specs, ' ') }}
+          ${{ matrix.shardArgs }}
 
-      # Named per leg because `upload-artifact` refuses a name another job in
-      # the same run has already claimed — twelve legs failing together under
-      # one name is an upload error on top of the test failures anyone came to
-      # read.
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report-${{ matrix.project }}-shard${{ matrix.shardIndex }}-${{ github.run_id }}
+          name: playwright-report-${{ matrix.profile }}-${{ github.run_id }}
           path: playwright-report/
           retention-days: 7
 
@@ -313,17 +386,24 @@ jobs:
     # without anyone editing repository settings — and forgetting to add it is
     # the only way to widen what green means, which is visible in this file.
     #
-    # `e2e` is one entry despite running as a matrix: `needs` sees the job, not
-    # its legs, and reports the worst result among them. That is what keeps the
-    # browser split invisible from here — legs can be added or dropped without
-    # the gate, or the branch ruleset naming it, having to know.
-    needs: [verify, e2e]
+    # `e2e-run` is one entry despite running as a matrix: `needs` sees the job,
+    # not its legs, and reports the worst result among them. That is what keeps
+    # the browser split invisible from here — legs can be added or dropped
+    # without the gate, or the branch ruleset naming it, having to know.
+    #
+    # An empty matrix is not a failure here. A no-op change (nothing relevant
+    # changed) produces `include: []`, and `e2e-run` expands to zero browser
+    # legs — GitHub reports that as success with nothing done, or skips the
+    # job; either way it is the desired state, and `skipped` is deliberately
+    # not treated as a failure below. There is no partial run: the include is
+    # either empty and nothing runs, or populated and every leg runs.
+    needs: [verify, e2e-discover, e2e-run]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # `needs` alone would let a skipped or cancelled job pass as green, since
-      # only `failure` blocks a dependent job by default.
+      # `needs` alone would let a cancelled job pass as green, since only
+      # `failure` blocks a dependent job by default.
       - name: Fail unless every job succeeded
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1

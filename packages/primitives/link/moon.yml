@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "link"
   description: "Link primitive — inline navigation element"
