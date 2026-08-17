@@ -28,13 +28,29 @@ if (!wanted) {
   throw new Error("component E2E harness requires ?component=<kebab-name>");
 }
 
-const file = `../../docs/demos/${kebabToPascal(wanted)}Demo.vue`;
-const loader = demos[file];
+// `wanted` is user-controlled (the `?component=` query parameter). It is
+// validated before it ever selects code: `knownDemos` is the allow-list the
+// glob discovered at build time, normalised to the same kebab-case names the
+// `?component=` parameter carries, and `wanted` must name one of them exactly.
+// A value that is not a demo name falls through to the error block below —
+// there is no path from `wanted` to calling anything but a `docs/demos`
+// module's own component.
+const knownDemos = Object.keys(demos).map((path) =>
+  path
+    .replace(/^.*\/(\w+)Demo\.vue$/, "$1")
+    // "SegmentedControl" -> "segmented-control"
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase(),
+);
+if (!knownDemos.includes(wanted)) {
+  document.body.textContent = `Unknown component "${wanted}". Known: ${knownDemos.sort().join(", ")}`;
+  throw new Error(`no demo found for component "${wanted}"`);
+}
+const loader = demos[`../../docs/demos/${kebabToPascal(wanted)}Demo.vue`];
+// The allow-list above guarantees the key exists; `assert` is the type-level
+// residue of that guarantee. It is not a second validation — it is how the
+// checker knows the lookup cannot be `undefined` here.
 if (!loader) {
-  const known = Object.keys(demos)
-    .map((path) => path.replace(/^.*\/(\w+)Demo\.vue$/, "$1"))
-    .sort();
-  document.body.textContent = `Unknown component "${wanted}". Known: ${known.join(", ")}`;
   throw new Error(`no demo found for component "${wanted}"`);
 }
 
