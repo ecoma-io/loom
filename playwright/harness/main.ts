@@ -1,4 +1,4 @@
-import { createApp, defineComponent, h, type Component } from "vue";
+import { createApp, defineComponent, h, onBeforeUnmount, type Component } from "vue";
 import "./styles.css";
 
 /**
@@ -38,17 +38,29 @@ if (!loader) {
   throw new Error(`no demo found for component "${wanted}"`);
 }
 
-const demo = await loader();
-createApp(defineComponent({ render: () => h(demo.default) })).mount("#app");
-
 // A trailing real tab-stop, after the demo. The docs site always has content
 // following a demo, so a spec asserting "Tab leaves the group" always had a
 // next element to land on there. The harness mounts the demo alone, and
 // Firefox keeps focus on the last tabbable element when nothing follows it —
 // which would make that assertion fail in Firefox only, testing an artifact
 // of the harness rather than the component. One element after the demo
-// restores the docs page's property in every engine.
-const sentinel = document.createElement("button");
-sentinel.textContent = "harness end-of-demo sentinel";
-sentinel.id = "harness-sentinel";
-document.body.appendChild(sentinel);
+// restores the docs page's property in every engine. The sentinel genuinely
+// needs to follow the demo on the page, rather than Teleport, since a
+// keyboard spec must Tab to it.
+const demo = await loader();
+createApp(
+  defineComponent({
+    // The sentinel and its teardown live in the same function scope, so the
+    // appended node cannot outlive the component that appended it.
+    setup() {
+      const sentinel = document.createElement("button");
+      sentinel.textContent = "harness end-of-demo sentinel";
+      sentinel.id = "harness-sentinel";
+      document.body.appendChild(sentinel);
+      onBeforeUnmount(() => {
+        sentinel.remove();
+      });
+      return () => h(demo.default);
+    },
+  }),
+).mount("#app");
