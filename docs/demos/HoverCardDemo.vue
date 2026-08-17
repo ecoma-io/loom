@@ -10,7 +10,7 @@ import HoverCard from "@ecoma-io/loom-hover-card";
       <p class="text-small mb-3">Hover the link to see a preview card.</p>
       <HoverCard>
         <template #trigger>
-          <a href="#" class="text-primary-foreground underline">@chelsea</a>
+          <a href="#" class="text-primary underline">@chelsea</a>
         </template>
         <div class="flex flex-col gap-3">
           <div class="flex items-center gap-3">
@@ -77,14 +77,14 @@ import HoverCard from "@ecoma-io/loom-hover-card";
       </p>
       <HoverCard :open-delay="100" :close-delay="400">
         <template #trigger>
-          <a href="#" class="text-primary-foreground underline">View profile</a>
+          <a href="#" class="text-primary underline">View profile</a>
         </template>
         <div class="flex flex-col gap-2">
           <p class="text-small font-medium">Chelsea Arryn</p>
           <p class="text-small text-muted-foreground">Building tools for the web.</p>
           <!-- The link inside the card is reachable by pointer, which is the
                difference between a hover card and a tooltip. -->
-          <a href="#" class="text-small text-primary-foreground underline">Open full profile</a>
+          <a href="#" class="text-small text-primary underline">Open full profile</a>
         </div>
       </HoverCard>
     </section>
