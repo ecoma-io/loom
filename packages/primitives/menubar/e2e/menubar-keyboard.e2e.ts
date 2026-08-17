@@ -6,12 +6,14 @@ import { test, expect } from "@playwright/test";
 // ArrowDown/Up navigate items. When a menu is open, Tab enters the menu
 // items, not the next trigger. These interactions cannot be fully verified
 // in jsdom, which does not run a real tab-order resolution.
+//
+// The harness mounts the live demo at `/?component=menubar`, so the menubar on
+// the page is the demo, and page-level roles are the scoping root.
 
 test("Tab walks through each menubar trigger when no menu is open", async ({ page }) => {
-  await page.goto("components/menubar");
+  await page.goto("/?component=menubar");
 
-  const demo = page.locator("figure").filter({ hasText: "File" });
-  const triggers = demo.getByRole("menubar").getByRole("menuitem");
+  const triggers = page.getByRole("menubar").getByRole("menuitem");
   const file = triggers.filter({ hasText: "File" });
   const view = triggers.filter({ hasText: "View" });
   const help = triggers.filter({ hasText: "Help" });
@@ -39,17 +41,16 @@ test("Tab walks through each menubar trigger when no menu is open", async ({ pag
 test("Enter opens the focused trigger's menu; Escape closes it and returns focus", async ({
   page,
 }) => {
-  await page.goto("components/menubar");
+  await page.goto("/?component=menubar");
 
-  const demo = page.locator("figure").filter({ hasText: "File" });
-  const file = demo.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
+  const file = page.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
 
   // Focus the trigger without opening the menu.
   await file.focus();
 
   // Enter opens the menu.
   await page.keyboard.press("Enter");
-  const menu = demo.locator('[role="menu"]');
+  const menu = page.locator('[role="menu"]');
   await expect(menu).toBeVisible();
 
   // The first item in the menu should be highlighted (data-highlighted).
@@ -64,17 +65,16 @@ test("Enter opens the focused trigger's menu; Escape closes it and returns focus
 test("ArrowDown opens the focused trigger's menu and highlights the first item", async ({
   page,
 }) => {
-  await page.goto("components/menubar");
+  await page.goto("/?component=menubar");
 
-  const demo = page.locator("figure").filter({ hasText: "File" });
-  const file = demo.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
+  const file = page.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
 
   // Focus the trigger without opening the menu.
   await file.focus();
 
   // ArrowDown opens the menu and highlights the first item.
   await page.keyboard.press("ArrowDown");
-  const menu = demo.locator('[role="menu"]');
+  const menu = page.locator('[role="menu"]');
   await expect(menu).toBeVisible();
 
   const firstItem = menu.getByRole("menuitem").first();
@@ -82,15 +82,14 @@ test("ArrowDown opens the focused trigger's menu and highlights the first item",
 });
 
 test("ArrowRight switches to the next menu when a menu is open", async ({ page }) => {
-  await page.goto("components/menubar");
+  await page.goto("/?component=menubar");
 
-  const demo = page.locator("figure").filter({ hasText: "File" });
-  const file = demo.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
-  const view = demo.getByRole("menubar").getByRole("menuitem").filter({ hasText: "View" });
+  const file = page.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
+  const view = page.getByRole("menubar").getByRole("menuitem").filter({ hasText: "View" });
 
   // Open File menu.
   await file.click();
-  const fileMenu = demo.locator('[role="menu"]');
+  const fileMenu = page.locator('[role="menu"]');
   await expect(fileMenu).toBeVisible();
 
   // ArrowRight should switch to the View menu.
@@ -100,17 +99,16 @@ test("ArrowRight switches to the next menu when a menu is open", async ({ page }
 });
 
 test("ArrowDown and ArrowUp navigate items within an open menu", async ({ page }) => {
-  await page.goto("components/menubar");
+  await page.goto("/?component=menubar");
 
-  const demo = page.locator("figure").filter({ hasText: "File" });
-  const file = demo.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
+  const file = page.getByRole("menubar").getByRole("menuitem").filter({ hasText: "File" });
 
   // Open the menu via keyboard so the first item is highlighted.
   // (Click opens the menu but does not highlight an item — activeIndex
   // stays -1 until a key event sets it.)
   await file.focus();
   await page.keyboard.press("ArrowDown");
-  const menu = demo.locator('[role="menu"]');
+  const menu = page.locator('[role="menu"]');
   await expect(menu).toBeVisible();
 
   const items = menu.getByRole("menuitem");

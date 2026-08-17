@@ -168,6 +168,10 @@
     // VitePress config, theme and build plugins unchecked.
     "docs/.vitepress/**/*",
     "tools/**/*",
+    // The component E2E harness directory. It is one small set of files, but it
+    // is a new top-level .ts home; without it here neither `pnpm typecheck` nor
+    // eslint's project-service would read a single line of it.
+    "playwright/**/*",
     "*.config.ts",
     "*.config.mjs",
     "*.config.mts",

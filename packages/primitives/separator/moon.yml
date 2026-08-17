@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "separator"
   description: "Separator primitive — thin visual/semantic divider between content groups"

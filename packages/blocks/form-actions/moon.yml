@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "form-actions"
   description: "Migrated block component"

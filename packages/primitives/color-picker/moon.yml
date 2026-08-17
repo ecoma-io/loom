@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "labels"
 project:
   name: "color-picker"
   description: "ColorPicker primitive — colour selection as #rrggbb"

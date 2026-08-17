@@ -1,20 +1,22 @@
 # Shared test task. Inherited by all projects.
 #
-# --root $workspaceRoot: all packages share the root vite.config.ts and
-# vitest.setup.ts. Without --root, vitest would look for those files relative
-# to the project directory, which fails for packages under packages/.
+# Each project runs the tests it owns: `$projectRoot` is the Moon project's
+# directory, and filtering the whole-repo Vitest include globs (`packages/**/*.test.ts`,
+# `docs/**/*.test.ts`) by it means a project's own unit and integration files are
+# the only ones executed. `--no-coverage` scopes per-project runs off the
+# repository-wide coverage thresholds — those are a whole-repo contract owned by
+# the global `pnpm test:full` (see package.json) — and `--passWithNoTests` keeps
+# a source-only package (or one whose tests live elsewhere) green rather than
+# failing with Vitest's "no test files found".
 #
-# maxWorkers: 1 is deliberate — creating a jsdom per isolated file dominates
-# the run, so several at once oversubscribe the machine and turn timing-sensitive
-# tests flaky rather than faster.
+# The root vitest config keeps `maxWorkers: 1` (see vite.config.ts) — creating a
+# jsdom per isolated file dominates the run, so several at once oversubscribe the
+# machine and turn timing-sensitive tests flaky rather than faster. The
+# repository-wide coverage thresholds were measured against that single worker;
+# see the full `pnpm test:full` definition.
 tasks:
   test:
-    # The vitest suite is whole-repo: coverage is scoped to the packages tree
-    # and its thresholds are a repository-wide contract. Running it once per
-    # affected project would multiply the run, so CI owns it as a single global
-    # `pnpm test` (kept out of moon ci, hence `skip`). This task stays for local
-    # per-project runs.
-    command: "vitest run --root $workspaceRoot"
+    command: 'vitest run --root "$workspaceRoot" --no-coverage --passWithNoTests "$projectRoot"'
     options:
       cache: true
-      runInCI: skip
+      runInCI: affected

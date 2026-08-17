@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "hover-card"
   description: "HoverCard primitive — interactive preview surface on hover"

@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "labels"
 project:
   name: "number-field"
   description: "NumberField primitive — constrained number input with scrub-drag"

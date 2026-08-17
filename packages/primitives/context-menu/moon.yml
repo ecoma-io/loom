@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "context-menu"
   description: "ContextMenu primitive — right-click activated menu"

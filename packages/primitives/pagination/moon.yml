@@ -1,3 +1,7 @@
+deps:
+  - "core"
+  - "labels"
+  - "button"
 project:
   name: "pagination"
   description: "Pagination primitive — paged navigation"

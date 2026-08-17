@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { BASE } from "./docs/.vitepress/base";
+import { PROFILE_PROJECTS, type BrowserProfile } from "./playwright/profiles";
 
 // The one port every piece below has to agree on: the URL Playwright polls
 // before starting a test, the `baseURL` every relative `page.goto` resolves
@@ -13,15 +14,6 @@ const PREVIEW_PORT = 4173;
 // the suite navigates to has to carry it, or it lands on the 404 that a
 // request for `/` produces under a non-root base.
 const BASE_URL = `http://localhost:${String(PREVIEW_PORT)}${BASE}`;
-
-const PROFILE_PROJECTS = {
-  smoke: ["chromium"],
-  standard: ["chromium", "firefox", "webkit"],
-  mobile: ["chromium-mobile", "webkit-mobile"],
-  full: ["chromium", "firefox", "webkit", "chromium-mobile", "webkit-mobile"],
-} as const;
-
-type BrowserProfile = keyof typeof PROFILE_PROJECTS;
 
 const profile = process.env.PW_PROFILE ?? "standard";
 
@@ -47,8 +39,21 @@ const projects = {
 // browser evidence can run without turning a package's unit suite into E2E.
 export default defineConfig({
   testDir: ".",
-  testMatch: ["e2e/**/*.e2e.ts", "packages/**/e2e/**/*.e2e.ts"],
-  testIgnore: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
+  // Only the cross-cutting suite. Component-owned specs under
+  // `packages/**/e2e/` are driven by the harness config
+  // (`playwright/harness/playwright.config.ts`) — they mount one demo through
+  // a Vite dev server instead of building the whole VitePress site, and
+  // collecting them here too would run each twice against two different
+  // servers.
+  //
+  // `testMatch` is a glob matched against the whole relative path, and its
+  // `**` crosses directory boundaries — `e2e/**/*.e2e.ts` would otherwise
+  // also pick up every `packages/*/e2e/*.e2e.ts`, because the `**` slurps the
+  // `packages/<tier>/<name>/` prefix. The ignore below is what actually keeps
+  // the component-owned specs out, so it is explicit rather than relying on
+  // the glob's anchor holding.
+  testMatch: ["e2e/**/*.e2e.ts"],
+  testIgnore: ["**/node_modules/**", "**/dist/**", "**/coverage/**", "packages/**"],
 
   // A test that depends on another test's leftovers is a test that will pass
   // alone and fail in CI; full isolation makes that impossible rather than

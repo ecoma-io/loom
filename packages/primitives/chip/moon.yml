@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "chip"
   description: "Chip primitive — a dismissible tag or filter element"

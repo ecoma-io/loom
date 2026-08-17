@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "labels"
 project:
   name: "toast"
   description: "Toast primitive — a transient, self-dismissing notification"

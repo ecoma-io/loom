@@ -1,3 +1,7 @@
+deps:
+  - "core"
+  - "labels"
+  - "inline-error"
 project:
   name: "field"
   description: "Field primitive — labelled form control wrapper"

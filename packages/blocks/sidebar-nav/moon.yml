@@ -1,3 +1,8 @@
+deps:
+  - "badge"
+  - "core"
+  - "separator"
+  - "tooltip"
 project:
   name: "sidebar-nav"
   description: "Migrated block component"

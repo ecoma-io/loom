@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "badge"
   description: "Badge primitive — a compact status or category label"

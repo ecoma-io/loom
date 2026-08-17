@@ -10,7 +10,8 @@
     }
   },
   "dependencies": {
-    "@ecoma-io/loom-core": "workspace:*"
+    "@ecoma-io/loom-core": "workspace:*",
+    "@ecoma-io/loom-theme-core": "workspace:*"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

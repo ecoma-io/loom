@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "labels"
 project:
   name: "radial-progress"
   description: "RadialProgress primitive — determinate progress ring"

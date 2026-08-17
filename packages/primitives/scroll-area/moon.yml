@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "scroll-area"
   description: "ScrollArea primitive — custom-styled scrollbars for overflow content"

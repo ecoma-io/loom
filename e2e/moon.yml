@@ -1,3 +1,7 @@
+deps:
+  # preserved
+  - "theme-core"
+
 tags: ["e2e"]
 
 project:
@@ -9,9 +13,12 @@ tasks:
     # The cross-cutting suite lives here, not under a package — so each root
     # spec is named explicitly to avoid the `packages/**/e2e` shadow. A bare
     # `e2e/` substring would also match every component-owned spec.
+    # The shared e2e task's command drives the component harness; this project
+    # drives the built docs site instead, so the command is overridden here.
     # `runInCI: skip`: the dedicated e2e job (sharded across 8 workers × 3
     # browsers) owns this suite; moon ci in the verify job must not run a
     # second copy on top.
+    command: "playwright test --config playwright.config.ts"
     options:
       runInCI: skip
     args:

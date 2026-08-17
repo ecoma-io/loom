@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "avatar"
   description: "Avatar primitive — user identity image or initials"

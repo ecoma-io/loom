@@ -1,3 +1,5 @@
+deps:
+  - "core"
 project:
   name: "spinner"
   description: "Spinner primitive — indeterminate loading indicator"

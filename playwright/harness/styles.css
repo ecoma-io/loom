@@ -1,0 +1,23 @@
+/**
+ * The harness imports exactly what a consumer of Loom imports: the Tailwind
+ * engine, then the theme. Unlike the VitePress site there is no third-party
+ * reset to fight, so the utilities stay in `@layer utilities` (as `global.css`
+ * lays them out) — the unlayering trick in `docs/.vitepress/theme/theme.css`
+ * exists to cancel VitePress's default theme and must NOT be copied here.
+ *
+ * A consumer's components live in `node_modules`, so `global.css`'s own
+ * `@source "../"` scans the package build. This repository builds against
+ * source under `packages/`, so that tree is registered as a scan target the
+ * same way the docs site does — otherwise a utility a component renders and
+ * the harness never writes would be generated for a consumer and silently
+ * missing here.
+ */
+@import "tailwindcss";
+@import "../../packages/theme-core/src/global.css";
+
+@source "../../packages/";
+
+/* The bare element the theme's `body` styling expects. */
+body {
+  min-height: 100dvh;
+}
