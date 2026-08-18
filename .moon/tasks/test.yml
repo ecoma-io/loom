@@ -27,11 +27,29 @@ tasks:
     # and tsconfig.json the program every test compiles against — both live at
     # the workspace root, owned by no project, so without these lines an edit
     # to either marks nothing affected and runs zero tests.
+    #
+    # `project://^?filter=src/**` is the dependency-source hash: it hashes the
+    # `src/**` of every project this one *directly* depends on. Without it,
+    # Moon's cache replays a dependent's stale green when its dependency
+    # changes — the affected unit-test closure (the `moon query --downstream
+    # deep` step in ci.yml) would select alert-dialog after a button edit but
+    # replay its old cached result. This single shared entry closes that for
+    # every project at once.
+    #
+    # `^` is *direct* dependencies only — Moon hashes direct, not transitive,
+    # dependency sources (a two-edge change, core→skeleton→loading-state,
+    # leaves loading-state's hash alone; verified empirically). The transitive
+    # layer is covered by selection, not hashing: `--downstream deep` picks the
+    # whole closure and the direct-dep layer re-runs against the updated
+    # sources. The `^^` URI would hash the full transitive set and invalidate
+    # most of the workspace on any shared-package edit; the blast radius is
+    # kept to one hop on purpose.
     inputs:
       - "**/*"
       - "/pnpm-lock.yaml"
       - "/vite.config.ts"
       - "/tsconfig.json"
+      - "project://^?filter=src/**"
     options:
       cache: true
       runInCI: affected

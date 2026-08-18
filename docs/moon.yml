@@ -21,3 +21,20 @@ tasks:
       cache: true
       runInCI: affected
       runFromWorkspaceRoot: true
+
+  # The docs project has no `src/` or `tests/` tree — its only unit test is
+  # `docs/.vitepress/sidebar.test.ts`, which imports `sidebar.ts`. The shared
+  # test task hashes `**/*` within the project, which for docs globs nothing
+  # under `.vitepress/`, so an edit to `sidebar.ts` would replay a stale green
+  # docs test. Overriding `inputs` here *appends* (moon merges inputs by
+  # default) — the shared entries stay, and this project additionally hashes
+  # its `.vitepress/` tree where its tests and their imports actually live.
+  test:
+    command: 'vitest run --root "$workspaceRoot" --no-coverage --passWithNoTests "$projectRoot"'
+    # The shared template's command is appended by default; this project's
+    # command is identical, so without `mergeArgs: replace` the merged args
+    # repeat the whole invocation (harmless but wasteful).
+    options:
+      mergeArgs: replace
+    inputs:
+      - ".vitepress/**"

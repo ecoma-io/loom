@@ -978,9 +978,6 @@ importers:
       '@ecoma-io/loom-labels':
         specifier: workspace:*
         version: link:../../labels
-      '@ecoma-io/loom-theme-core':
-        specifier: workspace:*
-        version: link:../../theme-core
       '@lucide/vue':
         specifier: ^1.28.0
         version: 1.28.0(vue@3.5.40(typescript@5.9.3))
@@ -1425,9 +1422,6 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
-      '@ecoma-io/loom-theme-core':
-        specifier: workspace:*
-        version: link:../../theme-core
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

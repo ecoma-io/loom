@@ -1,6 +1,5 @@
 deps:
   - "core"
-  - "theme-core"
 tags: ["e2e"]
 project:
   name: "surface"
