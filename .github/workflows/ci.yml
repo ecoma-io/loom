@@ -57,7 +57,14 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      # `SECONDS` times the install: it is the fixed tax every job pays, and the
+      # benchmark must separate it from the work it fronts before anyone
+      # optimises one against the other.
+      - name: Install dependencies
+        run: >-
+          SECONDS=0;
+          pnpm install --frozen-lockfile;
+          echo "install seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       # Every pull request lands as a squash, and the squash commit's subject is
       # the pull request title — so the title is the one commit message that
@@ -260,8 +267,15 @@ jobs:
       # a multi-pass re-check of the same files (which once pushed verify past
       # its timeout) or a coverage hole. One global pass is the honest shape —
       # a GLOBAL VALIDATION BOUNDARY, not an affected task pretending
-      # otherwise.
-      - run: pnpm typecheck
+      # otherwise. `SECONDS` times it: this is the one step whose cost the
+      # benchmark must measure before anyone argues for (or against) scoping
+      # it — the whole-repo pass is the largest single estimated step in
+      # verify, and no number for it exists yet.
+      - name: Global typecheck
+        run: >-
+          SECONDS=0;
+          pnpm typecheck;
+          echo "typecheck seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       # The whole-repo unit suite has moved off the pull-request path: `moon ci`
       # above already runs the affected projects' tests, with cross-component

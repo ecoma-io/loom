@@ -30,11 +30,17 @@
  *               to zero legs.
  *
  * Scope, deliberately: this tool CLASSIFIES policy and GROUPS workload. The
- * dependency graph and affected selection belong to moon — the single query
- * below (`moon query projects --affected --downstream deep`) is the only place
- * the affected set comes from, and the browser policy (profiles, engines)
- * is imported from `playwright/profiles.ts`, the same module both Playwright
- * configs read. Nothing here re-derives what either of those own.
+ * dependency graph and affected selection belong to moon — the affected set
+ * comes from exactly one query shape, shelled at two call sites with
+ * different consumers: this tool (`moon query projects --affected
+ * --downstream deep`, full project objects for the plan) and the verify job's
+ * affected unit-test closure (`ci.yml`, the same query reduced to bare ids for
+ * `moon run`). They must share the same base and the same `--downstream deep`
+ * — that is the intended coupling, not an anomaly to "simplify" by removing
+ * one side (removing the verify closure would silently stop re-testing
+ * dependents). The browser policy (profiles, engines) is imported from
+ * `playwright/profiles.ts`, the same module both Playwright configs read.
+ * Nothing here re-derives what either of those own.
  *
  * Run with `--print` to dump the computed plan as JSON (CI feeds `include`
  * into `fromJSON`); with a base that is not resolvable in the clone it
