@@ -392,15 +392,26 @@ export function plan(
       // standard. No component browser evidence — nothing component-dom
       // changed.
       return rootLegs("standard");
-    case "component":
-      // The affected components' own evidence, cheapest first: e2e-tagged
-      // projects' specs plus the axe gate over every affected demo. A change
-      // in a component with no specs (a Badge.vue edit) still sweeps the demo
-      // — the harness gate in light and dark — which is exactly the fallback
-      // that used to drop to the whole-repo matrix. Only a change leaving no
-      // demo-bearing component at all (the facade's own tree; its a11y.ts is
-      // the tag set the root gate imports) falls to a one-engine root sweep.
-      return withE2E.length || affectedDemos.length ? harnessLegs("smoke") : rootLegs("smoke");
+    case "component": // in a component with no specs (a Badge.vue edit) still sweeps the demo // projects' specs plus the axe gate over every affected demo. A change // The affected components' own evidence, cheapest first: e2e-tagged
+    // — the harness gate in light and dark — which is exactly the fallback
+    // that used to drop to the whole-repo matrix. Only a change leaving no
+    // demo-bearing component at all (the facade's own tree; its a11y.ts is
+    // the tag set the root gate imports) falls to a one-engine root sweep.
+    //
+    // A change set that mixes component code with a docs prose/plugin page
+    // must keep BOTH: the harness legs cover the component, but the root
+    // sweep is the only gate over the generated token/API tables and the
+    // site pages (the raw-HTML table defect class CLAUDE.md documents is
+    // swept exclusively there). classifyFiles labels the whole change
+    // `component`, losing that the prose side ever changed — so the root
+    // sweep is added back when any non-demo docs file rode along.
+    {
+      const touchedDocs = files.some((f) => /^docs\/(?!demos\/)/.test(f));
+      const harness =
+        withE2E.length || affectedDemos.length ? harnessLegs("smoke") : rootLegs("smoke");
+      const extra = touchedDocs ? rootLegs("smoke") : [];
+      return [...harness, ...extra];
+    }
     default:
       return [];
   }
@@ -568,7 +579,26 @@ export function runSelfCheck(): void {
   assert.equal(classifyFiles([".github/workflows/ci.yml"]), "pw-infra");
   assert.equal(classifyFiles(["e2e/moon.yml"]), "pw-infra");
 
-  // 4. An edit to the harness gate itself still executes the gate, even with
+  // 4. A mixed docs-prose + component change keeps BOTH evidence halves: the
+  //    harness legs for the component AND the root sweep for the prose pages.
+  //    classifyFiles labels the whole change `component` (the prose side never
+  //    gets its own scenario), so the plan must add the root legs back — the
+  //    site sweep is the only gate over the generated token/API tables.
+  const mixed = plan(
+    "component",
+    [project("button", "packages/primitives/button", ["test", "e2e"])],
+    ["docs/index.md", "packages/primitives/button/src/Button.vue"],
+  );
+  assert.ok(
+    mixed.some((r) => r.config === CONFIG_PATHS.harness),
+    "a mixed change keeps the component harness leg",
+  );
+  assert.ok(
+    mixed.some((r) => r.config === CONFIG_PATHS.root),
+    "a mixed change keeps the root sweep for the prose side",
+  );
+
+  // 5. An edit to the harness gate itself still executes the gate, even with
   //    an empty affected set — a representative demo keeps the harness legs
   //    alive so the changed gate runs.
   const gateEdit = plan("pw-infra", [], ["playwright/harness/accessibility.e2e.ts"]);
