@@ -2,6 +2,17 @@ project:
   name: "docs"
   description: "The VitePress documentation site, built out of the library"
 
+# The theme the site is skinned with is Loom's own: `docs/.vitepress/theme/
+# theme.css` imports `packages/theme-core/src/global.css` at build time, so a
+# theme-core change can break the docs build or the token tables even though
+# the docs project has no package.json dep on theme-core to say so. The edge
+# is hand-declared (`# preserved`, kept by tools/sync-moon-deps.ts) so a theme
+# edit marks the docs project affected — its build, route-check and test all
+# re-run — matching how the `e2e` project already carries the same edge.
+deps:
+  # preserved
+  - "theme-core"
+
 # The docs site has no package.json of its own — its build and route-check live
 # in the root workspace package, so both tasks run with the shared flags and
 # runFromWorkspaceRoot. Making the site a project means a change under docs/

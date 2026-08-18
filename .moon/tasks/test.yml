@@ -36,20 +36,37 @@ tasks:
     # replay its old cached result. This single shared entry closes that for
     # every project at once.
     #
-    # `^` is *direct* dependencies only — Moon hashes direct, not transitive,
-    # dependency sources (a two-edge change, core→skeleton→loading-state,
-    # leaves loading-state's hash alone; verified empirically). The transitive
-    # layer is covered by selection, not hashing: `--downstream deep` picks the
-    # whole closure and the direct-dep layer re-runs against the updated
-    # sources. The `^^` URI would hash the full transitive set and invalidate
-    # most of the workspace on any shared-package edit; the blast radius is
-    # kept to one hop on purpose.
+    # `project://^?filter=package.json` is the same dependency-source hash for
+    # the dependency's *contract* file. `src/**` alone would let an
+    # `exports`/dependency change in a package.json (a new or removed export)
+    # reach every dependent with their cache keys byte-identical — src/ did not
+    # move — and replay green against a contract that just broke. Moon's
+    # filter takes one glob, so the contract file is a second line rather than
+    # a brace on the first.
+    #
+    # `^` is *direct* dependencies only. Moon hashes direct, not transitive,
+    # dependency sources: at moon 2.4.6 the `^^` (transitive) URI is rejected
+    # by the binary (`unknown_project_input` — "only project dependencies of
+    # the parent project can be referenced"), and a measured cache
+    # invalidation confirms the one-hop line holds — an edit to
+    # packages/core/src/theme.ts leaves `loading-state:test` (whose declared
+    # deps are skeleton and spinner only) replayed from cache. The transitive
+    # layer is carried by *selection*, not hashing: `--downstream deep` picks
+    # the whole closure, and every selected project's test re-runs against the
+    # updated sources unless its own hash is unchanged. A transitive-only
+    # source edit therefore cannot replay a stale green *in the run that
+    # delivers it* — the selected dependent re-runs fresh. What the direct
+    # hash does not cover is a cached green surviving across runs, which is a
+    # KNOWN CACHE BOUNDARY, kept honest here rather than pretending `^` covers
+    # the full closure.
     inputs:
       - "**/*"
       - "/pnpm-lock.yaml"
       - "/vite.config.ts"
       - "/tsconfig.json"
+      - "/vitest.setup.ts"
       - "project://^?filter=src/**"
+      - "project://^?filter=package.json"
     options:
       cache: true
       runInCI: affected

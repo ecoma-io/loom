@@ -211,6 +211,17 @@ jobs:
           MOON_CONCURRENCY: "4"
         run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
 
+      # The benchmark digest: moon just wrote ciReport.json with per-action
+      # durations and cache hits. `tools/ci-benchmark.ts` reads it (no re-run)
+      # and appends a table — run-task count, cached count, sum of run-task
+      # seconds, and the moon cache savings estimate — to the step summary, so
+      # how much of this change's test/lint cost was cache-replayed is visible
+      # in the run rather than buried in a 263 KiB JSON report. GitHub injects
+      # GITHUB_STEP_SUMMARY into every step's environment, so the tool needs no
+      # wiring beyond running it.
+      - name: Report moon run timing
+        run: node --experimental-strip-types tools/ci-benchmark.ts
+
       # `moon ci` selects tasks whose own inputs changed — the dependents' tests
       # do not run. A button edit proves button's 8 tests but not
       # alert-dialog's, whose suite mounts the very button that changed. Moon's
@@ -282,6 +293,16 @@ jobs:
       # deploying it. Dropping the build without that seam would leave a check
       # that passes and then fails copying a directory nobody made.
       - run: pnpm docs:check-route
+
+      # The verify-job benchmark digest: step durations are GitHub's own, and
+      # moon's report carries the task-level numbers. This block re-prints the
+      # moon digest (it is the only long phase whose internal cost is otherwise
+      # invisible) so the run's step summary carries both the wall-clock and the
+      # cache-replay split in one place. See tools/ci-benchmark.ts for what it
+      # reads and why it runs nothing.
+      - name: Verify benchmark digest
+        if: always()
+        run: node --experimental-strip-types tools/ci-benchmark.ts
 
   # One discovery step replaces the fixed 3-browser × 8-shard matrix. `e2e-plan`
   # classifies what actually changed (see tools/e2e-plan.ts) and emits the exact
@@ -482,17 +503,27 @@ jobs:
       # scopes it to the six crossing specs. The same projects feed
       # `matrix.demos`, which becomes `HARNESS_DEMOS` so the axe gate sweeps
       # exactly the demos the leg's component specs drive.
+      # One step times the actual Playwright run: `SECONDS` counts from its own
+      # line 0, and the final echo appends the elapsed seconds to the step
+      # summary so the leg's browser evidence cost is one grep-able line per
+      # matrix leg alongside GitHub's own step duration. `set -e` keeps a
+      # failing playwright run a failing step: without it, the timing echo
+      # after the `;` would turn a red leg green — the exact failure a CI
+      # step must never do.
       - name: Run Playwright
         env:
           PW_PROFILE: ${{ matrix.profile }}
           HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
           PW_PREBUILT_DOCS: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
         run: >-
+          set -e;
+          SECONDS=0;
           pnpm exec playwright test
           --project ${{ matrix.browser }}
           --config ${{ matrix.config }}
           ${{ join(matrix.specs, ' ') }}
-          ${{ matrix.shardArgs }}
+          ${{ matrix.shardArgs }};
+          echo "e2e-leg ${{ matrix.name }} profile=${{ matrix.profile }} browser=${{ matrix.browser }} ${{ matrix.config }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Playwright report
         if: failure()
