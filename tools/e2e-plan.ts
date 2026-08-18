@@ -392,20 +392,16 @@ export function plan(
       // standard. No component browser evidence — nothing component-dom
       // changed.
       return rootLegs("standard");
-    case "component": // in a component with no specs (a Badge.vue edit) still sweeps the demo // projects' specs plus the axe gate over every affected demo. A change // The affected components' own evidence, cheapest first: e2e-tagged
-    // — the harness gate in light and dark — which is exactly the fallback
-    // that used to drop to the whole-repo matrix. Only a change leaving no
-    // demo-bearing component at all (the facade's own tree; its a11y.ts is
-    // the tag set the root gate imports) falls to a one-engine root sweep.
-    //
-    // A change set that mixes component code with a docs prose/plugin page
-    // must keep BOTH: the harness legs cover the component, but the root
-    // sweep is the only gate over the generated token/API tables and the
-    // site pages (the raw-HTML table defect class CLAUDE.md documents is
-    // swept exclusively there). classifyFiles labels the whole change
-    // `component`, losing that the prose side ever changed — so the root
-    // sweep is added back when any non-demo docs file rode along.
-    {
+    case "component": {
+      // The affected components' own evidence, cheapest first: e2e-tagged
+      // projects' specs plus the axe gate over every affected demo. A change
+      // in a component with no specs (a Badge.vue edit) still sweeps the demo
+      // — the harness gate in light and dark. A change set that mixes
+      // component code with a docs prose/plugin page keeps BOTH: the harness
+      // legs cover the component, and the root sweep (the only gate over the
+      // generated token/API tables) is added back when a non-demo docs file
+      // rode along — classifyFiles labels the whole change `component` and
+      // would otherwise drop the prose side's sweep entirely.
       const touchedDocs = files.some((f) => /^docs\/(?!demos\/)/.test(f));
       const harness =
         withE2E.length || affectedDemos.length ? harnessLegs("smoke") : rootLegs("smoke");
