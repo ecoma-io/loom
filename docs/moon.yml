@@ -12,11 +12,6 @@ tasks:
     command: "pnpm docs:build"
     options:
       cache: true
-      # The shared build template appends `--noEmit` to every project's build.
-      # docs:build is a real build (VitePress), not a type-check-as-build, so
-      # the inherited flag must be dropped — otherwise moon runs
-      # `pnpm --noEmit docs:build`, which pnpm rejects and fails the task.
-      mergeArgs: replace
       runInCI: affected
       runFromWorkspaceRoot: true
 

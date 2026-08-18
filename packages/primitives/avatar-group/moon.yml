@@ -6,4 +6,4 @@ project:
   name: "avatar-group"
   description: "AvatarGroup primitive — stacked or overlapping avatar list"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

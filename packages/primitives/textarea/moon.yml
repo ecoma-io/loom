@@ -5,4 +5,4 @@ project:
   name: "textarea"
   description: "Textarea primitive — multi-line text entry with character counting"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

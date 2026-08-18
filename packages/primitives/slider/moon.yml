@@ -5,4 +5,4 @@ project:
   name: "slider"
   description: "Slider primitive — continuous bounded value control"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

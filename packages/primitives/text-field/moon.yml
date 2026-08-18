@@ -5,4 +5,4 @@ project:
   name: "text-field"
   description: "TextField primitive — single-line text entry with reveal and counting"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

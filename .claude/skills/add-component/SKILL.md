@@ -114,7 +114,7 @@ Each component is a Moon project. These three files are needed:
     name: "<name>"
     description: "<Name> <tier> — <one-line summary>"
   tasks:
-    # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+    # Inherit lint and test from .moon/tasks/*.yml.
   ```
 
   If the component's package.json lists any `@ecoma-io/loom-*` workspace
@@ -165,9 +165,11 @@ the old exclusions used to be before you consider adding one.
 pnpm lint        # includes tools/check-component-artifacts.ts AND tools/check-architecture.ts
 pnpm typecheck
 pnpm docs:build
-MOON_BASE=<base> node --experimental-strip-types tools/affected-tests.ts
-                 # your project's tests plus its dependents' — the same closure
-                 # the e2e plan computes (Moon's own --affected is direct-only)
+MOON_BASE=<base> pnpm exec moon run \
+  $(MOON_BASE=<base> pnpm exec moon query projects --affected --downstream deep \
+    | jq -r '[.projects[].id + ":test"] | join(" ")')
+                 # your project's tests plus its dependents' — moon's own
+                 # closure query fed back as targets, the same command CI runs
 ```
 
 For interactive behaviour that owns browser evidence, the affected e2e is the

@@ -11,4 +11,4 @@ project:
 
 tasks:
   # No build task — styles ship as authored CSS, not as compiled output.
-  # Inherit lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

@@ -99,23 +99,19 @@ deps:
   - "window-controls"
 
 tasks:
-  # `build` is the published library build, overridden here because the shared
-  # build task (a type-check, for source-export packages) is not what the facade
-  # ships. The shared template's `vue-tsc --noEmit` is replaced cleanly:
-  # `mergeArgs: replace` stops the template's `--noEmit` from being appended to
-  # `pnpm build` (which would yield `pnpm --noEmit build`). It runs from the
-  # workspace root where vite.config.ts and tsconfig.build.json live and
-  # produces `dist`. No `outputs` is declared because moon forbids `..` paths
-  # and this artifact lives at the repo root — as a CI gate the build needs no
-  # cache key, only a pass/fail.
+  # `build` is the published library build — the one real, consumer-shaped
+  # build in the repository, which is why the facade is the only component-tree
+  # project that declares one (source-export packages ship no dist; the global
+  # `pnpm typecheck` in CI is their type verdict). It runs from the workspace
+  # root where vite.config.ts and tsconfig.build.json live and produces
+  # `dist`. No `outputs` is declared because moon forbids `..` paths and this
+  # artifact lives at the repo root — as a CI gate the build needs no cache
+  # key, only a pass/fail.
   build:
     command: "pnpm build"
     options:
       cache: true
-      mergeArgs: replace
       runInCI: affected
       runFromWorkspaceRoot: true
 
-# Everything else (lint, typecheck, test) is inherited from the shared
-# templates.
-# Inherit lint, typecheck and test from .moon/tasks/*.yml.
+# Everything else (lint, test) is inherited from the shared templates.

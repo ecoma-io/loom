@@ -4,4 +4,4 @@ project:
   name: "hover-card"
   description: "HoverCard primitive — interactive preview surface on hover"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

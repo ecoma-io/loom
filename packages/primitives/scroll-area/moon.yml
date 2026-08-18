@@ -4,4 +4,4 @@ project:
   name: "scroll-area"
   description: "ScrollArea primitive — custom-styled scrollbars for overflow content"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

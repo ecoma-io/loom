@@ -1,6 +1,6 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
 import { BASE } from "./docs/.vitepress/base";
-import { PROFILE_PROJECTS, type BrowserProfile } from "./playwright/profiles";
+import { projectsForProfile } from "./playwright/profiles";
 
 // The one port every piece below has to agree on: the URL Playwright polls
 // before starting a test, the `baseURL` every relative `page.goto` resolves
@@ -15,23 +15,9 @@ const PREVIEW_PORT = 4173;
 // request for `/` produces under a non-root base.
 const BASE_URL = `http://localhost:${String(PREVIEW_PORT)}${BASE}`;
 
-const profile = process.env.PW_PROFILE ?? "standard";
-
-if (!(profile in PROFILE_PROJECTS)) {
-  throw new Error(
-    `Unknown PW_PROFILE ${JSON.stringify(profile)}. Expected one of ${Object.keys(PROFILE_PROJECTS).join(", ")}.`,
-  );
-}
-
-const selectedProjects = PROFILE_PROJECTS[profile as BrowserProfile];
-
-const projects = {
-  chromium: { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-  firefox: { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-  webkit: { name: "webkit", use: { ...devices["Desktop Safari"] } },
-  "chromium-mobile": { name: "chromium-mobile", use: { ...devices["Pixel 5"] } },
-  "webkit-mobile": { name: "webkit-mobile", use: { ...devices["iPhone 13"] } },
-} as const;
+// Profile -> projects (and the device each drives) is the shared browser
+// policy in playwright/profiles.ts; an unknown PW_PROFILE throws there.
+const projects = projectsForProfile(process.env.PW_PROFILE ?? "standard");
 
 // End-to-end tests drive a real browser against the rendered component
 // documentation. Cross-cutting checks live in `e2e/`; component-owned checks
@@ -86,15 +72,23 @@ export default defineConfig({
   // because `docs:preview` only serves whatever is already on disk; without
   // it the suite would happily pass against yesterday's build.
   //
+  // `PW_PREBUILT_DOCS` skips that build for a leg that has already been handed
+  // the built site: CI's sharded matrix builds it once in one job and each leg
+  // downloads the artifact, so rebuilding here would repeat identical work
+  // once per leg — the duplication measured at ~75 seconds a leg before the
+  // seam existed. Locally the variable stays unset and the build runs.
+  //
   // `reuseExistingServer` is `false` in CI on purpose: a runner that reused a
   // leftover process from a previous, unrelated job would be testing that
   // job's build under this one's name.
   webServer: {
-    command: `pnpm docs:build && pnpm docs:preview --port ${String(PREVIEW_PORT)}`,
+    command: process.env.PW_PREBUILT_DOCS
+      ? `pnpm docs:preview --port ${String(PREVIEW_PORT)}`
+      : `pnpm docs:build && pnpm docs:preview --port ${String(PREVIEW_PORT)}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
 
-  projects: selectedProjects.map((name) => projects[name]),
+  projects,
 });

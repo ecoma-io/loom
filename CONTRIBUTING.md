@@ -66,19 +66,20 @@ small closed change and a repository-wide investigation is the dependency graph.
 - `moon :test --affected` — the unit + integration tests of the projects this
   branch directly touches. The base is picked by `MOON_BASE`, the same env `moon
 ci --base` uses.
-- `MOON_BASE=<ref> node --experimental-strip-types tools/affected-tests.ts` — the
-  same tests, closed over the dependency graph: the projects above plus the
-  transitive dependents a shared change reaches (a `core` edit re-runs every
-  consumer, however many edges down). Moon's own `--affected` selects only
-  directly-changed projects, so this tool is how the unit side gets the same
-  transitive closure the browser side computes (`--downstream deep` in
-  `tools/e2e-plan.ts`). CI runs it after `moon ci`.
+- `moon query projects --affected --downstream deep` — the same set closed over
+  the dependency graph: the projects above plus the transitive dependents a
+  shared change reaches (a `core` edit re-runs every consumer, however many
+  edges down). Moon's _runner_ selects only tasks whose own inputs changed, so
+  CI feeds this query's answer back as explicit `<id>:test` targets — the query
+  is the closure, moon is still the graph, and there is no second dependency
+  engine anywhere.
 - `moon :e2e --affected` — same, for the projects that own browser evidence
   (`tags: [e2e]`).
-- `pnpm exec moon ci --base <ref>` — the whole affected pipeline: lint, build,
-  test and component E2E, cached per project and keyed by the graph. On the
-  test and E2E sides it runs the directly-changed projects; the dependents are
-  covered by the two closure tools above.
+- `pnpm exec moon ci --base <ref>` — the affected pipeline CI's verify job
+  runs: lint, the real builds and tests, cached per project and keyed by the
+  graph (browser tasks are `runInCI: skip` — the e2e matrix owns them). On the
+  test side it runs the directly-changed projects; the dependents are covered
+  by the closure query above.
 
 The full guarantees above are still enforced — just only when the whole
 repository is the appropriate object: `pnpm test` on the merge queue and pushes,

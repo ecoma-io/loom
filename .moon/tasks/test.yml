@@ -17,6 +17,21 @@
 tasks:
   test:
     command: 'vitest run --root "$workspaceRoot" --no-coverage --passWithNoTests "$projectRoot"'
+    # Declaring inputs replaces moon's default (the project's own files), so the
+    # project glob is restated alongside the lockfile. The lockfile matters
+    # because every dependency a test exercises arrives through it: without this
+    # line a Renovate bump of vue or reka-ui marks no test task affected and a
+    # dependency-bump pull request runs zero tests — measured, not hypothetical
+    # (`moon query tasks --affected` on a lockfile-only diff selected nothing).
+    # vite.config.ts is the vitest configuration (environment, setup, aliases)
+    # and tsconfig.json the program every test compiles against — both live at
+    # the workspace root, owned by no project, so without these lines an edit
+    # to either marks nothing affected and runs zero tests.
+    inputs:
+      - "**/*"
+      - "/pnpm-lock.yaml"
+      - "/vite.config.ts"
+      - "/tsconfig.json"
     options:
       cache: true
       runInCI: affected

@@ -6,4 +6,4 @@ project:
   name: "pagination"
   description: "Pagination primitive — paged navigation"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

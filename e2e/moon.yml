@@ -15,9 +15,9 @@ tasks:
     # `e2e/` substring would also match every component-owned spec.
     # The shared e2e task's command drives the component harness; this project
     # drives the built docs site instead, so the command is overridden here.
-    # `runInCI: skip`: the dedicated e2e job (sharded across 8 workers × 3
-    # browsers) owns this suite; moon ci in the verify job must not run a
-    # second copy on top.
+    # `runInCI: skip`: the dedicated e2e matrix job owns this suite (profile
+    # and shard count decided per change by tools/e2e-plan.ts); moon ci in the
+    # verify job must not run a second copy on top.
     command: "playwright test --config playwright.config.ts"
     options:
       runInCI: skip
