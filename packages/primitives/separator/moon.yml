@@ -7,4 +7,4 @@ project:
 # Separator depends only on core (cn). As cross-component dependencies emerge
 # (e.g. labels for labeled components), they are added here.
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

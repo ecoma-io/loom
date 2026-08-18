@@ -9,6 +9,6 @@ project:
   description: "Internal utilities shared by every Loom package"
 
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.
   # No project-specific overrides needed — the inherited commands and
   # options are correct for this package.

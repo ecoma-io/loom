@@ -5,6 +5,20 @@
 tasks:
   lint:
     command: "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0"
+    # The lockfile is an input for the same reason the CI ESLint cache key
+    # hashes it (see .github/workflows/ci.yml): rule implementations arrive
+    # through it, so a plugin bump must re-mark every lint task affected — the
+    # per-file work is still cheap because ESLint's own content-keyed cache
+    # skips files whose verdicts the bump did not change.
+    # eslint.config.mjs and tsconfig.json (the program the type-aware rules
+    # consult) are workspace-root files owned by no project — the same shape
+    # as the lockfile: without these lines a rule tightened in the config
+    # marks zero lint tasks affected.
+    inputs:
+      - "**/*"
+      - "/pnpm-lock.yaml"
+      - "/eslint.config.mjs"
+      - "/tsconfig.json"
     options:
       cache: true
       runInCI: affected

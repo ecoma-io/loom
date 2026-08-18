@@ -4,4 +4,4 @@ project:
   name: "chip"
   description: "Chip primitive — a dismissible tag or filter element"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

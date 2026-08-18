@@ -6,7 +6,7 @@ project:
   name: "tabs"
   description: "Tabs primitive — tabbed content switching"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.
   e2e:
     # Runs this component's own browser evidence through the lightweight
     # harness (playwright/harness/playwright.config.ts), which mounts the

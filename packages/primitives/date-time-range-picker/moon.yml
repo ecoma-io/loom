@@ -5,4 +5,4 @@ project:
   name: "date-time-range-picker"
   description: "DateTimeRangePicker primitive — combined date+time range selection"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

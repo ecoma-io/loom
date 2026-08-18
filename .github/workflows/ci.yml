@@ -163,11 +163,15 @@ jobs:
         id: base
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
+          MG_BASE: ${{ github.event.merge_group.base_sha }}
           PUSH_BEFORE: ${{ github.event.before }}
         # `moon ci` supports --base / --head and diffs this branch against the
         # base ref to select affected projects. On a pull request the base is
-        # the merge commit it will land on; on a push to main it is the commit
-        # this one grew from. On the very first commit (a repository seed, or a
+        # the merge commit it will land on; in the merge queue it is the
+        # batch's own base (`merge_group.base_sha`), so the diff covers every
+        # queued change rather than one merge commit; on a push to main it is
+        # the commit this one grew from. On the very first commit (a
+        # repository seed, or a
         # base that predates the checkout depth) `before` is the all-zero SHA,
         # which would diff against a commit that does not exist — so fall back
         # to the parent commit. Everything arrives via the environment, never
@@ -175,6 +179,8 @@ jobs:
         run: |
           if [ "$PR_BASE" != "" ]; then
             echo "base=$PR_BASE" >> "$GITHUB_OUTPUT"
+          elif [ "$MG_BASE" != "" ]; then
+            echo "base=$MG_BASE" >> "$GITHUB_OUTPUT"
           elif [ "${PUSH_BEFORE//0/}" != "" ]; then
             echo "base=$PUSH_BEFORE" >> "$GITHUB_OUTPUT"
           else
@@ -194,28 +200,45 @@ jobs:
       - name: Check architecture
         run: node --experimental-strip-types tools/check-architecture.ts
 
-      - name: Moon affected lint and build
+      - name: Moon affected lint, build and tests
         run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
 
-      # `moon ci` selects the directly-changed projects for their tasks — the
-      # dependent's tests do not run (see tools/affected-tests.ts). A button
-      # edit proves button's 8 tests but not alert-dialog's, whose suite mounts
-      # the very button that changed. The e2e side closes that closure already;
-      # this step gives the unit suite the same coverage by re-driving the same
-      # Moon test tasks over the downstream-closed set — a cache no-op for the
-      # projects moon ci just ran, fresh tests only for the dependents.
-      - name: Affected unit-test closure
+      # `moon ci` selects tasks whose own inputs changed — the dependents' tests
+      # do not run. A button edit proves button's 8 tests but not
+      # alert-dialog's, whose suite mounts the very button that changed. Moon's
+      # runner does not walk the graph downstream (measured on moon 2.4.6:
+      # `moon ci --downstream deep` still resolves only the directly-changed
+      # targets), but its *query* does — so the closure is moon's own answer,
+      # and this step only feeds it back as explicit targets. The projects moon
+      # ci just ran are cache no-ops; fresh tests run only for the dependents.
+      #
+      # An empty closure is a legitimate outcome, not an error: a release PR
+      # or a root-file edit touches files no project owns, and the right run
+      # is no run.
+      - name: Affected unit-test closure (dependents)
         env:
           MOON_BASE: ${{ steps.base.outputs.base }}
-        run: node --experimental-strip-types tools/affected-tests.ts
+        # pipefail, because the default shell is only `bash -e`: with a plain
+        # pipe, a crashed `moon query` hands jq an empty stream, jq exits 0,
+        # and the whole dependents' coverage would vanish green.
+        run: |
+          set -o pipefail
+          ids=$(pnpm exec moon query projects --affected --downstream deep | jq -r '.projects[].id')
+          if [ -z "$ids" ]; then
+            echo "no affected projects — nothing downstream to test"
+            exit 0
+          fi
+          # Word-splitting is deliberate: one id per target.
+          # shellcheck disable=SC2046
+          pnpm exec moon run $(printf '%s:test ' $ids)
 
-      # The type-check is a repository-wide verdict and moon ci no longer runs
-      # it (see .moon/tasks/typecheck.yml) — the shared moon typecheck task is
-      # per-project, and running a whole-repo vue-tsc once per affected project
-      # is what pushed verify past its timeout on a fresh runner with no moon
-      # cache. It is gated here as the one global pass `pnpm typecheck` was
-      # always meant to be, the same way the full vitest suite is gated on the
-      # merge queue and pushes.
+      # The type-check is a repository-wide verdict, run once. There is no
+      # per-project moon typecheck task on purpose: every package resolves the
+      # root tsconfig's whole-repo include, so a per-project vue-tsc is either
+      # a multi-pass re-check of the same files (which once pushed verify past
+      # its timeout) or a coverage hole. One global pass is the honest shape —
+      # a GLOBAL VALIDATION BOUNDARY, not an affected task pretending
+      # otherwise.
       - run: pnpm typecheck
 
       # The whole-repo unit suite has moved off the pull-request path: `moon ci`
@@ -235,10 +258,10 @@ jobs:
         run: pnpm test
 
       # The route, and not the build. A page that fails to build is still
-      # caught before the merge — every root `e2e` leg builds the site through
-      # Playwright's `webServer`, so the build already runs once per leg in
-      # this same run, and building it again here re-proved what those had
-      # proved. What no leg does is run `docs:stage`: nothing else before a
+      # caught before the merge — any run whose plan needs the built site
+      # builds it once in `e2e-build-docs`, and `moon ci` above builds it when
+      # `docs/` itself changed, so building it again here re-proved what those
+      # had proved. What no step does is run `docs:stage`: nothing else before a
       # merge compares the Cloudflare route against the base the site is built
       # with, and that mismatch deploys successfully and serves nothing.
       #
@@ -254,8 +277,11 @@ jobs:
   # set of browser workloads the run needs: a docs-only change runs the axe
   # sweep at `standard`, a component change runs only the affected components'
   # own specs through the harness at `smoke`, a theme change runs both the sweep
-  # and the theme-sensitive components, and a no-op (nothing relevant changed)
+  # and the theme-sensitive components, a dependency bump (lockfile) runs the
+  # sweep the graph cannot scope, and a no-op (nothing relevant changed)
   # emits an empty `include` — `e2e-run` expands to zero legs and passes.
+  # Discovery reads moon's affected answer and applies policy; it decides
+  # nothing the graph already decides.
   #
   # The base is the same one `verify` resolves: on a pull request it is the
   # merge commit this branch will land on, on a push to main the commit it grew
@@ -266,6 +292,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
+      has-root: ${{ steps.plan.outputs.has-root }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -281,20 +308,23 @@ jobs:
         with:
           node-version-file: .node-version
 
-      # `tools/e2e-plan.ts` imports only node: built-ins, but it resolves the
-      # affected set by shelling out to `moon` (`pnpm exec moon query projects
-      # --affected`), which resolves through `node_modules/` — so the install is
-      # required and deliberate, not skipped.
+      # `tools/e2e-plan.ts` resolves the affected set by shelling out to
+      # `moon` (`pnpm exec moon query projects --affected`), which resolves
+      # through `node_modules/` — so the install is required and deliberate,
+      # not skipped.
       - run: pnpm install --frozen-lockfile
 
       - name: Resolve affected base
         id: base
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
+          MG_BASE: ${{ github.event.merge_group.base_sha }}
           PUSH_BEFORE: ${{ github.event.before }}
         run: |
           if [ "$PR_BASE" != "" ]; then
             echo "base=$PR_BASE" >> "$GITHUB_OUTPUT"
+          elif [ "$MG_BASE" != "" ]; then
+            echo "base=$MG_BASE" >> "$GITHUB_OUTPUT"
           elif [ "${PUSH_BEFORE//0/}" != "" ]; then
             echo "base=$PUSH_BEFORE" >> "$GITHUB_OUTPUT"
           else
@@ -304,21 +334,93 @@ jobs:
       # `e2e-plan` resolves the affected set against the base itself; the step
       # above only supplies that base. The tool prints the full report (scenario,
       # changed count, affected ids and the rows); the matrix consumes only the
-      # `include` array, so the diagnostic fields never leak into a leg.
+      # `include` array, so the diagnostic fields never leak into a leg —
+      # `has-root` additionally tells the build job below whether any leg will
+      # need the built docs site.
       - name: Compute the E2E matrix
         id: plan
         env:
           MOON_BASE: ${{ steps.base.outputs.base }}
+        # Assignments before the writes: `echo "x=$(jq …)"` would swallow a
+        # failing jq inside the substitution, and the step would publish an
+        # empty output as if the plan were empty.
         run: |
           node --experimental-strip-types tools/e2e-plan.ts --print > matrix.json
-          NODE=$(node -e 'const m=require("./matrix.json"); process.stdout.write(JSON.stringify(m.include))')
-          echo "matrix=$NODE" >> "$GITHUB_OUTPUT"
+          matrix=$(jq -c '.include' matrix.json)
+          has_root=$(jq -r '.hasRoot' matrix.json)
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "has-root=$has_root" >> "$GITHUB_OUTPUT"
+
+  # The docs site is built once per run, not once per leg. Every root-suite leg
+  # drives the same built site; before this job existed each leg rebuilt it
+  # inside Playwright's webServer — identical work, measured at ~75 seconds,
+  # repeated up to two dozen times. The built site travels through the actions
+  # cache keyed on the exact commit (the same pinned action the ESLint cache
+  # uses, so no new third-party action enters the workflow); legs restore it
+  # with fail-on-cache-miss so a silently missing build turns the leg red
+  # rather than quietly rebuilding.
+  e2e-build-docs:
+    name: Build docs for E2E
+    runs-on: ubuntu-latest
+    needs: e2e-discover
+    if: needs.e2e-discover.outputs.has-root == 'true'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Restore and save are split deliberately, not spelled with the combined
+      # `actions/cache`: the combined action saves in a post step that runs
+      # even when the build failed, and VitePress leaves a partial dist behind
+      # — a broken site frozen under this commit's immutable key, which every
+      # re-run would then restore and test. As an ordinary step, the explicit
+      # save simply never runs after a failure.
+      - name: Restore an already-built site
+        id: docs-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+
+      # Skip-if-restored: a re-run of the same commit finds the site already
+      # cached and skips the build entirely.
+      - name: Build the docs site
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        run: pnpm docs:build
+
+      - name: Save the built site
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
 
   e2e-run:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    needs: e2e-discover
-    timeout-minutes: 15
+    # `e2e-build-docs` is skipped when no leg needs the built site, and a
+    # skipped need normally skips the dependent job too — the `!cancelled()`
+    # form runs the legs in that case while still failing them if the build
+    # genuinely failed. The `!= '[]'` guard makes the noop case (an empty
+    # plan) an explicit skip rather than leaning on how GitHub happens to
+    # treat an empty `include`.
+    needs: [e2e-discover, e2e-build-docs]
+    if: ${{ !cancelled() && needs.e2e-discover.result == 'success' && needs.e2e-discover.outputs.matrix != '[]' && (needs.e2e-build-docs.result == 'success' || needs.e2e-build-docs.result == 'skipped') }}
+    # Sized for the slowest quarter-suite: at `workers: 1` the worst engine's
+    # whole root run is ~23 minutes, so a 4-shard leg is ~6 minutes of tests
+    # plus ~2 of setup — and Playwright's two CI retries with traces can add
+    # minutes on a genuinely failing shard, which is what the headroom is for.
+    timeout-minutes: 20
     strategy:
       # One battery failing in engine A must not hose the other engines' answer
       # to "is the break engine-specific?" — the question the browser spread
@@ -340,29 +442,40 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        # The matrix legs only ever reference one of the three engine browsers:
-        # the root suite's projects are the engine project ids, and a harness
-        # leg's `install` is its engine's browser name. Installing the three
-        # engines unconditionally covers every profile — the mobile project ids
-        # are viewports, not engines — and drops the per-leg install branching
-        # that a fixed matrix paid for once and every leg repeated.
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - name: Install Playwright browser
+        # One leg runs exactly one browser project, which needs exactly one
+        # engine — `matrix.install` names it (the mobile project ids are
+        # viewports over the same engines). Installing only that engine is the
+        # difference between ~40 and ~110 seconds of per-leg setup.
+        run: pnpm exec playwright install --with-deps ${{ matrix.install }}
+
+      # A root leg restores the site `e2e-build-docs` built for this exact
+      # commit; `fail-on-cache-miss` makes a missing build a loud failure
+      # instead of a silent per-leg rebuild.
+      - name: Restore the built site
+        if: matrix.config == 'playwright.config.ts'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+          fail-on-cache-miss: true
 
       # A harness leg mounts demos through a Vite dev server (seconds); a root
-      # leg builds the docs site once through Playwright's webServer and runs
-      # the cross-cutting suite against it. `e2e-plan` fixed the profile, the
-      # project and the config per row; `--project` pins a leg to exactly one
-      # engine even when the profile names more, and `${{ matrix.specs }}` from
-      # `join` is the set of harness paths a component leg runs — the affected
-      # components' e2e dirs plus the harness axe gate, empty for a root leg,
-      # whose config's `testMatch` scopes it to the six crossing specs. The same
-      # projects feed `matrix.demos`, which becomes `HARNESS_DEMOS` so the axe
-      # gate sweeps exactly the demos the leg's component specs drive.
+      # leg serves the restored site (`PW_PREBUILT_DOCS` switches the config's
+      # webServer to preview-only) and runs the cross-cutting suite against it.
+      # `e2e-plan` fixed the profile, the project and the config per row;
+      # `--project` pins a leg to exactly one engine even when the profile
+      # names more, and `${{ matrix.specs }}` from `join` is the set of harness
+      # paths a component leg runs — the affected components' e2e dirs plus the
+      # harness axe gate, empty for a root leg, whose config's `testMatch`
+      # scopes it to the six crossing specs. The same projects feed
+      # `matrix.demos`, which becomes `HARNESS_DEMOS` so the axe gate sweeps
+      # exactly the demos the leg's component specs drive.
       - name: Run Playwright
         env:
           PW_PROFILE: ${{ matrix.profile }}
           HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
+          PW_PREBUILT_DOCS: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
         run: >-
           pnpm exec playwright test
           --project ${{ matrix.browser }}
@@ -374,7 +487,12 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report-${{ matrix.profile }}-${{ github.run_id }}
+          # Keyed by leg name, not profile: two failing legs of the same
+          # profile would otherwise collide on the artifact name, and
+          # upload-artifact rejects duplicates rather than merging them.
+          # `run_attempt` too: artifact names are immutable within a run, so a
+          # re-run of a still-failing leg would otherwise fail the upload.
+          name: playwright-report-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: playwright-report/
           retention-days: 7
 
@@ -397,7 +515,10 @@ jobs:
     # job; either way it is the desired state, and `skipped` is deliberately
     # not treated as a failure below. There is no partial run: the include is
     # either empty and nothing runs, or populated and every leg runs.
-    needs: [verify, e2e-discover, e2e-run]
+    # `e2e-build-docs` is listed even though `e2e-run` already depends on it:
+    # the gate treats `skipped` as acceptable (a run with no root legs builds
+    # nothing), and only `failure`/`cancelled` block the merge.
+    needs: [verify, e2e-discover, e2e-build-docs, e2e-run]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

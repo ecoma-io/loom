@@ -5,4 +5,4 @@ project:
   name: "toast"
   description: "Toast primitive — a transient, self-dismissing notification"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

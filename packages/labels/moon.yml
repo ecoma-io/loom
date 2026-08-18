@@ -14,4 +14,4 @@ project:
   description: "Localisation seam and field context for Loom components"
 
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

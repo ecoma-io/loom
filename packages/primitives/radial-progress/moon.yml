@@ -5,4 +5,4 @@ project:
   name: "radial-progress"
   description: "RadialProgress primitive — determinate progress ring"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

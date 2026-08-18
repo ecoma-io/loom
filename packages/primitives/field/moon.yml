@@ -6,4 +6,4 @@ project:
   name: "field"
   description: "Field primitive — labelled form control wrapper"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

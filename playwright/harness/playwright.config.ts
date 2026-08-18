@@ -1,5 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
-import { PROFILE_PROJECTS, type BrowserProfile } from "../profiles";
+import { defineConfig } from "@playwright/test";
+import { projectsForProfile } from "../profiles";
 
 /**
  * Component E2E harness Playwright config.
@@ -18,23 +18,9 @@ import { PROFILE_PROJECTS, type BrowserProfile } from "../profiles";
 const HARNESS_PORT = 5183;
 const BASE_URL = `http://localhost:${String(HARNESS_PORT)}`;
 
-const profile = process.env.PW_PROFILE ?? "smoke";
-
-if (!(profile in PROFILE_PROJECTS)) {
-  throw new Error(
-    `Unknown PW_PROFILE ${JSON.stringify(profile)}. Expected one of ${Object.keys(PROFILE_PROJECTS).join(", ")}.`,
-  );
-}
-
-const selectedProjects = PROFILE_PROJECTS[profile as BrowserProfile];
-
-const projects = {
-  chromium: { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-  firefox: { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-  webkit: { name: "webkit", use: { ...devices["Desktop Safari"] } },
-  "chromium-mobile": { name: "chromium-mobile", use: { ...devices["Pixel 5"] } },
-  "webkit-mobile": { name: "webkit-mobile", use: { ...devices["iPhone 13"] } },
-} as const;
+// Profile -> projects (and the device each drives) is the shared browser
+// policy in ../profiles.ts; an unknown PW_PROFILE throws there.
+const projects = projectsForProfile(process.env.PW_PROFILE ?? "smoke");
 
 export default defineConfig({
   // Component-owned specs live beside their components (`packages/**/e2e`),
@@ -71,5 +57,5 @@ export default defineConfig({
     timeout: 30_000,
   },
 
-  projects: selectedProjects.map((name) => projects[name]),
+  projects,
 });

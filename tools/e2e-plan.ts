@@ -3,58 +3,54 @@
  *
  * CI's e2e job used to be a fixed 3-browser × 8-shard matrix that built the
  * whole VitePress site and ran the entire cross-cutting suite on every pull
- * request, whatever it touched — the repository-wide browser workload a small
- * component change should not trigger. This tool replaces the fixed matrix
- * with a classification of *what actually changed*, and the job consumes its
- * output as `matrix.include`:
+ * request, whatever it touched. This tool replaces the fixed matrix with a
+ * classification of *what actually changed*, and the job consumes its output
+ * as `matrix.include`:
  *
  *   pw-infra    playwright/**, playwright.config*, harness/**, this tool
- *               → root cross-cutting suite (`full`, all 5 engines), plus every
- *                 component-owned spec (`standard`).
+ *               → root cross-cutting suite (`full`, all 5 engines), plus the
+ *                 affected components' specs at `standard` (a representative
+ *                 demo keeps the harness legs alive when none are affected).
  *   theme       packages/theme-core/**, a token that every surface depends on
  *               → root suite at `standard`, plus the theme-sensitive
  *                 components the dependency graph marks affected.
+ *   deps        pnpm-lock.yaml — the file every runtime dependency arrives
+ *               through, invisible to the project graph → root suite at
+ *               `standard` (the site renders every component, so the sweep is
+ *               the browser evidence a dependency bump needs), plus any
+ *               components the same diff touched directly.
  *   docs        docs/** and nothing in packages/ → the root suite at
  *               `standard`; no component browser jobs (a prose edit needs the
  *               axe sweep, not per-component evidence).
  *   component   packages/**, docs/demos → the affected components' own specs,
- *               at `smoke` (their declared `PW_PROFILE` wins if set); a
- *               component without own specs still has its demo swept by the
- *               harness axe gate, and only a change touching no component at
- *               all (the facade alone) falls back to a one-engine root sweep.
- *   noop        none of the above — the timing in `.moon/tasks/e2e.yml` and
- *               Moon's own cache handle it; the matrix is empty.
+ *               at `smoke` (a component without own specs still has its demo
+ *               swept by the harness axe gate, so a Badge.vue edit costs one
+ *               chromium leg, not the whole-repo sweep).
+ *   noop        none of the above — the matrix is empty and `e2e-run` expands
+ *               to zero legs.
  *
- * The scenario classification is a pure function of the changed file set, so
- * the tool is deterministic and testable; only the affected set comes from
- * moon (`MOON_BASE` selects the base, the same env `moon ci --base` uses).
+ * Scope, deliberately: this tool CLASSIFIES policy and GROUPS workload. The
+ * dependency graph and affected selection belong to moon — the single query
+ * below (`moon query projects --affected --downstream deep`) is the only place
+ * the affected set comes from, and the browser policy (profiles, engines)
+ * is imported from `playwright/profiles.ts`, the same module both Playwright
+ * configs read. Nothing here re-derives what either of those own.
  *
- * Run with `--print` to dump the computed matrix as JSON (CI feeds it into
- * `fromJSON`); run with no base in a repo with no upstream yet, or with a
- * base that predates the checkout depth, and it behaves like `noop` rather
- * than failing the run.
+ * Run with `--print` to dump the computed plan as JSON (CI feeds `include`
+ * into `fromJSON`); with a base that is not resolvable in the clone it
+ * behaves like `noop` rather than failing the run.
  */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import {
+  PROFILE_PROJECTS,
+  ENGINE_FOR_PROJECT,
+  type BrowserProfile,
+} from "../playwright/profiles.ts";
 
-// The browser set per profile, mirrored from playwright/profiles.ts. This
-// script runs under bare `node --experimental-strip-types`, which cannot
-// resolve a `../playwright/profiles` import without a `.ts` suffix that the
-// eslint project-service then rejects — so the five rows are restated here
-// rather than importable. The Playwright configs keep their single source;
-// this copy is the price of a dependencies-free discovery step.
-const PROFILE_ROWS = {
-  smoke: ["chromium"],
-  standard: ["chromium", "firefox", "webkit"],
-  mobile: ["chromium-mobile", "webkit-mobile"],
-  full: ["chromium", "firefox", "webkit", "chromium-mobile", "webkit-mobile"],
-} as const;
-
-type Profile = keyof typeof PROFILE_ROWS;
-
-// Repo root (the script lives in `tools/`); `main` uses the same convention.
+// Repo root (the script lives in `tools/`).
 const ROOT = new URL("..", import.meta.url).pathname;
 
 // The reverse of the harness's kebabToPascal (`?component=` → demo filename):
@@ -103,11 +99,12 @@ const demoFileToProjectId = (path: string): string | null => {
 const PW_INFRA_PATTERNS = [
   /^playwright\//,
   /^playwright\.config(?:\.|$)/,
-  // A root-suite spec edit (the axe, contrast or keyboard sweep itself) is an
-  // infra change — the very thing being changed is the suite, so the whole
-  // matrix must re-run. `e2e/moon.yml` and the specs both live under `e2e/`.
-  /^e2e\/moon\.yml$/,
-  /^e2e\/.*\.e2e\.ts$/,
+  // Anything under `e2e/` is the root suite: the specs, the shared helpers
+  // they import (`docs-pages.ts` is the page list every sweep iterates — an
+  // edit to it once classified as noop and ran zero browser legs), and the
+  // project's own moon.yml. The whole directory is the suite, so the whole
+  // matrix must re-run.
+  /^e2e\//,
   /^\.moon\/tasks\/e2e\.yml$/,
   /^tools\/e2e-plan\.ts$/,
   // Editing the CI workflow that runs the matrix is editing the matrix.
@@ -115,6 +112,11 @@ const PW_INFRA_PATTERNS = [
 ];
 
 const THEME_PATTERNS = [/^packages\/theme-core\//];
+
+// The lockfile is the one file through which every runtime dependency arrives,
+// and it belongs to no project — moon's graph cannot see what a vue or reka-ui
+// bump reaches (measured: a lockfile-only diff marks zero projects affected).
+const DEPS_PATTERNS = [/^pnpm-lock\.yaml$/];
 
 // Prose and site-chrome only. A `docs/demos/*Demo.vue` is not prose — the
 // harness mounts it, so a demo edit is a component change (a demo is a
@@ -125,7 +127,7 @@ const DOCS_ONLY_PATTERNS = [/^docs\/(?!demos\/)/];
 // itself, plus the demos the docs mounts as harness fixtures.
 const COMPONENT_PATTERNS = [/^packages\/(?!theme-core\/)/, /^docs\/demos\//];
 
-type Scenario = "pw-infra" | "theme" | "docs" | "component" | "noop";
+type Scenario = "pw-infra" | "theme" | "deps" | "docs" | "component" | "noop";
 
 export function classifyFiles(files: string[]): Scenario {
   if (!files.length) return "noop";
@@ -134,17 +136,14 @@ export function classifyFiles(files: string[]): Scenario {
 
   if (matches(PW_INFRA_PATTERNS)) return "pw-infra";
   if (matches(THEME_PATTERNS)) return "theme";
+  if (matches(DEPS_PATTERNS)) return "deps";
   // docs/ prose changed, and nothing else that an earlier scenario owns. The
-  // negative check is scoped to the *component* and *theme* boundaries — a
-  // demo edit or a token edit must not ride along as prose — so a routine
-  // prose change that also bumps the lockfile (or touches README, a workflow,
-  // anything `noop`) still gets the axe sweep rather than falling through to
-  // the empty `noop` case.
-  const touchedNonProse = files.some(
-    (file) =>
-      COMPONENT_PATTERNS.some((p) => p.test(file)) || THEME_PATTERNS.some((p) => p.test(file)),
-  );
-  if (matches(DOCS_ONLY_PATTERNS) && !touchedNonProse) {
+  // negative check is scoped to the *component* boundary — a demo edit must
+  // not ride along as prose — so a routine prose change that also touches
+  // README, a workflow, anything `noop` still gets the axe sweep rather than
+  // falling through to the empty `noop` case.
+  const touchedComponent = files.some((file) => COMPONENT_PATTERNS.some((p) => p.test(file)));
+  if (matches(DOCS_ONLY_PATTERNS) && !touchedComponent) {
     return "docs";
   }
   if (matches(COMPONENT_PATTERNS)) return "component";
@@ -162,29 +161,19 @@ export interface AffectedProject {
 }
 
 /**
- * The projects moon marks affected against `MOON_BASE`, from `moon query
- * projects --affected` — the same DAG `moon ci --base` would walk, including
- * the dependents a change reaches. `--downstream deep` is what turns "the
- * projects whose own files changed" into "the transitive closure of projects
- * whose tests and browser evidence must re-run": a button edit marks
- * alert-dialog, pagination and editable affected too (each imports button), and
- * a core edit marks the components two edges down as well (core → skeleton →
- * loading-state). Without it the matrix would cover only the directly-changed
- * components and a shared-dep change (core, labels, theme-core, button) would
- * never re-run the consumers a deeper composite composition reaches. The query
- * emits repositories of project objects; we flatten to the id + whether it owns
- * an e2e task, the two facts the profile below needs.
+ * The projects moon marks affected against `MOON_BASE`, closed over the
+ * dependency graph: `--downstream deep` turns "the projects whose own files
+ * changed" into "the transitive closure of projects whose browser evidence
+ * must re-run" — a button edit marks alert-dialog, pagination and editable
+ * affected too (each imports button). This is the ONLY affected computation in
+ * the E2E path, and it is moon's, not this tool's.
  */
 export function affectedProjects(base: string): AffectedProject[] {
   const out = execFileSync(
     "pnpm",
-    // `moon query projects` always emits JSON; `--affected` narrows it by the
-    // changed files moon selects against `MOON_BASE`, and `--downstream`
-    // closes the closure across every project a change reaches transitively
-    // (see above).
     ["exec", "moon", "query", "projects", "--affected", "--downstream", "deep"],
     {
-      cwd: new URL("..", import.meta.url).pathname,
+      cwd: ROOT,
       env: { ...process.env, MOON_BASE: base },
       encoding: "utf8",
       // `moon query projects` emits each project's full config — deps, tasks,
@@ -200,7 +189,7 @@ export function affectedProjects(base: string): AffectedProject[] {
   return Array.isArray(list) ? list : Object.values(list);
 }
 
-// ---- profile selection --------------------------------------------------------
+// ---- workload grouping --------------------------------------------------------
 
 // A `root` leg drives the docs-site suite, a `harness` leg the component
 // harness. The values are the config paths the legs run with, so the CI job
@@ -210,10 +199,6 @@ const CONFIG_PATHS = {
   harness: "playwright/harness/playwright.config.ts",
 } as const;
 
-// The Playwright browser a leg runs (`--project`) and the name `playwright
-// install` downloads for it. The two mobile project ids alias their engine's
-// browser — a Pixel 5 is a Chromium, an iPhone 13 a WebKit — so the install
-// name is not always the project id.
 // The harness axe gate, appended to every harness leg's specs. Playwright's
 // positional args override the config's `testMatch`, so a leg that passes only
 // the component dirs would silently drop the gate — it must be a positional arg
@@ -221,14 +206,26 @@ const CONFIG_PATHS = {
 // same workload.
 const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
 
-const BROWSER_INSTALL = {
-  chromium: "chromium",
-  firefox: "firefox",
-  webkit: "webkit",
-  "chromium-mobile": "chromium",
-  "webkit-mobile": "webkit",
-} as const;
-type BrowserProjectId = keyof typeof BROWSER_INSTALL;
+/**
+ * How many `--shard` pieces the root cross-cutting suite is cut into, per
+ * browser. Sized from measurement, not habit: at `workers: 1` one browser's
+ * whole suite is ~17–23 minutes, and with the docs site built once and
+ * downloaded (rather than rebuilt in every leg) a shard's overhead is ~1
+ * minute — so 4 shards puts a leg at ~5–7 minutes, comfortably under the
+ * job timeout, where the old fixed 8 spent as long setting up as testing.
+ */
+const ROOT_SHARDS = 4;
+
+/**
+ * Harness legs group every affected component into one Playwright run per
+ * browser, so the leg count is bounded by the profile's browser count, not by
+ * the component count. Sharding kicks in only when the workload is genuinely
+ * large (a theme or infra change reaching hundreds of components) and is
+ * itself bounded, so 500 affected components means at most `3 × browsers`
+ * legs, never 500 jobs.
+ */
+const harnessShardCount = (units: number): number =>
+  Math.min(3, Math.max(1, Math.ceil(units / 40)));
 
 /**
  * One matrix row = one browser workload. `profile` is a `PW_PROFILE` name the
@@ -245,7 +242,7 @@ export interface MatrixRow {
   config: string;
   /** The Playwright project id (a browser) this leg runs via `--project`. */
   browser: string;
-  /** The `playwright install` browser name for `browser`. */
+  /** The `playwright install` engine for `browser`. */
   install: string;
   /**
    * The set of relative e2e paths a harness leg runs. The components' own
@@ -278,11 +275,11 @@ export function plan(
   files: string[] = [],
 ): MatrixRow[] {
   const row = (
-    profile: Profile,
+    profile: BrowserProfile,
     config: "root" | "harness",
     specs: string[],
     demos: string[],
-    browser: BrowserProjectId,
+    browser: keyof typeof ENGINE_FOR_PROJECT,
     shards: number,
     shardIndex: number,
   ): MatrixRow => ({
@@ -290,7 +287,7 @@ export function plan(
     profile,
     config: CONFIG_PATHS[config],
     browser,
-    install: BROWSER_INSTALL[browser],
+    install: ENGINE_FOR_PROJECT[browser],
     specs,
     demos,
     shardArgs: shards > 1 ? `--shard=${String(shardIndex)}/${String(shards)}` : "",
@@ -303,13 +300,10 @@ export function plan(
   // component a `component`/`theme` row would run through the harness. It is
   // instead handled by the root-suite row below (`specs: []`), which is why it
   // drops out of the component list.
-  const withE2EProjects = affected.filter(ownsE2E).filter((p) => p.id !== "e2e");
-  // The e2e dirs the leg passes positionally, one per e2e-tagged project (the
-  // axe gate file appended below). A component without own specs is still
-  // evidence for its change: `affectedDemos` keeps its demo inside this same
-  // leg, so a Badge.vue edit never and nowhere falls back to the whole-repo
-  // root sweep.
-  const withE2E = withE2EProjects.map((p) => `${p.source}/e2e`);
+  const withE2E = affected
+    .filter(ownsE2E)
+    .filter((p) => p.id !== "e2e")
+    .map((p) => `${p.source}/e2e`);
   // Every affected demo-bearing project — e2e-tagged or not — is exported as
   // `HARNESS_DEMOS` for the harness axe gate to sweep: one component's demo is
   // the component's browser evidence, whether or not it also owns focused
@@ -329,16 +323,12 @@ export function plan(
     if (id && !affectedDemos.includes(id)) affectedDemos.push(id);
   }
 
-  // The root cross-cutting suite across `profile`'s browsers, sharded. The axe
-  // and contrast sweeps double the test count (every page in light and dark),
-  // so even one engine's worth of tests benefits from splitting across the
-  // per-leg wall-clock ceiling. `ROOT_SHARDS` is the fixed split that kept the
-  // old fixed matrix under the ceiling; it is safe to keep because every root
-  // leg is the same six specs on the same pages — the only variable is
-  // browser. Each shard is its own matrix leg (`--shard=i/N`), so the runner
-  // never holds the whole suite.
-  const rootLegs = (profile: Profile): MatrixRow[] =>
-    PROFILE_ROWS[profile].flatMap((browser) =>
+  // The root cross-cutting suite across `profile`'s browsers. The axe and
+  // contrast sweeps double the test count (every page in light and dark), so
+  // each browser is split into ROOT_SHARDS legs (`--shard=i/N`) to stay under
+  // the per-leg wall-clock ceiling — see ROOT_SHARDS for the sizing evidence.
+  const rootLegs = (profile: BrowserProfile): MatrixRow[] =>
+    PROFILE_PROJECTS[profile].flatMap((browser) =>
       Array.from({ length: ROOT_SHARDS }, (_, i) =>
         row(profile, "root", [], [], browser, ROOT_SHARDS, i + 1),
       ),
@@ -347,11 +337,24 @@ export function plan(
   // A harness leg runs only the affected components' specs on one profile —
   // their dirs plus the axe gate, since positional args override testMatch —
   // and exports the same projects' demo names for the gate's `HARNESS_DEMOS`.
-  // These are seconds of browser time — one leg per browser, no shard.
-  const harnessLegs = (profile: Profile): MatrixRow[] =>
-    PROFILE_ROWS[profile].map((browser) =>
-      row(profile, "harness", [...withE2E, HARNESS_AXE_GATE], affectedDemos, browser, 1, 1),
+  // One leg per browser until the affected set is genuinely large; then a
+  // bounded shard split, never a job per component.
+  const harnessLegs = (profile: BrowserProfile): MatrixRow[] => {
+    const shards = harnessShardCount(withE2E.length + affectedDemos.length);
+    return PROFILE_PROJECTS[profile].flatMap((browser) =>
+      Array.from({ length: shards }, (_, i) =>
+        row(
+          profile,
+          "harness",
+          [...withE2E, HARNESS_AXE_GATE],
+          affectedDemos,
+          browser,
+          shards,
+          i + 1,
+        ),
+      ),
     );
+  };
 
   switch (scenario) {
     case "pw-infra":
@@ -370,6 +373,14 @@ export function plan(
         ...rootLegs("standard"),
         ...(withE2E.length || affectedDemos.length ? harnessLegs("standard") : []),
       ];
+    case "deps":
+      // The lockfile changed: the root sweep is the browser evidence — the
+      // built site renders every component against the bumped dependencies —
+      // plus the own specs of any component the same diff touched directly.
+      return [
+        ...rootLegs("standard"),
+        ...(withE2E.length || affectedDemos.length ? harnessLegs("smoke") : []),
+      ];
     case "docs":
       // Prose changed: the axe + contrast sweep over the built site, at
       // standard. No component browser evidence — nothing component-dom
@@ -380,7 +391,7 @@ export function plan(
       // projects' specs plus the axe gate over every affected demo. A change
       // in a component with no specs (a Badge.vue edit) still sweeps the demo
       // — the harness gate in light and dark — which is exactly the fallback
-      // that used to drop to the whole-repo 3×8. Only a change leaving no
+      // that used to drop to the whole-repo matrix. Only a change leaving no
       // demo-bearing component at all (the facade's own tree; its a11y.ts is
       // the tag set the root gate imports) falls to a one-engine root sweep.
       return withE2E.length || affectedDemos.length ? harnessLegs("smoke") : rootLegs("smoke");
@@ -388,9 +399,6 @@ export function plan(
       return [];
   }
 }
-
-/** How many `--shard` pieces the root cross-cutting suite is cut into. */
-const ROOT_SHARDS = 8;
 
 // ---- CLI ----------------------------------------------------------------------
 
@@ -405,7 +413,7 @@ function main(): void {
   let files: string[];
   try {
     files = execFileSync("git", ["diff", "--name-only", `${base}...HEAD`], {
-      cwd: new URL("..", import.meta.url).pathname,
+      cwd: ROOT,
       encoding: "utf8",
     })
       .split("\n")
@@ -433,6 +441,9 @@ function main(): void {
     scenario,
     changedFiles: files.length,
     affected: affected.map((p) => p.id),
+    // Whether any leg drives the built docs site — the workflow builds the
+    // site once (one job, one artifact) instead of once per leg when true.
+    hasRoot: rows.some((r) => r.config === CONFIG_PATHS.root),
     include: rows,
   };
 
@@ -446,9 +457,9 @@ function main(): void {
 /**
  * The pure-logic self-check, run on every direct execution before the CLI.
  * `classifyFiles` and `plan` are the decision function behind the whole dynamic
- * matrix, so the exact regression the fixed 3×8 matrix used to hide — "a
- * component change without own specs runs everything" — stays asserted here
- * with synthetic inputs and node:assert: no git, no moon, no browsers.
+ * matrix, so the exact regression the fixed matrix used to hide — "a component
+ * change without own specs runs everything" — stays asserted here with
+ * synthetic inputs and node:assert: no git, no moon, no browsers.
  */
 export function runSelfCheck(): void {
   // classifyFiles — the scenario boundaries.
@@ -460,6 +471,7 @@ export function runSelfCheck(): void {
   assert.equal(classifyFiles(["packages/primitives/badge/src/Badge.vue"]), "component");
   assert.equal(classifyFiles(["packages/theme-core/src/theme.css"]), "theme");
   assert.equal(classifyFiles(["playwright.config.ts"]), "pw-infra");
+  assert.equal(classifyFiles(["pnpm-lock.yaml"]), "deps"); // a dependency bump
   assert.equal(classifyFiles([]), "noop");
 
   // plan — the affected-set decisions, against real demo files on disk.
@@ -470,13 +482,13 @@ export function runSelfCheck(): void {
   });
 
   // A badge edit (no e2e specs of its own) yields exactly one chromium harness
-  // leg — the axe gate over badge's demo — and never the root 3×8. This is the
-  // invariant the fixed matrix optimised away; the harness gate still holds
-  // badge to WCAG_TAGS in both themes.
+  // leg — the axe gate over badge's demo — and never the root sweep. This is
+  // the invariant the fixed matrix optimised away; the harness gate still
+  // holds badge to WCAG_TAGS in both themes.
   const badgeOnly = plan("component", [project("badge", "packages/primitives/badge", [])]);
   const badgeLeg = badgeOnly[0];
   assert.ok(badgeLeg, "a component edit must produce a harness leg");
-  assert.equal(badgeOnly.length, 1, "badge-only edit -> one smoke leg, not 24");
+  assert.equal(badgeOnly.length, 1, "badge-only edit -> one smoke leg, not a matrix");
   assert.equal(badgeLeg.config, CONFIG_PATHS.harness);
   assert.deepEqual(badgeLeg.demos, ["badge"]);
   assert.deepEqual(badgeLeg.specs, [HARNESS_AXE_GATE]);
@@ -492,12 +504,13 @@ export function runSelfCheck(): void {
   assert.ok(buttonLeg.demos.includes("button"));
 
   // A theme change holds the affected demos — not just e2e-tagged ones — to
-  // the bar at standard, beside the root sweep.
+  // the bar at standard, beside the root sweep: 3 browsers × ROOT_SHARDS root
+  // legs, one harness leg per browser while the affected set is small.
   const themed = plan("theme", [
     project("theme-core", "packages/theme-core", []),
     project("badge", "packages/primitives/badge", []),
   ]);
-  assert.equal(themed.filter((r) => r.config === CONFIG_PATHS.root).length, 24);
+  assert.equal(themed.filter((r) => r.config === CONFIG_PATHS.root).length, 3 * ROOT_SHARDS);
   assert.equal(themed.filter((r) => r.config === CONFIG_PATHS.harness).length, 3);
   assert.ok(
     themed.filter((r) => r.config === CONFIG_PATHS.harness).every((r) => r.demos.includes("badge")),
@@ -506,12 +519,29 @@ export function runSelfCheck(): void {
   // A no-op change runs nothing.
   assert.equal(plan("noop", []).length, 0);
 
-  // The four regression cases the fixed 3×8 matrix could hide, asserted here
-  // so the exact behavior this file exists to provide stays pinned:
+  // A lockfile-only bump gets the root sweep (moon marks no project affected —
+  // the site is the evidence) and nothing per-component.
+  const depsOnly = plan("deps", [], ["pnpm-lock.yaml"]);
+  assert.equal(depsOnly.length, 3 * ROOT_SHARDS);
+  assert.ok(depsOnly.every((r) => r.config === CONFIG_PATHS.root));
+
+  // The harness workload stays bounded however large the affected set grows:
+  // grouping first, then a capped shard split — never a leg per component.
+  const everyComponent = packageProjectIds().map((id) => project(id, `packages/x/${id}`, ["e2e"]));
+  const wide = plan("theme", [project("theme-core", "packages/theme-core", []), ...everyComponent]);
+  const wideHarness = wide.filter((r) => r.config === CONFIG_PATHS.harness);
+  assert.ok(wideHarness.length <= 3 * 3, "harness legs are bounded: ≤ shard cap × browsers");
+  assert.ok(
+    wideHarness.every((r) => r.shardArgs.length > 0),
+    "a wide sweep is sharded",
+  );
+
+  // The regression cases the fixed matrix could hide, asserted here so the
+  // exact behavior this file exists to provide stays pinned:
   //
   // 1. A demo edit — the file that *is* a component's browser evidence — routes
-  //    to the harness gate sweeping that component, never the 24-leg root
-  //    sweep. Moon's affected set for a BadgeDemo.vue edit is `docs` only
+  //    to the harness gate sweeping that component, never the root sweep.
+  //    Moon's affected set for a BadgeDemo.vue edit is `docs` only
   //    (empirically), so the reverse map must supply the `badge` id.
   const demoEdit = plan("component", [project("docs", "docs", [])], ["docs/demos/BadgeDemo.vue"]);
   assert.equal(demoEdit.length, 1, "a demo edit -> one harness leg");
@@ -520,15 +550,11 @@ export function runSelfCheck(): void {
   assert.equal(demoEditRow.config, CONFIG_PATHS.harness);
   assert.deepEqual(demoEditRow.demos, ["badge"], "the demo's component is swept");
 
-  // 2. A docs prose edit plus an incidental non-component file (lockfile,
-  //    README) must still be the docs sweep, not the empty noop.
-  assert.equal(classifyFiles(["docs/index.md", "pnpm-lock.yaml"]), "docs");
-  assert.equal(
-    plan("docs", [project("docs", "docs", [])], ["docs/index.md", "pnpm-lock.yaml"]).filter(
-      (r) => r.config === CONFIG_PATHS.root,
-    ).length,
-    24,
-  );
+  // 2. A docs prose edit plus an incidental lockfile bump is a `deps` change
+  //    (the sweep still runs, now for two reasons); prose plus a README or
+  //    workflow edit is still the docs sweep, not the empty noop.
+  assert.equal(classifyFiles(["docs/index.md", "pnpm-lock.yaml"]), "deps");
+  assert.equal(classifyFiles(["docs/index.md", "README.md"]), "docs");
 
   // 3. An edit to the root suite specs or the matrix's own workflow is an
   //    infra change, not a silent noop.

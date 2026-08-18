@@ -6,4 +6,4 @@ project:
   name: "fieldset"
   description: "Fieldset primitive — grouped form fields with legend"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.

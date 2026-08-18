@@ -75,28 +75,35 @@ Playwright configs that share `playwright/profiles.ts`:
   browser evidence never pays for VitePress.
 
 Which legs run on a pull request is decided by `tools/e2e-plan.ts` (a pure
-function of the changed file set), consumed by the `e2e-discover` → `e2e-run`
-jobs in `.github/workflows/ci.yml`. The scenarios it classifies are documented
-at the top of that tool; the short version is that a component change runs only
-the affected components' own specs at `smoke` (a component without own specs
-still has its demo swept by the harness axe gate, so a Badge.vue edit costs one
-chromium leg, not the whole-repo sweep), a docs or theme change runs the root
-sweep, an infra change runs everything, and nothing relevant runs nothing.
-The full matrix (`PW_PROFILE=full`, all five browser projects) stays available
-for a change that edits `playwright/` itself, the harness, or the root config —
-and is what `pnpm e2e:full` runs.
+function of the changed file set plus moon's affected answer), consumed by the
+`e2e-discover` → `e2e-build-docs` → `e2e-run` jobs in
+`.github/workflows/ci.yml`. The scenarios it classifies are documented at the
+top of that tool; the short version is that a component change runs only the
+affected components' own specs at `smoke` (a component without own specs still
+has its demo swept by the harness axe gate, so a Badge.vue edit costs one
+chromium leg, not the whole-repo sweep), a docs, theme or dependency-bump
+change runs the root sweep (built once, shared to every leg through the
+actions cache), an infra change runs everything, and nothing relevant runs
+nothing. Harness legs group every affected component into one Playwright run
+per browser, sharding only past a bounded threshold — the job count is bounded
+by browsers × shard cap, never by the component count. The full matrix
+(`PW_PROFILE=full`, all five browser projects) stays available for a change
+that edits `playwright/` itself, the harness, or the root config — and is what
+`pnpm e2e:full` runs. The browser profiles themselves have one home,
+`playwright/profiles.ts`, read by both Playwright configs and by the plan.
 
-The unit-test side gets the same affected boundary from
-`tools/affected-tests.ts` — Moon's own `--affected` selects only directly-changed
-projects, so a button edit would otherwise prove button's tests but not
-alert-dialog's; the tool closes that closure transitively by running the same
-Moon `test` tasks over the `--downstream deep` set `tools/e2e-plan.ts` computes.
-CI runs it after `moon ci`.
+The unit-test side gets the same boundary from moon itself: `moon ci` runs the
+directly-affected tasks, and CI then replays `moon query projects --affected
+--downstream deep` as explicit `<id>:test` targets — moon's runner does not
+walk the graph downstream on its own (measured on 2.4.6), so the query's
+answer is fed back to `moon run`, cached tasks deduplicating the overlap.
 
 Moon owns the affected-boundary of this: package graphs are real moon `deps:`
 (see `tools/sync-moon-deps.ts`, with `# preserved` for hand-declared edges that
 `package.json` cannot express), so `moon :e2e --affected` and `moon ci --base`
-walk the true dependency closure rather than a flat list.
+walk the true dependency closure rather than a flat list. The lockfile is a
+declared input of every test and lint task, because a dependency bump changes
+what a test exercises without touching any project's own files.
 
 ## One accessibility tag set, two readers
 

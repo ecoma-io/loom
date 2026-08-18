@@ -4,4 +4,4 @@ project:
   name: "tooltip"
   description: "Tooltip primitive — contextual hint on hover or focus"
 tasks:
-  # Inherit build, lint, typecheck and test from .moon/tasks/*.yml.
+  # Inherit lint and test from .moon/tasks/*.yml.
