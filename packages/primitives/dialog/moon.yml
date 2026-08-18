@@ -1,7 +1,6 @@
 deps:
   - "core"
   - "labels"
-  - "theme-core"
 tags: ["e2e"]
 
 project:

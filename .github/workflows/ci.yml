@@ -200,7 +200,15 @@ jobs:
       - name: Check architecture
         run: node --experimental-strip-types tools/check-architecture.ts
 
+      # `MOON_CONCURRENCY` bounds Moon's task pool. Without it Moon defaults
+      # to the host CPU count and launches that many concurrent vitest forks
+      # (each `maxWorkers: 1` by the root config) — on a 16-core runner that is
+      # 16 jsdom suites at once, spiking the box. The `pnpm moon` wrapper
+      # defaults it to 4; this step calls bare `pnpm exec moon`, so the cap is
+      # set explicitly here to match.
       - name: Moon affected lint, build and tests
+        env:
+          MOON_CONCURRENCY: "4"
         run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
 
       # `moon ci` selects tasks whose own inputs changed — the dependents' tests
@@ -218,6 +226,9 @@ jobs:
       - name: Affected unit-test closure (dependents)
         env:
           MOON_BASE: ${{ steps.base.outputs.base }}
+          # The `moon run` below is a task pipeline with its own concurrency
+          # pool — same cap as the `moon ci` step above, for the same reason.
+          MOON_CONCURRENCY: "4"
         # pipefail, because the default shell is only `bash -e`: with a plain
         # pipe, a crashed `moon query` hands jq an empty stream, jq exits 0,
         # and the whole dependents' coverage would vanish green.
