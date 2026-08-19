@@ -442,3 +442,5 @@
    * visibility on dark surfaces. */
   --shadow-halo: 0 0 0 4px hsl(211 33% 45% / 0.35);
 }
+
+/* Benchmark scenario D: theme change. */
