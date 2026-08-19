@@ -30,3 +30,5 @@ features:
   - title: Documented from source
     details: The API tables on this site are generated from the components themselves, and every example is the demo's real file. Neither can drift from the code it describes.
 ---
+
+<!-- Benchmark scenario C: docs-only change. -->
