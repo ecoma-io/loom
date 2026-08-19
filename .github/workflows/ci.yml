@@ -57,7 +57,14 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      # `SECONDS` times the install: it is the fixed tax every job pays, and the
+      # benchmark must separate it from the work it fronts before anyone
+      # optimises one against the other.
+      - name: Install dependencies
+        run: >-
+          SECONDS=0;
+          pnpm install --frozen-lockfile;
+          echo "install seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       # Every pull request lands as a squash, and the squash commit's subject is
       # the pull request title — so the title is the one commit message that
@@ -211,6 +218,17 @@ jobs:
           MOON_CONCURRENCY: "4"
         run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
 
+      # The benchmark digest: moon just wrote ciReport.json with per-action
+      # durations and cache hits. `tools/ci-benchmark.ts` reads it (no re-run)
+      # and appends a table — run-task count, cached count, sum of run-task
+      # seconds, and the moon cache savings estimate — to the step summary, so
+      # how much of this change's test/lint cost was cache-replayed is visible
+      # in the run rather than buried in a 263 KiB JSON report. GitHub injects
+      # GITHUB_STEP_SUMMARY into every step's environment, so the tool needs no
+      # wiring beyond running it.
+      - name: Report moon run timing
+        run: node --experimental-strip-types tools/ci-benchmark.ts
+
       # `moon ci` selects tasks whose own inputs changed — the dependents' tests
       # do not run. A button edit proves button's 8 tests but not
       # alert-dialog's, whose suite mounts the very button that changed. Moon's
@@ -249,8 +267,15 @@ jobs:
       # a multi-pass re-check of the same files (which once pushed verify past
       # its timeout) or a coverage hole. One global pass is the honest shape —
       # a GLOBAL VALIDATION BOUNDARY, not an affected task pretending
-      # otherwise.
-      - run: pnpm typecheck
+      # otherwise. `SECONDS` times it: this is the one step whose cost the
+      # benchmark must measure before anyone argues for (or against) scoping
+      # it — the whole-repo pass is the largest single estimated step in
+      # verify, and no number for it exists yet.
+      - name: Global typecheck
+        run: >-
+          SECONDS=0;
+          pnpm typecheck;
+          echo "typecheck seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       # The whole-repo unit suite has moved off the pull-request path: `moon ci`
       # above already runs the affected projects' tests, with cross-component
@@ -282,6 +307,16 @@ jobs:
       # deploying it. Dropping the build without that seam would leave a check
       # that passes and then fails copying a directory nobody made.
       - run: pnpm docs:check-route
+
+      # The verify-job benchmark digest: step durations are GitHub's own, and
+      # moon's report carries the task-level numbers. This block re-prints the
+      # moon digest (it is the only long phase whose internal cost is otherwise
+      # invisible) so the run's step summary carries both the wall-clock and the
+      # cache-replay split in one place. See tools/ci-benchmark.ts for what it
+      # reads and why it runs nothing.
+      - name: Verify benchmark digest
+        if: always()
+        run: node --experimental-strip-types tools/ci-benchmark.ts
 
   # One discovery step replaces the fixed 3-browser × 8-shard matrix. `e2e-plan`
   # classifies what actually changed (see tools/e2e-plan.ts) and emits the exact
@@ -453,12 +488,43 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # The browser install is the single step that times out on a loaded runner:
+      # the full `pw-infra` matrix measured 12 of 26 legs failing at the 20-minute
+      # job ceiling, every one on `playwright install --with-deps <engine>` —
+      # the apt system-deps half starves when many legs install concurrently.
+      # Cache the installed browser tree keyed on the engine so a warm leg
+      # restores it instead of re-downloading under contention; the key carries
+      # the Playwright version (which pin the engine) and the engine name.
+      # `--with-deps` still runs on a cache miss only, and only that leg pays
+      # the apt tax.
+      #
+      # Restore and save are split deliberately, matching the docs-dist cache:
+      # the combined actions/cache saves in a post step that runs even on
+      # failure, and a leg that died mid-install would freeze a partial browser
+      # tree under the key. As ordinary steps, the explicit save never runs
+      # after a failed install.
+      - name: Restore Playwright browsers
+        id: pw-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ matrix.install }}-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install Playwright browser
         # One leg runs exactly one browser project, which needs exactly one
         # engine — `matrix.install` names it (the mobile project ids are
         # viewports over the same engines). Installing only that engine is the
-        # difference between ~40 and ~110 seconds of per-leg setup.
+        # difference between ~40 and ~110 seconds of per-leg setup. On a cache
+        # hit the browser tree is already restored, so the install is a no-op
+        # and the apt system-deps half never runs.
         run: pnpm exec playwright install --with-deps ${{ matrix.install }}
+
+      - name: Save Playwright browsers
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ matrix.install }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       # A root leg restores the site `e2e-build-docs` built for this exact
       # commit; `fail-on-cache-miss` makes a missing build a loud failure
@@ -482,17 +548,27 @@ jobs:
       # scopes it to the six crossing specs. The same projects feed
       # `matrix.demos`, which becomes `HARNESS_DEMOS` so the axe gate sweeps
       # exactly the demos the leg's component specs drive.
+      # One step times the actual Playwright run: `SECONDS` counts from its own
+      # line 0, and the final echo appends the elapsed seconds to the step
+      # summary so the leg's browser evidence cost is one grep-able line per
+      # matrix leg alongside GitHub's own step duration. `set -e` keeps a
+      # failing playwright run a failing step: without it, the timing echo
+      # after the `;` would turn a red leg green — the exact failure a CI
+      # step must never do.
       - name: Run Playwright
         env:
           PW_PROFILE: ${{ matrix.profile }}
           HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
           PW_PREBUILT_DOCS: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
         run: >-
+          set -e;
+          SECONDS=0;
           pnpm exec playwright test
           --project ${{ matrix.browser }}
           --config ${{ matrix.config }}
           ${{ join(matrix.specs, ' ') }}
-          ${{ matrix.shardArgs }}
+          ${{ matrix.shardArgs }};
+          echo "e2e-leg ${{ matrix.name }} profile=${{ matrix.profile }} browser=${{ matrix.browser }} ${{ matrix.config }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Playwright report
         if: failure()
