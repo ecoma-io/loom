@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/ecoma-io/loom/compare/v0.2.0...v0.3.0) (2026-08-19)
+
+
+### Features
+
+* **a11y:** add WCAG 2.2 e2e tests and extend dark-mode coverage ([#61](https://github.com/ecoma-io/loom/issues/61)) ([99a7fee](https://github.com/ecoma-io/loom/commit/99a7feeefff030938449b81a8f094fe8a74b19b6))
+* **ci:** affected test/e2e matrix — small changes pay small costs ([#66](https://github.com/ecoma-io/loom/issues/66)) ([12e8638](https://github.com/ecoma-io/loom/commit/12e863821b7792ae6242212c7c0560f72a24f307))
+* **ci:** ci benchmark evidence and adversarial audit ([#69](https://github.com/ecoma-io/loom/issues/69)) ([c22132e](https://github.com/ecoma-io/loom/commit/c22132ebc290a640a934c05b47df43a705ebf3ce))
+* **ci:** make Moon the affected source of truth and bound the e2e matrix ([#67](https://github.com/ecoma-io/loom/issues/67)) ([d6f404f](https://github.com/ecoma-io/loom/commit/d6f404fdcb918c57ff558a633f71685e59fd70e6))
+* **workspace:** complete Moonrepo package migration ([#65](https://github.com/ecoma-io/loom/issues/65)) ([7dac08f](https://github.com/ecoma-io/loom/commit/7dac08f25b48ad12b138ec8a3a23afd27daf02c6))
+* **workspace:** migrate components into Moonrepo packages ([#64](https://github.com/ecoma-io/loom/issues/64)) ([1319304](https://github.com/ecoma-io/loom/commit/1319304f22d2c7e6b2e62d3897106b84081e5243))
+
+
+### Bug Fixes
+
+* **ci:** hash dependency sources in test tasks, cap moon concurrency ([#68](https://github.com/ecoma-io/loom/issues/68)) ([351fb81](https://github.com/ecoma-io/loom/commit/351fb811570b4a0723b359e70c541e8bfbb4548d))
+
 ## [0.2.0](https://github.com/ecoma-io/loom/compare/v0.1.1...v0.2.0) (2026-08-14)
 
 
