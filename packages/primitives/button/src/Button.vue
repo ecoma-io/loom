@@ -197,3 +197,5 @@ withDefaults(
     </span>
   </button>
 </template>
+
+// Benchmark scenario A: component-only change.
