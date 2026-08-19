@@ -1,0 +1,20 @@
+# Repository tooling project.
+#
+# `tools/` holds the architecture checker, the component-artifact gate and the
+# moon-deps sync — the checks that keep the package graph honest. They have no
+# package.json of their own (they run from the root workspace package under
+# `node --experimental-strip-types`), so this project exists only to give a
+# change under `tools/` a Moon home: editing the checker marks `tools`
+# affected, and its inherited test task runs the architecture-rule tests
+# (`tools/check-architecture.test.ts`) on the PR path instead of silently
+# skipping them until the next push.
+project:
+  name: "tools"
+  description: "Repository tooling — architecture checker, component artifacts, moon-deps sync"
+
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml. The shared test task's
+  # `"$projectRoot"` filter selects this project's own test files
+  # (`tools/*.test.ts`); the shared inputs already hash the workspace-root
+  # configs (vite.config.ts, tsconfig.json) this project's tests compile
+  # against. Nothing project-specific needs overriding.

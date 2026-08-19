@@ -16,8 +16,12 @@ projects:
   - "docs"
   # Cross-cutting E2E.
   - "e2e"
-  # Tooling.
-  - "tooling/*"
+  # Repository tooling — the architecture checker and its tests, the component
+  # artifact check, moon-deps sync. `tooling/*` was a dead glob (the directory
+  # is `tools/`, not `tooling/`), so the tools project never existed; naming it
+  # explicitly makes a change under `tools/` mark this project affected and
+  # run the architecture-rule tests on the PR path.
+  - "tools"
 
 vcs:
   client: git

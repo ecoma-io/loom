@@ -145,6 +145,7 @@ export default defineConfig({
       entry: {
         index: pkg("loom/src/index.ts"),
         a11y: pkg("loom/src/a11y.ts"),
+        theme: pkg("loom/src/theme.ts"),
       },
       formats: ["es"],
     },
@@ -190,7 +191,7 @@ export default defineConfig({
     // `packages/` is included so that Moon can run `vitest run` against
     // individual foundation packages (core, labels, theme-core) and find their
     // tests. The legacy `src/` tree is gone; coverage now guards the packages.
-    include: ["packages/**/*.test.ts", "docs/**/*.test.ts"],
+    include: ["packages/**/*.test.ts", "docs/**/*.test.ts", "tools/**/*.test.ts"],
     setupFiles: ["./vitest.setup.ts"],
     // One worker, deliberately. Creating a jsdom per isolated file dominates
     // the run, so several at once oversubscribe the machine and turn
