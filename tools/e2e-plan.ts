@@ -55,6 +55,10 @@ import {
   ENGINE_FOR_PROJECT,
   type BrowserProfile,
 } from "../playwright/profiles.ts";
+// The same page list every root sweep iterates, read here rather than counted
+// again: the shard split below is sized in pages, and a second way of counting
+// them would drift from the suite it is meant to divide.
+import { documentationPages } from "../e2e/docs-pages.ts";
 
 // Repo root (the script lives in `tools/`).
 const ROOT = new URL("..", import.meta.url).pathname;
@@ -219,8 +223,38 @@ const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
  * downloaded (rather than rebuilt in every leg) a shard's overhead is ~1
  * minute — so 4 shards puts a leg at ~5–7 minutes, comfortably under the
  * job timeout, where the old fixed 8 spent as long setting up as testing.
+ *
+ * That measurement was taken over 102 documentation pages, and it is the page
+ * count — not the component count — that the number has to follow: every spec
+ * in the suite (axe, contrast, target-size, keyboard, focus-not-obscured,
+ * responsive) iterates `documentationPages()`, so its wall clock is roughly
+ * pages × 0.17–0.22 minutes (17–23 min over those 102 pages, the spread being
+ * the engine). Held at a constant 4, the same split would be ~22 minutes a leg
+ * at 400 pages — and CI would report that as a timeout on whichever commit
+ * happened to cross the line, not as a plan that had stopped fitting.
+ *
+ * So a shard is sized by workload instead: ~30 pages each, which at the worst
+ * engine's 0.22 min/page is ~6–7 minutes of tests plus ~1 of setup. 102 pages
+ * still yields exactly 4, so this changes no leg at today's size; past that
+ * the split grows one shard per 30 pages added, and because the per-shard
+ * workload is what is held constant, `ci.yml`'s `timeout-minutes: 20` stays
+ * sized as its comment claims without being touched.
+ *
+ * The cap is `harnessShardCount`'s philosophy from the other side: bounded,
+ * never proportional. Eight shards is already 40 legs on the `full` profile's
+ * five engines, so the matrix stops widening there and per-shard workload
+ * starts growing again — a deliberate ceiling with a known expiry, since at
+ * ~600 pages a capped shard is back at ~17 minutes and it is the cap, or the
+ * job timeout, that has to be revisited. Both numbers are recorded here so
+ * that recalibration starts from this evidence rather than from a guess.
  */
-const ROOT_SHARDS = 4;
+const PAGES_PER_ROOT_SHARD = 30;
+const ROOT_SHARD_CAP = 8;
+
+const rootShardCount = (pages: number): number =>
+  Math.min(ROOT_SHARD_CAP, Math.max(1, Math.ceil(pages / PAGES_PER_ROOT_SHARD)));
+
+const ROOT_SHARDS = rootShardCount(documentationPages().length);
 
 /**
  * Harness legs group every affected component into one Playwright run per
@@ -527,6 +561,24 @@ export function runSelfCheck(): void {
   assert.equal(themed.filter((r) => r.config === CONFIG_PATHS.harness).length, 3);
   assert.ok(
     themed.filter((r) => r.config === CONFIG_PATHS.harness).every((r) => r.demos.includes("badge")),
+  );
+
+  // The root split follows the size of the page set the suite sweeps. Pinned
+  // at literal page counts rather than at today's live count: pages arrive
+  // with ordinary documentation work, and an assertion on the live number
+  // would redden an unrelated docs pull request the day it crossed a boundary
+  // — the shard count moving with the page count is the design, not a
+  // regression. What is asserted is the policy, at the counts that define it.
+  assert.equal(rootShardCount(102), 4, "today's 102 pages keep the 4 shards the constant had");
+  assert.equal(rootShardCount(120), 4, "the last page count that still fits four shards");
+  assert.equal(rootShardCount(121), 5, "one page past it buys a shard, not a longer leg");
+  assert.equal(rootShardCount(240), ROOT_SHARD_CAP, "the cap is reached, not exceeded");
+  assert.equal(rootShardCount(4000), ROOT_SHARD_CAP, "growth is bounded: legs stop widening");
+  assert.equal(rootShardCount(0), 1, "an empty docs tree is still one leg, never zero");
+  // The live count is checked only against the bound, for the reason above.
+  assert.ok(
+    ROOT_SHARDS >= 1 && ROOT_SHARDS <= ROOT_SHARD_CAP,
+    "the shard count the matrix runs with stays inside the bound",
   );
 
   // A no-op change runs nothing.
