@@ -19,8 +19,65 @@ deps:
 # marks it affected, and `moon ci` runs the docs build/route-check instead of
 # every diff silently skipping the site.
 tasks:
+  # `outputs` is what makes this task replayable — moon archives the built site
+  # and hydrates it back rather than re-running VitePress — and it is also what
+  # makes the task's inputs load-bearing rather than a detail. The site is built
+  # *out of* the library: pages render the real components and their API tables
+  # come from those components' own `defineProps`. Moon's default inputs are the
+  # project's own files, so with `outputs` declared and the defaults left alone,
+  # a component edit would leave this task's hash untouched and moon would
+  # hydrate a dist built *before* that edit — which `e2e-build-docs` then hands
+  # to the root E2E sweep as this commit's site. A stale green with a whole
+  # browser suite agreeing with it is worse than no cache at all, so the inputs
+  # are declared first and the outputs second.
+  #
+  # Declaring `inputs` replaces moon's default rather than extending it, so
+  # `**/*` restates that default and the rest is what the default never covered:
+  #
+  # - `/packages/**` — a leading slash is workspace-relative, everything without
+  #   one is project-relative — and the whole library rather than `src/` alone,
+  #   because an `exports` change in a package.json re-points what a demo
+  #   imports without touching a line of source.
+  # - `!/packages/**/node_modules/**` buys nothing in the hash and everything in
+  #   the log: pnpm links each workspace package into its dependents'
+  #   `node_modules/`, the glob above matches those symlinked *directories*, and
+  #   moon emits one `only files can be hashed` warning per link — dozens per
+  #   invocation. The files behind them were never hashed with or without this
+  #   line (moon takes the gitignore into account: the manifest carries 693
+  #   inputs and zero under `node_modules/`, zero `.d.ts`, zero under `dist/`).
+  # - `/pnpm-lock.yaml`, because vitepress and vue arrive through it and a bump
+  #   changes the emitted HTML with no repository file to show for it. Same
+  #   reasoning as the shared test and lint tasks.
+  #
+  # No `.vitepress/**` here, and the omission is deliberate rather than an
+  # oversight of the `test` task's line below: on moon 2.4.6 `**/*` *does*
+  # descend into dot-directories, both when hashing and when matching touched
+  # files. Measured with that line neutralised — `docs/.vitepress/config.mts`
+  # and `sidebar.ts` are in the hash manifest either way, and an edit to
+  # `config.mts` re-ran the build rather than replaying it. The line stays where
+  # it is on the `test` task because a CI change is not where a shared-task
+  # claim gets re-litigated, but it is no longer load-bearing, and copying it
+  # here would be a comment asserting something this task can no longer show.
+  #
+  # What this also does, deliberately: moon decides `runInCI: affected` from a
+  # task's inputs, so a component change now marks the docs project affected and
+  # verify's `moon ci` runs this build where it ran nothing (measured: an edit
+  # to `Button.vue` selected 7 tasks before and 11 after — the four extra are
+  # docs' build, lint, route-check and test). That cost is the point rather than
+  # a side effect: a component edit that breaks the VitePress build was caught
+  # by no job on the pull-request path, because `e2e-build-docs` only runs when
+  # a leg needs the built site and a component change routes to the harness
+  # instead. The build verify now runs is the one `e2e-build-docs` later
+  # replays, so the second copy is free.
   build:
     command: "pnpm docs:build"
+    inputs:
+      - "**/*"
+      - "/packages/**"
+      - "!/packages/**/node_modules/**"
+      - "/pnpm-lock.yaml"
+    outputs:
+      - ".vitepress/dist"
     options:
       cache: true
       runInCI: affected
