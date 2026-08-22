@@ -614,6 +614,26 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Arrived with the moon step below, not before it: `moon run` queries
+          # changed files whenever it runs under CI — even for an explicit
+          # target that needs no affected check — and resolves them against
+          # `vcs.defaultBranch`, which is `main` (.moon/workspace.yml). The
+          # default depth-1 checkout fetches only the ref being built, so `main`
+          # is present in no form at all and moon exits before the first task:
+          # `Process git failed: exit code 128 — fatal: ambiguous argument
+          # 'main'`. Invoking `vitepress` directly, as this job used to, never
+          # touched git, which is why the job ran for months without history.
+          #
+          # It is the ref this buys and not the depth, which is worth recording
+          # because the two look interchangeable and are not: reproduced in a
+          # clone with *full* history and `refs/remotes/origin/main` deleted,
+          # moon fails identically. Moon resolves `main` through that
+          # remote-tracking ref, even though `git rev-parse main` on the same
+          # checkout still reports the ambiguous-argument error — so a targeted
+          # `git fetch origin main` would be a smaller change built on a guess
+          # about which name moon looks up. This is the same full-history price
+          # `verify` and `e2e-discover` already pay, for a different reason.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
@@ -637,11 +657,64 @@ jobs:
           path: docs/.vitepress/dist
           key: docs-dist-${{ github.sha }}
 
-      # Skip-if-restored: a re-run of the same commit finds the site already
-      # cached and skips the build entirely.
+      # Moon's task cache, restored and never saved here, so a site whose real
+      # inputs have not moved is hydrated out of `.moon/cache/outputs` instead
+      # of rebuilt. `docs:build` declares `.vitepress/dist` as its outputs and
+      # the library, the docs tree and the lockfile as its inputs (see
+      # docs/moon.yml for why each is there and what a missing one would
+      # replay), so the hash this restores against is a fact about the site's
+      # sources rather than about the commit. Measured locally: 25.8s to build
+      # cold, 1.2s to replay — and the replay was measured with the dist
+      # deleted first, so that 1.2s includes hydrating all 16 MB of it back out
+      # of a 3.0 MB archive.
+      #
+      # Restore-only, deliberately. `verify` already saves this exact key family
+      # from its combined cache, and it saves the whole run's state; this job
+      # would have one task's to offer under the same key. A second save is not
+      # harmless in that shape — whichever job reserved the key first wins and
+      # the other's is dropped, so on the runs where this job won, a rich cache
+      # would be replaced by a one-task one for every job that restores it next.
+      # What banks this build is therefore `verify`'s `moon ci`, which now
+      # selects `docs:build` whenever the library or the docs tree changed —
+      # which is a superset of the changes that make this job run at all. The
+      # two jobs start together, so what this restores is the previous push's or
+      # `main`'s, never this run's `verify`; an infra-only pull request (no
+      # docs, no packages) is where that pays best, replaying a site `main`
+      # built.
+      #
+      # Skipped when the site was already restored above, because then there is
+      # nothing to hydrate and the moon cache would be a download bought for a
+      # step that does not run.
+      - name: Restore moon task results
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .moon/cache/hashes
+            .moon/cache/outputs
+            .moon/cache/states
+          key: moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      # Skip-if-restored stays, and it is now the narrower of two fast paths
+      # rather than the only one: moon replays a site built at these inputs
+      # under any commit, this skips one built under *this* commit. It survives
+      # because the restore step above it has to exist anyway — the save below
+      # is guarded on its outcome, since `docs-dist-<sha>` is immutable and a
+      # second save under a key that already holds this commit's site is a
+      # reservation failure — and because re-hydrating 16 MB over a dist that is
+      # already correct buys nothing.
+      #
+      # `MOON_CONCURRENCY` for the same reason `verify` sets it: the `pnpm moon`
+      # wrapper defaults it to 4 and this is a bare `pnpm exec moon`, so a
+      # future task with dependencies does not silently inherit the host CPU
+      # count here.
       - name: Build the docs site
         if: steps.docs-cache.outputs.cache-hit != 'true'
-        run: pnpm docs:build
+        env:
+          MOON_CONCURRENCY: "4"
+        run: pnpm exec moon run docs:build
 
       - name: Save the built site
         if: steps.docs-cache.outputs.cache-hit != 'true'
