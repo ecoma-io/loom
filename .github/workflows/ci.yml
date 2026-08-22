@@ -498,6 +498,26 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Arrived with the moon step below, not before it: `moon run` queries
+          # changed files whenever it runs under CI — even for an explicit
+          # target that needs no affected check — and resolves them against
+          # `vcs.defaultBranch`, which is `main` (.moon/workspace.yml). The
+          # default depth-1 checkout fetches only the ref being built, so `main`
+          # is present in no form at all and moon exits before the first task:
+          # `Process git failed: exit code 128 — fatal: ambiguous argument
+          # 'main'`. Invoking `vitepress` directly, as this job used to, never
+          # touched git, which is why the job ran for months without history.
+          #
+          # It is the ref this buys and not the depth, which is worth recording
+          # because the two look interchangeable and are not: reproduced in a
+          # clone with *full* history and `refs/remotes/origin/main` deleted,
+          # moon fails identically. Moon resolves `main` through that
+          # remote-tracking ref, even though `git rev-parse main` on the same
+          # checkout still reports the ambiguous-argument error — so a targeted
+          # `git fetch origin main` would be a smaller change built on a guess
+          # about which name moon looks up. This is the same full-history price
+          # `verify` and `e2e-discover` already pay, for a different reason.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
