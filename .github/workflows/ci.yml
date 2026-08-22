@@ -293,6 +293,64 @@ jobs:
           restore-keys: |
             moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
 
+      # Moon's toolchain tree, and it is a different cache from the one above:
+      # that one carries what moon *concluded*, this one carries what moon
+      # *runs on*. Every moon invocation that runs a task resolves the versions
+      # `.moon/toolchains.yml` pins and installs the missing ones under
+      # `~/.proto`, regardless of what `pnpm/action-setup` and `setup-node`
+      # already put on PATH — the runner has node and pnpm, and moon fetches
+      # its own anyway. Measured on 2.4.6 against a wiped `~/.proto`: 12s 201ms
+      # of setup actions before the first task starts (proto 0.58.2 in 4s
+      # 617ms, node 24.19.0 in 6s 322ms, pnpm 11.20.0 in 1s 261ms), and 50ms
+      # for the same four actions to skip against a restored tree. In CI it was
+      # visible as the ~9s of bootstrap inside an 8.8s `moon run docs:build`
+      # step that had no build left to do.
+      #
+      # `~/.proto/cache` is deliberately not one of the paths. It is proto's
+      # HTTP request cache — the archives it has already unpacked — and it is
+      # 51 MB of the tree, a third of the compressed size, for nothing:
+      # deleted, the four setup actions still skip in 36ms. What travels is
+      # 299 MB on disk and ~91 MB compressed, 3.4s to unpack locally.
+      # `~/.moon/plugins` goes with it because moon fetches its own toolchain
+      # WASM plugins (8.9 MB) separately from anything proto installs.
+      #
+      # Exact key — no `github.sha`, no `restore-keys` — which is the opposite
+      # of every other cache in this file, and the reason is that this one has
+      # nothing to advance. ESLint's, moon's task cache and the tsbuildinfo
+      # accumulate, so a key that hits and is never written back freezes them at
+      # the commit that built them. A toolchain tree is a pure function of the
+      # versions pinned in `.moon/toolchains.yml` and of the moon CLI that reads
+      # them — the proto version is moon's own choice, 2.4.6 installs 0.58.2 —
+      # so a run that hits has nothing to add, and the bootstrap is paid exactly
+      # when one of those two moves.
+      #
+      # Both are in the key. `pnpm-lock.yaml` is how the moon CLI arrives, and
+      # it is coarser than the thing it stands for: a dependency bump that
+      # changes nothing about the toolchain still pays one bootstrap and one
+      # re-upload. That is the honest side of the trade, and the other side is
+      # worse — a narrower key would leave a moon bump restoring a tree without
+      # the proto the new version wants, re-installing it on every run
+      # afterwards with no key change to ever end it. `.node-version` is not in
+      # the key and does not belong there: pointed at 22.18.0 with
+      # `.moon/toolchains.yml` untouched, moon still resolved node 24.19.0.
+      #
+      # `restore-keys` is left off for the same reason the sha is. A prefix
+      # restore would hand a bumped run the previous versions' tree, which is
+      # not wrong — moon installs what is missing beside it — but the tree saved
+      # under the new key would carry both versions, and one more with every
+      # bump after that, with nothing that ever removes one.
+      - name: Restore moon's toolchain
+        id: moon-toolchain
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.proto/tools
+            ~/.proto/plugins
+            ~/.proto/shims
+            ~/.proto/bin
+            ~/.moon/plugins
+          key: moon-toolchain-${{ runner.os }}-${{ hashFiles('.moon/toolchains.yml', 'pnpm-lock.yaml') }}
+
       # `MOON_CONCURRENCY` bounds Moon's task pool. Without it Moon defaults
       # to the host CPU count and launches that many concurrent vitest forks
       # (each `maxWorkers: 1` by the root config) — on a 16-core runner that is
@@ -303,6 +361,36 @@ jobs:
         env:
           MOON_CONCURRENCY: "4"
         run: pnpm exec moon ci --base "${{ steps.base.outputs.base }}"
+
+      # Split restore/save rather than the combined `actions/cache` the two
+      # caches above use, and it is proto's mechanism that decides it rather
+      # than symmetry with the docs-dist and browser caches: proto validates an
+      # install by its manifest, never by the tree. Measured — with
+      # `~/.proto/tools/node/24.19.0/bin/node` truncated to 1000 bytes and
+      # `manifest.json` left alone, `moon setup` reports "All toolchains are
+      # already up to date" and the next uncached task dies with `Process eslint
+      # failed: unknown failure`. Nothing downstream ever re-checks it. The
+      # combined action saves in a post step that runs even when a step died
+      # mid-install, and because this key never advances, a tree banked in that
+      # state would not be one commit's problem: every run on these pinned
+      # versions would restore it until someone edited `.moon/toolchains.yml`.
+      # As an ordinary step, the save does not run after a failure at all.
+      #
+      # The price of that shape, plainly: a `moon ci` that fails on a genuine
+      # test failure leaves a working toolchain unbanked, and the next run
+      # installs it again. Guarded on the restore's miss as well, so a run that
+      # hit the key does not upload 91 MB to overwrite it with itself.
+      - name: Save moon's toolchain
+        if: steps.moon-toolchain.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.proto/tools
+            ~/.proto/plugins
+            ~/.proto/shims
+            ~/.proto/bin
+            ~/.moon/plugins
+          key: moon-toolchain-${{ runner.os }}-${{ hashFiles('.moon/toolchains.yml', 'pnpm-lock.yaml') }}
 
       # The benchmark digest: moon just wrote ciReport.json with per-action
       # durations and cache hits. `tools/ci-benchmark.ts` reads it (no re-run)
@@ -576,6 +664,16 @@ jobs:
             echo "base=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           fi
 
+      # No moon toolchain cache in this job, unlike `verify` and
+      # `e2e-build-docs`, and the measurement is the whole argument: `moon
+      # query` reads the project graph and runs no task, so it installs neither
+      # proto, node nor pnpm. Measured on 2.4.6 against a wiped `~/.proto` —
+      # `moon query projects --affected` left `~/.proto` empty and cost 4.1s
+      # against a warm 1.4s, and the entire difference is the 8.9 MB of
+      # toolchain WASM plugins it fetches into `~/.moon`. Restoring the ~91 MB
+      # tree the other two jobs cache, to buy 2.7s of that, costs more than it
+      # returns.
+      #
       # `e2e-plan` resolves the affected set against the base itself; the step
       # above only supplies that base. The tool prints the full report (scenario,
       # changed count, affected ids and the rows); the matrix consumes only the
@@ -696,6 +794,40 @@ jobs:
           key: moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
           restore-keys: |
             moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      # Moon's toolchain tree, restored so that the `moon run` below does not
+      # spend 12s installing proto, node and pnpm onto a runner that already has
+      # node and pnpm from the two setup actions above. This job is where that
+      # cost was first measured: ~9s of an 8.8s `moon run docs:build` step whose
+      # build was replayed out of the cache restored directly above. See
+      # `verify` for what the paths hold, why `~/.proto/cache` is not among them
+      # and why the key is exact.
+      #
+      # Restore-only, for the reason the moon task cache above it is: `verify`
+      # saves this key family, and the two jobs start together, so what this
+      # restores is `main`'s or the previous push's. The reason differs from
+      # that one's, though, and the difference is worth stating because the
+      # steps look identical — a task cache saved from here would be a
+      # *downgrade* for everything that restored it next, one task's state
+      # replacing a whole run's, whereas a toolchain tree is the same tree
+      # whoever writes it. This is left restore-only only because a second
+      # writer on an exact key buys nothing but a race with `verify`, which runs
+      # on every event that runs this job.
+      #
+      # Skipped on a docs-dist hit, exactly like the cache above: the build step
+      # is skipped too, and a moon invocation that never happens is 91 MB
+      # downloaded for nothing.
+      - name: Restore moon's toolchain
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.proto/tools
+            ~/.proto/plugins
+            ~/.proto/shims
+            ~/.proto/bin
+            ~/.moon/plugins
+          key: moon-toolchain-${{ runner.os }}-${{ hashFiles('.moon/toolchains.yml', 'pnpm-lock.yaml') }}
 
       # Skip-if-restored stays, and it is now the narrower of two fast paths
       # rather than the only one: moon replays a site built at these inputs
