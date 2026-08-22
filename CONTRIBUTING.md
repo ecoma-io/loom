@@ -50,7 +50,7 @@ yourself bumping it by hand, that is the reason not to.
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm lint`         | ESLint, with type information, zero warnings tolerated                                                                                                            |
 | `pnpm typecheck`    | `vue-tsc --noEmit` — checks SFCs too (tsc alone cannot parse them); also the only place a type error is caught since the build strips types without checking them |
-| `pnpm test`         | Vitest, unit and integration — the **whole repository**. CI runs it on the merge queue and pushes to `main`                                                       |
+| `pnpm test`         | Vitest, unit and integration — the **whole repository**. CI runs it on pushes to `main`; the merge queue runs every project through `moon run :test` instead      |
 | `pnpm test:full`    | Alias of `pnpm test` — the full suite with coverage thresholds, the way `pnpm e2e:full` is the full browser spread                                                |
 | `pnpm e2e`          | Playwright, in a real browser — default `standard` profile (Chromium, Firefox, WebKit) against the built site                                                     |
 | `pnpm e2e:full`     | The whole browser matrix — all five projects (desktop + mobile engines) — for when the wide evidence is needed                                                    |
@@ -82,10 +82,15 @@ ci --base` uses.
   by the closure query above.
 
 The full guarantees above are still enforced — just only when the whole
-repository is the appropriate object: `pnpm test` on the merge queue and pushes,
-and `pnpm e2e:full` on demand, on the nightly/release path, or before merging a
-change that edits browser-shared infrastructure (`playwright/`, the harness, or
-the root config).
+repository is the appropriate object. The merge queue runs `moon run :test`,
+which selects every project and, against the task cache CI carries between
+runs, executes exactly the ones the queued batch invalidated. The uncached
+`pnpm test` runs on every push to `main` — the commit that ships — because
+that is where the cache boundary `.moon/tasks/test.yml` documents needs a
+backstop, and where the repository-wide coverage thresholds are enforced.
+`pnpm e2e:full` stays on demand, on the nightly/release path, or before merging
+a change that edits browser-shared infrastructure (`playwright/`, the harness,
+or the root config).
 
 Before you push, run all of them. A shorter local run just moves the red to the
 pull request.
