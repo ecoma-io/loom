@@ -72,7 +72,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0 && node tools/check-component-artifacts.ts && node --experimental-strip-types tools/check-architecture.ts",
-    "typecheck": "vue-tsc --noEmit",
+    "typecheck": "vue-tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo",
     "test": "vitest run",
     "test:full": "vitest run",
     "test:watch": "vitest",

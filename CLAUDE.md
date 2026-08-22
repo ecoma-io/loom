@@ -86,7 +86,11 @@ change runs the root sweep (built once, shared to every leg through the
 actions cache), an infra change runs everything, and nothing relevant runs
 nothing. Harness legs group every affected component into one Playwright run
 per browser, sharding only past a bounded threshold — the job count is bounded
-by browsers × shard cap, never by the component count. The full matrix
+by browsers × shard cap, never by the component count. The root sweep is cut
+the same way from the other side: its shard count is derived from the number of
+documentation pages the suite iterates, so a leg carries roughly one fixed
+workload as the site grows rather than lengthening until it hits the job
+timeout — bounded by a cap, with the sizing evidence in the tool. The full matrix
 (`PW_PROFILE=full`, all five browser projects) stays available for a change
 that edits `playwright/` itself, the harness, or the root config — and is what
 `pnpm e2e:full` runs. The browser profiles themselves have one home,

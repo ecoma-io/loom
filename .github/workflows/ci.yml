@@ -276,9 +276,12 @@ jobs:
       # `packages/core/src/cn.ts` re-ran 83 of the 189 tasks and replayed
       # `loading-state:test`, whose declared deps are skeleton and spinner. So a
       # transitive-only source edit can now carry a stale green *across* runs,
-      # which a cold run could not do at all. The merge queue and the push to
-      # main still run the whole repository's suite below, which is where that
-      # green is re-proved before anything ships.
+      # which a cold run could not do at all. The backstop is the push to main
+      # below: it runs the uncached `pnpm test` over every test file, so that
+      # green is re-proved from cold on the commit that ships. The merge queue
+      # runs every project too, but through `moon run :test` against this same
+      # cache, so it replays rather than re-proving — deliberately, and the
+      # step there says why.
       - name: Cache moon task results
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -350,10 +353,57 @@ jobs:
       # a multi-pass re-check of the same files (which once pushed verify past
       # its timeout) or a coverage hole. One global pass is the honest shape —
       # a GLOBAL VALIDATION BOUNDARY, not an affected task pretending
-      # otherwise. `SECONDS` times it: this is the one step whose cost the
-      # benchmark must measure before anyone argues for (or against) scoping
-      # it — the whole-repo pass is the largest single estimated step in
-      # verify, and no number for it exists yet.
+      # otherwise.
+      #
+      # Measured at this version pairing (vue-tsc 3.3.9, TypeScript 5.9.3): a
+      # cold pass is 17-19s, which was the largest single estimated step in
+      # verify with no number attached to it. `--incremental` needed no
+      # `tsconfig.json` change — the CLI flags alone write a ~190 KB
+      # `.tsbuildinfo` beside `node_modules` — and a warm run against a
+      # restored one is 6-7s, 11s after a real component edit. Touching every
+      # one of the 399 source files' mtimes (what a fresh checkout does to all
+      # of them) still warmed to 5s: TypeScript 5.x validates a buildinfo by
+      # content and signature, not mtime, so the cache below survives the
+      # exact thing a fresh CI checkout does to a tree. Correctness held warm
+      # too: a single-file error was reported, and a signature break in
+      # `cn()` (`packages/core`) surfaced as 202 errors across consumer `.vue`
+      # files in the same warm run — a whole-repo program is what let that
+      # break surface at all, which is the reason this stays one program
+      # rather than one per package. Sharding this cache by package would
+      # shard the very check that caught it.
+      - name: Cache TypeScript incremental state
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: node_modules/.cache/typecheck.tsbuildinfo
+          key: typecheck-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'tsconfig.json') }}-${{ github.sha }}
+          restore-keys: |
+            typecheck-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'tsconfig.json') }}-
+
+      # Key discipline matches the ESLint and moon caches above: `runner.os`,
+      # then everything the check's own inputs, then `github.sha` last with
+      # the sha dropped in `restore-keys` — a key that hits exactly is still
+      # written back under a new one, so a branch inherits the newest cache
+      # `main` or its own previous push left behind rather than freezing at
+      # the commit that built it. `tsconfig.json` joins the lockfile in the
+      # prefix because either can change what gets checked without the other
+      # moving.
+      #
+      # No Node version in the key, unlike ESLint's cache directly above:
+      # ESLint hashes `process.version` into every cached entry, but a
+      # `.tsbuildinfo` records the TypeScript version and the program's file
+      # signatures, not the Node that ran it — and TypeScript is already
+      # pinned through `pnpm-lock.yaml`, which is in this key. Naming the
+      # resolved Node patch here would only shatter the cache along drift
+      # that has nothing to do with what the buildinfo actually validates.
+      #
+      # Combined, not the split restore/save the docs-dist and browser caches
+      # use. Those cache a *build artifact* a dying step can leave
+      # half-written and then have a later run serve as if it were whole. A
+      # `.tsbuildinfo` has no such failure mode: vue-tsc validates it by
+      # content before trusting it, and an unreadable or invalid file falls
+      # back to a cold pass rather than a wrong verdict — so the worst a
+      # partially-written file left by a dying job can cost the next run is
+      # the 17-19s this cache exists to avoid, never a stale green.
       - name: Global typecheck
         run: >-
           SECONDS=0;
@@ -367,13 +417,79 @@ jobs:
       # re-runs those same files again here on every PR — that was the fixed
       # ~204s global suite the Phase 2 brief removed.
       #
-      # The full suite is instead gated where it is the *reason for existing*:
-      # the merge queue runs checks against `main + every PR ahead + this one`,
-      # which is the only place two independently-green PRs can turn out to have
-      # conflicting unit expectations, and a push to main re-proves the whole
-      # repository on the commit that will be released.
-      - name: Full repository unit suite (merge queue and pushes only)
-        if: github.event_name != 'pull_request'
+      # What remains is gated where it is the *reason for existing*, and the two
+      # events want different things from it.
+      #
+      # The merge queue runs checks against `main + every PR ahead + this one`,
+      # which is the only place two independently-green pull requests can turn
+      # out to have conflicting unit expectations. That question is about the
+      # batch's own diff, and it does not need the suite executed from cold to
+      # answer: `moon run :test` selects *every* project (93 of them, all
+      # carrying the inherited test task — `:test` alone is the all-projects
+      # form on moon 2.4.6, no target list to derive), and with the cross-run
+      # cache restored above every task whose hash is unchanged replays while
+      # the ones the batch invalidated run fresh. The declared inputs
+      # (.moon/tasks/test.yml) are what "invalidated" means: a task's own files,
+      # its *direct* dependencies' `src/**` and `package.json`, and the
+      # lockfile. Measured here at 93 projects: cold 1m 59s, an unchanged
+      # re-run replayed all 93 in 0.9s, and a one-line edit to
+      # `packages/primitives/button/src/Button.vue` ran 5 fresh — button plus
+      # the four projects that declare it — and replayed 88.
+      #
+      # Latency is why, and it is the queue's alone: the queue is serial, so
+      # every second here is a second every pull request behind this one waits.
+      # `pnpm test` is one vitest process at `maxWorkers: 1` (a jsdom-per-file
+      # constraint, see vite.config.ts), so its cost is linear in the component
+      # count and grows with every component this library adds — on a critical
+      # path whose whole job is to answer a question about one diff. Same
+      # machine, same tree: `pnpm test` 3m 55s against the numbers above, and
+      # the gap widens with every component, because one side of it is a
+      # function of the batch's diff and the other is a function of the
+      # repository's size.
+      #
+      # The transitive-only case is the one this does not close, and it is the
+      # KNOWN CACHE BOUNDARY `.moon/tasks/test.yml` names rather than a new
+      # exposure: a dependent two hops from the edit has an unchanged hash and
+      # replays. Which is exactly why the step below is not the same command.
+      #
+      # This step's own replay split does not reach the benchmark digest, and
+      # saying so beats letting a reader infer it: `moon run` writes
+      # `runReport.json`, `tools/ci-benchmark.ts` prefers `ciReport.json`, and
+      # `moon ci` above already wrote one — so the digest below reports the
+      # affected pipeline's numbers, not this run's. `moon run` prints its own
+      # `Tasks: N completed (M cached)` line in the log, which is the number
+      # this step is judged on.
+      - name: Full repository unit suite (merge queue)
+        if: github.event_name == 'merge_group'
+        env:
+          # Same cap, same reason as the moon steps above: uncapped, moon
+          # launches one vitest fork per core and 16 concurrent jsdom suites
+          # spike the runner.
+          MOON_CONCURRENCY: "4"
+        run: pnpm exec moon run :test
+
+      # A push to main is the commit that ships, and this is the one run that
+      # trusts no cache: `pnpm test` is a single uncached vitest program over
+      # every test file, so the transitive-only stale green the step above can
+      # replay — and any other verdict a restored `.moon/cache` carried across
+      # runs — is re-proved from cold on every commit that lands. It is also
+      # the only place the repository-wide coverage thresholds are enforced:
+      # the moon task runs `--no-coverage` per project on purpose (those
+      # thresholds are a whole-repo contract, see .moon/tasks/test.yml), so
+      # this step is the gate for them too.
+      #
+      # It stays deliberately uncached. The merge-queue step is allowed to be
+      # fast because something behind it is not, and that something is here —
+      # replacing this with a cached run would leave the boundary with no
+      # backstop at all, on the commit where a stale green is most expensive.
+      #
+      # `workflow_dispatch` is named rather than left to fall out of a
+      # negation: the condition this replaced was `!= 'pull_request'`, so a
+      # manual run got the full suite, and splitting the step on `== 'push'`
+      # alone would have quietly retired that — a dispatch is how someone asks
+      # for the uncached answer by hand.
+      - name: Full repository unit suite (push to main)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: pnpm test
 
       # The route, and not the build. A page that fails to build is still
