@@ -350,10 +350,57 @@ jobs:
       # a multi-pass re-check of the same files (which once pushed verify past
       # its timeout) or a coverage hole. One global pass is the honest shape —
       # a GLOBAL VALIDATION BOUNDARY, not an affected task pretending
-      # otherwise. `SECONDS` times it: this is the one step whose cost the
-      # benchmark must measure before anyone argues for (or against) scoping
-      # it — the whole-repo pass is the largest single estimated step in
-      # verify, and no number for it exists yet.
+      # otherwise.
+      #
+      # Measured at this version pairing (vue-tsc 3.3.9, TypeScript 5.9.3): a
+      # cold pass is 17-19s, which was the largest single estimated step in
+      # verify with no number attached to it. `--incremental` needed no
+      # `tsconfig.json` change — the CLI flags alone write a ~190 KB
+      # `.tsbuildinfo` beside `node_modules` — and a warm run against a
+      # restored one is 6-7s, 11s after a real component edit. Touching every
+      # one of the 399 source files' mtimes (what a fresh checkout does to all
+      # of them) still warmed to 5s: TypeScript 5.x validates a buildinfo by
+      # content and signature, not mtime, so the cache below survives the
+      # exact thing a fresh CI checkout does to a tree. Correctness held warm
+      # too: a single-file error was reported, and a signature break in
+      # `cn()` (`packages/core`) surfaced as 202 errors across consumer `.vue`
+      # files in the same warm run — a whole-repo program is what let that
+      # break surface at all, which is the reason this stays one program
+      # rather than one per package. Sharding this cache by package would
+      # shard the very check that caught it.
+      - name: Cache TypeScript incremental state
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: node_modules/.cache/typecheck.tsbuildinfo
+          key: typecheck-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'tsconfig.json') }}-${{ github.sha }}
+          restore-keys: |
+            typecheck-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'tsconfig.json') }}-
+
+      # Key discipline matches the ESLint and moon caches above: `runner.os`,
+      # then everything the check's own inputs, then `github.sha` last with
+      # the sha dropped in `restore-keys` — a key that hits exactly is still
+      # written back under a new one, so a branch inherits the newest cache
+      # `main` or its own previous push left behind rather than freezing at
+      # the commit that built it. `tsconfig.json` joins the lockfile in the
+      # prefix because either can change what gets checked without the other
+      # moving.
+      #
+      # No Node version in the key, unlike ESLint's cache directly above:
+      # ESLint hashes `process.version` into every cached entry, but a
+      # `.tsbuildinfo` records the TypeScript version and the program's file
+      # signatures, not the Node that ran it — and TypeScript is already
+      # pinned through `pnpm-lock.yaml`, which is in this key. Naming the
+      # resolved Node patch here would only shatter the cache along drift
+      # that has nothing to do with what the buildinfo actually validates.
+      #
+      # Combined, not the split restore/save the docs-dist and browser caches
+      # use. Those cache a *build artifact* a dying step can leave
+      # half-written and then have a later run serve as if it were whole. A
+      # `.tsbuildinfo` has no such failure mode: vue-tsc validates it by
+      # content before trusting it, and an unreadable or invalid file falls
+      # back to a cold pass rather than a wrong verdict — so the worst a
+      # partially-written file left by a dying job can cost the next run is
+      # the 17-19s this cache exists to avoid, never a stale green.
       - name: Global typecheck
         run: >-
           SECONDS=0;
