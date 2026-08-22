@@ -207,6 +207,89 @@ jobs:
       - name: Check architecture
         run: node --experimental-strip-types tools/check-architecture.ts
 
+      # Moon's own task cache, and what it adds to `runInCI: affected` is the
+      # other half of the same idea: selection decides which tasks a run
+      # *starts*, the cache decides which of those it has to actually execute.
+      # Without a restored `.moon/cache` every run starts cold, so a pull
+      # request that pushes a second commit re-runs every task the
+      # diff-against-base still selects — including the projects that second
+      # commit never touched. Measured on this repository at the
+      # architecture-baseline commit, where the diff selects everything: the
+      # cold `moon ci --base` run executed 189 tasks in 6m 17s, and the
+      # identical run against a preserved cache replayed all 189 in 1.3s. The
+      # cache that bought it is 4.6 MB.
+      #
+      # The three cached directories are moon's run state, and nothing else
+      # in `.moon/cache/` is (measured on 2.4.6): replay is decided by
+      # `states/<project>/<task>/lastRun.json`, which carries one hash and exit
+      # code per task, `outputs/` holds the tarred task outputs it hydrates,
+      # and `hashes/` the input manifests. `hashes/` looks droppable — replay
+      # stays correct without it — and is not: deleted, one project's cached
+      # test replayed in 12.6s instead of 0.6s, because moon re-derives every
+      # manifest it cannot find. `states/` travels whole, workspace-graph
+      # snapshots included, because moon rebuilds those off the configs rather
+      # than trusting what it restored — dropping a project from
+      # `.moon/workspace.yml` against a warm cache moved the query from 93
+      # projects to 92, so a restored graph cannot outlive the config it
+      # describes.
+      #
+      # Left out deliberately: `ciReport.json` and `runReport.json`, because
+      # `tools/ci-benchmark.ts` reads the report the run it follows just wrote,
+      # and a report restored from another commit would be published as this
+      # run's timings; `locks/`, which is live process state; and `schemas/`,
+      # which moon regenerates for nothing.
+      #
+      # Key discipline is the ESLint cache's above, and for the same reason:
+      # `github.sha` last so a key that hits exactly is still written back under
+      # a new one — a fixed key freezes the cache at the first commit that built
+      # it — with the sha dropped in `restore-keys` so a branch inherits the
+      # newest cache `main`, or its own previous push, left behind. The lockfile
+      # sits in the prefix because it is a declared input of every test and lint
+      # task: a bump invalidates every hash in the cache, and restoring one only
+      # to reject it entry by entry is download time bought for nothing.
+      #
+      # The resolved Node version is *not* in this key, unlike ESLint's, and the
+      # asymmetry is moon's: its hash manifest records the toolchain as `system`
+      # with no version beside it, so nothing here is rejected on a patch
+      # difference — naming it would only shatter the cache along the
+      # runner-to-runner patch drift the ESLint comment measured, which is
+      # frequent enough to make almost every restore a miss. The price is that a
+      # green proved under one Node patch can replay under another.
+      #
+      # Combined, not the split restore/save the docs-dist and browser caches
+      # use, and the difference is what a failure leaves behind. Those two cache
+      # an *artifact* a dying step can leave half-written. Moon caches a
+      # verdict, and never a bad one: a failing task records `exitCode: 1` and
+      # re-runs on the next invocation rather than replaying (measured — two
+      # consecutive runs at an identical hash both executed the task). So the
+      # post-step save is the right shape here, because it also runs when a
+      # later step failed: a job that dies in typecheck still banks the tests
+      # moon proved before it.
+      #
+      # One exposure this widens, and it is the boundary `.moon/tasks/test.yml`
+      # already names: moon hashes a task's own files and its *direct*
+      # dependencies' sources, not the transitive closure. In a cold run that
+      # gap is covered by selection — `--downstream deep` picks the whole
+      # closure and every project in it runs fresh, having never run in that
+      # job. Against a restored cache a dependent whose own hash is unchanged
+      # replays instead — observed here: a one-line edit to
+      # `packages/core/src/cn.ts` re-ran 83 of the 189 tasks and replayed
+      # `loading-state:test`, whose declared deps are skeleton and spinner. So a
+      # transitive-only source edit can now carry a stale green *across* runs,
+      # which a cold run could not do at all. The merge queue and the push to
+      # main still run the whole repository's suite below, which is where that
+      # green is re-proved before anything ships.
+      - name: Cache moon task results
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .moon/cache/hashes
+            .moon/cache/outputs
+            .moon/cache/states
+          key: moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
       # `MOON_CONCURRENCY` bounds Moon's task pool. Without it Moon defaults
       # to the host CPU count and launches that many concurrent vitest forks
       # (each `maxWorkers: 1` by the root config) — on a 16-core runner that is
