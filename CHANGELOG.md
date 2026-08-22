@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/ecoma-io/loom/compare/v0.3.0...v0.4.0) (2026-08-22)
+
+
+### Features
+
+* **ci:** cache moon's toolchain tree across CI runs ([#81](https://github.com/ecoma-io/loom/issues/81)) ([54c39fe](https://github.com/ecoma-io/loom/commit/54c39fe78c12e9ce7206835ee31c7a096bf4b8f8))
+* **ci:** cache vue-tsc's incremental buildinfo across CI runs ([#77](https://github.com/ecoma-io/loom/issues/77)) ([172814c](https://github.com/ecoma-io/loom/commit/172814c0243c178018b6c0857d876ef00a8c592c))
+* **ci:** persist moon's task cache across CI runs ([#76](https://github.com/ecoma-io/loom/issues/76)) ([59a5d30](https://github.com/ecoma-io/loom/commit/59a5d30ab6409f45002380d876f649f02105eb5b))
+* **ci:** replay the docs build out of moon's output cache ([#79](https://github.com/ecoma-io/loom/issues/79)) ([bfe4902](https://github.com/ecoma-io/loom/commit/bfe49029f7266e8435c96adc6bcfe76d899d0a86))
+* **ci:** run the merge queue's whole-repo unit suite through moon ([#80](https://github.com/ecoma-io/loom/issues/80)) ([12134b2](https://github.com/ecoma-io/loom/commit/12134b2e3c917a2b0160625e76afddcefcdf233f))
+* **ci:** size the root E2E shard split by the pages it sweeps ([#78](https://github.com/ecoma-io/loom/issues/78)) ([975ff64](https://github.com/ecoma-io/loom/commit/975ff64e597f19a710cedd40a788bc28c64a5416))
+* **workspace:** architecture baseline — contract, enforcement, public boundary ([#74](https://github.com/ecoma-io/loom/issues/74)) ([128399a](https://github.com/ecoma-io/loom/commit/128399a0d4d82279acd9193a51f1d90f241d4e6b))
+
 ## [0.3.0](https://github.com/ecoma-io/loom/compare/v0.2.0...v0.3.0) (2026-08-19)
 
 
