@@ -276,9 +276,12 @@ jobs:
       # `packages/core/src/cn.ts` re-ran 83 of the 189 tasks and replayed
       # `loading-state:test`, whose declared deps are skeleton and spinner. So a
       # transitive-only source edit can now carry a stale green *across* runs,
-      # which a cold run could not do at all. The merge queue and the push to
-      # main still run the whole repository's suite below, which is where that
-      # green is re-proved before anything ships.
+      # which a cold run could not do at all. The backstop is the push to main
+      # below: it runs the uncached `pnpm test` over every test file, so that
+      # green is re-proved from cold on the commit that ships. The merge queue
+      # runs every project too, but through `moon run :test` against this same
+      # cache, so it replays rather than re-proving — deliberately, and the
+      # step there says why.
       - name: Cache moon task results
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -414,13 +417,79 @@ jobs:
       # re-runs those same files again here on every PR — that was the fixed
       # ~204s global suite the Phase 2 brief removed.
       #
-      # The full suite is instead gated where it is the *reason for existing*:
-      # the merge queue runs checks against `main + every PR ahead + this one`,
-      # which is the only place two independently-green PRs can turn out to have
-      # conflicting unit expectations, and a push to main re-proves the whole
-      # repository on the commit that will be released.
-      - name: Full repository unit suite (merge queue and pushes only)
-        if: github.event_name != 'pull_request'
+      # What remains is gated where it is the *reason for existing*, and the two
+      # events want different things from it.
+      #
+      # The merge queue runs checks against `main + every PR ahead + this one`,
+      # which is the only place two independently-green pull requests can turn
+      # out to have conflicting unit expectations. That question is about the
+      # batch's own diff, and it does not need the suite executed from cold to
+      # answer: `moon run :test` selects *every* project (93 of them, all
+      # carrying the inherited test task — `:test` alone is the all-projects
+      # form on moon 2.4.6, no target list to derive), and with the cross-run
+      # cache restored above every task whose hash is unchanged replays while
+      # the ones the batch invalidated run fresh. The declared inputs
+      # (.moon/tasks/test.yml) are what "invalidated" means: a task's own files,
+      # its *direct* dependencies' `src/**` and `package.json`, and the
+      # lockfile. Measured here at 93 projects: cold 1m 59s, an unchanged
+      # re-run replayed all 93 in 0.9s, and a one-line edit to
+      # `packages/primitives/button/src/Button.vue` ran 5 fresh — button plus
+      # the four projects that declare it — and replayed 88.
+      #
+      # Latency is why, and it is the queue's alone: the queue is serial, so
+      # every second here is a second every pull request behind this one waits.
+      # `pnpm test` is one vitest process at `maxWorkers: 1` (a jsdom-per-file
+      # constraint, see vite.config.ts), so its cost is linear in the component
+      # count and grows with every component this library adds — on a critical
+      # path whose whole job is to answer a question about one diff. Same
+      # machine, same tree: `pnpm test` 3m 55s against the numbers above, and
+      # the gap widens with every component, because one side of it is a
+      # function of the batch's diff and the other is a function of the
+      # repository's size.
+      #
+      # The transitive-only case is the one this does not close, and it is the
+      # KNOWN CACHE BOUNDARY `.moon/tasks/test.yml` names rather than a new
+      # exposure: a dependent two hops from the edit has an unchanged hash and
+      # replays. Which is exactly why the step below is not the same command.
+      #
+      # This step's own replay split does not reach the benchmark digest, and
+      # saying so beats letting a reader infer it: `moon run` writes
+      # `runReport.json`, `tools/ci-benchmark.ts` prefers `ciReport.json`, and
+      # `moon ci` above already wrote one — so the digest below reports the
+      # affected pipeline's numbers, not this run's. `moon run` prints its own
+      # `Tasks: N completed (M cached)` line in the log, which is the number
+      # this step is judged on.
+      - name: Full repository unit suite (merge queue)
+        if: github.event_name == 'merge_group'
+        env:
+          # Same cap, same reason as the moon steps above: uncapped, moon
+          # launches one vitest fork per core and 16 concurrent jsdom suites
+          # spike the runner.
+          MOON_CONCURRENCY: "4"
+        run: pnpm exec moon run :test
+
+      # A push to main is the commit that ships, and this is the one run that
+      # trusts no cache: `pnpm test` is a single uncached vitest program over
+      # every test file, so the transitive-only stale green the step above can
+      # replay — and any other verdict a restored `.moon/cache` carried across
+      # runs — is re-proved from cold on every commit that lands. It is also
+      # the only place the repository-wide coverage thresholds are enforced:
+      # the moon task runs `--no-coverage` per project on purpose (those
+      # thresholds are a whole-repo contract, see .moon/tasks/test.yml), so
+      # this step is the gate for them too.
+      #
+      # It stays deliberately uncached. The merge-queue step is allowed to be
+      # fast because something behind it is not, and that something is here —
+      # replacing this with a cached run would leave the boundary with no
+      # backstop at all, on the commit where a stale green is most expensive.
+      #
+      # `workflow_dispatch` is named rather than left to fall out of a
+      # negation: the condition this replaced was `!= 'pull_request'`, so a
+      # manual run got the full suite, and splitting the step on `== 'push'`
+      # alone would have quietly retired that — a dispatch is how someone asks
+      # for the uncached answer by hand.
+      - name: Full repository unit suite (push to main)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: pnpm test
 
       # The route, and not the build. A page that fails to build is still

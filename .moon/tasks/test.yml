@@ -59,6 +59,16 @@ tasks:
     # hash does not cover is a cached green surviving across runs, which is a
     # KNOWN CACHE BOUNDARY, kept honest here rather than pretending `^` covers
     # the full closure.
+    #
+    # Where that boundary is answered has moved, so the claim is restated
+    # rather than left to be inferred. The merge queue runs `moon run :test` —
+    # every project, but against the cross-run `.moon/cache` ci.yml restores,
+    # so a task whose own hash is unchanged replays there too. The uncached
+    # run is the push to main: `pnpm test`, one vitest program over every test
+    # file and no moon cache consulted, on every commit that lands. That is
+    # the backstop, and it is also the only place the repository-wide coverage
+    # thresholds are enforced — the per-project `command` above passes
+    # `--no-coverage`, so `moon run :test` proves the tests and not the floor.
     inputs:
       - "**/*"
       - "/pnpm-lock.yaml"
