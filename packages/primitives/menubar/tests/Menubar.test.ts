@@ -178,6 +178,42 @@ describe("Menubar keyboard navigation", () => {
     wrapper.unmount();
   });
 
+  // Right-to-left mirrors the horizontal arrows: ArrowRight travels toward
+  // the visual LEFT. With three menus the two directions stop being
+  // indistinguishable (a two-menu strip wraps to the same target either
+  // way), which is what makes this fixture the honest pin. The dir attribute
+  // also lands on the strip itself so CSS and keys agree.
+  it("mirrors ArrowLeft/ArrowRight under dir=rtl, open and closed", async () => {
+    const MENUS_RTL: MenubarMenu[] = [
+      { id: "file", label: "File", items: [{ label: "New", command: "new" }] },
+      { id: "edit", label: "Edit", items: [{ label: "Copy", command: "copy" }] },
+      { id: "help", label: "Help", items: [{ label: "Docs", command: "docs" }] },
+    ];
+    const wrapper = mount(Menubar, {
+      props: { menus: MENUS_RTL, dir: "rtl" },
+      attachTo: document.body,
+    });
+    expect(wrapper.get('[role="menubar"]').attributes("dir")).toBe("rtl");
+
+    // Closed: Right from the visually-rightmost start wraps to Help…
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowRight" });
+    expect(document.activeElement?.id).toBe("menubar-trigger-help");
+    // …a second Right walks one further along the mirrored direction:
+    // Help → Edit.
+    await wrapper.get("#menubar-trigger-help").trigger("keydown", { key: "ArrowRight" });
+    expect(document.activeElement?.id).toBe("menubar-trigger-edit");
+    // And Left reverses exactly: Edit back to Help.
+    await wrapper.get("#menubar-trigger-edit").trigger("keydown", { key: "ArrowLeft" });
+    expect(document.activeElement?.id).toBe("menubar-trigger-help");
+
+    // Open state mirrors identically: from File, Right (visual left) wraps
+    // around the strip to Help's first row.
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" });
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowRight" });
+    expect(document.activeElement?.textContent).toBe("Docs");
+    wrapper.unmount();
+  });
+
   it("opening from the trigger by keyboard lands DOM focus on the first enabled item", async () => {
     const wrapper = mountMenubar();
 

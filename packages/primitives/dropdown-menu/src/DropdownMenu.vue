@@ -73,6 +73,12 @@ withDefaults(
     loop?: boolean;
     /** Drive the menu from the host with `v-model:open`; omit it and the menu owns its own state. */
     open?: boolean | undefined;
+    /**
+     * Reading direction for the menu and its arrow-key navigation. Reka
+     * mirrors traversal from this; without forwarding it a right-to-left
+     * host gets left-to-right menus no matter what the page declares.
+     */
+    dir?: "ltr" | "rtl";
   }>(),
   // `open: undefined` is load-bearing, not a redundant default — it is what
   // keeps the uncontrolled third state reachable past Vue's absent-Boolean
@@ -94,7 +100,7 @@ function choose(item: DropdownMenuEntry): void {
 </script>
 
 <template>
-  <DropdownMenuRoot v-bind="optional({ open })" @update:open="$emit('update:open', $event)">
+  <DropdownMenuRoot v-bind="optional({ open, dir })" @update:open="$emit('update:open', $event)">
     <!-- @slot The button that opens the menu. Rendered `as-child`, so the
          caller's own element *is* the trigger. -->
     <DropdownMenuTrigger as-child>

@@ -32,14 +32,24 @@ export interface MenubarMenu {
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, nextTick } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, nextTick } from "vue";
 import { listStaggerDelay } from "@ecoma-io/loom-core";
 
 const props = defineProps<{
-  /** The top-level menus, left to right, each carrying its own item list. */
+  /** The top-level menus; their reading order follows `dir`. */
   menus: MenubarMenu[];
+  /**
+   * Reading direction. Right-to-left mirrors the strip's arrow keys —
+   * ArrowRight travels toward the visual left — which a hand-rolled
+   * handler must do itself, unlike its Reka siblings.
+   */
+  dir?: "ltr" | "rtl";
 }>();
 const emit = defineEmits<{ select: [command: string] }>();
+
+// Horizontal arrows are visual, not logical: in right-to-left, ArrowRight
+// moves toward the previous menu.
+const horizontal = computed(() => (props.dir === "rtl" ? -1 : 1) as 1 | -1);
 
 const openId = ref<string | null>(null);
 const activeIndex = ref(-1); // the focused row within the open menu
@@ -209,13 +219,13 @@ async function onTriggerKeydown(e: KeyboardEvent, menu: MenubarMenu): Promise<vo
       break;
     case "ArrowRight":
       e.preventDefault();
-      if (openId.value) void moveMenu(1);
-      else moveTriggerFocus(menu.id, 1);
+      if (openId.value) void moveMenu(horizontal.value);
+      else moveTriggerFocus(menu.id, horizontal.value);
       break;
     case "ArrowLeft":
       e.preventDefault();
-      if (openId.value) void moveMenu(-1);
-      else moveTriggerFocus(menu.id, -1);
+      if (openId.value) void moveMenu(-horizontal.value as 1 | -1);
+      else moveTriggerFocus(menu.id, -horizontal.value as 1 | -1);
       break;
     case "Escape":
       e.preventDefault();
@@ -245,11 +255,11 @@ function onMenuKeydown(e: KeyboardEvent, menu: MenubarMenu): void {
       break;
     case "ArrowRight":
       e.preventDefault();
-      void moveMenu(1);
+      void moveMenu(horizontal.value);
       break;
     case "ArrowLeft":
       e.preventDefault();
-      void moveMenu(-1);
+      void moveMenu(-horizontal.value as 1 | -1);
       break;
     // Handled here rather than left to the button's native activation:
     // preventDefault stops the browser's synthesized click, which would run
@@ -287,7 +297,11 @@ onBeforeUnmount(() => window.removeEventListener("click", onWindowClick));
 </script>
 
 <template>
+  <!-- The attribute rides the strip itself, not just the prop: a host may
+       pass dir without setting document direction, and both the flex order
+       and the mirrored keys must agree with what is on screen. -->
   <div
+    :dir="dir"
     role="menubar"
     class="flex items-center gap-0.5"
     style="-webkit-app-region: no-drag"

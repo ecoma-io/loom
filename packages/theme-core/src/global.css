@@ -111,6 +111,21 @@
  * layout. When the overlay is active, the brand cluster's left padding expands
  * to clear the native controls on the left edge (same corner as macOS), and
  * the drag region continues to work over the full bar width. */
+/* ---- AppHeader safe areas --------------------------------------------------
+ * The shell's own strip sits at the very top of the viewport, which is exactly
+ * where a phone's notch and a PWA's title-bar overlay reserve space. The base
+ * padding stays the component's; this only adds what the platform takes back,
+ * on the same attribute-hook pattern as `[data-loom-titlebar]` above. */
+[data-loom-app-header] {
+  padding-block-start: calc(0.5rem + var(--safe-area-top, 0px));
+}
+
+@media (min-width: 640px) {
+  [data-loom-app-header] {
+    padding-block-start: var(--safe-area-top, 0px);
+  }
+}
+
 @supports (window-controls-overlay: visible) {
   [data-loom-titlebar] {
     /* Narrow the drag spacer so the title text is not pushed too far right.
