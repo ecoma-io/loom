@@ -172,6 +172,102 @@ describe("Slider drag gesture", () => {
     expect(wrapper.emitted("commit")).toBeUndefined();
   });
 
+  // A second concurrent pointerdown used to overwrite `teardownDrag` instead
+  // of running it: the first pointer's release then tore the *second* gesture
+  // down mid-drag, and its pointercancel and capture-phase keydown stayed on
+  // the window forever — the stale keydown swallowing every later global
+  // Escape.
+  it("leaves no superseded gesture's listeners behind when a second pointerdown overlaps an in-flight drag", async () => {
+    const wrapper = mountSlider({ modelValue: 0.5 });
+    const root = findRoot(wrapper);
+
+    await startDrag(wrapper); // first pointer
+    await emitFromRoot(root, "update:modelValue", [0.7]);
+    await startDrag(wrapper); // second pointer lands on the same control
+    window.dispatchEvent(new Event("pointerup")); // the first pointer releases
+    await nextTick();
+
+    // A stray pointercancel after the overlap must not write a reset tick
+    // into a settled control…
+    window.dispatchEvent(new Event("pointercancel"));
+    await nextTick();
+    expect(wrapper.emitted("update:modelValue")).toEqual([[0.7]]);
+
+    // …and a global Escape with no drag under way must reach whatever surface
+    // is above it, not die on a stale capture-phase handler.
+    const escape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+    window.dispatchEvent(escape);
+    await nextTick();
+    expect(escape.defaultPrevented).toBe(false);
+    expect(wrapper.emitted("update:modelValue")).toEqual([[0.7]]);
+    expect(wrapper.emitted("commit")).toBeUndefined();
+
+    // And a fresh gesture still arms cleanly afterwards.
+    await startDrag(wrapper);
+    await emitFromRoot(root, "update:modelValue", [0.8]);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", cancelable: true }));
+    await nextTick();
+    expect(wrapper.emitted("update:modelValue")).toEqual([[0.7], [0.8], [0.7]]);
+    expect(wrapper.emitted("commit")).toBeUndefined();
+  });
+
+  // The single-gesture lifecycle already disarmed itself correctly on both
+  // endings; this pins that contract against regressions.
+  it("lets a global Escape through when no drag is under way, after both a completed and an aborted gesture", async () => {
+    const wrapper = mountSlider({ modelValue: 0.5 });
+    const root = findRoot(wrapper);
+
+    await startDrag(wrapper);
+    await emitFromRoot(root, "update:modelValue", [0.7]);
+    window.dispatchEvent(new Event("pointerup"));
+    let escape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+    window.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(false);
+
+    // An aborted gesture keeps its listeners until release on purpose — the
+    // latch holds Reka's remaining ticks off — so only the pointerup may
+    // disarm it.
+    await startDrag(wrapper);
+    await emitFromRoot(root, "update:modelValue", [0.7]);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", cancelable: true }));
+    await nextTick();
+    window.dispatchEvent(new Event("pointerup"));
+    escape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+    window.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(false);
+    // The second gesture set out from where the first ended, so its abort
+    // restores that — and restoring an untouched start writes no tick.
+    expect(wrapper.emitted("update:modelValue")).toEqual([[0.7], [0.7]]);
+  });
+
+  // Resetting to `props.modelValue` blanked an uncontrolled thumb: a host that
+  // never feeds the prop back left `lastValue` to become undefined, and the
+  // value set emptied instead of returning to where the gesture began.
+  it("restores the value the thumb showed when an uncontrolled slider's drag is aborted, instead of blanking it", async () => {
+    const wrapper = mount(Slider, { props: { min: 0, max: 1, step: 0.01 } });
+    const root = findRoot(wrapper);
+
+    // Give the uncontrolled thumb a value with one whole gesture…
+    await startDrag(wrapper);
+    await emitFromRoot(root, "update:modelValue", [0.4]);
+    window.dispatchEvent(new Event("pointerup"));
+
+    // …then escape out of the next one: the thumb goes back to where *this*
+    // gesture started, not to a prop the host never sent.
+    await startDrag(wrapper);
+    await emitFromRoot(root, "update:modelValue", [0.9]);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", cancelable: true }));
+    await nextTick();
+
+    expect(findRoot(wrapper).props("modelValue")).toEqual([0.4]);
+    expect(wrapper.emitted("update:modelValue")).toEqual([[0.4], [0.9], [0.4]]);
+    expect(wrapper.emitted("commit")).toBeUndefined();
+
+    // Even a late commit from Reka stays swallowed for this gesture.
+    await emitFromRoot(root, "valueCommit", [0.9]);
+    expect(wrapper.emitted("commit")).toBeUndefined();
+  });
+
   it("a keyboard step is forwarded unchanged, commit and all", async () => {
     const wrapper = mountSlider({ modelValue: 0.5 });
     const root = findRoot(wrapper);

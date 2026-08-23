@@ -314,6 +314,11 @@ function onPointerDown(event: PointerEvent) {
   // A read-only field still places the caret and still selects text, which is
   // the whole point of it — it simply never starts a scrub.
   if (field.disabled || field.readonly || event.button !== 0) return;
+  // Disarm before arming: a second concurrent pointerdown used to overwrite
+  // `removeDragListeners` instead of running it, so the first pointer's
+  // release committed this half-finished scrub and its move handler stayed on
+  // the window ticking values with no pointer anywhere near the field.
+  removeDragListeners?.();
   const startX = event.clientX;
   const startValue = lastValue.value ?? props.min ?? 0;
   const step = props.step || 1;

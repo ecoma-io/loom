@@ -33,9 +33,12 @@ import { useFieldControl } from "@ecoma-io/loom-labels";
  * handles pointerdown, move and up, and commits whenever the release value
  * differs from the one it snapshotted — so Escape or a browser-issued
  * `pointercancel` mid-drag would still write one checkpoint on release. The
- * bail-out mirrors NumberField's: reset `lastValue` to the committed value, so
- * Reka's own comparison sees no change and never commits, and swallow the
- * still-captured pointer's remaining ticks until it releases.
+ * bail-out mirrors NumberField's: reset `lastValue` to where the gesture
+ * started, so Reka's own comparison sees no change and never commits, and
+ * swallow the still-captured pointer's remaining ticks until it releases. The
+ * gesture's own start value rather than the prop, because an uncontrolled
+ * host never feeds the prop back — resetting to it blanked the thumb to an
+ * empty value set.
  *
  * Inside a [Field](../Field/Field.vue) it wires itself through
  * `useFieldControl()`: the row's id, the id of its hint or error line,
@@ -176,17 +179,26 @@ function onCommit(next: number[]) {
 let aborted = false;
 let teardownDrag: (() => void) | undefined;
 
-function resetToCommitted() {
-  if (lastValue.value === props.modelValue) return;
-  lastValue.value = props.modelValue;
-  // One transient tick carrying the committed value, so the host can restore
-  // its pre-drag preview. Still never a checkpoint.
-  if (props.modelValue !== undefined) emit("update:modelValue", props.modelValue);
-}
-
 function onRootPointerDown() {
   if (field.disabled) return;
+  // Disarm before arming: a second concurrent pointerdown used to overwrite
+  // `teardownDrag` instead of running it, so the first pointer's release tore
+  // *this* gesture down mid-drag and its capture-phase keydown stayed on the
+  // window swallowing every later Escape. Only after the old handlers are off
+  // does the latch clear, so nothing stale observes the fresh gesture.
+  teardownDrag?.();
   aborted = false;
+  // What an abort restores: where this gesture set out from — captured now,
+  // before any tick — rather than the prop. Mirrors NumberField's abort.
+  const startValue = lastValue.value;
+
+  const resetToStart = () => {
+    if (lastValue.value === startValue) return;
+    lastValue.value = startValue;
+    // One transient tick carrying the restored value, so the host can roll
+    // back its pre-drag preview. Still never a checkpoint.
+    if (startValue !== undefined) emit("update:modelValue", startValue);
+  };
   const onDragKeydown = (keyEvent: KeyboardEvent) => {
     if (keyEvent.key !== "Escape" || aborted) return;
     keyEvent.preventDefault();
@@ -194,7 +206,7 @@ function onRootPointerDown() {
     // Reka keeps the pointer captured until release, so `aborted` is what
     // stops the remaining move ticks from resurrecting the gesture.
     aborted = true;
-    resetToCommitted();
+    resetToStart();
   };
   const onPointerUp = () => {
     // This runs after Reka's own element-level release handling, so a
@@ -205,7 +217,7 @@ function onRootPointerDown() {
   const onPointerCancel = () => {
     teardownDrag?.();
     aborted = false; // a cancelled pointer emits no further ticks
-    resetToCommitted();
+    resetToStart();
   };
   window.addEventListener("pointerup", onPointerUp);
   window.addEventListener("pointercancel", onPointerCancel);
