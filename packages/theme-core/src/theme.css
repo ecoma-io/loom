@@ -300,6 +300,11 @@
   --animate-slide-out-to-right: slide-out-to-right var(--duration-normal) var(--ease-in) both; /* a panel leaving past the right edge */
   --animate-slide-out-to-top: slide-out-to-top var(--duration-normal) var(--ease-in) both; /* a panel leaving past the top edge */
   --animate-slide-out-to-bottom: slide-out-to-bottom var(--duration-normal) var(--ease-in) both; /* a panel leaving past the bottom edge */
+
+  /* The exit answering `--animate-toast-in`: the card leaves along the axis it
+   * arrived on, on the accelerate curve, shorter than its entrance — the same
+   * relationship every exit here keeps with the entrance it mirrors. */
+  --animate-toast-out: toast-out var(--duration-fast) var(--ease-in) both;
 }
 
 /* Tailwind has no `--duration-*` theme namespace — `duration-*` takes a bare

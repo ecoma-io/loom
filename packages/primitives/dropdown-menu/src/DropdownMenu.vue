@@ -64,6 +64,13 @@ withDefaults(
   defineProps<{
     /** The rows, in order. Three kinds, told apart by which fields are set. */
     items: DropdownMenuEntry[];
+    /**
+     * Let the arrow keys wrap at the ends of the list. Off by default — a
+     * cursor that stops at the last row reads as "there is nothing further",
+     * which is the honest answer for most command lists; long lists are where
+     * cycling back to the top pays for itself.
+     */
+    loop?: boolean;
     /** Drive the menu from the host with `v-model:open`; omit it and the menu owns its own state. */
     open?: boolean | undefined;
   }>(),
@@ -98,18 +105,21 @@ function choose(item: DropdownMenuEntry): void {
       <DropdownMenuContent
         :side-offset="6"
         align="start"
+        :loop="loop ?? false"
         :class="
           cn(
-            'z-50 min-w-[12rem] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none',
-            // Scoped to the open state, never unconditional. Reka's Presence
+            'z-overlay min-w-[12rem] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none',
+            // Both states scoped, never unconditional. Reka's Presence
             // keeps closed content mounted until an animationend arrives, and a
             // mount-only animation never fires a second one — so an
             // unconditional animation class strands an invisible menu over the
             // page, catching clicks meant for what is behind it. Scoped, the
             // closed element computes `animation-name: none` and Presence
-            // unmounts it at once. The origin below makes the menu grow out of
-            // its trigger rather than out of its own centre.
-            'data-[state=open]:animate-scale-in',
+            // unmounts it at once; the paired exit is precisely what Presence
+            // is waiting to hold it for. The origin below makes the menu grow
+            // out of its trigger rather than out of its own centre — on the
+            // way out as well as in.
+            'data-[state=open]:animate-scale-in data-[state=closed]:animate-scale-out',
           )
         "
         style="transform-origin: var(--reka-popper-transform-origin)"

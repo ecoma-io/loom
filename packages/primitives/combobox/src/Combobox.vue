@@ -290,7 +290,9 @@ watch(
   (next) => {
     if (Array.isArray(next)) selected.value = [...next];
   },
-  { deep: true },
+  // Shallow, deliberately: the contract is whole-list replacement — Reka hands
+  // back the complete selection on every toggle and a host echoes it straight
+  // back down — so in-place mutation is not a case this mirror owes anyone.
 );
 
 /**
@@ -521,13 +523,15 @@ const inputFieldAttrs = computed(() => {
         :side-offset="6"
         :class="
           cn(
-            'z-50 max-h-72 min-w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md',
-            // Scoped to the open state, never unconditional. Reka keeps the
-            // closed content mounted while it waits for an animationend that a
-            // mount-only animation never fires again — an invisible overlay
-            // eating clicks. Scoping it makes the closed element compute
-            // `animation-name: none`, which is the immediate-unmount branch.
-            'data-[state=open]:animate-fade-rise',
+            'z-overlay max-h-72 min-w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md',
+            // Each half of the motion is scoped to its own state, never
+            // unconditional. Closing swaps the computed animation-name to
+            // fade-fall's, which is what Reka's Presence reads: it holds the
+            // panel mounted until that exit's animationend and only then takes
+            // it away. Unconditional, a finished entrance animation sat on the
+            // closed element and stranded it invisible over the page, eating
+            // clicks.
+            'data-[state=open]:animate-fade-rise data-[state=closed]:animate-fade-fall',
           )
         "
       >

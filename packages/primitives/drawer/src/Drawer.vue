@@ -357,7 +357,7 @@ onBeforeUnmount(() => {
            of a cut, and it keeps that guarantee: `fade-out` ends, so Presence
            unmounts on its own animationend rather than on the absence of one. -->
       <DrawerOverlay
-        class="fixed inset-0 z-50 bg-foreground/scrim-light data-[state=open]:animate-fade data-[state=closed]:animate-fade-out"
+        class="fixed inset-0 z-overlay bg-foreground/scrim-light data-[state=open]:animate-fade data-[state=closed]:animate-fade-out"
       />
 
       <DrawerContent
@@ -365,7 +365,7 @@ onBeforeUnmount(() => {
         :data-loom-drawer-panel="panelMarkerId"
         :class="
           cn(
-            'fixed z-50 flex flex-col border-border bg-popover text-popover-foreground shadow-lg outline-none',
+            'fixed z-overlay flex flex-col border-border bg-popover text-popover-foreground shadow-lg outline-none',
             anchor.edge,
             anchor.corners,
             EXTENT[anchor.extent][size],

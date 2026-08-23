@@ -82,19 +82,22 @@ defineEmits<{ "update:open": [value: boolean] }>();
           :side-offset="sideOffset"
           :class="
             cn(
-              'z-50 max-w-[16rem] rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background shadow-md',
+              'z-overlay max-w-[16rem] rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background shadow-md',
               // Scoped to the open state, never unconditional. Reka's Presence
               // keeps closed content mounted until an animationend arrives, and
               // a mount-only animation never fires a second one — so an
               // unconditional animation class leaves a stray tip in the page.
               // Scoped, the closed element computes `animation-name: none` and
-              // Presence unmounts it at once.
+              // Presence unmounts it at once; the paired exit is precisely what
+              // Presence is waiting to hold it for.
               //
               // `delayed-open` rather than `open`: the animation belongs to the
               // hover path, which the user waited for. A tip opened by keyboard
               // focus appears instantly, because a keyboard user asked for it
-              // deliberately and has nothing to wait through.
-              'data-[state=delayed-open]:animate-scale-in',
+              // deliberately and has nothing to wait through. The exit needs no
+              // such split — Reka reports both open flavours as plain `closed`
+              // on the way out, so one class answers them both.
+              'data-[state=delayed-open]:animate-scale-in data-[state=closed]:animate-scale-out',
             )
           "
           style="transform-origin: var(--reka-popper-transform-origin)"

@@ -508,14 +508,15 @@ function onOpenAutoFocus(event: Event) {
       :side-offset="6"
       :class="
         cn(
-          'z-50 rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-md outline-none',
-          // Scoped to the open state, never unconditional. Reka's Presence
-          // keeps the closed content mounted until an animationend arrives,
-          // and a mount-only animation never fires a second one — so an
-          // unconditional class strands an invisible panel over the page,
-          // eating clicks. Scoped, the closed element computes
-          // `animation-name: none` and Presence unmounts it immediately.
-          'data-[state=open]:animate-fade-rise',
+          'z-overlay rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-md outline-none',
+          // Both halves of the motion are scoped to their own state, never
+          // unconditional. Reka's Presence decides unmounting from the
+          // computed animation-name: an unconditional entrance left the closed
+          // panel computing a finished animation it would wait on forever — an
+          // invisible layer over the page, eating clicks. Scoped, closing
+          // swaps the computed animation to fade-fall's, and Presence holds
+          // the panel exactly one exit long, releasing it at animationend.
+          'data-[state=open]:animate-fade-rise data-[state=closed]:animate-fade-fall',
         )
       "
       @open-auto-focus="onOpenAutoFocus"

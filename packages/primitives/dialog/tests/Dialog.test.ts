@@ -1,7 +1,7 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
-import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 import Dialog from "../src/Dialog.vue";
 
@@ -38,6 +38,30 @@ const panel = () => document.querySelector<HTMLElement>('[role="dialog"]')!;
 /** Let Reka's focus, scroll-lock and dismiss machinery settle. */
 async function settle() {
   for (let i = 0; i < 4; i++) await nextTick();
+}
+
+/** A press on an element outside the panel — the event Reka's outside-dismiss listens for. */
+function firePointer(el: Element, type: string, init: PointerEventInit = {}) {
+  el.dispatchEvent(
+    new PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      pointerId: 1,
+      pointerType: "mouse",
+      ...init,
+    }),
+  );
+}
+
+/**
+ * Reka arms its document-level `pointerdown` listener inside a
+ * `setTimeout(0)` (DismissableLayer utils) so a dialog opened *by* a press
+ * does not see that press again. Microtask-only settling never reaches that
+ * timer, so a test that presses outside must yield one macrotask first.
+ */
+function flushTimers() {
+  return new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
 function reset() {
@@ -100,7 +124,7 @@ describe("Dialog", () => {
     );
   });
 
-  it("offers the close affordance by default and drops it when closable is false, leaving Escape and the overlay as the way out", async () => {
+  it("offers the close affordance by default and drops it when closable is false", async () => {
     await mountDialog();
     expect(document.querySelector("[aria-label='Close']")).not.toBeNull();
     reset();
@@ -115,6 +139,42 @@ describe("Dialog", () => {
     await nextTick();
     expect(wrapper.emitted("update:open")).toEqual([[false]]);
     expect(document.querySelector('[role="dialog"]')).not.toBeNull(); // still open — the host decides
+  });
+
+  // `closable` governs the corner control alone. The two passive exits — an
+  // outside press and Escape — keep working with it false, which is the
+  // documented contract and the reason these pins exist: a test used to claim
+  // "Escape and the overlay as the way out" while exercising neither path.
+  it("dismisses from a press outside the panel, closable or not", async () => {
+    const wrapper = await mountDialog();
+    await flushTimers();
+    const outside = attachToBody(document.createElement("button"));
+    firePointer(outside, "pointerdown");
+    await settle();
+    expect(wrapper.emitted("update:open")).toEqual([[false]]);
+    reset();
+
+    // A fresh outside target: `reset()` above wipes the body, and a press on
+    // a detached element never bubbles to the layer listening on the document.
+    const unclosable = await mountDialog({ closable: false });
+    await flushTimers();
+    const secondOutside = attachToBody(document.createElement("button"));
+    firePointer(secondOutside, "pointerdown");
+    await settle();
+    expect(unclosable.emitted("update:open")).toEqual([[false]]);
+  });
+
+  // `cancelable: true` is load-bearing: Reka honours a prevented Escape, and
+  // preventDefault on a non-cancelable event is silently ignored — a test
+  // dispatching without it would pin nothing but jsdom's own no-op.
+  it("dismisses on Escape too, including under closable:false", async () => {
+    const wrapper = await mountDialog({ closable: false });
+    await settle();
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+    );
+    await settle();
+    expect(wrapper.emitted("update:open")).toEqual([[false]]);
   });
 
   it("renders no panel at all while closed — a modal must not sit in the DOM swallowing clicks", async () => {

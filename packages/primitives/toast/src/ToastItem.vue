@@ -70,7 +70,10 @@ const text = useLabels("toast", TOAST_LABELS, () => props.labels);
 const toastAccents = {
   info: { icon: Info, color: "text-info-text" },
   success: { icon: CircleCheck, color: "text-success-text" },
-  warning: { icon: TriangleAlert, color: "text-warning" },
+  // `-text` like its four siblings. The bare `warning` hue is a fill colour —
+  // as text it fails on the dark theme, and the functional `-text` tokens are
+  // the ones measured legible on every surface (theme.css carries the ratios).
+  warning: { icon: TriangleAlert, color: "text-warning-text" },
   destructive: { icon: CircleX, color: "text-destructive-text" },
   accent: { icon: Sparkles, color: "text-primary-text" },
 } satisfies Record<ToastVariant, { icon: typeof Info; color: string }>;
@@ -79,14 +82,20 @@ const accent = computed(() => toastAccents[props.variant]);
 </script>
 
 <template>
-  <!-- The slide-in animation rides this inner card, never ToastRoot: Reka
-       drives ToastRoot's own transform for the swipe-to-dismiss gesture, so a
-       filled entrance transform there would freeze the swipe. ToastRoot itself
-       carries no animation, so Reka Presence unmounts it immediately on close. -->
+  <!-- Entrance and exit deliberately do not share an element, and the split is
+       forced by Reka rather than taste. The swipe gesture marks ToastRoot
+       itself (data-swipe plus --reka-toast-swipe-* custom properties), so the
+       root's transform stays reserved and the entrance rides the inner card.
+       The exit cannot ride along: Presence decides an element's fate by
+       reading the computed animation-name of the node it mounted — never a
+       descendant's — and by waiting for an animationend whose target is that
+       same node (usePresence.js). A toast-out confined to the inner card would
+       leave the root's own name `none` and be unmounted before its first
+       frame; on ToastRoot it genuinely plays. -->
   <ToastRoot
     v-bind="optional({ open })"
     :duration="duration"
-    class="outline-none"
+    class="outline-none data-[state=closed]:animate-toast-out"
     @update:open="$emit('update:open', $event)"
   >
     <div

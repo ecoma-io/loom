@@ -4,7 +4,7 @@ import { defineComponent, h, nextTick, type VNode } from "vue";
 import Select, { type SelectOption } from "../src/Select.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { LIST_STAGGER_STEP_MS, listStaggerDelay } from "@ecoma-io/loom-core";
-import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 
 const options: SelectOption[] = [
   { value: "en", label: "English" },
@@ -76,6 +76,16 @@ async function settle() {
 }
 
 const TRIGGER = '[role="combobox"]';
+
+// The walk is focus-based and target-relative: Reka slices its candidate list
+// from whatever element the keydown arrived on, so each key is dispatched on
+// `document.activeElement` — the row the reader is actually on — rather than
+// on an arbitrary node.
+function pressKey(key: string): void {
+  const active = document.activeElement;
+  if (!active) throw new Error("nothing focused to press a key on");
+  active.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key }));
+}
 
 function getTrigger(): HTMLElement {
   const trigger = document.querySelector<HTMLElement>(TRIGGER);
@@ -230,6 +240,95 @@ describe("Select listbox contract", () => {
       `${String(LIST_STAGGER_STEP_MS)}ms`,
       `${String(LIST_STAGGER_STEP_MS * 2)}ms`,
     ]);
+  });
+});
+
+describe("Select keyboard navigation", () => {
+  // Disabled rows interleaved with enabled ones — a disabled row only proves
+  // the walk skips it when there is an enabled row on the far side of it.
+  const walk: SelectOption[] = [
+    { value: "a", label: "Alder" },
+    { value: "b", label: "Birch", disabled: true },
+    { value: "c", label: "Cedar" },
+    { value: "d", label: "Dogwood", disabled: true },
+    { value: "e", label: "Elm" },
+  ];
+
+  // `exactOptionalPropertyTypes` is on: an explicit `undefined` is not the
+  // same as absent, so an unset walk mounts without the key at all.
+  function mountWalk(modelValue?: string) {
+    return mountSelect(
+      modelValue === undefined ? { options: walk } : { options: walk, modelValue },
+    );
+  }
+
+  function activeRow(): string {
+    const row = document.activeElement?.textContent.trim();
+    if (!row) throw new Error("nothing focused");
+    return row;
+  }
+
+  // Verified in reka's own `SelectContentImpl`: arrow candidates are sliced
+  // past the focused row and handed to `focusFirst`, which stops at the first
+  // row that accepts focus — a disabled row carries no `tabindex`, so its
+  // `.focus()` is a no-op and the walk passes over it. There is no wrapping in
+  // that path; these tests pin what reka actually does.
+  it("moves the highlight down with ArrowDown, passing over the disabled rows", async () => {
+    mountWalk("a");
+    await openList();
+    expect(activeRow()).toBe("Alder");
+
+    pressKey("ArrowDown");
+    await settle();
+
+    expect(activeRow()).toBe("Cedar");
+  });
+
+  it("stops ArrowDown on the last enabled row rather than wrapping to the top", async () => {
+    mountWalk("e");
+    await openList();
+    expect(activeRow()).toBe("Elm");
+
+    pressKey("ArrowDown");
+    await settle();
+
+    expect(activeRow()).toBe("Elm");
+  });
+
+  it("moves the highlight up with ArrowUp, passing over the disabled rows", async () => {
+    mountWalk("e");
+    await openList();
+    expect(activeRow()).toBe("Elm");
+
+    pressKey("ArrowUp");
+    await settle();
+
+    expect(activeRow()).toBe("Cedar");
+  });
+
+  it("stops ArrowUp on the first enabled row rather than wrapping to the bottom", async () => {
+    mountWalk("a");
+    await openList();
+    expect(activeRow()).toBe("Alder");
+
+    pressKey("ArrowUp");
+    await settle();
+
+    expect(activeRow()).toBe("Alder");
+  });
+
+  it("jumps Home to the first enabled row and End to the last, past every disabled one", async () => {
+    mountWalk("c");
+    await openList();
+    expect(activeRow()).toBe("Cedar");
+
+    pressKey("Home");
+    await settle();
+    expect(activeRow()).toBe("Alder");
+
+    pressKey("End");
+    await settle();
+    expect(activeRow()).toBe("Elm");
   });
 });
 

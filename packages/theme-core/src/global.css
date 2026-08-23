@@ -267,6 +267,21 @@
   }
 }
 
+/* The exit answering `toast-in`, leaving along the same axis it arrived and
+ * was swiped away on. It rides the toast root — Reka's Presence holds that
+ * element for `animationend`; an animation on an inner card would never play
+ * a frame. */
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+}
+
 /* Respect the reader. Motion is meaning, but it is never a barrier. */
 @media (prefers-reduced-motion: reduce) {
   *,
