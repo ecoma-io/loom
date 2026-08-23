@@ -197,6 +197,9 @@ export default defineConfig({
         "@ecoma-io/loom-list": fileURLToPath(
           new URL("../../packages/primitives/list/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-kbd": fileURLToPath(
+          new URL("../../packages/primitives/kbd/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-table": fileURLToPath(
           new URL("../../packages/primitives/table/src/index.ts", import.meta.url),
         ),

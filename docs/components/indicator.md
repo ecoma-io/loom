@@ -237,6 +237,15 @@ would stop compiling.
 For a whole application set this once with `provideLoomLabels` rather than at
 every call site. See [Localisation](/foundations/localisation).
 
+## Difference from a "status" component
+
+If you are looking for a way to display a status — presence, health, a
+state a reader checks — this component already is it. `status` maps the four
+presence states to tone, shape glyph and an announced name; `tone` covers
+every other stateful colour; `variant="count"` turns the marker into a
+numbered pill. Loom deliberately has no second Status component on top of
+this one.
+
 ## API
 
 <!-- @api Indicator -->

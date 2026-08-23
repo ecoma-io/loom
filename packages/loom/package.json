@@ -60,6 +60,7 @@
     "@ecoma-io/loom-indicator": "workspace:*",
     "@ecoma-io/loom-inline": "workspace:*",
     "@ecoma-io/loom-inline-error": "workspace:*",
+    "@ecoma-io/loom-kbd": "workspace:*",
     "@ecoma-io/loom-labels": "workspace:*",
     "@ecoma-io/loom-link": "workspace:*",
     "@ecoma-io/loom-list": "workspace:*",

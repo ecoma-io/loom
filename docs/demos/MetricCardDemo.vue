@@ -5,7 +5,13 @@ import { MetricCard } from "@ecoma-io/loom";
 
 <template>
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-    <MetricCard value="12,847" label="Active users" trend="up" trend-value="+12.5%">
+    <MetricCard
+      value="12,847"
+      label="Active users"
+      trend="up"
+      trend-value="+12.5%"
+      description="vs last month"
+    >
       <template #icon><Users /></template>
     </MetricCard>
     <MetricCard value="$84.2k" label="Revenue" trend="up" trend-value="+8.1%">
@@ -17,5 +23,11 @@ import { MetricCard } from "@ecoma-io/loom";
     <MetricCard value="99.9%" label="Uptime" trend="flat" trend-value="0%">
       <template #icon><Activity /></template>
     </MetricCard>
+  </div>
+
+  <!-- Loading keeps every card's height: sized placeholders per row. -->
+  <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <MetricCard label="Render minutes" loading />
+    <MetricCard label="Storage" loading />
   </div>
 </template>
