@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.4.0](https://github.com/ecoma-io/loom/compare/v0.3.0...v0.4.0) (2026-08-23)
+
+
+### Features
+
+* **ci:** cache moon's toolchain tree across CI runs ([#81](https://github.com/ecoma-io/loom/issues/81)) ([54c39fe](https://github.com/ecoma-io/loom/commit/54c39fe78c12e9ce7206835ee31c7a096bf4b8f8))
+* **ci:** cache vue-tsc's incremental buildinfo across CI runs ([#77](https://github.com/ecoma-io/loom/issues/77)) ([172814c](https://github.com/ecoma-io/loom/commit/172814c0243c178018b6c0857d876ef00a8c592c))
+* **ci:** persist moon's task cache across CI runs ([#76](https://github.com/ecoma-io/loom/issues/76)) ([59a5d30](https://github.com/ecoma-io/loom/commit/59a5d30ab6409f45002380d876f649f02105eb5b))
+* **ci:** replay the docs build out of moon's output cache ([#79](https://github.com/ecoma-io/loom/issues/79)) ([bfe4902](https://github.com/ecoma-io/loom/commit/bfe49029f7266e8435c96adc6bcfe76d899d0a86))
+* **ci:** run the merge queue's whole-repo unit suite through moon ([#80](https://github.com/ecoma-io/loom/issues/80)) ([12134b2](https://github.com/ecoma-io/loom/commit/12134b2e3c917a2b0160625e76afddcefcdf233f))
+* **ci:** size the root E2E shard split by the pages it sweeps ([#78](https://github.com/ecoma-io/loom/issues/78)) ([975ff64](https://github.com/ecoma-io/loom/commit/975ff64e597f19a710cedd40a788bc28c64a5416))
+* **docs:** differentiate the menu family and give AppHeader its safe-area inset ([#100](https://github.com/ecoma-io/loom/issues/100)) ([c763704](https://github.com/ecoma-io/loom/commit/c76370457b004932efa5473a199cfffb58fea633))
+* **docs:** differentiate the menu family; give AppHeader its safe-area inset ([c763704](https://github.com/ecoma-io/loom/commit/c76370457b004932efa5473a199cfffb58fea633))
+* **primitives:** add Alert and Card ([#97](https://github.com/ecoma-io/loom/issues/97)) ([0c15a2c](https://github.com/ecoma-io/loom/commit/0c15a2cb526ab156c7ca4d5795b818e8e029554a))
+* **primitives:** add Collapse and Carousel ([#98](https://github.com/ecoma-io/loom/issues/98)) ([9978f77](https://github.com/ecoma-io/loom/commit/9978f77decfa5a1f38f08fa5f2d4855f1659dda0))
+* **primitives:** add Kbd; harden MetricCard; rule Status out via Indicator ([#101](https://github.com/ecoma-io/loom/issues/101)) ([ea95c71](https://github.com/ecoma-io/loom/commit/ea95c71c3527b77e08fd6b5a4e073ff37ce5ca28))
+* **primitives:** add Kbd; teach MetricCard to load and describe; rule Status out loud ([ea95c71](https://github.com/ecoma-io/loom/commit/ea95c71c3527b77e08fd6b5a4e073ff37ce5ca28))
+* **primitives:** add Table and List ([#99](https://github.com/ecoma-io/loom/issues/99)) ([7b4d43a](https://github.com/ecoma-io/loom/commit/7b4d43a29ea6e4bafc392c78b793cbc2d92813f4))
+* **primitives:** add Timeline; rule Steps out via Stepper ([#102](https://github.com/ecoma-io/loom/issues/102)) ([668fe33](https://github.com/ecoma-io/loom/commit/668fe330dcc8e64a1b809c9a39279002d672efaf))
+* **workspace:** architecture baseline — contract, enforcement, public boundary ([#74](https://github.com/ecoma-io/loom/issues/74)) ([128399a](https://github.com/ecoma-io/loom/commit/128399a0d4d82279acd9193a51f1d90f241d4e6b))
+* **workspace:** enforce the layer graph with Lattice ([#86](https://github.com/ecoma-io/loom/issues/86)) ([96c441c](https://github.com/ecoma-io/loom/commit/96c441c2538084d1887b70f4af9a94e96f9a7c0e))
+* **workspace:** give playwright/ a Moon project of its own ([#96](https://github.com/ecoma-io/loom/issues/96)) ([48b2215](https://github.com/ecoma-io/loom/commit/48b2215cebbdbc80e3029b524f1663e2984030eb))
+* **workspace:** ship the Lattice agent skills to every host ([#95](https://github.com/ecoma-io/loom/issues/95)) ([9e9c9db](https://github.com/ecoma-io/loom/commit/9e9c9db965d68457f95f25f2c50e6619f09d651b))
+
+
+### Bug Fixes
+
+* **docs:** every demo imports the published entry point ([#82](https://github.com/ecoma-io/loom/issues/82)) ([4b03b0d](https://github.com/ecoma-io/loom/commit/4b03b0d3544148c31b01f4d5fc3b7643383289ca))
+* harden audited correctness, accessibility and motion defects across the surface ([#88](https://github.com/ecoma-io/loom/issues/88)) ([98f8c86](https://github.com/ecoma-io/loom/commit/98f8c8659b6ae5ec84db382235dc3919c584b7e2))
+* **styles:** stop shipping theme-core's contrast test inside dist ([#84](https://github.com/ecoma-io/loom/issues/84)) ([8051034](https://github.com/ecoma-io/loom/commit/80510349042492ca1f9150007f931f85195c2275))
+* **workspace:** declare the core testing subpath in the paths table ([#85](https://github.com/ecoma-io/loom/issues/85)) ([7a0dc6a](https://github.com/ecoma-io/loom/commit/7a0dc6a93f29373bc255bb4c82065f35181b0027))
+
 ## [0.3.0](https://github.com/ecoma-io/loom/compare/v0.2.0...v0.3.0) (2026-08-19)
 
 
