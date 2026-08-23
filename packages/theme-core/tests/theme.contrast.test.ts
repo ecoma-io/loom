@@ -4,7 +4,15 @@ import { describe, expect, it } from "vitest";
 // `import.meta.dirname` (Node 24) rather than `import.meta.url`, because the
 // file is rewritten by Vitest's transform — `new URL(…, import.meta.url)`
 // gets a bare path as its base and dies with a scheme error.
-const THEME_CSS = `${import.meta.dirname}/theme.css`;
+//
+// In `tests/` rather than beside the stylesheet it reads, and that is not a
+// preference: vite.config.ts copies the whole of `theme-core/src` into
+// `dist/styles/` verbatim, fonts and licence included, so this file shipped in
+// the published package — a test importing `vitest` and `node:fs/promises`,
+// inside a tarball a consumer installs. The copy stays verbatim, which is what
+// keeps `theme.css` authored rather than built; what moved is the one file
+// that had no business being in the directory being copied.
+const THEME_CSS = `${import.meta.dirname}/../src/theme.css`;
 
 // ---- Token parsing ----------------------------------------------------------
 
