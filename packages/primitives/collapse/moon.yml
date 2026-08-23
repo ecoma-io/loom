@@ -1,0 +1,14 @@
+deps:
+  - "core"
+tags: ["layer-primitives", "e2e"]
+project:
+  name: "collapse"
+  description: "Collapse primitive — one disclosure with animated height"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
+  e2e:
+    options:
+      runInCI: skip
+    args: ["packages/primitives/collapse/e2e"]
+    env:
+      PW_PROFILE: "smoke"

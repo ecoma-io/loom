@@ -80,6 +80,21 @@ export interface AlertLabels {
 }
 
 /**
+ * What Carousel says on its own account: the region's name, the two controls'
+ * names, and the sentence that turns a position into a sentence. `slide` is
+ * a message in the labels package's sense — it receives the raw numbers and
+ * returns finished words, so pluralisation stays in the consumer's locale.
+ */
+export interface CarouselLabels {
+  /** The carousel region's accessible name. */
+  readonly region: string;
+  readonly previous: string;
+  readonly next: string;
+  /** Per-slide and live-region announcement, from 1-based position. */
+  readonly slide: LabelOf<{ position: number; total: number }>;
+}
+
+/**
  * The two sentences the row says that are not a member's own name.
  *
  * **`accent` is one key and not a name, a comma and a qualifier.** Where the

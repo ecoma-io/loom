@@ -188,6 +188,12 @@ export default defineConfig({
         "@ecoma-io/loom-alert": fileURLToPath(
           new URL("../../packages/primitives/alert/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-carousel": fileURLToPath(
+          new URL("../../packages/primitives/carousel/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-collapse": fileURLToPath(
+          new URL("../../packages/primitives/collapse/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-card": fileURLToPath(
           new URL("../../packages/primitives/card/src/index.ts", import.meta.url),
         ),

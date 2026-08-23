@@ -305,6 +305,14 @@
    * arrived on, on the accelerate curve, shorter than its entrance — the same
    * relationship every exit here keeps with the entrance it mirrors. */
   --animate-toast-out: toast-out var(--duration-fast) var(--ease-in) both;
+
+  /* The disclosure pair, keyed to Reka's measured content height — see
+   * `global.css` for why these are height keyframes at all. Arriving is the
+   * emphasized direction (decelerating into place over `--duration-normal`);
+   * leaving clears the eye faster on the accelerate curve, like every exit
+   * above. */
+  --animate-expand: expand var(--duration-normal) var(--ease-out) both;
+  --animate-collapse: collapse var(--duration-fast) var(--ease-in) both;
 }
 
 /* Tailwind has no `--duration-*` theme namespace — `duration-*` takes a bare

@@ -480,6 +480,9 @@ importers:
       '@ecoma-io/loom-card':
         specifier: workspace:*
         version: link:../primitives/card
+      '@ecoma-io/loom-carousel':
+        specifier: workspace:*
+        version: link:../primitives/carousel
       '@ecoma-io/loom-center':
         specifier: workspace:*
         version: link:../composition/center
@@ -492,6 +495,9 @@ importers:
       '@ecoma-io/loom-chip':
         specifier: workspace:*
         version: link:../primitives/chip
+      '@ecoma-io/loom-collapse':
+        specifier: workspace:*
+        version: link:../primitives/collapse
       '@ecoma-io/loom-color-picker':
         specifier: workspace:*
         version: link:../primitives/color-picker
@@ -847,6 +853,24 @@ importers:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
 
+  packages/primitives/carousel:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-icon-button':
+        specifier: workspace:*
+        version: link:../icon-button
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
   packages/primitives/checkbox:
     dependencies:
       '@ecoma-io/loom-core':
@@ -876,6 +900,15 @@ importers:
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/collapse:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
