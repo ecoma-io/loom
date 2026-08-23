@@ -109,6 +109,35 @@ walk the true dependency closure rather than a flat list. The lockfile is a
 declared input of every test and lint task, because a dependency bump changes
 what a test exercises without touching any project's own files.
 
+## Two architecture readers, and the tag set that feeds one of them
+
+The layer order (`core -> labels -> primitives -> composition -> layouts ->
+blocks -> facade`) is enforced twice, and the split is the point.
+`tools/check-architecture.ts` matches specifier _text_ under each package's
+`src/`; `lattice check` reads the Moon project graph, resolves each specifier
+through `tsconfig.base.json`, and judges the _resolved target_ against
+`module-boundaries.config.mjs`. Neither subsumes the other — the table in
+`docs/architecture/contract.md` records which invariant each one owns, and the
+three that Lattice structurally cannot see are pinned as expect-nothing rows in
+`tools/check-lattice-mutations.ts` so that a fix upstream turns them red.
+
+Three things about this that reading one file will not tell you:
+
+- **Every Moon project carries a `layer-*` tag, and the constraint table keys on
+  it.** Removing or mistyping one does not weaken the rule quietly — it drops
+  the project out of every row, which Lattice reports as
+  `projectWithoutTagsCannotHaveDependencies`. Moon rejects a colon in a tag, so
+  the dash form is not a style choice. The `e2e` tag is a separate axis and
+  still means "owns browser evidence"; the two coexist on one line.
+- **`tsconfig.base.json` is load-bearing at that exact name.** Lattice's Moon
+  provider resolves it by convention and offers no way to name another file
+  (ecoma-io/lattice#266). Without it every internal specifier resolves to
+  nothing and the run reports 656 findings on a clean tree — loud, but for a
+  reason that is a filename.
+- **`pnpm lattice:mutations` is the gate on the gate.** A constraint row whose
+  tag no project carries approves everything while reading as enforced. Run it
+  after touching the boundary config or a project's tags.
+
 ## One accessibility tag set, two readers
 
 `WCAG_TAGS` in `packages/loom/src/a11y.ts` is imported by the `axe` gate in

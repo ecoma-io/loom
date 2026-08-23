@@ -139,8 +139,15 @@ Two kinds of side effects, treated differently:
 
 ## The checks, and why each exists
 
-All architecture rules run in `pnpm lint` (and its own CI step), via
-`tools/check-architecture.ts`:
+The rules above are enforced by two readers, and the split is deliberate: one
+reads the specifier a file wrote, the other resolves it and judges what it
+landed on. Neither subsumes the other, and the section after this one records
+exactly which invariant each owns.
+
+### `tools/check-architecture.ts` — the specifier text
+
+Runs in `pnpm lint` and in its own CI step. Seven rules, matched against the
+`.ts`/`.vue` source under each package's `src/`, comments stripped:
 
 1. **Moon `deps:` == `package.json` workspace deps.** Makes `--affected`
    honest; a component that imports `chip` must declare it, or a `chip`
@@ -166,6 +173,87 @@ is documentation, not an edge.
 The checks are asserted, not advisory, and they are themselves tested — the
 suite that exercises them proves a valid graph passes and each forbidden
 edge fails.
+
+### `lattice check` — the resolved import
+
+[Lattice](https://github.com/ecoma-io/lattice) is an architecture-governance
+engine that reads the Moon project graph, resolves every specifier through
+`tsconfig.base.json` with TypeScript's own resolver, and judges the **resolved
+target** against a constraint table. Loom runs it in `pnpm lint` and as its own
+CI step, and the table lives in `module-boundaries.config.mjs` at the root —
+one row per layer, each naming the layers it may import, which is the same
+sentence the rank comparison above implements.
+
+Why a second reader at all, when the layer order was already enforced? Because
+`check-architecture.ts` is a regular expression over specifier text, and it says
+so. That is exact for the spellings it was written for and blind to every other
+one. Lattice resolves instead of matching, so it reaches:
+
+- **a relative path that climbs out of a package** — `check-architecture.ts`
+  walks `src/` only, so a package's own `tests/` could reach across a boundary
+  unseen. Thirteen test files were doing exactly that, reaching
+  `packages/core/src/testing/attach-to-body` through four `../` segments; the
+  helper now has a declared entry point (`@ecoma-io/loom-core/testing`).
+- **the documentation site**, which no Loom check looked at. Every one of the
+  86 demos imported a private component package (`@ecoma-io/loom-button`)
+  rather than the published facade, and `Demo.vue` prints a demo's own source
+  under each example — so the site's copy-paste sample named a package that is
+  `private: true` and resolves to nothing on a consumer's machine. The demos
+  import `@ecoma-io/loom` now, which is what the VitePress alias comment always
+  said they did.
+- **files no project owned.** `playwright/` — the component E2E harness and the
+  browser-profile matrix both Playwright configs read — was in no Moon project,
+  so `moon ci` never linted it and Lattice skipped it. It is a Moon project now.
+- **an alias, a barrel re-export, a dynamic `import()`, a self-import through a
+  package's own name, and a `paths` entry that has stopped resolving** — each
+  pinned by the mutation suite below.
+
+The constraint table also carries two accepted violations, each with the
+argument for accepting it written into the row. Both are `tools/` and the
+harness reaching sibling directories that are Moon projects but not npm
+packages — there is no published name to import instead. A suppression removes
+a verdict and never a check: the file is still fully analyzed, and Lattice
+refuses the run outright if a suppression stops covering anything.
+
+### Proving the gate can fail
+
+`pnpm lattice:mutations` (`tools/check-lattice-mutations.ts`) breaks the
+architecture eighteen ways against the real tree — an upward import, a cycle, a
+relative climb, a barrel re-export, a lazy `import()`, an aliased reach past an
+entry point, a project that loses its tag, a `paths` alias left dangling — runs
+`lattice check` after each, asserts the violation that mutation was written to
+produce, and restores every file byte for byte. It runs unconditionally in CI.
+
+A constraint row whose tag no project carries selects nothing and approves
+everything while reading as enforced, and `module-boundaries.config.mjs` is a
+file a pull request can edit. This is the gate on the gate.
+
+### What Lattice does not see, and why both checks stay
+
+Three of the mutation rows expect Lattice to report **nothing**, and they are
+the reason `check-architecture.ts` is still wired into `pnpm lint`:
+
+| Invariant                                                           | Lattice's answer                                                                                                                                                     | Who enforces it                                           |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| A component importing a facade **subpath** (`@ecoma-io/loom/theme`) | resolves the alias to `packages/core/src/theme.ts` and judges `primitives → core`, which is allowed. The subpath is the public surface; the file it lands on is not. | `check-architecture.ts` check 2                           |
+| A JavaScript import of `theme-core`                                 | the package exports only stylesheets and has no `paths` entry, so the specifier is classified as an undeclared npm package rather than as the token package          | `check-architecture.ts` check 5                           |
+| A violation in a file no Moon project owns                          | skipped, uncounted, and the `coverage-minimum: 100` gate still answers 100% ([lattice#263](https://github.com/ecoma-io/lattice/issues/263))                          | nothing yet — the fix was to give `playwright/` a project |
+
+Two more differences worth knowing, both measured:
+
+- A `paths` alias whose target is a `.vue` file is treated as an external npm
+  import, so the constraint table never judges it
+  ([lattice#264](https://github.com/ecoma-io/lattice/issues/264)). Loom's own
+  aliases all point at an `index.ts`, and `banTransitiveDependencies: true`
+  makes the misattributed form loud here rather than silent.
+- A dependency hand-declared in a `moon.yml` `deps:` block, with no import
+  behind it, is never judged against the table
+  ([lattice#262](https://github.com/ecoma-io/lattice/issues/262)). Loom has five
+  such edges, all `# preserved`, all pointing downward.
+
+`tsconfig.base.json` exists at that name because Lattice's Moon provider
+resolves it by convention and a Moon workspace has no way to name a different
+file ([lattice#266](https://github.com/ecoma-io/lattice/issues/266)).
 
 ## Deciding where new code belongs
 

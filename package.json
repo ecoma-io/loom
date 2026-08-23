@@ -73,6 +73,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0 && node tools/check-component-artifacts.ts && node --experimental-strip-types tools/check-architecture.ts && pnpm lattice:check",
     "lattice:check": "lattice check",
+    "lattice:mutations": "node --experimental-strip-types tools/check-lattice-mutations.ts",
     "typecheck": "vue-tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo",
     "test": "vitest run",
     "test:full": "vitest run",
