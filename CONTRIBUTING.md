@@ -132,7 +132,7 @@ a top-level script, add it there too.
 
 If you are working with an AI coding agent, `.claude/` configures the same two
 steps to run the moment a file is written, so problems surface while the edit is
-still in context rather than at commit time. [CLAUDE.md](CLAUDE.md) is what such
+still in context rather than at commit time. [AGENTS.md](AGENTS.md) is what such
 an agent reads first: it points back here for everything this document defines,
 and adds only the repository mechanics that no single file reveals.
 

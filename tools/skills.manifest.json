@@ -1,0 +1,39 @@
+{
+  "vendor": {
+    "package": "@ecoma-io/lattice",
+    "version": "0.11.1",
+    "ref": "v0.11.1",
+    "source": "ecoma-io/lattice@v0.11.1",
+    "skills": ["arch-change", "arch-check", "arch-context", "arch-migrate", "arch-review"]
+  },
+  "owned": ["add-component"],
+  "writes": [
+    ".agents/skills/README.md",
+    ".agents/skills/add-component/SKILL.md",
+    ".agents/skills/arch-change/SKILL.md",
+    ".agents/skills/arch-check/SKILL.md",
+    ".agents/skills/arch-context/SKILL.md",
+    ".agents/skills/arch-migrate/SKILL.md",
+    ".agents/skills/arch-review/SKILL.md",
+    ".claude/skills/README.md",
+    ".claude/skills/arch-change/SKILL.md",
+    ".claude/skills/arch-check/SKILL.md",
+    ".claude/skills/arch-context/SKILL.md",
+    ".claude/skills/arch-migrate/SKILL.md",
+    ".claude/skills/arch-review/SKILL.md"
+  ],
+  "hashes": {
+    ".agents/skills/arch-change/SKILL.md": "4d9d730aefc6b9cc7a218af80076644fa3d4e527cdf2a5c5147ef948cdd2d9a9",
+    ".agents/skills/arch-check/SKILL.md": "d123ceb24175f8e5b8894ec997c2dbba2b470a8878a2786a2b25aa4b77c06996",
+    ".agents/skills/arch-context/SKILL.md": "827a00f19aa6b0ebbe8030292180b3f94fa667278dafdcea6e6ee018fbed1498",
+    ".agents/skills/arch-migrate/SKILL.md": "ea70dce764a3778d3a6ccffd2318aa7a9828bd75ac06898a589b04cabf2d7d3f",
+    ".agents/skills/arch-review/SKILL.md": "677641efc72027d5edc5f8e1117afb1849139e010b05b49870c9ae7c641af618",
+    ".agents/skills/README.md": "420682d9ff6e09aa9b7e0f71c9f5137f697d7bbca8e03123a9782813b56da98e",
+    ".claude/skills/arch-change/SKILL.md": "4d9d730aefc6b9cc7a218af80076644fa3d4e527cdf2a5c5147ef948cdd2d9a9",
+    ".claude/skills/arch-check/SKILL.md": "d123ceb24175f8e5b8894ec997c2dbba2b470a8878a2786a2b25aa4b77c06996",
+    ".claude/skills/arch-context/SKILL.md": "827a00f19aa6b0ebbe8030292180b3f94fa667278dafdcea6e6ee018fbed1498",
+    ".claude/skills/arch-migrate/SKILL.md": "ea70dce764a3778d3a6ccffd2318aa7a9828bd75ac06898a589b04cabf2d7d3f",
+    ".claude/skills/arch-review/SKILL.md": "677641efc72027d5edc5f8e1117afb1849139e010b05b49870c9ae7c641af618",
+    ".claude/skills/README.md": "420682d9ff6e09aa9b7e0f71c9f5137f697d7bbca8e03123a9782813b56da98e"
+  }
+}
