@@ -1,6 +1,11 @@
 deps:
   # preserved
   - "theme-core"
+  # `accessibility.e2e.ts` imports WCAG_TAGS from `@ecoma-io/loom/a11y`, so the
+  # gate and the library's published a11y claim are the same array. The edge is
+  # real and this project has no package.json to declare it in.
+  # preserved
+  - "loom"
 
 tags: ["e2e"]
 
