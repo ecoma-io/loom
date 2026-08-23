@@ -99,6 +99,8 @@
       "@ecoma-io/loom-separator": ["./packages/primitives/separator/src/index.ts"],
       "@ecoma-io/loom-alert": ["./packages/primitives/alert/src/index.ts"],
       "@ecoma-io/loom-carousel": ["./packages/primitives/carousel/src/index.ts"],
+      "@ecoma-io/loom-list": ["./packages/primitives/list/src/index.ts"],
+      "@ecoma-io/loom-table": ["./packages/primitives/table/src/index.ts"],
       "@ecoma-io/loom-collapse": ["./packages/primitives/collapse/src/index.ts"],
       "@ecoma-io/loom-card": ["./packages/primitives/card/src/index.ts"],
       "@ecoma-io/loom-skeleton": ["./packages/primitives/skeleton/src/index.ts"],
