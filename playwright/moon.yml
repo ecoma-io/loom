@@ -1,0 +1,25 @@
+project:
+  name: "playwright"
+  description: "The component E2E harness and the browser profiles both Playwright configs read"
+
+# `playwright/` held real TypeScript that no Moon project owned: profiles.ts —
+# the single source of the browser matrix, read by both Playwright configs and
+# by tools/e2e-plan.ts — plus the harness's Vite config, its entry, and the
+# harness axe gate. Owned by nobody, none of it was linted or type-checked by
+# `moon ci`, and `lattice check` skipped it outright: a file belonging to no
+# project is not analyzed, is not counted, and does not lower the coverage
+# percentage. Six files were invisible to both gates at once.
+#
+# No `e2e` tag, deliberately. The shared e2e task (.moon/tasks/e2e.yml) is
+# inherited by that tag and drives a component's own specs through this
+# harness; this project *is* the harness, and a task pointed at itself would
+# collect every component's specs at once — the over-collection the affected
+# model exists to avoid. The harness's own gate runs as part of each
+# component's e2e task instead.
+deps:
+  # preserved
+  - "loom"
+
+tasks:
+  # Inherits lint and test from .moon/tasks/*.yml. The test task finds no
+  # `*.test.ts` here and passes with none; the lint task is the point.
