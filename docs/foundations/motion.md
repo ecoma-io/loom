@@ -40,19 +40,19 @@ checkbox's box scaling back in.
 
 <Demo title="Instant, fast, normal, slow, slower — press to compare">
   <div
-    class="h-10 w-10 rounded-md bg-primary transition-transform duration-instant ease-out active:scale-75"
+    class="h-10 w-10 rounded-md bg-primary transition-transform duration-instant ease-out active:scale-press"
   ></div>
   <div
-    class="h-10 w-10 rounded-md bg-primary transition-transform duration-fast ease-out active:scale-75"
+    class="h-10 w-10 rounded-md bg-primary transition-transform duration-fast ease-out active:scale-press"
   ></div>
   <div
-    class="h-10 w-10 rounded-md bg-primary transition-transform duration-normal ease-out active:scale-75"
+    class="h-10 w-10 rounded-md bg-primary transition-transform duration-normal ease-out active:scale-press"
   ></div>
   <div
-    class="h-10 w-10 rounded-md bg-primary transition-transform duration-slow ease-out active:scale-75"
+    class="h-10 w-10 rounded-md bg-primary transition-transform duration-slow ease-out active:scale-press"
   ></div>
   <div
-    class="h-10 w-10 rounded-md bg-primary transition-transform duration-slower ease-out active:scale-75"
+    class="h-10 w-10 rounded-md bg-primary transition-transform duration-slower ease-out active:scale-press"
   ></div>
 </Demo>
 

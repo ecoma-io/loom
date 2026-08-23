@@ -46,14 +46,14 @@ muted colour and stays there, so the pair reads as one drop rather than two.
 
 ## Keyboard
 
-| Key                                  | Behaviour                                                                        |
-| ------------------------------------ | -------------------------------------------------------------------------------- |
-| `↓` / `Enter` / `Space` on a trigger | Opens that menu, highlights its first enabled row                                |
-| `↑` `↓`                              | Moves the highlight, skipping separators and disabled rows, wrapping at the ends |
-| `←` `→`                              | Moves to the previous/next top-level menu                                        |
-| `Home` / `End`                       | Jumps to the first/last enabled row                                              |
-| `Esc`                                | Closes                                                                           |
-| Click outside                        | Closes                                                                           |
+| Key                                  | Behaviour                                                                                           |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `↓` / `Enter` / `Space` on a trigger | Opens that menu, highlights its first enabled row                                                   |
+| `↑` `↓`                              | Moves the highlight, skipping separators and disabled rows, wrapping at the ends                    |
+| `←` `→`                              | Open menu: moves to the previous/next top-level menu. Nothing open: moves focus across the triggers |
+| `Home` / `End`                       | Jumps to the first/last enabled row                                                                 |
+| `Esc`                                | Closes                                                                                              |
+| Click outside                        | Closes                                                                                              |
 
 ## Reach for DropdownMenu instead when a menu opens on demand
 
