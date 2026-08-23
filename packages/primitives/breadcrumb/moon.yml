@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "breadcrumb"
   description: "Breadcrumb primitive — hierarchical navigation trail"

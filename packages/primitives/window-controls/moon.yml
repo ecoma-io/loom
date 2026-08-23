@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "window-controls"
   description: "WindowControls primitive — minimize/maximize/close cluster for frameless windows"

@@ -1,3 +1,4 @@
+tags: ["layer-docs"]
 project:
   name: "docs"
   description: "The VitePress documentation site, built out of the library"

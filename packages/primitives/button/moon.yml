@@ -1,6 +1,6 @@
 deps:
   - "core"
-tags: ["e2e"]
+tags: ["layer-primitives", "e2e"]
 project:
   name: "button"
   description: "Button primitive — the primary action control"

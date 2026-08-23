@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "toast"
   description: "Toast primitive — a transient, self-dismissing notification"

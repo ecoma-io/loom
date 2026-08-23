@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "inline-error"
   description: "InlineError primitive — compact validation message"

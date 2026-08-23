@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "file-upload"
   description: "FileUpload primitive — file selection with validation"

@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "badge"
   description: "Badge primitive — a compact status or category label"

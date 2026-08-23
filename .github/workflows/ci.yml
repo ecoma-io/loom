@@ -207,6 +207,23 @@ jobs:
       - name: Check architecture
         run: node --experimental-strip-types tools/check-architecture.ts
 
+      # The third architecture gate, and the one that judges resolved imports
+      # rather than specifier text. `lattice check` reads the Moon project
+      # graph, resolves every `.ts`/`.vue` specifier through
+      # `tsconfig.base.json`, and judges the resolved target against
+      # `module-boundaries.config.mjs`. It is deliberately NOT a moon task and
+      # deliberately not cached: the verdict is a statement about the whole
+      # tree at once (the cycle rule cannot be answered from one project), and
+      # an architecture green replayed from a cache is the one result this
+      # repository must never publish.
+      #
+      # Exit 1 and exit 3 both fail the step, which is the contract: 1 is a
+      # boundary crossed, 3 is a checker that could not reach a verdict, and
+      # collapsing the second into success would turn an outage into a green
+      # build.
+      - name: Check module boundaries
+        run: pnpm lattice:check
+
       # Moon's own task cache, and what it adds to `runInCI: affected` is the
       # other half of the same idea: selection decides which tasks a run
       # *starts*, the cache decides which of those it has to actually execute.

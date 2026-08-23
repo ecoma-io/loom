@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "speed-dial"
   description: "SpeedDial primitive — expanding fan of quick actions"

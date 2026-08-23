@@ -1,0 +1,193 @@
+// The compiler options every TypeScript program in this repository shares —
+// and, separately, the file three different readers resolve module specifiers
+// through.
+//
+// The split from `tsconfig.json` is not cosmetic. `paths` below is what makes
+// `@ecoma-io/loom-button` mean *this repository's source* rather than whatever
+// pnpm linked into `node_modules`, and three tools read it: `vue-tsc` for the
+// typecheck, ESLint's project service for the type-aware rules, and
+// `lattice check` for the architecture boundary. The third is the reason this
+// file has this name: Lattice's Moon provider resolves `tsConfig` from the
+// convention `tsconfig.base.json` and a Moon workspace has no configuration
+// surface to name a different one — no `lattice.json` (the `.moon`/
+// `lattice.json` pair is refused outright), no plugin-options table in Moon's
+// own config, and no CLI flag. Filed upstream as
+// https://github.com/ecoma-io/lattice/issues/266.
+//
+// What that gap costs if the file is missing is measured rather than assumed:
+// with the paths table out of reach, every `@ecoma-io/loom-*` specifier in the
+// repository resolves to nothing and the run reports 656 findings it should
+// not — loud, at least, rather than a green report over an unread tree.
+//
+// `tsconfig.json` extends this and adds the program's file set;
+// `tsconfig.build.json` extends this and adds the declaration emit. Neither
+// restates an option.
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "jsx": "preserve",
+
+    // The repository's own scripts under `tools/` are run by `node` directly,
+    // on Node's type stripping rather than through a bundler — and there,
+    // relative imports resolve as plain ESM, which never guesses an extension.
+    // `./base.ts` is the filename Node opens; anything shorter fails at run
+    // time. Allowed rather than rewritten, because nothing in `src/` imports
+    // this way and the published declarations are emitted from `src/` alone.
+    "allowImportingTsExtensions": true,
+
+    // The library is bundled by consumers; nothing here emits on its own.
+    "noEmit": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
+
+    // `vite/client` is what types the query-suffixed imports the docs rely on
+    // — `?raw` in particular, which is how a documentation page shows a demo's
+    // real source instead of a hand-copied snippet that can drift from it.
+    "types": ["node", "vite/client"],
+
+    // The Vue TypeScript language-service plugin decorates the host so that
+    // `.vue` files resolve to virtual TypeScript content rather than being read
+    // from disk as raw text. ESLint's `projectService` shares the same host,
+    // so this is also what lets `.ts` files resolve `.vue` module types under
+    // the type-aware rules — the fix for the five workarounds removed in the
+    // same commit. `vue-tsc` uses its own compilation path and is unaffected.
+    "plugins": [{ "name": "@vue/typescript-plugin" }],
+
+    // The documentation site imports Loom by its published name, so a snippet
+    // on the site is a snippet a consumer can paste. This is the type-checker's
+    // half of that; Vite's half is the matching alias in the VitePress config,
+    // and the two have to move together.
+    //
+    // Internal workspace packages are also mapped here so that TypeScript
+    // resolves them to source rather than to a built output. The `@ecoma-io/loom`
+    // mapping covers the `import type` from `@ecoma-io/loom` in
+    // `packages/labels/src/label-registry.ts` — it is type-only, so there is
+    // no runtime cycle despite the apparent one. With the legacy `src/` tree
+    // gone, the facade and its `/a11y` subpath resolve to `packages/loom`.
+    "paths": {
+      "@ecoma-io/loom": ["./packages/loom/src/index.ts"],
+      "@ecoma-io/loom/a11y": ["./packages/loom/src/a11y.ts"],
+      "@ecoma-io/loom/theme": ["./packages/core/src/theme.ts"],
+      "@ecoma-io/loom-core": ["./packages/core/src/index.ts"],
+      // Shared test support. `packages/core` already declares this subpath in its
+      // `exports` map, which is enough for TypeScript and Vite — but not for the
+      // boundary checker, which resolves every specifier through this table and
+      // classifies whatever it cannot find here as an external npm package. An
+      // internal edge misread as an external one is judged by the wrong rule.
+      "@ecoma-io/loom-core/testing": ["./packages/core/src/testing/attach-to-body.ts"],
+      "@ecoma-io/loom-labels": ["./packages/labels/src/index.ts"],
+      // Internal component packages. Each one is added as it migrates from src/
+      // to packages/<tier>/<name>/.
+      "@ecoma-io/loom-hover-card": ["./packages/primitives/hover-card/src/index.ts"],
+      "@ecoma-io/loom-progress": ["./packages/primitives/progress/src/index.ts"],
+      "@ecoma-io/loom-radial-progress": ["./packages/primitives/radial-progress/src/index.ts"],
+      "@ecoma-io/loom-scroll-area": ["./packages/primitives/scroll-area/src/index.ts"],
+      "@ecoma-io/loom-separator": ["./packages/primitives/separator/src/index.ts"],
+      "@ecoma-io/loom-skeleton": ["./packages/primitives/skeleton/src/index.ts"],
+      "@ecoma-io/loom-spinner": ["./packages/primitives/spinner/src/index.ts"],
+      "@ecoma-io/loom-surface": ["./packages/primitives/surface/src/index.ts"],
+      "@ecoma-io/loom-accordion": ["./packages/primitives/accordion/src/index.ts"],
+      "@ecoma-io/loom-avatar": ["./packages/primitives/avatar/src/index.ts"],
+      "@ecoma-io/loom-badge": ["./packages/primitives/badge/src/index.ts"],
+      "@ecoma-io/loom-breadcrumb": ["./packages/primitives/breadcrumb/src/index.ts"],
+      "@ecoma-io/loom-button": ["./packages/primitives/button/src/index.ts"],
+      "@ecoma-io/loom-chip": ["./packages/primitives/chip/src/index.ts"],
+      "@ecoma-io/loom-context-menu": ["./packages/primitives/context-menu/src/index.ts"],
+      "@ecoma-io/loom-dropdown-menu": ["./packages/primitives/dropdown-menu/src/index.ts"],
+      "@ecoma-io/loom-icon-button": ["./packages/primitives/icon-button/src/index.ts"],
+      "@ecoma-io/loom-inline-error": ["./packages/primitives/inline-error/src/index.ts"],
+      "@ecoma-io/loom-link": ["./packages/primitives/link/src/index.ts"],
+      "@ecoma-io/loom-menubar": ["./packages/primitives/menubar/src/index.ts"],
+      "@ecoma-io/loom-popover": ["./packages/primitives/popover/src/index.ts"],
+      "@ecoma-io/loom-speed-dial": ["./packages/primitives/speed-dial/src/index.ts"],
+      "@ecoma-io/loom-tabs": ["./packages/primitives/tabs/src/index.ts"],
+      "@ecoma-io/loom-tooltip": ["./packages/primitives/tooltip/src/index.ts"],
+      "@ecoma-io/loom-alert-dialog": ["./packages/primitives/alert-dialog/src/index.ts"],
+      "@ecoma-io/loom-avatar-group": ["./packages/primitives/avatar-group/src/index.ts"],
+      "@ecoma-io/loom-checkbox": ["./packages/primitives/checkbox/src/index.ts"],
+      "@ecoma-io/loom-color-picker": ["./packages/primitives/color-picker/src/index.ts"],
+      "@ecoma-io/loom-dialog": ["./packages/primitives/dialog/src/index.ts"],
+      "@ecoma-io/loom-drawer": ["./packages/primitives/drawer/src/index.ts"],
+      "@ecoma-io/loom-field": ["./packages/primitives/field/src/index.ts"],
+      "@ecoma-io/loom-fieldset": ["./packages/primitives/fieldset/src/index.ts"],
+      "@ecoma-io/loom-indicator": ["./packages/primitives/indicator/src/index.ts"],
+      "@ecoma-io/loom-number-field": ["./packages/primitives/number-field/src/index.ts"],
+      "@ecoma-io/loom-otp-input": ["./packages/primitives/otp-input/src/index.ts"],
+      "@ecoma-io/loom-radio-group": ["./packages/primitives/radio-group/src/index.ts"],
+      "@ecoma-io/loom-rating": ["./packages/primitives/rating/src/index.ts"],
+      "@ecoma-io/loom-segmented-control": ["./packages/primitives/segmented-control/src/index.ts"],
+      "@ecoma-io/loom-select": ["./packages/primitives/select/src/index.ts"],
+      "@ecoma-io/loom-slider": ["./packages/primitives/slider/src/index.ts"],
+      "@ecoma-io/loom-stepper": ["./packages/primitives/stepper/src/index.ts"],
+      "@ecoma-io/loom-switch": ["./packages/primitives/switch/src/index.ts"],
+      "@ecoma-io/loom-toast": ["./packages/primitives/toast/src/index.ts"],
+      "@ecoma-io/loom-combobox": ["./packages/primitives/combobox/src/index.ts"],
+      "@ecoma-io/loom-date-picker": ["./packages/primitives/date-picker/src/index.ts"],
+      "@ecoma-io/loom-date-range-picker": ["./packages/primitives/date-range-picker/src/index.ts"],
+      "@ecoma-io/loom-date-time-picker": ["./packages/primitives/date-time-picker/src/index.ts"],
+      "@ecoma-io/loom-date-time-range-picker": [
+        "./packages/primitives/date-time-range-picker/src/index.ts"
+      ],
+      "@ecoma-io/loom-editable": ["./packages/primitives/editable/src/index.ts"],
+      "@ecoma-io/loom-file-upload": ["./packages/primitives/file-upload/src/index.ts"],
+      "@ecoma-io/loom-pagination": ["./packages/primitives/pagination/src/index.ts"],
+      "@ecoma-io/loom-tags-input": ["./packages/primitives/tags-input/src/index.ts"],
+      "@ecoma-io/loom-textarea": ["./packages/primitives/textarea/src/index.ts"],
+      "@ecoma-io/loom-text-field": ["./packages/primitives/text-field/src/index.ts"],
+      "@ecoma-io/loom-time-picker": ["./packages/primitives/time-picker/src/index.ts"],
+      "@ecoma-io/loom-window-controls": ["./packages/primitives/window-controls/src/index.ts"],
+      // Compositions.
+      "@ecoma-io/loom-center": ["./packages/composition/center/src/index.ts"],
+      "@ecoma-io/loom-frame": ["./packages/composition/frame/src/index.ts"],
+      "@ecoma-io/loom-grid": ["./packages/composition/grid/src/index.ts"],
+      "@ecoma-io/loom-inline": ["./packages/composition/inline/src/index.ts"],
+      "@ecoma-io/loom-scroll-reel": ["./packages/composition/scroll-reel/src/index.ts"],
+      "@ecoma-io/loom-sidebar": ["./packages/composition/sidebar/src/index.ts"],
+      "@ecoma-io/loom-split": ["./packages/composition/split/src/index.ts"],
+      "@ecoma-io/loom-stack": ["./packages/composition/stack/src/index.ts"],
+      // Layouts.
+      "@ecoma-io/loom-app-shell": ["./packages/layouts/app-shell/src/index.ts"],
+      "@ecoma-io/loom-centered": ["./packages/layouts/centered/src/index.ts"],
+      "@ecoma-io/loom-dashboard": ["./packages/layouts/dashboard/src/index.ts"],
+      "@ecoma-io/loom-form-layout": ["./packages/layouts/form-layout/src/index.ts"],
+      "@ecoma-io/loom-master-detail": ["./packages/layouts/master-detail/src/index.ts"],
+      "@ecoma-io/loom-reading": ["./packages/layouts/reading/src/index.ts"],
+      "@ecoma-io/loom-settings": ["./packages/layouts/settings/src/index.ts"],
+      "@ecoma-io/loom-split-layout": ["./packages/layouts/split-layout/src/index.ts"],
+      // Blocks.
+      "@ecoma-io/loom-app-header": ["./packages/blocks/app-header/src/index.ts"],
+      "@ecoma-io/loom-dashboard-grid": ["./packages/blocks/dashboard-grid/src/index.ts"],
+      "@ecoma-io/loom-desktop-app-shell": ["./packages/blocks/desktop-app-shell/src/index.ts"],
+      "@ecoma-io/loom-empty-state": ["./packages/blocks/empty-state/src/index.ts"],
+      "@ecoma-io/loom-error-state": ["./packages/blocks/error-state/src/index.ts"],
+      "@ecoma-io/loom-form-actions": ["./packages/blocks/form-actions/src/index.ts"],
+      "@ecoma-io/loom-form-section": ["./packages/blocks/form-section/src/index.ts"],
+      "@ecoma-io/loom-loading-state": ["./packages/blocks/loading-state/src/index.ts"],
+      "@ecoma-io/loom-metric-card": ["./packages/blocks/metric-card/src/index.ts"],
+      "@ecoma-io/loom-page-header": ["./packages/blocks/page-header/src/index.ts"],
+      "@ecoma-io/loom-row-actions": ["./packages/blocks/row-actions/src/index.ts"],
+      "@ecoma-io/loom-sidebar-nav": ["./packages/blocks/sidebar-nav/src/index.ts"],
+      "@ecoma-io/loom-title-bar": ["./packages/blocks/title-bar/src/index.ts"],
+      "@ecoma-io/loom-toast-stack": ["./packages/blocks/toast-stack/src/index.ts"]
+    }
+  }
+
+  // Everything that is type-checked, which is everything: packages, tests,
+  // the documentation site and its build plugins, and the repo's own tooling.
+  // A file outside this list is a file `pnpm typecheck` silently skips, so
+  // adding a top-level script means adding it here in the same commit.
+}

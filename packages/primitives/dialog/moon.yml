@@ -1,7 +1,7 @@
 deps:
   - "core"
   - "labels"
-tags: ["e2e"]
+tags: ["layer-primitives", "e2e"]
 
 project:
   name: "dialog"

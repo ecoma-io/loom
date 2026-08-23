@@ -4,6 +4,7 @@
 # package: cn(), optional(), useSplitAttrs(), motion constants, WCAG_TAGS,
 # useTheme() and applyLoomIconDefaults(). Components and other packages import
 # from here; nothing in here imports from them.
+tags: ["layer-core"]
 project:
   name: "core"
   description: "Internal utilities shared by every Loom package"

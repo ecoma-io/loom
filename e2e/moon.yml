@@ -7,7 +7,7 @@ deps:
   # preserved
   - "loom"
 
-tags: ["e2e"]
+tags: ["layer-e2e", "e2e"]
 
 project:
   name: "e2e"
