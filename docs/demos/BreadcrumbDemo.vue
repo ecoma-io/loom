@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Breadcrumb from "@ecoma-io/loom-breadcrumb";
+import { Breadcrumb } from "@ecoma-io/loom";
 
 const siteTrail = [
   { label: "Home", href: "/" },

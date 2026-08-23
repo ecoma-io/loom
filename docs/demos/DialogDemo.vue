@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Dialog from "@ecoma-io/loom-dialog";
-import Button from "@ecoma-io/loom-button";
+import { Button, Dialog } from "@ecoma-io/loom";
 
 const renameOpen = ref(false);
 const confirmOpen = ref(false);

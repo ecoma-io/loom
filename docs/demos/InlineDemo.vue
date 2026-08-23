@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InlineComponent from "@ecoma-io/loom-inline";
+import { Inline as InlineComponent } from "@ecoma-io/loom";
 </script>
 
 <template>

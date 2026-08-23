@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import FileUpload, { type FileUploadRejection } from "@ecoma-io/loom-file-upload";
+import { FileUpload, type FileUploadRejection } from "@ecoma-io/loom";
 
 const attachments = ref<File[]>([]);
 const avatar = ref<File[]>([]);

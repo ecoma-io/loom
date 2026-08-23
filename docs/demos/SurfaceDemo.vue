@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Surface from "@ecoma-io/loom-surface";
+import { Surface } from "@ecoma-io/loom";
 </script>
 
 <template>

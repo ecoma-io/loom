@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Link from "@ecoma-io/loom-link";
+import { Link } from "@ecoma-io/loom";
 </script>
 
 <template>

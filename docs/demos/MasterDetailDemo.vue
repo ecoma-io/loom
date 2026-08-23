@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MasterDetail from "@ecoma-io/loom-master-detail";
+import { MasterDetail } from "@ecoma-io/loom";
 </script>
 
 <template>

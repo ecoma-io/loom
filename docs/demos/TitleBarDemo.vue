@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import TitleBar from "@ecoma-io/loom-title-bar";
+import { TitleBar, type MenubarMenu, type WindowPlatform } from "@ecoma-io/loom";
 import { Hexagon } from "@lucide/vue";
-import type { MenubarMenu } from "@ecoma-io/loom-menubar";
-import type { WindowPlatform } from "@ecoma-io/loom-window-controls";
 
 const isMaximized = ref(false);
 const last = ref("—");

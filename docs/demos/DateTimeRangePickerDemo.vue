@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import DateTimeRangePicker, { type DateTimeRange } from "@ecoma-io/loom-date-time-range-picker";
+import { DateTimeRangePicker, type DateTimeRange } from "@ecoma-io/loom";
 
 // One day, two times — the commonest thing anyone binds to this control, and
 // the reason it is first.

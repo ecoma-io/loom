@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Dashboard from "@ecoma-io/loom-dashboard";
+import { Dashboard } from "@ecoma-io/loom";
 </script>
 
 <template>

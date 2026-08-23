@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Spinner from "@ecoma-io/loom-spinner";
+import { Spinner } from "@ecoma-io/loom";
 </script>
 
 <template>

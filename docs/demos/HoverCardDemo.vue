@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HoverCard from "@ecoma-io/loom-hover-card";
+import { HoverCard } from "@ecoma-io/loom";
 </script>
 
 <template>

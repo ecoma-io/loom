@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import IconButton from "@ecoma-io/loom-icon-button";
+import { IconButton } from "@ecoma-io/loom";
 </script>
 
 <template>

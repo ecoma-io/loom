@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Fieldset from "@ecoma-io/loom-fieldset";
-import Field from "@ecoma-io/loom-field";
-import Checkbox from "@ecoma-io/loom-checkbox";
-import TextField from "@ecoma-io/loom-text-field";
+import { Checkbox, Field, Fieldset, TextField } from "@ecoma-io/loom";
 
 const street = ref("12 Oak Lane");
 const city = ref("");

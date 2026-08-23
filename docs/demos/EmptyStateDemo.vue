@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Inbox } from "@lucide/vue";
-import EmptyState from "@ecoma-io/loom-empty-state";
-import Button from "@ecoma-io/loom-button";
+import { Button, EmptyState } from "@ecoma-io/loom";
 
 // Re-keying remounts the block so the staggered entrance replays.
 const replayKey = ref(0);

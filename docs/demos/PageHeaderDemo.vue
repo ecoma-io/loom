@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Plus, SlidersHorizontal } from "@lucide/vue";
-import PageHeader from "@ecoma-io/loom-page-header";
-import Button from "@ecoma-io/loom-button";
-import Surface from "@ecoma-io/loom-surface";
+import { Button, PageHeader, Surface } from "@ecoma-io/loom";
 
 /** Enough rows to scroll under the band — the pinning is the point of the demo. */
 const rows = ["Video digest", "Repo cleanup", "Blog roundup", "Comment summary"];

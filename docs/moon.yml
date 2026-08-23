@@ -12,6 +12,13 @@ project:
 deps:
   # preserved
   - "theme-core"
+  # Every demo on this site imports `@ecoma-io/loom` — the published entry
+  # point, which is what makes a snippet on the site a snippet a consumer can
+  # paste. That is a real source edge with no package.json here to express it,
+  # so it is hand-declared: without it a facade change marks the site
+  # unaffected and the build that renders it never re-runs.
+  # preserved
+  - "loom"
 
 # The docs site has no package.json of its own — its build and route-check live
 # in the root workspace package, so both tasks run with the shared flags and

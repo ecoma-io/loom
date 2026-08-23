@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FrameComponent from "@ecoma-io/loom-frame";
+import { Frame as FrameComponent } from "@ecoma-io/loom";
 </script>
 
 <template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Search } from "@lucide/vue";
-import TextField from "@ecoma-io/loom-text-field";
+import { TextField } from "@ecoma-io/loom";
 
 const name = ref("Ada Lovelace");
 const query = ref("");

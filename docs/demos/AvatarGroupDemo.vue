@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AvatarGroup, { type AvatarGroupItem } from "@ecoma-io/loom-avatar-group";
+import { AvatarGroup, type AvatarGroupItem } from "@ecoma-io/loom";
 
 // An inline data-URI rather than a fetched photo, so the loaded-image path is
 // demonstrated without the page depending on a network request.

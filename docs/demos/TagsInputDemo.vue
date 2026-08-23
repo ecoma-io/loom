@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import TagsInput, { type TagsInputRejection } from "@ecoma-io/loom-tags-input";
-import Field from "@ecoma-io/loom-field";
+import { Field, TagsInput, type TagsInputRejection } from "@ecoma-io/loom";
 
 const keywords = ref<string[]>(["design systems", "accessibility"]);
 const recipients = ref<string[]>(["ada@example.com"]);

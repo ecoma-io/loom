@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Separator from "@ecoma-io/loom-separator";
+import { Separator } from "@ecoma-io/loom";
 </script>
 
 <template>

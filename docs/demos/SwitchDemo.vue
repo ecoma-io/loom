@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Switch from "@ecoma-io/loom-switch";
+import { Switch } from "@ecoma-io/loom";
 
 const telemetry = ref(false);
 const autosave = ref(true);

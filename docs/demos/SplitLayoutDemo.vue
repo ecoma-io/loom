@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SplitLayout from "@ecoma-io/loom-split-layout";
+import { SplitLayout } from "@ecoma-io/loom";
 </script>
 
 <template>

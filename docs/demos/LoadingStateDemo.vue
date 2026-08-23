@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LoadingState from "@ecoma-io/loom-loading-state";
+import { LoadingState } from "@ecoma-io/loom";
 </script>
 
 <template>
