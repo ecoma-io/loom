@@ -21,3 +21,20 @@ CHANGELOG.md
 
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+# Vendored agent skills, held byte-identical to the upstream release that
+# `tools/skills.manifest.json` records. Prettier and `check-skills` would
+# otherwise be two gates that cannot both be green: the formatter rewrites a
+# file, the hash stops matching, and the fix for one is the failure of the
+# other. Today's release happens to satisfy this repository's Prettier config —
+# the ignore is here so that the first upstream release that does not is a
+# no-op rather than a deadlock. `.agents/` is the same bytes for the hosts that
+# do not read `.claude/`; see the README.md in either directory.
+#
+# This file is the whole guard, and lefthook needs no `exclude` beside it:
+# Prettier honours an ignore entry even for a path handed to it explicitly, so
+# the pre-commit `prettier --write {staged_files}` leaves these alone too
+# (measured — a deliberately misformatted table appended to a vendored SKILL.md
+# came back byte-identical).
+.claude/skills/
+.agents/skills/
