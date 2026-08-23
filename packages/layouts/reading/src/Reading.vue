@@ -1,10 +1,15 @@
+<script lang="ts">
+/** Whether the layout carries horizontal gutters that widen at wider breakpoints. */
+export type ReadingGutter = boolean;
+</script>
+
 <script setup lang="ts">
 import { cn } from "@ecoma-io/loom-core";
 
 withDefaults(
   defineProps<{
     /** Whether to add horizontal gutters that widen at wider breakpoints. */
-    gutter?: boolean;
+    gutter?: ReadingGutter;
   }>(),
   { gutter: true },
 );
