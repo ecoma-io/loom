@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InlineError from "@ecoma-io/loom-inline-error";
+import { InlineError } from "@ecoma-io/loom";
 </script>
 
 <template>

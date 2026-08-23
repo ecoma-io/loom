@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Badge from "@ecoma-io/loom-badge";
+import { Badge } from "@ecoma-io/loom";
 </script>
 
 <template>

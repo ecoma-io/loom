@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Skeleton from "@ecoma-io/loom-skeleton";
+import { Skeleton } from "@ecoma-io/loom";
 </script>
 
 <template>

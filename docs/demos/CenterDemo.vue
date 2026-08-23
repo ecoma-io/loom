@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CenterComponent from "@ecoma-io/loom-center";
+import { Center as CenterComponent } from "@ecoma-io/loom";
 </script>
 
 <template>

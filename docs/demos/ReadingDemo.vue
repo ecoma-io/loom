@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Reading from "@ecoma-io/loom-reading";
+import { Reading } from "@ecoma-io/loom";
 </script>
 
 <template>

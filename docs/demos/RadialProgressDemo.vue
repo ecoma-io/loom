@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import RadialProgress from "@ecoma-io/loom-radial-progress";
+import { RadialProgress } from "@ecoma-io/loom";
 </script>
 
 <template>

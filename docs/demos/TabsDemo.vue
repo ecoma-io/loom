@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Tabs, { type TabItem } from "@ecoma-io/loom-tabs";
+import { Tabs, type TabItem } from "@ecoma-io/loom";
 
 const active = ref("overview");
 

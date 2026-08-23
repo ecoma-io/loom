@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Checkbox from "@ecoma-io/loom-checkbox";
+import { Checkbox } from "@ecoma-io/loom";
 
 const unchecked = ref(false);
 const checked = ref(true);

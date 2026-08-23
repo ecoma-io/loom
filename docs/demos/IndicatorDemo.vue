@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Bell, Bot } from "@lucide/vue";
-import Indicator from "@ecoma-io/loom-indicator";
-import Avatar from "@ecoma-io/loom-avatar";
-import Button from "@ecoma-io/loom-button";
+import { Avatar, Button, Indicator } from "@ecoma-io/loom";
 
 const unread = ref(3);
 

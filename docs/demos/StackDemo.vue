@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Separator } from "@ecoma-io/loom";
-import Stack from "@ecoma-io/loom-stack";
+import { Separator, Stack } from "@ecoma-io/loom";
 </script>
 
 <template>

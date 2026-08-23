@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Field from "@ecoma-io/loom-field";
-import TextField from "@ecoma-io/loom-text-field";
-import Textarea from "@ecoma-io/loom-textarea";
+import { Field, Textarea, TextField } from "@ecoma-io/loom";
 
 const name = ref("Ada Lovelace");
 const email = ref("not-an-email");

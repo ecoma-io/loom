@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Centered from "@ecoma-io/loom-centered";
+import { Centered } from "@ecoma-io/loom";
 </script>
 
 <template>

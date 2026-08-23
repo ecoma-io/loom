@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormSection from "@ecoma-io/loom-form-section";
+import { FormSection } from "@ecoma-io/loom";
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GridComponent from "@ecoma-io/loom-grid";
+import { Grid as GridComponent } from "@ecoma-io/loom";
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ScrollReelComponent from "@ecoma-io/loom-scroll-reel";
+import { ScrollReel as ScrollReelComponent } from "@ecoma-io/loom";
 </script>
 
 <template>

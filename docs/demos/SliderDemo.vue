@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Slider from "@ecoma-io/loom-slider";
+import { Slider } from "@ecoma-io/loom";
 
 const volume = ref(0.65);
 const cacheCeiling = ref(40);

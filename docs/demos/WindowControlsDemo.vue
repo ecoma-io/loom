@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { LabelOverrides } from "@ecoma-io/loom-labels";
-import WindowControls, {
+import {
+  WindowControls,
+  type LabelOverrides,
   type WindowControlsLabels,
   type WindowPlatform,
-} from "@ecoma-io/loom-window-controls";
+} from "@ecoma-io/loom";
 
 const isMaximized = ref(false);
 const last = ref("—");

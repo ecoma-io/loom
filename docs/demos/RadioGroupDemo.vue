@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import RadioGroup, { type RadioOption } from "@ecoma-io/loom-radio-group";
+import { RadioGroup, type RadioOption } from "@ecoma-io/loom";
 
 const options: RadioOption[] = [
   { value: "free", label: "Free", description: "One project, watermarked exports." },

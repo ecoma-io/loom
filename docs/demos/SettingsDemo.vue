@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Settings from "@ecoma-io/loom-settings";
+import { Settings } from "@ecoma-io/loom";
 </script>
 
 <template>

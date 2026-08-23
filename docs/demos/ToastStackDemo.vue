@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import ToastStack, { type ToastStackItem } from "@ecoma-io/loom-toast-stack";
-import Button from "@ecoma-io/loom-button";
-import { optional } from "@ecoma-io/loom-core";
+import { Button, optional, ToastStack, type ToastStackItem } from "@ecoma-io/loom";
 
 // A miniature host queue — the real one lives host-side (e.g. a host app's
 // own toast.ts); the block only renders whatever the host says is visible.

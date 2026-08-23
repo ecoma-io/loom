@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import ColorPicker from "@ecoma-io/loom-color-picker";
+import { ColorPicker } from "@ecoma-io/loom";
 
 const label = ref("#3366cc");
 const series = ref("#b5502a");

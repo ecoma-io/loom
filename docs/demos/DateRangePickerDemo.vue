@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import DateRangePicker, { type DateRange } from "@ecoma-io/loom-date-range-picker";
+import { DateRangePicker, type DateRange } from "@ecoma-io/loom";
 
 const report = ref<DateRange>({ start: "2026-03-01", end: "2026-03-31" });
 // Unset rather than an empty object, because that is what a filter starts

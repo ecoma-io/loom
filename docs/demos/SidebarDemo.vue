@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SidebarComponent from "@ecoma-io/loom-sidebar";
+import { Sidebar as SidebarComponent } from "@ecoma-io/loom";
 </script>
 
 <template>

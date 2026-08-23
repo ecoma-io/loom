@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Menubar, { type MenubarMenu } from "@ecoma-io/loom-menubar";
+import { Menubar, type MenubarMenu } from "@ecoma-io/loom";
 
 const last = ref<string>("—");
 

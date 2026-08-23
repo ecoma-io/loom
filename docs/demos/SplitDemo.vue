@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SplitComponent from "@ecoma-io/loom-split";
+import { Split as SplitComponent } from "@ecoma-io/loom";
 </script>
 
 <template>

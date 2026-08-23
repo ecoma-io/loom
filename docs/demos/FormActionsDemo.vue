@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import FormActions from "@ecoma-io/loom-form-actions";
-import Button from "@ecoma-io/loom-button";
+import { Button, FormActions } from "@ecoma-io/loom";
 </script>
 
 <template>

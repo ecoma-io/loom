@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppShell from "@ecoma-io/loom-app-shell";
+import { AppShell } from "@ecoma-io/loom";
 </script>
 
 <template>

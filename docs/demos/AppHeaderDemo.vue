@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Bell, ChevronDown, Hexagon, Search } from "@lucide/vue";
-import AppHeader from "@ecoma-io/loom-app-header";
-import Button from "@ecoma-io/loom-button";
-import TextField from "@ecoma-io/loom-text-field";
-import DropdownMenu, { type DropdownMenuEntry } from "@ecoma-io/loom-dropdown-menu";
-import Avatar from "@ecoma-io/loom-avatar";
-import Surface from "@ecoma-io/loom-surface";
+import {
+  AppHeader,
+  Avatar,
+  Button,
+  DropdownMenu,
+  Surface,
+  TextField,
+  type DropdownMenuEntry,
+} from "@ecoma-io/loom";
 
 const query = ref("");
 

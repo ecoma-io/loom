@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Progress from "@ecoma-io/loom-progress";
+import { Progress } from "@ecoma-io/loom";
 </script>
 
 <template>

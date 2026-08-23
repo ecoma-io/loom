@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { FilePlus, Pencil, Share2, Trash2, Upload, UserPlus } from "@lucide/vue";
-import SpeedDial, { type SpeedDialAction } from "@ecoma-io/loom-speed-dial";
-import Button from "@ecoma-io/loom-button";
+import { Button, SpeedDial, type SpeedDialAction } from "@ecoma-io/loom";
 
 const chosen = ref("—");
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FormLayout from "@ecoma-io/loom-form-layout";
+import { FormLayout } from "@ecoma-io/loom";
 </script>
 
 <template>

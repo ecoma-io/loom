@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Avatar from "@ecoma-io/loom-avatar";
+import { Avatar } from "@ecoma-io/loom";
 
 // A tiny inline data-URI so the "working image" example never depends on a
 // network fetch — a flat coral circle, enough to prove the AvatarImage path
