@@ -59,6 +59,12 @@
       "@ecoma-io/loom/a11y": ["./packages/loom/src/a11y.ts"],
       "@ecoma-io/loom/theme": ["./packages/core/src/theme.ts"],
       "@ecoma-io/loom-core": ["./packages/core/src/index.ts"],
+      // Shared test support. `packages/core` already declares this subpath in its
+      // `exports` map, which is enough for TypeScript and Vite — but not for the
+      // boundary checker, which resolves every specifier through this table and
+      // classifies whatever it cannot find here as an external npm package. An
+      // internal edge misread as an external one is judged by the wrong rule.
+      "@ecoma-io/loom-core/testing": ["./packages/core/src/testing/attach-to-body.ts"],
       "@ecoma-io/loom-labels": ["./packages/labels/src/index.ts"],
       // Internal component packages. Each one is added as it migrates from src/
       // to packages/<tier>/<name>/.
@@ -155,6 +161,7 @@
       "@ecoma-io/loom-toast-stack": ["./packages/blocks/toast-stack/src/index.ts"]
     }
   },
+
   // Everything that is type-checked, which is everything: packages, tests,
   // the documentation site and its build plugins, and the repo's own tooling.
   // A file outside this list is a file `pnpm typecheck` silently skips, so
