@@ -450,6 +450,9 @@ importers:
       '@ecoma-io/loom-accordion':
         specifier: workspace:*
         version: link:../primitives/accordion
+      '@ecoma-io/loom-alert':
+        specifier: workspace:*
+        version: link:../primitives/alert
       '@ecoma-io/loom-alert-dialog':
         specifier: workspace:*
         version: link:../primitives/alert-dialog
@@ -474,6 +477,9 @@ importers:
       '@ecoma-io/loom-button':
         specifier: workspace:*
         version: link:../primitives/button
+      '@ecoma-io/loom-card':
+        specifier: workspace:*
+        version: link:../primitives/card
       '@ecoma-io/loom-center':
         specifier: workspace:*
         version: link:../composition/center
@@ -727,6 +733,24 @@ importers:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
 
+  packages/primitives/alert:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-icon-button':
+        specifier: workspace:*
+        version: link:../icon-button
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
   packages/primitives/alert-dialog:
     dependencies:
       '@ecoma-io/loom-button':
@@ -807,6 +831,18 @@ importers:
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/card:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-surface':
+        specifier: workspace:*
+        version: link:../surface
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

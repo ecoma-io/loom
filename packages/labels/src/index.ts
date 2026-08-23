@@ -14,6 +14,7 @@ export type { LoomLabels } from "./label-registry";
 // The component vocabulary shapes. Declared here (below every component) and
 // re-exported from each component's barrel; the registry's keys are these.
 export type {
+  AlertLabels,
   AlertDialogLabels,
   AvatarGroupLabels,
   BreadcrumbLabels,

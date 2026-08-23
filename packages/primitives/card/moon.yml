@@ -1,0 +1,15 @@
+tags: ["layer-primitives", "e2e"]
+project:
+  name: "card"
+  description: "Card primitive — compositional surface with header, content and footer sections"
+deps:
+  - "core"
+  - "surface"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
+  e2e:
+    options:
+      runInCI: skip
+    args: ["packages/primitives/card/e2e"]
+    env:
+      PW_PROFILE: "smoke"

@@ -68,6 +68,18 @@ export interface AlertDialogLabels {
 }
 
 /**
+ * What Alert says on its own account: the name of its dismiss control. The
+ * tone's icon and message belong to the host's content; this is the one word
+ * the component itself renders, and an unnamed close button in a wall of
+ * alerts tells a screen-reader user nothing about which note they are
+ * removing.
+ */
+export interface AlertLabels {
+  /** The dismiss control's accessible name. */
+  readonly dismiss: string;
+}
+
+/**
  * The two sentences the row says that are not a member's own name.
  *
  * **`accent` is one key and not a name, a comma and a qualifier.** Where the

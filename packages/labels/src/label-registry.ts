@@ -5,6 +5,7 @@ import type {
   TimeSegmentLabels,
 } from "./date-labels";
 import type {
+  AlertLabels,
   AlertDialogLabels,
   AvatarGroupLabels,
   BreadcrumbLabels,
@@ -56,6 +57,7 @@ import type {
  * a compile error at that component's own `useLabels` call, not here.
  */
 export interface LoomLabels {
+  readonly alert: AlertLabels;
   readonly pagination: PaginationLabels;
   readonly windowControls: WindowControlsLabels;
   readonly breadcrumb: BreadcrumbLabels;
