@@ -8,6 +8,7 @@ import type {
   AlertLabels,
   CarouselLabels,
   TableLabels,
+  TimelineLabels,
   AlertDialogLabels,
   AvatarGroupLabels,
   BreadcrumbLabels,
@@ -61,6 +62,7 @@ import type {
 export interface LoomLabels {
   readonly alert: AlertLabels;
   readonly table: TableLabels;
+  readonly timeline: TimelineLabels;
   readonly carousel: CarouselLabels;
   readonly pagination: PaginationLabels;
   readonly windowControls: WindowControlsLabels;

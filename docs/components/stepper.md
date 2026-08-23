@@ -246,6 +246,15 @@ Annotate your own bag with `LabelOverrides<StepperLabels>` rather than with
 a later release is one your bag may ignore. See
 [Localisation](/foundations/localisation).
 
+## Difference from a "Steps" component
+
+If you are looking for Steps — ordered stages with complete/current/upcoming
+states through a flow — this component already is it: Reka's machine supplies
+exactly those states, the connector and the live position announcement are
+here, and orientation covers both layouts. Loom deliberately has no second
+Steps component beside it. A timeline of _records_ to scan (changelog,
+delivery history) is a different concept and lives in Timeline.
+
 ## API
 
 <!-- @api Stepper -->

@@ -101,6 +101,7 @@
       "@ecoma-io/loom-carousel": ["./packages/primitives/carousel/src/index.ts"],
       "@ecoma-io/loom-list": ["./packages/primitives/list/src/index.ts"],
       "@ecoma-io/loom-kbd": ["./packages/primitives/kbd/src/index.ts"],
+      "@ecoma-io/loom-timeline": ["./packages/primitives/timeline/src/index.ts"],
       "@ecoma-io/loom-table": ["./packages/primitives/table/src/index.ts"],
       "@ecoma-io/loom-collapse": ["./packages/primitives/collapse/src/index.ts"],
       "@ecoma-io/loom-card": ["./packages/primitives/card/src/index.ts"],
