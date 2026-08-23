@@ -14,3 +14,24 @@ export const LIST_STAGGER_CAP = 5;
 export function listStaggerDelay(i: number): string {
   return `${String(Math.min(i, LIST_STAGGER_CAP) * LIST_STAGGER_STEP_MS)}ms`;
 }
+
+/**
+ * The behaviour a scripted scroll should ask for, given the reader's motion
+ * preference: `"smooth"` normally, `"auto"` under
+ * `prefers-reduced-motion`.
+ *
+ * It has to exist because the stylesheet's kill-switch cannot reach this
+ * path: an explicit `"smooth"` in a `scrollTo` dictionary *overrides* the
+ * CSS `scroll-behavior` property — that is what the spec defines a
+ * non-`"auto"` behaviour value to mean. Every component that scrolls by
+ * script (ScrollReel, Carousel) asks this instead of deciding alone, which
+ * is why it lives here and not in either of them.
+ */
+export function smoothScrollBehavior(): "auto" | "smooth" {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  } catch {
+    // matchMedia may be unavailable; smooth is the behaviour being replaced.
+    return "smooth";
+  }
+}

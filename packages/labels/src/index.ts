@@ -16,6 +16,7 @@ export type { LoomLabels } from "./label-registry";
 export type {
   AlertLabels,
   AlertDialogLabels,
+  CarouselLabels,
   AvatarGroupLabels,
   BreadcrumbLabels,
   ColorPickerLabels,

@@ -49,7 +49,7 @@ export { snapClass, gapClass };
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { cn } from "@ecoma-io/loom-core";
+import { cn, smoothScrollBehavior } from "@ecoma-io/loom-core";
 import { useLabels, type LabelOverrides, type ScrollReelLabels } from "@ecoma-io/loom-labels";
 
 const props = withDefaults(
@@ -77,23 +77,11 @@ const text = useLabels("scrollReel", SCROLL_REEL_LABELS, () => props.labels);
 
 const reel = ref<HTMLDivElement | null>(null);
 
-/**
- * The behaviour every scroll request below is handed. The reduced-motion rule
- * in `global.css` cannot reach this path on its own: an explicit
- * `"smooth"` in a `scrollTo` dictionary overrides the stylesheet's
- * `scroll-behavior` (that is what the spec says a non-`"auto"` behaviour
- * value is for), so the CSS kill-switch would stand by while JavaScript
- * animated the strip anyway. The softening has to happen here, at the
- * source.
- */
-function scrollBehavior(): "auto" | "smooth" {
-  try {
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-  } catch {
-    // matchMedia may be unavailable; smooth is the behaviour being replaced.
-    return "smooth";
-  }
-}
+// The reduced-motion softening lives in core (`smoothScrollBehavior`): an
+// explicit `"smooth"` in a scrollTo dictionary overrides the stylesheet's
+// kill-switch, so the question has to be answered at the call site — and
+// Carousel asks it too, which is why the answer is shared rather than owned.
+const scrollBehavior = smoothScrollBehavior;
 
 /**
  * Keyboard navigation for scroll-snap: arrow keys scroll to the next or

@@ -92,10 +92,13 @@ export type {
 } from "@ecoma-io/loom-breadcrumb";
 export { default as Button, buttonVariants } from "@ecoma-io/loom-button";
 export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
+export { default as Carousel, CAROUSEL_LABELS } from "@ecoma-io/loom-carousel";
+export type { CarouselLabels } from "@ecoma-io/loom-carousel";
 export { default as Card } from "@ecoma-io/loom-card";
 export type { CardPad } from "@ecoma-io/loom-card";
 export { default as Chip, chipVariants } from "@ecoma-io/loom-chip";
 export type { ChipSize, ChipVariant } from "@ecoma-io/loom-chip";
+export { default as Collapse } from "@ecoma-io/loom-collapse";
 export { default as ContextMenu } from "@ecoma-io/loom-context-menu";
 export type { ContextMenuEntry } from "@ecoma-io/loom-context-menu";
 export { default as DropdownMenu } from "@ecoma-io/loom-dropdown-menu";

@@ -6,6 +6,7 @@ import type {
 } from "./date-labels";
 import type {
   AlertLabels,
+  CarouselLabels,
   AlertDialogLabels,
   AvatarGroupLabels,
   BreadcrumbLabels,
@@ -58,6 +59,7 @@ import type {
  */
 export interface LoomLabels {
   readonly alert: AlertLabels;
+  readonly carousel: CarouselLabels;
   readonly pagination: PaginationLabels;
   readonly windowControls: WindowControlsLabels;
   readonly breadcrumb: BreadcrumbLabels;

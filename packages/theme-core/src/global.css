@@ -197,6 +197,35 @@
   }
 }
 
+/* ---- Expansion. The disclosure pair: a panel growing into and out of its
+ * own height, keyed to Reka's `--reka-collapsible-content-height` (the px
+ * value Reka measures onto every Collapsible content element). This is the
+ * height animation the Accordion docblock once deferred to this file rather
+ * than hand-rolling per component; Collapse plays it, and Accordion can
+ * adopt it whenever its own look is next revisited.
+ *
+ * Height animates layout, which is why the pair exists as keyframes on one
+ * property with `overflow-hidden` supplied by the component — nothing here
+ * fights a live measurement, and under reduced motion the collapse to
+ * 0.01ms turns both into the instant toggle those readers asked for. */
+@keyframes expand {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--reka-collapsible-content-height);
+  }
+}
+
+@keyframes collapse {
+  from {
+    height: var(--reka-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
 /* An edge-anchored panel leaving along its own axis.
  *
  * These animate `translate`, not `transform`, and the distinction is the whole

@@ -50,6 +50,8 @@ export default defineConfig({
       "@ecoma-io/loom-scroll-area": pkg("primitives/scroll-area/src/index.ts"),
       "@ecoma-io/loom-separator": pkg("primitives/separator/src/index.ts"),
       "@ecoma-io/loom-alert": pkg("primitives/alert/src/index.ts"),
+      "@ecoma-io/loom-carousel": pkg("primitives/carousel/src/index.ts"),
+      "@ecoma-io/loom-collapse": pkg("primitives/collapse/src/index.ts"),
       "@ecoma-io/loom-card": pkg("primitives/card/src/index.ts"),
       "@ecoma-io/loom-skeleton": pkg("primitives/skeleton/src/index.ts"),
       "@ecoma-io/loom-spinner": pkg("primitives/spinner/src/index.ts"),
