@@ -177,6 +177,11 @@ describe("Chip", () => {
     }
   });
 
+  it("carries the warning label on the -text rung like its siblings, not on the base hue", () => {
+    const wrapper = mount(Chip, { props: { variant: "warning" }, slots: { default: "Overdue" } });
+    expect(wrapper.classes()).toContain("text-warning-text");
+  });
+
   it("takes its two heights from the shared control scale, so a row of chips lines up with the field above it", () => {
     expect(mount(Chip, { props: { size: "sm" }, slots: { default: "x" } }).classes()).toContain(
       "h-8",

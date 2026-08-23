@@ -8,11 +8,20 @@ export type IconButtonSize = "sm" | "md" | "lg";
 /**
  * An icon-only button is a square, so every size is height-equals-width and has
  * no horizontal padding. The four variants match Button's press language — hover
- * lifts by fill — but `default` here names what Button calls `primary`, because
- * an icon button is never the screen's primary action and the word would mislead.
+ * lifts by fill, active presses down, focus blooms the primary ring — but
+ * `default` here names what Button calls `primary`, because an icon button is
+ * never the screen's primary action and the word would mislead.
  */
 export const iconButtonVariants = cva(
-  "inline-flex items-center justify-center rounded-md transition-colors duration-fast ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
+  [
+    "relative inline-flex items-center justify-center rounded-md select-none",
+    // Button's own transition list, verbatim: transform rides --ease-spring so
+    // the press squish springs, while colour and shadow stay on --ease-out.
+    // A bare `transition-colors` silently dropped any transform change.
+    "[transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out),color_var(--duration-fast)_var(--ease-out),box-shadow_var(--duration-fast)_var(--ease-out)]",
+    "active:scale-press focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
+    "disabled:pointer-events-none",
+  ],
   {
     variants: {
       variant: {
@@ -48,16 +57,34 @@ withDefaults(
     size?: IconButtonSize;
     /** The accessible name. An icon-only button without one is a WCAG failure, so this prop is required. */
     label: string;
-    /** Unavailable — blocks pointer events and dims the icon. */
+    /** Unavailable rather than dimmed — drains to the neutral well and blocks pointer events. */
     disabled?: boolean;
+    /** The native button type. Defaults to `button`, never an accidental submit. */
+    type?: "button" | "submit" | "reset";
   }>(),
-  { variant: "default", size: "md", disabled: false },
+  { variant: "default", size: "md", disabled: false, type: "button" },
 );
 </script>
 
 <template>
   <button
-    :class="cn(iconButtonVariants({ variant, size }), $attrs.class)"
+    :type="type"
+    :class="
+      cn(
+        iconButtonVariants({ variant, size }),
+        $attrs.class,
+        // Drained, not dimmed — Button's rule, and for the same measured reason:
+        // `opacity-50` faded the fill and the glyph together, multiplying away
+        // whatever contrast either had. One neutral treatment covers all four
+        // variants here exactly as it does on Button — a fill-bearing icon
+        // button gives up its hue, `ghost` gains a fill — because an unavailable
+        // control has no emphasis left to carry, and the native `disabled`
+        // attribute above carries the state to assistive tech regardless.
+        // No `border-border` companion: unlike Button's variants none of these
+        // paints a border to slacken.
+        disabled && 'bg-muted text-muted-foreground shadow-none',
+      )
+    "
     :aria-label="label"
     :disabled="disabled"
   >

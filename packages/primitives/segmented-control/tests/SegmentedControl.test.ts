@@ -175,7 +175,9 @@ describe("SegmentedControl", () => {
       props: { options: OPTIONS, modelValue: "compact", size: "sm" },
       attrs: { "aria-label": "Density" },
     });
-    expect(dense.findAll('[role="radio"]')[0]!.classes()).toContain("text-[11px]");
+    // `text-micro` is the named scale's 11px rung — same size as the raw
+    // arbitrary value it replaced, but it moves when the theme moves.
+    expect(dense.findAll('[role="radio"]')[0]!.classes()).toContain("text-micro");
 
     const roomy = mount(SegmentedControl, {
       props: { options: OPTIONS, modelValue: "compact" },

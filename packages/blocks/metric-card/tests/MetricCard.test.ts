@@ -25,9 +25,10 @@ describe("MetricCard", () => {
     });
 
     // The value sits on the named scale rather than an ad-hoc size so the
-    // metric row scans consistently across cards.
-    expect(wrapper.find("span").classes()).toContain("text-2xl");
-    expect(wrapper.find("span").classes()).toContain("font-semibold");
+    // metric row scans consistently across cards — `text-heading` is the
+    // rung, not a hand-assembled text-2xl stack.
+    expect(wrapper.find("span").classes()).toContain("text-heading");
+    expect(wrapper.find("span").classes()).not.toContain("text-2xl");
     expect(wrapper.find("p").classes()).toContain("text-small");
   });
 

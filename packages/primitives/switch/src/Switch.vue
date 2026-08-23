@@ -25,7 +25,7 @@ const props = withDefaults(
   defineProps<{
     /** Whether the setting is currently on. Omit to let the switch own its own state. */
     modelValue?: boolean | undefined;
-    /** Blocks both click and keyboard input, and dims the control. Unset defers to a wrapping Field. */
+    /** Blocks both click and keyboard input, and drains the control to the neutral well. Unset defers to a wrapping Field. */
     disabled?: boolean | undefined;
   }>(),
   {
@@ -84,23 +84,37 @@ const field = useFieldControl(() => ({
         'data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/30',
         // Focus draws the weave tight: the brand ring blooms.
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        // Drained, not dimmed. `opacity-50` faded track and thumb together,
+        // compositing both below their measured contrast — the same failure
+        // Button records for its own dim. The unchecked track falls to
+        // `bg-muted`, the well every unavailable control drains to, with the
+        // rim Chip slackens to; a *checked* one keeps its primary fill,
+        // because switched-on is information (Chip and Pagination keep the
+        // wash a selected control already wears) and the native `disabled`
+        // attribute carries unavailability to assistive tech regardless.
+        // The compound `disabled:data-[state=unchecked]:` form is deliberate:
+        // Tailwind sorts data variants after plain `disabled:`, so a bare
+        // `disabled:bg-muted` would lose to `data-[state=unchecked]:bg-*` and
+        // never fire.
+        'disabled:cursor-not-allowed disabled:data-[state=unchecked]:bg-muted disabled:data-[state=unchecked]:border-border',
         attrs.class as string,
       )
     "
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <SwitchThumb
-      style="
-        transition:
-          left var(--duration-instant) var(--ease-out),
-          transform var(--duration-fast) var(--ease-spring);
-      "
+      style="transition: transform var(--duration-fast) var(--ease-spring)"
       :class="
         cn(
           'absolute top-1/2 left-0.5 block h-5 w-5 -translate-y-1/2 rounded-full bg-background shadow-sm',
           'active:scale-x-[1.15] active:scale-y-[0.85]',
-          'data-[state=checked]:left-[1.125rem]',
+          // The travel is a translate, not a `left` change: animating an inset
+          // property relayouts the track on every frame of the slide, while a
+          // transform stays on the compositor. The distance is the checked
+          // inset (1.125rem) minus the resting one (left-0.5), and the
+          // -translate-y-1/2 above composes with it — Tailwind's translate
+          // utilities stack rather than overwrite.
+          'data-[state=checked]:translate-x-[1rem]',
         )
       "
     />

@@ -55,7 +55,14 @@ defineProps<{
     </div>
     <p class="text-small text-muted-foreground">{{ label }}</p>
     <div class="flex items-baseline gap-1.5">
-      <span class="text-2xl font-semibold tracking-tight text-foreground">
+      <!-- `text-heading`, not a hand-assembled `text-2xl font-semibold
+           tracking-tight`: the named rung is near-parity with that stack
+           (1.5rem, weight 600) by design, and composing it here meant the KPI
+           drifted silently if the scale ever moved. The two real deltas are
+           deliberate — letter-spacing slackens from tight's −0.025em to the
+           heading rung's −0.01em, and the line-height comes down to 1.2 —
+           both invisible on a single baseline row like this one. -->
+      <span class="text-heading text-foreground">
         {{ value }}
       </span>
       <span

@@ -242,17 +242,19 @@ describe("Pagination", () => {
     expect(current).toContain("disabled:text-primary-text");
   });
 
-  // The counterpart verdict, and it is deliberate rather than an oversight: an
-  // edge control's entire content is an `aria-hidden` chevron, so there is no
-  // text for the alpha to take down and the name it announces comes from an
-  // `aria-label` no paint touches.
-  it("leaves the edge controls dimming, because they hold a glyph and no text", () => {
-    const wrapper = mountPagination({ total: 120, page: 1 });
+  // The counterpart verdict, aligned with the page buttons above rather than
+  // at odds with them: a drained plate is how "no further this way" looks on
+  // every other unavailable control in the library, so the edges wear it too.
+  // WCAG exempts an inactive control from 1.4.11 either way; what decided this
+  // was one treatment per state across Loom, not per glyph.
+  it("drains the edge controls to the neutral well, like every other unavailable control", () => {
+    const wrapper = mountPagination({ total: 120, page: 3, disabled: true });
     const prev = button(wrapper, "Previous page");
 
     expect(prev.disabled).toBe(true);
-    expect(prev.className).toContain("disabled:opacity-50");
-    expect(prev.textContent.trim()).toBe("");
+    expect(prev.className).not.toContain("opacity");
+    expect(prev.className).toContain("disabled:bg-muted");
+    expect(prev.className).toContain("disabled:text-muted-foreground");
   });
 
   it("widens the window with siblingCount rather than needing a different variant", () => {

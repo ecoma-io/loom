@@ -18,6 +18,20 @@ describe("Badge", () => {
     }
   });
 
+  it("labels every functional variant with its *-text rung — warning included — because the muted washes are mixed to hold contrast against that token in both themes", () => {
+    const labelTokens: readonly (readonly [BadgeVariant, string])[] = [
+      ["primary", "text-primary-text"],
+      ["success", "text-success-text"],
+      ["warning", "text-warning-text"],
+      ["info", "text-info-text"],
+      ["destructive", "text-destructive-text"],
+    ];
+    for (const [variant, token] of labelTokens) {
+      const wrapper = mount(Badge, { props: { variant }, slots: { default: "3" } });
+      expect(wrapper.classes()).toContain(token);
+    }
+  });
+
   it("falls back to the neutral chip when no variant is given, so an unclassified label never borrows a status colour", () => {
     const classes = mount(Badge, { slots: { default: "3" } }).classes();
     expect(classes).toContain("bg-subtle");

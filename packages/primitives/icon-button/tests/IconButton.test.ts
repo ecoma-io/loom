@@ -1,5 +1,5 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import IconButton from "../src/IconButton.vue";
 
 describe("IconButton", () => {
@@ -81,5 +81,48 @@ describe("IconButton", () => {
       slots: { default: "✕" },
     });
     expect(wrapper.get("button").classes()).toContain("mt-4");
+  });
+
+  it("defaults to type=button and does not submit a form on click", async () => {
+    const onSubmit = vi.fn();
+    const wrapper = mount({
+      components: { IconButton },
+      setup: () => ({ onSubmit }),
+      // `@submit.prevent` keeps jsdom from navigating; the spy still records
+      // whether the event fired at all.
+      template: `<form @submit.prevent="onSubmit"><IconButton label="Send" /></form>`,
+    });
+    expect(wrapper.get("button").attributes("type")).toBe("button");
+    await wrapper.get("button").trigger("click");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("lets a consumer opt into submission with type=submit", () => {
+    // Pinned as the attribute rather than a fired event: jsdom runs no
+    // implicit-submission step for a clicked submit button, so the type
+    // reaching the DOM *is* the contract here — the browser owns the rest.
+    const wrapper = mount({
+      components: { IconButton },
+      template: `<form><IconButton label="Send" type="submit" /></form>`,
+    });
+    expect(wrapper.get("button").attributes("type")).toBe("submit");
+  });
+
+  it("focuses with the canonical outline ring and halo, not the legacy box-shadow ring", () => {
+    const classes = mountIconButton().classes();
+    expect(classes).toContain("focus-visible:outline-2");
+    expect(classes).toContain("focus-visible:outline-offset-2");
+    expect(classes).toContain("focus-visible:outline-ring");
+    expect(classes).toContain("focus-visible:shadow-halo");
+    expect(classes).not.toContain("focus-visible:ring-2");
+    expect(classes).not.toContain("ring-offset-2");
+    expect(classes).not.toContain("outline-none");
+  });
+
+  it("drains to the neutral well when disabled instead of dimming", () => {
+    const classes = mountIconButton({ disabled: true }).classes();
+    expect(classes).toContain("bg-muted");
+    expect(classes).toContain("text-muted-foreground");
+    expect(classes).not.toContain("opacity-50");
   });
 });

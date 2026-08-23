@@ -75,8 +75,11 @@ export const chipVariants = cva(
           "border-transparent bg-primary-muted text-primary-text data-[selected]:border-primary/45",
         success:
           "border-transparent bg-success-muted text-success-text data-[selected]:border-success/45",
+        // `-text`, matching Badge and the other functional siblings: the wash
+        // is mixed to hold contrast against the `*-text` rung in both themes,
+        // not against the base hue.
         warning:
-          "border-transparent bg-warning-muted text-warning data-[selected]:border-warning/45",
+          "border-transparent bg-warning-muted text-warning-text data-[selected]:border-warning/45",
         info: "border-transparent bg-info-muted text-info-text data-[selected]:border-info/45",
         destructive:
           "border-transparent bg-destructive-muted text-destructive-text data-[selected]:border-destructive/45",

@@ -5,12 +5,16 @@ import { cva } from "class-variance-authority";
 export type LinkVariant = "default" | "muted" | "accent" | "subtle";
 
 export const linkVariants = cva(
-  "inline-flex items-center gap-1 transition-colors duration-fast ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  "inline-flex items-center gap-1 transition-colors duration-fast ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
   {
     variants: {
       variant: {
         default: "text-primary-text underline underline-offset-4 hover:text-primary-text/80",
-        muted: "text-muted-foreground hover:text-foreground",
+        // Underlined like its siblings. WCAG 1.4.1 asks for a non-colour
+        // carrier and the underline is the one links have; `muted` used to be
+        // the variant that dropped it while keeping a hover colour change,
+        // which identified the link by hue alone.
+        muted: "text-muted-foreground underline underline-offset-4 hover:text-foreground",
         accent: "text-accent-text underline underline-offset-4 hover:text-accent-text/80",
         subtle:
           "text-foreground/80 hover:text-foreground underline underline-offset-4 decoration-border hover:decoration-foreground/50",
@@ -59,7 +63,12 @@ withDefaults(
     :class="
       cn(
         linkVariants({ variant, underline }),
-        'cursor-default pointer-events-none opacity-50',
+        // Drained, not dimmed — the same rule Button and Chip follow. The dim
+        // faded whatever hue the variant wore, taking the label's contrast
+        // down with it; a link has no fill to drain, so it takes the neutral
+        // well the transparent controls take, and `aria-disabled` carries the
+        // state rather than colour alone.
+        'cursor-default bg-muted text-muted-foreground pointer-events-none',
         $attrs.class,
       )
     "

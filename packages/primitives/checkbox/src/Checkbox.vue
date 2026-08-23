@@ -36,7 +36,7 @@ const props = withDefaults(
   defineProps<{
     /** `true`/`false` for a plain toggle, `"indeterminate"` for a parent over a partially-selected group. Omit to let the box own its own state. */
     modelValue?: boolean | "indeterminate" | undefined;
-    /** Blocks both click and keyboard input, and dims the box. Unset defers to a wrapping Field. */
+    /** Blocks both click and keyboard input, and drains the box to the neutral well. Unset defers to a wrapping Field. */
     disabled?: boolean | undefined;
     /** Visible text, rendered inside the wrapping `<label>`. Omit and use `ariaLabel`/`ariaLabelledby` when the label lives elsewhere. */
     label?: string;
@@ -111,6 +111,18 @@ const boxClass = cn(
   // Focus draws the weave tight: the brand ring blooms.
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo",
   "disabled:cursor-not-allowed",
+  // Drained, not dimmed. `opacity-50` faded box and border together — the
+  // failure Button records for its own dim, and no smaller for holding a
+  // glyph rather than words. An unchecked box falls to `bg-muted` with the
+  // rim every unavailable control slackens to; a checked or indeterminate
+  // one keeps its primary fill untouched, because switched-on is information
+  // — the same verdict Switch's thumb and RadioGroup's dot render, so a
+  // selected control reads as selected whether it is available or not, and
+  // the native `disabled` attribute carries unavailability regardless. The
+  // compound `disabled:data-[state=unchecked]:` form is deliberate: Tailwind
+  // sorts data variants after plain `disabled:`, so a bare `disabled:bg-muted`
+  // would lose to `data-[state=checked]:bg-primary` and never fire.
+  "disabled:data-[state=unchecked]:border-border disabled:data-[state=unchecked]:bg-muted",
 );
 
 const boxStyle =
@@ -128,7 +140,7 @@ const boxStyle =
     :class="
       cn(
         'inline-flex min-h-6 items-center gap-2 text-sm text-foreground',
-        // Disabled text stays readable (AA on the light ground) — only the box dims.
+        // Disabled text stays readable (AA on the light ground) — only the box drains.
         field.disabled ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer',
         attrs.class as string,
       )
@@ -138,7 +150,7 @@ const boxStyle =
       v-bind="{ ...optional({ modelValue }), ...boxAttrs, ...field.attrs }"
       :disabled="field.disabled"
       :required="field.required"
-      :class="cn(boxClass, 'disabled:opacity-50')"
+      :class="cn(boxClass)"
       :style="boxStyle"
       @update:model-value="$emit('update:modelValue', $event)"
     >
@@ -155,7 +167,7 @@ const boxStyle =
     </CheckboxRoot>
     {{ label }}
   </label>
-  <!-- The control always dims itself when disabled; label text stays
+  <!-- The control always drains itself when disabled; label text stays
        readable muted — same stance in both branches. -->
   <CheckboxRoot
     v-else
@@ -164,7 +176,7 @@ const boxStyle =
     :required="field.required"
     :aria-label="ariaLabel"
     :aria-labelledby="ariaLabelledby"
-    :class="cn(boxClass, 'disabled:opacity-50', 'min-h-6 min-w-6', attrs.class as string)"
+    :class="cn(boxClass, 'min-h-6 min-w-6', attrs.class as string)"
     :style="boxStyle"
     @update:model-value="$emit('update:modelValue', $event)"
   >

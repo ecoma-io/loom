@@ -83,9 +83,11 @@ import { useLabels, type LabelOverrides } from "@ecoma-io/loom-labels";
  * the hex value is always on screen as text and is itself the edit surface;
  * every swatch is named rather than left a bare square — by its hex unless
  * `labels.swatch` gives it words; and the disabled state is carried by
- * `aria-disabled` as well as by the appearance. It is also why the hex is the
- * one part of an unavailable picker that is drained rather than dimmed — see
- * the root's class list.
+ * `aria-disabled` as well as by the appearance. It is also why the hex and the
+ * saturation area are the parts of an unavailable picker that drain rather
+ * than dim, while the hue track and presets keep a documented dim — their
+ * fills are data colours no token can express. See the root's class list and
+ * the comments on those parts.
  *
  * The event contract matches Slider and NumberField. `update:modelValue` is
  * transient — every position a thumb passes through — and `commit` fires once
@@ -112,7 +114,7 @@ const props = withDefaults(
     modelValue?: string;
     /** Preset colours shown as a row of named swatches. Omit it and no row is rendered. */
     swatches?: string[];
-    /** Unavailable: dims the picker and refuses the pointer, the keyboard and the field. Unset defers to a wrapping Field. */
+    /** Unavailable: drains the picker's chrome, keeps the colour surfaces readable, and refuses the pointer, the keyboard and the field. Unset defers to a wrapping Field. */
     disabled?: boolean | undefined;
     /** The accessible name for the picker as a whole, when nothing visible already labels it. */
     ariaLabel?: string;
@@ -366,12 +368,14 @@ const THUMB =
         // drained, and the same failure axe does not raise because it exempts
         // a disabled control under 1.4.3.
         //
-        // So the two halves part. The three surfaces whose whole content is
-        // the colour being picked keep the dim, because that is what
-        // unavailable looks like for a surface a token cannot drain; the hex
-        // field takes the same drained fill, muted text and slackened rim
-        // every other control in the library wears, because it is text and it
-        // is the one thing a reader still needs from a picker they cannot use.
+        // So the parts part ways. The saturation area drains to the neutral
+        // well like every other unavailable control (its gradient is this
+        // component's own inline binding, so unavailability can withhold it);
+        // the hue track and the preset swatches keep a dim because their fills
+        // are data colours no token can express; and the hex field takes the
+        // drained fill, muted text and slackened rim every other control in
+        // the library wears, because it is text and it is the one thing a
+        // reader still needs from a picker they cannot use.
         field.disabled && 'cursor-not-allowed',
         attrs.class as string,
       )
@@ -406,11 +410,15 @@ const THUMB =
            reader hears most, since it is re-announced on every arrow key.
            `areaValueText` explains why replacing it does not risk contradicting
            the `aria-valuenow` beside it. -->
+      <!-- The gradient is Loom's own inline binding, so unavailability can
+           take the surface back: with the picker disabled the gradient is
+           withheld and the area falls to the neutral well, drained like every
+           other unavailable control rather than faded through. -->
       <ColorAreaArea
-        :style="style"
+        :style="field.disabled ? undefined : style"
         :aria-label="text.area"
         :aria-roledescription="text.areaRoleDescription"
-        class="relative h-40 w-full rounded-md border border-border data-[disabled]:opacity-50"
+        class="relative h-40 w-full rounded-md border border-border bg-background data-[disabled]:bg-muted"
         @keydown="onAreaKeydown"
       >
         <ColorAreaThumb
@@ -431,6 +439,12 @@ const THUMB =
       @update:model-value="applyFromPart"
       @change-end="commitCurrent"
     >
+      <!-- The one dim left on a *tokenless* surface, and it stays because it
+           must: Reka paints the spectrum as an inline `style` inside its own
+           component (verified against its source — the track's background
+           never passes through a slot), and no class can outrank an inline
+           style. The hue under the thumb is data, not chrome, so draining it
+           to a token would be lying about what is there. -->
       <ColorSliderTrack
         class="relative h-3 w-full grow rounded-full border border-border data-[disabled]:opacity-50"
       />
@@ -492,9 +506,15 @@ const THUMB =
       class="flex flex-wrap gap-2 data-[disabled]:opacity-50"
       @update:model-value="onPresetPick"
     >
-      <!-- Each item names itself from Reka's English `getColorName` unless this
-           binding replaces it, so a row of presets is where that vocabulary
-           leaks in bulk. -->
+      <!-- Each item names itself from Reka's English `getColorName` unless
+           this binding replaces it, so a row of presets is where that
+           vocabulary leaks in bulk. -->
+      <!-- Each swatch's fill is a preset the host supplied, bound inline right
+           here — data colours no token can express (the same constraint as
+           the hue track above). Withholding the fill when unavailable would
+           blank the palette instead of draining chrome around it, so the row
+           keeps the dim: the one honest treatment for content that *is*
+           colour. -->
       <ColorSwatchPickerItem
         v-for="preset in presets"
         :key="preset"

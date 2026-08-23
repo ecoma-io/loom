@@ -467,9 +467,14 @@ const areaClass = computed(() =>
   ),
 );
 
+// The submit/cancel triggers are glyph-only, so the drained treatment they
+// take is the transparent control's: the neutral well under a glyph that is
+// already `text-muted-foreground`. `opacity-50` used to fade that glyph below
+// contrast — the failure Button records for its own dim — and the native
+// `disabled` attribute these Reka triggers carry already tells assistive tech.
 const triggerClass = cn(
   buttonVariants({ variant: "ghost", size: "icon-sm" }),
-  "disabled:cursor-not-allowed disabled:opacity-50",
+  "disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none",
 );
 </script>
 

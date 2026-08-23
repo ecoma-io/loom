@@ -147,15 +147,16 @@ onMounted(() => {
 });
 onUnmounted(() => resizeObserver?.disconnect());
 
-watch(
-  () => props.modelValue,
-  () => nextTick(updateIndicator),
-);
-watch(
-  () => props.options,
-  () => nextTick(updateIndicator),
-  { deep: true },
-);
+// One watcher for both re-measure triggers, and deliberately **not** deep on
+// `options`. The two separate watches each scheduled the same
+// `nextTick(updateIndicator)`, so one host tick that changed both inputs paid
+// the measurement twice; merging them costs nothing and removes the double.
+// Dropping `deep:` is not a regression: an in-place mutation of an option
+// object only matters to the indicator if it changes a *width* — a label edit,
+// say — and the ResizeObserver above is already watching exactly the checked
+// element for that, so the deep traversal bought nothing the observer does not
+// deliver sooner. A new array identity or a new selection still fires this.
+watch([() => props.modelValue, () => props.options], () => nextTick(updateIndicator));
 </script>
 
 <template>
@@ -211,8 +212,13 @@ watch(
           // Named, not the bare `group`: a segmented control is dropped into
           // application chrome, and a bare `group-*` would also answer to any
           // ancestor a host happened to mark up as one.
-          'group/segment relative z-10 inline-flex items-center justify-center rounded-sm text-muted-foreground',
-          size === 'sm' ? 'px-1.5 py-px text-[11px]' : 'px-3 py-1 text-sm',
+          // `min-h-6` is the WCAG 2.5.8 target floor made explicit: the sm
+          // segment's box was previously a product of whatever line-height the
+          // surrounding text happened to hand down, and swapping to the named
+          // `text-micro` (line-height 1.4) dropped it to 23px. A floor that
+          // holds regardless of type metrics is the honest encoding.
+          'group/segment relative z-10 inline-flex min-h-6 items-center justify-center rounded-sm text-muted-foreground',
+          size === 'sm' ? 'px-1.5 py-px text-micro' : 'px-3 py-1 text-sm',
           'data-[state=checked]:font-medium data-[state=checked]:text-foreground',
           'data-[state=unchecked]:hover:bg-subtle',
           'active:scale-press',
