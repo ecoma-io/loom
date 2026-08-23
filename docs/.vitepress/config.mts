@@ -194,6 +194,12 @@ export default defineConfig({
         "@ecoma-io/loom-collapse": fileURLToPath(
           new URL("../../packages/primitives/collapse/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-list": fileURLToPath(
+          new URL("../../packages/primitives/list/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-table": fileURLToPath(
+          new URL("../../packages/primitives/table/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-card": fileURLToPath(
           new URL("../../packages/primitives/card/src/index.ts", import.meta.url),
         ),

@@ -594,6 +594,9 @@ importers:
       '@ecoma-io/loom-link':
         specifier: workspace:*
         version: link:../primitives/link
+      '@ecoma-io/loom-list':
+        specifier: workspace:*
+        version: link:../primitives/list
       '@ecoma-io/loom-loading-state':
         specifier: workspace:*
         version: link:../blocks/loading-state
@@ -693,6 +696,9 @@ importers:
       '@ecoma-io/loom-switch':
         specifier: workspace:*
         version: link:../primitives/switch
+      '@ecoma-io/loom-table':
+        specifier: workspace:*
+        version: link:../primitives/table
       '@ecoma-io/loom-tabs':
         specifier: workspace:*
         version: link:../primitives/tabs
@@ -1225,6 +1231,18 @@ importers:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
 
+  packages/primitives/list:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
   packages/primitives/menubar:
     dependencies:
       '@ecoma-io/loom-core':
@@ -1515,6 +1533,21 @@ importers:
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/table:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

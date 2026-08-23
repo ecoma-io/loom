@@ -38,6 +38,7 @@ export type {
   RadialProgressLabels,
   RatingLabels,
   ScrollReelLabels,
+  TableLabels,
   StepperLabels,
   TagsInputLabels,
   TagsInputRejectReason,

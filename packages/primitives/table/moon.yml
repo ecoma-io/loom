@@ -1,0 +1,15 @@
+deps:
+  - "core"
+  - "labels"
+tags: ["layer-primitives", "e2e"]
+project:
+  name: "table"
+  description: "Table primitive — semantic compositional data table"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
+  e2e:
+    options:
+      runInCI: skip
+    args: ["packages/primitives/table/e2e"]
+    env:
+      PW_PROFILE: "smoke"

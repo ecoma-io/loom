@@ -95,6 +95,19 @@ export interface CarouselLabels {
 }
 
 /**
+ * What Table says on its own account: the scrollable region's fallback name
+ * (a caption prop overrides it) and the sort control's state in words —
+ * chevrons are shape-only semantics, so the words carry the state to a
+ * screen reader instead.
+ */
+export interface TableLabels {
+  readonly region: string;
+  readonly sortedAscending: string;
+  readonly sortedDescending: string;
+  readonly sort: string;
+}
+
+/**
  * The two sentences the row says that are not a member's own name.
  *
  * **`accent` is one key and not a name, a comma and a qualifier.** Where the

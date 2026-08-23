@@ -108,6 +108,8 @@ export type { IconButtonSize, IconButtonVariant } from "@ecoma-io/loom-icon-butt
 export { default as InlineError } from "@ecoma-io/loom-inline-error";
 export { default as Link, linkVariants } from "@ecoma-io/loom-link";
 export type { LinkVariant } from "@ecoma-io/loom-link";
+export { List, ListItem } from "@ecoma-io/loom-list";
+export type { ListItemShape } from "@ecoma-io/loom-list";
 export { default as Menubar } from "@ecoma-io/loom-menubar";
 export type { MenubarItem, MenubarMenu } from "@ecoma-io/loom-menubar";
 export { default as Popover } from "@ecoma-io/loom-popover";
@@ -118,6 +120,16 @@ export { default as Tabs } from "@ecoma-io/loom-tabs";
 export type { TabItem } from "@ecoma-io/loom-tabs";
 export { default as Tooltip } from "@ecoma-io/loom-tooltip";
 export type { TooltipSide } from "@ecoma-io/loom-tooltip";
+
+export {
+  TableCell,
+  TableHead,
+  TableRow,
+  default as Table,
+  TABLE_LABELS,
+  tableRowVariants,
+} from "@ecoma-io/loom-table";
+export type { TableAlign, TableDensity, TableLabels, TableSort } from "@ecoma-io/loom-table";
 
 // Primitives — alphabetical (continued, batch C).
 export { default as Alert, ALERT_LABELS } from "@ecoma-io/loom-alert";
