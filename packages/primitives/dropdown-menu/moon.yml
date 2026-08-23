@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "dropdown-menu"
   description: "DropdownMenu primitive — button-activated command list"

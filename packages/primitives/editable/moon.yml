@@ -2,6 +2,7 @@ deps:
   - "core"
   - "labels"
   - "button"
+tags: ["layer-primitives"]
 project:
   name: "editable"
   description: "Editable primitive — inline text editing"

@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "switch"
   description: "Switch primitive — immediate boolean toggle"

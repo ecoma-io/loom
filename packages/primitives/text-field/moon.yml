@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "text-field"
   description: "TextField primitive — single-line text entry with reveal and counting"

@@ -1,6 +1,6 @@
 deps:
   - "core"
-tags: ["e2e"]
+tags: ["layer-primitives", "e2e"]
 project:
   name: "surface"
   description: "Surface primitive — elevation and padding container"

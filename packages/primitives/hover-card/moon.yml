@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "hover-card"
   description: "HoverCard primitive — interactive preview surface on hover"

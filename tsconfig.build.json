@@ -10,7 +10,7 @@
 // the only thing in the build that reads a single-file component's `<script>`
 // block as TypeScript.
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,

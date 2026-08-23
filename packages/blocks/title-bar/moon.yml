@@ -2,6 +2,7 @@ deps:
   - "core"
   - "menubar"
   - "window-controls"
+tags: ["layer-blocks"]
 project:
   name: "title-bar"
   description: "Migrated block component"

@@ -5,6 +5,7 @@
 # `@import "tailwindcss"`. Both ship as authored, not as built, because the
 # consumer's own Tailwind has to see the source. Font files and their licence
 # are copied alongside.
+tags: ["layer-theme-core"]
 project:
   name: "theme-core"
   description: "Design tokens and styles (theme.css, global.css, fonts)"

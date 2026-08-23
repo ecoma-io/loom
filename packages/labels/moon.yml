@@ -9,6 +9,7 @@
 # label type the library exports is reachable without an edge back into a
 # component package.
 
+tags: ["layer-labels"]
 project:
   name: "labels"
   description: "Localisation seam and field context for Loom components"

@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "date-time-range-picker"
   description: "DateTimeRangePicker primitive — combined date+time range selection"

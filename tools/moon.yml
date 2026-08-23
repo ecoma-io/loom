@@ -8,6 +8,7 @@
 # affected, and its inherited test task runs the architecture-rule tests
 # (`tools/check-architecture.test.ts`) on the PR path instead of silently
 # skipping them until the next push.
+tags: ["layer-tooling"]
 project:
   name: "tools"
   description: "Repository tooling — architecture checker, component artifacts, moon-deps sync"

@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "textarea"
   description: "Textarea primitive — multi-line text entry with character counting"

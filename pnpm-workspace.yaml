@@ -48,6 +48,21 @@ allowBuilds:
   vue-demi: false
   workerd: false
 
+# pnpm holds a newly-published version back for its minimum release age before
+# it will install it — the window in which a compromised release is usually
+# caught and unpublished. `@ecoma-io/lattice` is excluded because it is an
+# `ecoma-io` package this repository's own maintainer publishes, so the
+# supply-chain risk the delay buys down is not the risk this package carries,
+# and `--frozen-lockfile` in CI would otherwise refuse the install until the
+# version aged out.
+#
+# Pinned to the exact version on purpose: pnpm writes the entry that way, and a
+# bare package name would carry the exemption forward to every future release
+# without anyone deciding to. Renovate's bump edits this line, which is the
+# moment to re-read it.
+minimumReleaseAgeExclude:
+  - "@ecoma-io/lattice@0.11.1"
+
 # Advisories in transitive devDependencies, held forward until the packages that
 # own them ship a release that does it for us. Nine of them, in two chains:
 # `vitepress > vite` (with esbuild under it) and `wrangler > miniflare > undici`.

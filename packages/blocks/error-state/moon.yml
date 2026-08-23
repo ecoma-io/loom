@@ -1,3 +1,4 @@
+tags: ["layer-blocks"]
 project:
   name: "error-state"
   description: "Migrated block component"

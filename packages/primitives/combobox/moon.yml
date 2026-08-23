@@ -2,6 +2,7 @@ deps:
   - "core"
   - "labels"
   - "chip"
+tags: ["layer-primitives"]
 project:
   name: "combobox"
   description: "Combobox primitive — searchable list selection"

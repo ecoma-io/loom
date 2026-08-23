@@ -1,6 +1,7 @@
 deps:
   - "core"
   - "labels"
+tags: ["layer-primitives"]
 project:
   name: "slider"
   description: "Slider primitive — continuous bounded value control"

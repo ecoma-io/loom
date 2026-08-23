@@ -3,6 +3,7 @@ deps:
   - "core"
   - "separator"
   - "tooltip"
+tags: ["layer-blocks"]
 project:
   name: "sidebar-nav"
   description: "Migrated block component"

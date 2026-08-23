@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "tooltip"
   description: "Tooltip primitive — contextual hint on hover or focus"

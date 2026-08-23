@@ -1,3 +1,4 @@
+tags: ["layer-facade"]
 project:
   name: "loom"
   description: "Public facade — re-exports from foundation and component packages"

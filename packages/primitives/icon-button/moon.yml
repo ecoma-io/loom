@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "icon-button"
   description: "IconButton primitive — a compact button containing only an icon"

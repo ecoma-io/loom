@@ -2,6 +2,7 @@ deps:
   - "core"
   - "labels"
   - "chip"
+tags: ["layer-primitives"]
 project:
   name: "tags-input"
   description: "TagsInput primitive — multi-value token input"

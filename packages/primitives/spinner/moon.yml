@@ -1,5 +1,6 @@
 deps:
   - "core"
+tags: ["layer-primitives"]
 project:
   name: "spinner"
   description: "Spinner primitive — indeterminate loading indicator"
