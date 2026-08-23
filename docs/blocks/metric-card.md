@@ -47,6 +47,13 @@ sign or a separator. `text-success` / `text-destructive` / `text-muted-foregroun
 are the semantic tokens rather than fixed greens and reds, so the card adapts
 to whatever the theme maps those to.
 
+## Loading and description
+
+`loading` swaps the label and value rows for Skeleton placeholders sized to
+the real layout — the card keeps its height, so data landing never jolts the
+grid around it — and states `aria-busy` on the card. `description` adds a
+context line under the value ("of 10,000 included", "vs last quarter").
+
 ## The host owns formatting
 
 The `value` prop is a string or number the host has already formatted

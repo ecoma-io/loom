@@ -111,4 +111,24 @@ describe("MetricCard", () => {
     expect(trend.find("svg").exists()).toBe(true);
     expect(trend.text()).toBe("");
   });
+
+  it("renders a description line under the value row when provided", () => {
+    const wrapper = mount(MetricCard, {
+      props: { value: "6,420", label: "Render minutes", description: "of 10,000 included" },
+    });
+    expect(wrapper.text()).toContain("of 10,000 included");
+  });
+
+  // Loading keeps the card's height: each Skeleton is sized to the row it
+  // stands in for, and aria-busy states the wait for assistive tech.
+  it("renders sized placeholders with aria-busy while loading, hiding the real rows", () => {
+    const wrapper = mount(MetricCard, {
+      props: { value: "6,420", label: "Render minutes", loading: true },
+    });
+    const root = wrapper.get("div");
+    expect(root.attributes("aria-busy")).toBe("true");
+    expect(root.text()).not.toContain("6,420");
+    const skeletons = root.findAll("div[class*='animate-shimmer']");
+    expect(skeletons.length).toBe(2);
+  });
 });

@@ -1,0 +1,14 @@
+deps:
+  - "core"
+tags: ["layer-primitives", "e2e"]
+project:
+  name: "kbd"
+  description: "Kbd primitive — one keyboard key cap"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
+  e2e:
+    options:
+      runInCI: skip
+    args: ["packages/primitives/kbd/e2e"]
+    env:
+      PW_PROFILE: "smoke"

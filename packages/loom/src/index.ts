@@ -106,6 +106,8 @@ export type { DropdownMenuEntry } from "@ecoma-io/loom-dropdown-menu";
 export { default as IconButton, iconButtonVariants } from "@ecoma-io/loom-icon-button";
 export type { IconButtonSize, IconButtonVariant } from "@ecoma-io/loom-icon-button";
 export { default as InlineError } from "@ecoma-io/loom-inline-error";
+export { default as Kbd, kbdVariants } from "@ecoma-io/loom-kbd";
+export type { KbdSize } from "@ecoma-io/loom-kbd";
 export { default as Link, linkVariants } from "@ecoma-io/loom-link";
 export type { LinkVariant } from "@ecoma-io/loom-link";
 export { List, ListItem } from "@ecoma-io/loom-list";

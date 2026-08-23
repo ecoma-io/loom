@@ -1,5 +1,5 @@
 {
-  "name": "@ecoma-io/loom-metric-card",
+  "name": "@ecoma-io/loom-kbd",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,7 @@
     }
   },
   "dependencies": {
-    "@ecoma-io/loom-core": "workspace:*",
-    "@ecoma-io/loom-skeleton": "workspace:*"
+    "@ecoma-io/loom-core": "workspace:*"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

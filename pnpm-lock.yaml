@@ -220,6 +220,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      '@ecoma-io/loom-skeleton':
+        specifier: workspace:*
+        version: link:../../primitives/skeleton
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -588,6 +591,9 @@ importers:
       '@ecoma-io/loom-inline-error':
         specifier: workspace:*
         version: link:../primitives/inline-error
+      '@ecoma-io/loom-kbd':
+        specifier: workspace:*
+        version: link:../primitives/kbd
       '@ecoma-io/loom-labels':
         specifier: workspace:*
         version: link:../labels
@@ -1215,6 +1221,15 @@ importers:
       '@lucide/vue':
         specifier: ^1.28.0
         version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/kbd:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
