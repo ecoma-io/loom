@@ -7,7 +7,11 @@ import { onScopeDispose, readonly, ref, watchPostEffect, type Ref } from "vue";
  * The platform already answers this for `<input>`, `<button>`, `<select>` and
  * `<textarea>`: a disabled fieldset makes every such descendant *actually
  * disabled*, so `:disabled` matches, the tab stop goes and the control refuses
- * input. Nothing in Loom has to help. It stops at the boundary of that list,
+ * input. Nothing in Loom has to help — native roots inherit a fieldset's
+ * disabling and composites call this composable instead, which is the house
+ * rule stated in CONTRIBUTING.md's accessibility section.
+ *
+ * That answer stops at the boundary of that short list,
  * and Reka builds several controls out of elements that are not on it — a
  * `<span role="slider">`, a `<div role="spinbutton">`. Those keep their
  * `tabindex="0"` and their arrow-key handlers inside a disabled group: measured

@@ -16,6 +16,7 @@ export type { LoomLabels } from "./label-registry";
 export type {
   AlertDialogLabels,
   AvatarGroupLabels,
+  BreadcrumbLabels,
   ColorPickerLabels,
   ComboboxLabels,
   DateRangeLabels,
@@ -34,6 +35,7 @@ export type {
   ProgressLabels,
   RadialProgressLabels,
   RatingLabels,
+  ScrollReelLabels,
   StepperLabels,
   TagsInputLabels,
   TagsInputRejectReason,
@@ -51,10 +53,8 @@ export {
   RANGE_CELL_LABELS,
   TIME_SEGMENT_LABELS,
   emptySegmentValueText,
-  formatFullDay,
   isDateSegmentPart,
   isTimeSegmentPart,
-  monthName,
 } from "./date-labels";
 export type {
   CalendarPanelLabels,
