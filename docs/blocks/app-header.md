@@ -99,6 +99,16 @@ unsupported, so the bar is never a see-through smear over its own content.
 it never carries a role-specific accent colour. Those colours mark a specific
 category or role on a surface; the chrome around every surface is not that.
 
+## Safe areas
+
+The bar sits at the very top of the viewport — exactly where a phone's notch
+and an installed PWA's title-bar overlay reserve space. Loom adds the
+platform's inset to the bar's own top padding automatically (through the
+`--safe-area-top` token and the `[data-loom-app-header]` hook in
+`global.css`), so the first row never paints under the system layer. A host
+that needs the raw value elsewhere reads `var(--safe-area-top)` directly;
+the token falls back to `0px` on devices without an inset.
+
 ## API
 
 <!-- @api AppHeader -->

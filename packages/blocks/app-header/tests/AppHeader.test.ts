@@ -53,4 +53,13 @@ describe("AppHeader", () => {
     expect(wrapper.find("input").exists()).toBe(false);
     expect(wrapper.get("header").text()).toBe("");
   });
+
+  // The safe-area inset is platform CSS (`env()` inside a token); jsdom
+  // computes none of it. What a unit test CAN pin is the hook the stylesheet
+  // keys on — without the marker, `global.css`'s padding rule matches
+  // nothing and a notched PWA paints its first row under the system bar.
+  it("marks itself for the safe-area rule with data-loom-app-header", () => {
+    const header = mount(AppHeader).get("header");
+    expect(header.attributes("data-loom-app-header")).toBeDefined();
+  });
 });

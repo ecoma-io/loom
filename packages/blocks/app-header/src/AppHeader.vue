@@ -62,7 +62,12 @@ defineProps<{
 </script>
 
 <template>
+  <!-- `data-loom-app-header` is the hook `global.css` uses to add the
+       safe-area inset to the bar's top padding (the same vendor-rule pattern
+       as `[data-loom-titlebar]`): a PWA under a notch or a title-bar overlay
+       must not paint its first row into reserved space. -->
   <header
+    data-loom-app-header=""
     :aria-label="ariaLabel"
     class="sticky top-0 z-30 flex min-h-14 flex-wrap items-center gap-x-2 gap-y-2 border-b border-border bg-card px-3 py-2 text-card-foreground backdrop-blur-md supports-[backdrop-filter]:bg-card/80 sm:h-14 sm:flex-nowrap sm:gap-x-3 sm:px-4 sm:py-0 lg:px-6 3xl:h-16 3xl:px-8"
   >

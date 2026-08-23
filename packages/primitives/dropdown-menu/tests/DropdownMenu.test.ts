@@ -89,6 +89,13 @@ function reset() {
 afterEach(reset);
 
 describe("DropdownMenu", () => {
+  // Direction is forwarded so a right-to-left host gets mirrored menus; the
+  // attribute lands on Reka's portalled content, not the trigger.
+  it("forwards dir=rtl onto the opened content", async () => {
+    await openByKeyboard({ dir: "rtl" });
+    expect(document.querySelector('[dir="rtl"][role="menu"]')).not.toBeNull();
+  });
+
   it("renders only actionable entries as menu items — a heading and a separator are chrome, not commands", async () => {
     await mountMenu();
     expect(items().map((el) => el.querySelector("span")!.textContent.trim())).toEqual([

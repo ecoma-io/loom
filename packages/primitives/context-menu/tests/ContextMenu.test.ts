@@ -76,6 +76,14 @@ afterEach(() => {
 });
 
 describe("ContextMenu", () => {
+  // Direction forwarded onto Reka's portalled content for mirrored menus.
+  it("forwards dir=rtl onto the opened content", async () => {
+    await mountMenu({ dir: "rtl" });
+    await rightClick();
+    await settle();
+    expect(document.querySelector('[dir="rtl"][role="menu"]')).not.toBeNull();
+  });
+
   it("renders the trigger slot element", async () => {
     await mountMenu();
     expect(document.querySelector('[data-test="trigger"]')!.textContent).toBe("Right-click me");
