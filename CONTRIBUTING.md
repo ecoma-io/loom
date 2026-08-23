@@ -57,6 +57,24 @@ yourself bumping it by hand, that is the reason not to.
 | `pnpm format`       | Prettier, in place                                                                                                                                                |
 | `pnpm format:check` | Prettier, read-only — what CI runs                                                                                                                                |
 
+`pnpm lint` is three checks in a trench coat, and the third is the one worth
+knowing about. After ESLint it runs `tools/check-component-artifacts.ts` (the
+five-artifacts-per-component gate), `tools/check-architecture.ts` (the layer
+order, matched against specifier text) and `lattice check` (the same layer
+order, judged against what each specifier _resolves to_). Two commands expose
+the last one on its own:
+
+| Command                  | What it does                                                                                                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lattice:check`     | The module-boundary verdict alone, about two seconds. Reads `module-boundaries.config.mjs` and the Moon project graph                                                             |
+| `pnpm lattice:mutations` | Breaks the architecture eighteen ways and asserts each one is caught, restoring every file afterwards. Run it after editing `module-boundaries.config.mjs` or any `moon.yml` tags |
+
+Exit 1 from `lattice check` is a boundary crossed; exit **3** is a checker that
+could not reach a verdict, and both fail. Do not paper over the second — a
+checker that could not look must never read as one that looked and found
+nothing. `docs/architecture/contract.md` explains which invariant each of the
+two architecture readers owns, and why neither replaces the other.
+
 ### Affected workflows
 
 Loom's CI runs whatever a change affects, not everything on every pull request.

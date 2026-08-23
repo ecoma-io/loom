@@ -224,6 +224,18 @@ jobs:
       - name: Check module boundaries
         run: pnpm lattice:check
 
+      # And the proof that the step above can fail at all. A constraint row
+      # whose tag no project carries, a `paths` alias that stopped resolving, a
+      # project that lost its tag — each reads as a clean run, and
+      # `module-boundaries.config.mjs` is a file a pull request can edit. The
+      # harness breaks the architecture eighteen ways against the real tree,
+      # asserts the violation each one was written to produce, and restores
+      # every file byte for byte. Unconditional on purpose: a gate on the gate
+      # that runs only when someone remembered to change the right file is a
+      # gate nobody notices has stopped running.
+      - name: Prove the boundary gate fails on a broken architecture
+        run: pnpm lattice:mutations
+
       # Moon's own task cache, and what it adds to `runInCI: affected` is the
       # other half of the same idea: selection decides which tasks a run
       # *starts*, the cache decides which of those it has to actually execute.
