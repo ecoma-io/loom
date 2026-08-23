@@ -10,7 +10,7 @@
 export { cn } from "@ecoma-io/loom-core";
 export { optional } from "@ecoma-io/loom-core";
 export { useSplitAttrs } from "@ecoma-io/loom-core";
-export { LIST_STAGGER_CAP, LIST_STAGGER_STEP_MS, listStaggerDelay } from "@ecoma-io/loom-core";
+export { listStaggerDelay } from "@ecoma-io/loom-core";
 export { WCAG_TAGS } from "@ecoma-io/loom-core";
 export { useTheme, themeScript } from "@ecoma-io/loom-core";
 export type { ThemePreference, ResolvedTheme } from "@ecoma-io/loom-core";
@@ -84,9 +84,13 @@ export { default as Avatar, avatarVariants } from "@ecoma-io/loom-avatar";
 export type { AvatarShape, AvatarSize, AvatarVariant } from "@ecoma-io/loom-avatar";
 export { default as Badge, badgeVariants } from "@ecoma-io/loom-badge";
 export type { BadgeVariant } from "@ecoma-io/loom-badge";
-export { default as Breadcrumb } from "@ecoma-io/loom-breadcrumb";
-export type { BreadcrumbItem, BreadcrumbSeparator } from "@ecoma-io/loom-breadcrumb";
-export { default as Button, buttonVariantClasses, buttonVariants } from "@ecoma-io/loom-button";
+export { default as Breadcrumb, BREADCRUMB_LABELS } from "@ecoma-io/loom-breadcrumb";
+export type {
+  BreadcrumbItem,
+  BreadcrumbSeparator,
+  BreadcrumbLabels,
+} from "@ecoma-io/loom-breadcrumb";
+export { default as Button, buttonVariants } from "@ecoma-io/loom-button";
 export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
 export { default as Chip, chipVariants } from "@ecoma-io/loom-chip";
 export type { ChipSize, ChipVariant } from "@ecoma-io/loom-chip";
@@ -203,13 +207,13 @@ export type {
   TagsInputRejection,
   TagsInputRejectReason,
 } from "@ecoma-io/loom-tags-input";
-export { default as Textarea } from "@ecoma-io/loom-textarea";
+export { default as Textarea, TEXTAREA_LABELS } from "@ecoma-io/loom-textarea";
 export type { TextareaLabels, TextareaResize } from "@ecoma-io/loom-textarea";
-export { default as TextField } from "@ecoma-io/loom-text-field";
+export { default as TextField, TEXT_FIELD_LABELS } from "@ecoma-io/loom-text-field";
 export type { TextFieldLabels, TextFieldSize, TextFieldType } from "@ecoma-io/loom-text-field";
 export { default as TimePicker } from "@ecoma-io/loom-time-picker";
 export type { TimePickerLabels } from "@ecoma-io/loom-time-picker";
-export { Toast, TOAST_LABELS } from "@ecoma-io/loom-toast";
+export { Toast, ToastItem, TOAST_LABELS } from "@ecoma-io/loom-toast";
 export type { ToastVariant, ToastLabels } from "@ecoma-io/loom-toast";
 export { default as WindowControls, WINDOW_CONTROLS_LABELS } from "@ecoma-io/loom-window-controls";
 export type { WindowPlatform, WindowControlsLabels } from "@ecoma-io/loom-window-controls";
@@ -223,8 +227,8 @@ export { default as Grid } from "@ecoma-io/loom-grid";
 export type { GridGap } from "@ecoma-io/loom-grid";
 export { default as Inline } from "@ecoma-io/loom-inline";
 export type { InlineAlign, InlineGap } from "@ecoma-io/loom-inline";
-export { default as ScrollReel } from "@ecoma-io/loom-scroll-reel";
-export type { ScrollReelGap, ScrollReelSnap } from "@ecoma-io/loom-scroll-reel";
+export { default as ScrollReel, SCROLL_REEL_LABELS } from "@ecoma-io/loom-scroll-reel";
+export type { ScrollReelGap, ScrollReelSnap, ScrollReelLabels } from "@ecoma-io/loom-scroll-reel";
 export { default as Sidebar } from "@ecoma-io/loom-sidebar";
 export type { SidebarSide } from "@ecoma-io/loom-sidebar";
 export { default as Split } from "@ecoma-io/loom-split";
@@ -244,6 +248,7 @@ export type { FormLayoutMaxWidth } from "@ecoma-io/loom-form-layout";
 export { default as MasterDetail } from "@ecoma-io/loom-master-detail";
 export type { MasterDetailMinMasterWidth, MasterDetailGap } from "@ecoma-io/loom-master-detail";
 export { default as Reading } from "@ecoma-io/loom-reading";
+export type { ReadingGutter } from "@ecoma-io/loom-reading";
 export { default as Settings } from "@ecoma-io/loom-settings";
 export type { SettingsNavWidth } from "@ecoma-io/loom-settings";
 export { default as SplitLayout } from "@ecoma-io/loom-split-layout";

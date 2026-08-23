@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
 import Editable from "../src/Editable.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
-import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 
 // Every case here drives real focus, and focus only works for a tree that is
 // actually in the document — so the mounted tree has to come back off it

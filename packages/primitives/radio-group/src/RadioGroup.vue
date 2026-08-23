@@ -134,7 +134,15 @@ const field = useFieldControl(() => ({
             'data-[state=checked]:border-primary',
             // Focus draws the weave tight: the brand ring blooms.
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',
-            'disabled:cursor-not-allowed disabled:opacity-50',
+            // Drained, not dimmed — same verdict as Checkbox beside it. The
+            // unchecked circle falls to `bg-muted` with the rim every
+            // unavailable control slackens to; a checked one keeps its
+            // primary ring and dot, because selected is information (the
+            // native `disabled` attribute carries unavailability regardless).
+            // Compound form deliberate: Tailwind sorts data variants after
+            // plain `disabled:`, so a bare `disabled:bg-muted` would lose to
+            // `data-[state=*]:*` and never fire.
+            'disabled:cursor-not-allowed disabled:data-[state=unchecked]:bg-muted disabled:data-[state=unchecked]:border-border',
           )
         "
         :disabled="opt.disabled ?? false"

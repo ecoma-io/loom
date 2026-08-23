@@ -436,10 +436,12 @@ describe("ColorPicker disabled", () => {
   // The defect this pins, and it is the last one of its kind in the library.
   // `opacity-50` on the group ran over everything inside it, the hex among it:
   // measured on the built site, the value read 3.06:1. The dim now sits only on
-  // the three surfaces whose content *is* the colour being picked, and the hex
-  // field takes the drained fill, muted text and slackened rim every other
-  // control wears — 4.68:1 measured, the same as a disabled TextField.
-  it("drains the hex field rather than dimming it, and keeps the dim on the colour surfaces", () => {
+  // the two surfaces whose fills are data colours no token can express (Reka
+  // inlines the track spectrum; each preset's fill is host data bound inline),
+  // while the hex field and the saturation area take the drained treatment
+  // every other control wears — 4.68:1 measured on the hex, the same as a
+  // disabled TextField.
+  it("drains the hex field and the saturation area rather than dimming them, and keeps the dim only where the fill is data", () => {
     const wrapper = mountPicker({ disabled: true, swatches: ["#ff0000"] });
 
     const group = wrapper.get('[role="group"]');
@@ -453,10 +455,17 @@ describe("ColorPicker disabled", () => {
     // hue — the same three-channel treatment TextField and Textarea carry.
     expect(hexField).toContain("data-[disabled]:border-border");
 
-    // A colour a token cannot drain: the gradient area, the hue track and the
-    // preset row keep the dim, because a picker that stops looking unavailable
-    // is the other half of this defect.
-    expect(wrapper.get('[role="application"]').classes()).toContain("data-[disabled]:opacity-50");
+    // The area drains by withholding Reka's gradient — this component owns
+    // that inline binding — and falling to the neutral well.
+    const area = wrapper.get('[role="application"]').classes();
+    expect(area).toContain("data-[disabled]:bg-muted");
+    expect(area.some((name) => /(^|:)opacity-/.test(name))).toBe(false);
+
+    // A colour a token cannot drain: the hue track and the preset row keep
+    // the dim, because a picker that stops looking unavailable is the other
+    // half of this defect.
+    const tracks = wrapper.findAll(".relative.h-3");
+    expect(tracks[0]!.classes()).toContain("data-[disabled]:opacity-50");
     expect(wrapper.get('[role="listbox"]').classes()).toContain("data-[disabled]:opacity-50");
   });
 });

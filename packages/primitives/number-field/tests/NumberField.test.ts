@@ -5,7 +5,7 @@ import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vu
 import NumberField from "../src/NumberField.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
-import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 
 function mountField(props: Partial<InstanceType<typeof NumberField>["$props"]> = {}) {
   return mount(NumberField, { props: { modelValue: 10, ...props } });
@@ -91,6 +91,50 @@ describe("NumberField scrub-drag gesture", () => {
     fireWindow("pointercancel", { clientX: 140, clientY: 0 });
     expect(updates(wrapper).at(-1)?.[0]).toBe(10);
     expect(wrapper.emitted("commit")).toBeUndefined();
+  });
+
+  // A second concurrent pointerdown used to overwrite `removeDragListeners`
+  // instead of running it: the first pointer's release then committed the
+  // half-finished overlap and left its move handler on the window, ticking
+  // values with no pointer anywhere near the field.
+  it("keeps a second overlapping pointerdown's scrub isolated from the first pointer's release", () => {
+    const wrapper = mountField({ modelValue: 10, step: 1 });
+    const root = wrapper.get(ROOT).element;
+    firePointer(root, "pointerdown", { clientX: 100, clientY: 0 }); // first pointer
+    fireWindow("pointermove", { clientX: 140, clientY: 0 }); // first gesture drags to 20
+    firePointer(root, "pointerdown", { clientX: 200, clientY: 0 }); // second pointer supersedes it
+    fireWindow("pointerup", { clientX: 140, clientY: 0 }); // the first pointer releases
+
+    // The release belongs to the superseded gesture: it must neither commit…
+    expect(wrapper.emitted("commit")).toBeUndefined();
+    // …nor leave its move handler ticking the field afterwards.
+    fireWindow("pointermove", { clientX: 160, clientY: 0 });
+    expect(updates(wrapper).at(-1)?.[0]).toBe(20);
+  });
+
+  // The scrub's keydown handler only ever swallows Escape while a drag is in
+  // flight; this pins that nothing it arms outlives the gesture.
+  it("lets a global Escape through when no scrub is under way, after both a completed and an aborted gesture", () => {
+    const wrapper = mountField({ modelValue: 10, step: 1 });
+    const root = wrapper.get(ROOT).element;
+
+    firePointer(root, "pointerdown", { clientX: 100, clientY: 0 });
+    fireWindow("pointermove", { clientX: 120, clientY: 0 });
+    fireWindow("pointerup", { clientX: 120, clientY: 0 }); // completed: commits 15
+    expect(wrapper.emitted("commit")).toEqual([[15]]);
+    let escape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+    window.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(false);
+
+    firePointer(root, "pointerdown", { clientX: 100, clientY: 0 });
+    fireWindow("pointermove", { clientX: 120, clientY: 0 });
+    escape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+    window.dispatchEvent(escape); // aborts this scrub
+    expect(escape.defaultPrevented).toBe(true);
+    fireWindow("pointerup", { clientX: 120, clientY: 0 });
+    escape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+    window.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(false);
   });
 
   it("clamps a dragged value to max, and commits the clamped value rather than the raw one", () => {

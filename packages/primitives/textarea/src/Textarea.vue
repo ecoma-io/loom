@@ -377,7 +377,7 @@ const field = useFieldControl(() => ({
           // passed in words as well, and `approachingLimit` announces the near
           // band once. The digits themselves are the third reading — 21/20 is
           // over the limit whatever it is painted.
-          band === 'near' && 'text-warning',
+          band === 'near' && 'text-warning-text',
           band === 'over' && 'text-destructive-text',
         )
       "

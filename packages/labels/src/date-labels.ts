@@ -350,9 +350,10 @@ const monthFormatters = new Map<string, Intl.DateTimeFormat>();
 /**
  * A month name in the control's locale, for use in `aria-valuetext`.
  *
- * Exported so a host building a partial vocabulary can call it from their own
- * `filledMonth` override rather than formatting from scratch — the same reason
- * `formatFullDay` is exported.
+ * A building block of the defaults below, not public surface — it stays off
+ * the package barrel, because a host wording an override formats however
+ * their application already does. Exported from the module so its own tests
+ * can pin it directly.
  */
 export function monthName(locale: string, month: number): string {
   let formatter = monthFormatters.get(locale);
@@ -368,9 +369,10 @@ export function monthName(locale: string, month: number): string {
  * A whole day written out — weekday, day, month and year — in the control's
  * locale, which is the half of a range cell's name that is not a qualifier.
  *
- * Exported because both range controls' English defaults need it and neither
- * should own it; a host replacing those defaults formats with whatever their
- * own application already uses and never calls this.
+ * Both range controls' English defaults need it and neither should own it; a
+ * host replacing those defaults formats with whatever their own application
+ * already uses and never calls this. Like `monthName`, it stays off the
+ * package barrel.
  */
 export function formatFullDay(locale: string, date: DateValue): string {
   let formatter = dayFormatters.get(locale);

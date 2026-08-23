@@ -546,11 +546,15 @@ const inputId = computed(() => field.id ?? generatedId);
         <!-- Named with the file it removes. Seven buttons all called "Remove"
              are seven identical announcements and one guess about which row a
              reader is on. -->
+        <!-- Drained, not dimmed: `opacity-50` faded the glyph inside its own
+             row card, compositing it below contrast — the failure Button
+             records for its dim. The glyph-only control takes the neutral
+             well, and the native attribute carries unavailability to AT. -->
         <button
           type="button"
           :aria-label="text.remove({ file })"
           :disabled="field.disabled"
-          class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed disabled:opacity-50"
+          class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors duration-fast ease-out hover:bg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo disabled:cursor-not-allowed disabled:bg-muted disabled:shadow-none"
           @click="remove(index)"
         >
           <X class="h-4 w-4" />

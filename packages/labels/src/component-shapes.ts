@@ -90,6 +90,18 @@ export interface AvatarGroupLabels {
 }
 
 /**
+ * The one name this component publishes: its `<nav>` landmark's accessible
+ * name. Every visible word on the trail is the host's own item label, so this
+ * is the whole slot — but it is not optional, because a page commonly carries
+ * several navigation landmarks and a screen reader's landmark menu listing
+ * three entries all called "navigation" cannot tell them apart.
+ */
+export interface BreadcrumbLabels {
+  /** The `<nav>` landmark's own name. */
+  readonly label: string;
+}
+
+/**
  * Everything this picker publishes to assistive technology, and none of it is
  * optional: a saturation surface, two thumbs and a row of coloured squares
  * carry no text at all, so a name missing here is a control announced as
@@ -759,4 +771,16 @@ export interface WindowControlsLabels {
   readonly restore: string;
   /** Close the window. */
   readonly close: string;
+}
+
+/**
+ * The one name this component publishes: the scroll strip's accessible name,
+ * announced as a scrollable region. The items inside are the host's content
+ * and carry their own names, so this is the whole slot — but it is not
+ * optional, because a strip of images or cards with no region name is
+ * announced as an anonymous scrollable container.
+ */
+export interface ScrollReelLabels {
+  /** The reel region's accessible name. */
+  readonly region: string;
 }

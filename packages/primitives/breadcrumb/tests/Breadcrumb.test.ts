@@ -1,5 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { defineComponent, h } from "vue";
+import { provideLoomLabels } from "@ecoma-io/loom-labels";
 import Breadcrumb from "../src/Breadcrumb.vue";
 
 const trail = [
@@ -8,12 +10,48 @@ const trail = [
   { label: "Loom" },
 ];
 
+/** A host declaring an application-wide vocabulary above the control. */
+function hostWith(vocabulary: () => Record<string, unknown>) {
+  return defineComponent({
+    setup(_props, { slots }) {
+      provideLoomLabels(vocabulary);
+      return () => h("div", slots.default?.());
+    },
+  });
+}
+
 describe("Breadcrumb", () => {
   it("renders a nav with aria-label Breadcrumb", () => {
     const wrapper = mount(Breadcrumb, { props: { items: trail } });
     const nav = wrapper.find("nav");
     expect(nav.exists()).toBe(true);
     expect(nav.attributes("aria-label")).toBe("Breadcrumb");
+  });
+
+  it("renames the landmark through the labels prop", () => {
+    const wrapper = mount(Breadcrumb, {
+      props: { items: trail, labels: { label: "You are here" } },
+    });
+    expect(wrapper.get("nav").attributes("aria-label")).toBe("You are here");
+  });
+
+  it("takes its name from a host's vocabulary, and lets one instance correct it", () => {
+    const wrapper = mount(
+      hostWith(() => ({ breadcrumb: { label: "Trilha de navegação" } })),
+      {
+        slots: {
+          default: () => [
+            h(Breadcrumb, { items: trail }),
+            h(Breadcrumb, { items: trail, labels: { label: "Você está aqui" } }),
+          ],
+        },
+      },
+    );
+
+    const navs = wrapper.findAll("nav");
+    expect(navs[0]!.attributes("aria-label")).toBe("Trilha de navegação");
+    // The prop beats the provider, for the instance that needs its own name.
+    expect(navs[1]!.attributes("aria-label")).toBe("Você está aqui");
   });
 
   it("renders an ordered list", () => {

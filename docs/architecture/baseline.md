@@ -58,7 +58,7 @@ Exports:
 - **Utilities**: `cn`, `applyLoomIconDefaults`
 - **Theme**: `useTheme`, `themeScript`, `ThemePreference`, `ResolvedTheme`
 - **Labels**: `provideLoomLabels`, `LabelOf`, `LabelOverrides`, `LoomLabelOverrides`, `LoomLabels`
-- **Motion**: `LIST_STAGGER_CAP`, `LIST_STAGGER_STEP_MS`, `listStaggerDelay`
+- **Motion**: `listStaggerDelay`
 - **Date labels**: `CALENDAR_PANEL_LABELS`, `DATE_SEGMENT_LABELS`, `RANGE_CELL_LABELS`, `TIME_SEGMENT_LABELS` + types
 - **54 primitive components** + their variant maps and types
 - **8 composition components** + types

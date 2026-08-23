@@ -161,6 +161,10 @@ on `--ease-out`, since the indicator carries the motion. Loom's global
 `prefers-reduced-motion` rule collapses the slide to an instant jump; nothing
 here needs its own override.
 
+The `sm` segments carry an explicit 24px minimum height — the WCAG 2.5.8
+target floor made explicit rather than a product of whatever line-height the
+surrounding text hands down, with `text-micro` typography inside it.
+
 <Demo title="Every state" :source="segmentedControlDemoSource">
   <SegmentedControlDemo />
 </Demo>

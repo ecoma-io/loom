@@ -206,7 +206,10 @@ watch(
   (next) => {
     if (next !== undefined) tokens.value = [...next];
   },
-  { deep: true },
+  // Shallow, deliberately: the contract is whole-list replacement — `commit`
+  // emits the complete token list on every change and a host echoes it
+  // straight back down — so in-place mutation is not a case this mirror owes
+  // anyone. Same reasoning as Combobox's mirror of its selection.
 );
 
 const rejections = ref<TagsInputRejection[]>([]);

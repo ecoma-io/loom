@@ -5,7 +5,7 @@ import Combobox, { type ComboboxOption } from "../src/Combobox.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 import { LIST_STAGGER_STEP_MS, listStaggerDelay } from "@ecoma-io/loom-core";
-import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 
 const options: ComboboxOption[] = [
   { value: "en", label: "English" },

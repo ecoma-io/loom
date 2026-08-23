@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 import ContextMenu, { type ContextMenuEntry } from "../src/ContextMenu.vue";
 
 // jsdom ships no ResizeObserver, and Reka's popper measures with one. Stubbing
@@ -28,10 +29,10 @@ const ITEMS: ContextMenuEntry[] = [
 
 let mounted: VueWrapper | undefined;
 
-async function mountMenu(props: Record<string, unknown> = {}) {
+async function mountMenu(props: Record<string, unknown> = {}, triggerSlot?: string) {
   mounted = mount(ContextMenu, {
     props: { items: ITEMS, ...props },
-    slots: { trigger: '<div data-test="trigger">Right-click me</div>' },
+    slots: { trigger: triggerSlot ?? '<div data-test="trigger">Right-click me</div>' },
     attachTo: document.body,
   });
   await nextTick();
@@ -54,6 +55,17 @@ async function rightClick() {
     new MouseEvent("contextmenu", { clientX: 0, clientY: 0, bubbles: true, cancelable: true }),
   );
   await nextTick();
+  await nextTick();
+}
+
+/**
+ * Let Reka's focus and dismissal machinery settle. The macrotask is not
+ * padding: FocusScope restores focus from a `setTimeout`, so an assertion made
+ * after ticks alone would read the state one turn too early.
+ */
+async function settle() {
+  for (let i = 0; i < 4; i++) await nextTick();
+  await new Promise((resolve) => setTimeout(resolve, 0));
   await nextTick();
 }
 
@@ -146,5 +158,76 @@ describe("ContextMenu", () => {
     const wrapper = await mountMenu();
     await rightClick();
     expect(wrapper.emitted("update:open")).toEqual([[true]]);
+  });
+
+  // The keyboard pins below freeze what Reka's menu machinery (2.10.1) does
+  // once a context menu is open — the same MenuContentImpl the dropdown runs,
+  // reached here by right-click instead of ArrowDown.
+  describe("keyboard contract once open", () => {
+    /** The label of whatever menuitem holds focus, read the way a user sees it. */
+    const focusedLabel = () =>
+      document.activeElement?.closest<HTMLElement>('[role="menuitem"]')?.querySelector("span")
+        ?.textContent ?? null;
+
+    function press(key: string) {
+      document.activeElement?.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+    }
+
+    it("walks with ArrowDown past the separator and the disabled row", async () => {
+      await mountMenu();
+      await rightClick();
+      await settle(); // entry focus lands on the menu itself — pointer-opened, so it stays parked there
+
+      press("ArrowDown"); // this first press enters Cut
+      await settle();
+      expect(focusedLabel()).toBe("Cut");
+
+      press("ArrowDown");
+      await settle();
+      expect(focusedLabel()).toBe("Copy");
+
+      press("ArrowDown");
+      await settle();
+      expect(focusedLabel()).toBe("Delete"); // past Paste (disabled) and the separator in one step
+
+      press("ArrowUp");
+      await settle();
+      expect(focusedLabel()).toBe("Copy"); // and back
+    });
+
+    /**
+     * A plain `div` trigger cannot hold focus (Reka adds no tabindex), so
+     * focus restoration is pinned against a focusable trigger — with the div,
+     * "returns focus" would mean returning it to nobody, and the assertion
+     * would be unfalsifiable against document.body.
+     */
+    it("closes on Escape and hands focus back to whatever held it before the menu opened", async () => {
+      const wrapper = await mountMenu(
+        {},
+        '<button type="button" data-test="trigger">Edit target</button>',
+      );
+      const trigger = wrapper.get("button").element;
+      trigger.focus();
+      await rightClick();
+      await settle();
+      expect(menu()).not.toBeNull();
+
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      await settle();
+      expect(menu()).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it("closes when the pointer goes down outside the menu", async () => {
+      const outside = attachToBody(document.createElement("main"));
+      await mountMenu();
+      await rightClick();
+      await settle();
+      expect(menu()).not.toBeNull();
+
+      outside.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+      await settle();
+      expect(menu()).toBeNull();
+    });
   });
 });

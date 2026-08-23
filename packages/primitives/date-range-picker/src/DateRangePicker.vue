@@ -629,10 +629,11 @@ function onOpenAutoFocus(event: Event) {
       :side-offset="6"
       :class="
         cn(
-          'z-50 rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-md outline-none',
-          // Scoped to the open state, never unconditional — DatePicker carries
-          // the full account of why.
-          'data-[state=open]:animate-fade-rise',
+          'z-overlay rounded-md border border-border bg-popover p-3 text-popover-foreground shadow-md outline-none',
+          // Each class scoped to its own state — DatePicker carries the full
+          // account of why; the closed one is the exit whose animationend
+          // Presence waits out before taking the panel away.
+          'data-[state=open]:animate-fade-rise data-[state=closed]:animate-fade-fall',
         )
       "
       @open-auto-focus="onOpenAutoFocus"

@@ -12,7 +12,9 @@
   "dependencies": {
     "@ecoma-io/loom-core": "workspace:*",
     "@ecoma-io/loom-labels": "workspace:*",
-    "@ecoma-io/loom-chip": "workspace:*",
+    "@ecoma-io/loom-chip": "workspace:*"
+  },
+  "devDependencies": {
     "@ecoma-io/loom-field": "workspace:*"
   },
   "peerDependencies": {

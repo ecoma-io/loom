@@ -44,7 +44,7 @@ describe("Menubar ARIA structure", () => {
     expect(wrapper.find('[role="menubar"]').exists()).toBe(true);
     const trigger = wrapper.get("#menubar-trigger-file");
     expect(trigger.attributes("role")).toBe("menuitem");
-    expect(trigger.attributes("aria-haspopup")).toBe("true");
+    expect(trigger.attributes("aria-haspopup")).toBe("menu");
     expect(trigger.attributes("aria-expanded")).toBe("false");
     wrapper.unmount();
   });
@@ -165,54 +165,158 @@ describe("Menubar keyboard navigation", () => {
     wrapper.unmount();
   });
 
-  it("ArrowDown/ArrowUp skip separators and disabled items, and wrap at the ends", async () => {
+  it("ArrowRight/ArrowLeft on a trigger with nothing open move between triggers without opening one", async () => {
     const wrapper = mountMenubar();
-    const trigger = wrapper.get("#menubar-trigger-file");
-    await trigger.trigger("keydown", { key: "ArrowDown" }); // opens, highlights New (0)
-    const menu = wrapper.get('[role="menu"]');
 
-    await menu.trigger("keydown", { key: "ArrowDown" }); // -> Save (skips separator + disabled Open)
-    expect(fileItemButtons(wrapper)[2]!.attributes("data-highlighted")).toBe("true");
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowRight" });
+    expect(document.activeElement).toBe(wrapper.get("#menubar-trigger-view").element);
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false);
 
-    await menu.trigger("keydown", { key: "ArrowDown" }); // past the end -> wraps to New
-    expect(fileItemButtons(wrapper)[0]!.attributes("data-highlighted")).toBe("true");
-
-    await menu.trigger("keydown", { key: "ArrowUp" }); // wraps backward -> Save
-    expect(fileItemButtons(wrapper)[2]!.attributes("data-highlighted")).toBe("true");
-    wrapper.unmount();
-  });
-
-  it("Home/End jump to the first/last enabled item", async () => {
-    const wrapper = mountMenubar();
-    await wrapper.get("#menubar-trigger-file").trigger("click");
-    const menu = wrapper.get('[role="menu"]');
-    await menu.trigger("keydown", { key: "End" });
-    expect(fileItemButtons(wrapper)[2]!.attributes("data-highlighted")).toBe("true"); // Save
-    await menu.trigger("keydown", { key: "Home" });
-    expect(fileItemButtons(wrapper)[0]!.attributes("data-highlighted")).toBe("true"); // New
-    wrapper.unmount();
-  });
-
-  it("Enter selects the highlighted item", async () => {
-    const wrapper = mountMenubar();
-    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" }); // highlight New
-    await wrapper.get('[role="menu"]').trigger("keydown", { key: "Enter" });
-    expect(wrapper.emitted("select")).toEqual([["new"]]);
+    await wrapper.get("#menubar-trigger-view").trigger("keydown", { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(wrapper.get("#menubar-trigger-file").element);
     expect(wrapper.find('[role="menu"]').exists()).toBe(false);
     wrapper.unmount();
   });
 
-  it("ArrowRight/ArrowLeft move focus to the adjacent top-level menu, wrapping around", async () => {
+  it("opening from the trigger by keyboard lands DOM focus on the first enabled item", async () => {
+    const wrapper = mountMenubar();
+
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" });
+    expect(document.activeElement).toBe(fileItemButtons(wrapper)[0]!.element); // "New"
+
+    // Same landing for the other opening keys — Enter and Space are triggers too.
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "Escape" });
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "Enter" });
+    expect(document.activeElement).toBe(fileItemButtons(wrapper)[0]!.element);
+    wrapper.unmount();
+  });
+
+  it("ArrowDown/ArrowUp walk DOM focus skipping separators and disabled rows, wrapping at both ends", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" }); // focus New (0)
+    const buttons = fileItemButtons(wrapper);
+
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowDown" }); // -> Save (skips separator + disabled Open)
+    expect(document.activeElement).toBe(buttons[2]!.element);
+
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowDown" }); // past the end -> wraps to New
+    expect(document.activeElement).toBe(buttons[0]!.element);
+
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowUp" }); // wraps backward -> Save
+    expect(document.activeElement).toBe(buttons[2]!.element);
+    wrapper.unmount();
+  });
+
+  it("Home/End move focus to the first/last enabled item", async () => {
     const wrapper = mountMenubar();
     await wrapper.get("#menubar-trigger-file").trigger("click");
+    const buttons = fileItemButtons(wrapper);
+
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "End" });
+    expect(document.activeElement).toBe(buttons[2]!.element); // Save
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "Home" });
+    expect(document.activeElement).toBe(buttons[0]!.element); // New
+    wrapper.unmount();
+  });
+
+  it("Enter activates the focused row: emits its command and closes the menu", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" }); // focus New
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowDown" }); // focus Save
+
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "Enter" });
+    expect(wrapper.emitted("select")).toEqual([["save"]]);
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it("Space activates the focused row just like Enter", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" }); // focus New
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: " " });
+
+    expect(wrapper.emitted("select")).toEqual([["new"]]);
+    wrapper.unmount();
+  });
+
+  it("ArrowRight inside an open menu opens the next menu and focuses its first enabled item", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" });
+
     await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowRight" });
     expect(wrapper.get('[role="menu"]').attributes("aria-label")).toBe("View");
+    // View's only item, "Zoom", owns focus — the walk continues from there.
+    expect(document.activeElement).toBe(
+      wrapper.get('[role="menu"]').findAll('button[role="menuitem"]')[0]!.element,
+    );
 
-    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowRight" }); // wraps back to File
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowLeft" }); // wraps back to File
     expect(wrapper.get('[role="menu"]').attributes("aria-label")).toBe("File");
+    expect(document.activeElement).toBe(fileItemButtons(wrapper)[0]!.element);
+    wrapper.unmount();
+  });
 
-    await wrapper.get('[role="menu"]').trigger("keydown", { key: "ArrowLeft" }); // wraps to View
+  it("Escape closes the open menu and restores focus to the owning trigger", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" });
+    expect(document.activeElement).toBe(fileItemButtons(wrapper)[0]!.element);
+
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "Escape" });
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false);
+    expect(document.activeElement).toBe(wrapper.get("#menubar-trigger-file").element);
+    wrapper.unmount();
+  });
+
+  it("focus leaving the menubar closes the open menu without stealing focus back", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" });
+    expect(document.activeElement).toBe(fileItemButtons(wrapper)[0]!.element);
+
+    // Tab out: the browser moves focus past the strip, which surfaces here as
+    // a focusout whose relatedTarget sits outside the menubar root.
+    fileItemButtons(wrapper)[0]!.element.dispatchEvent(
+      new FocusEvent("focusout", { relatedTarget: document.body, bubbles: true }),
+    );
+    await nextTick();
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it("focus moving between parts of the menubar keeps the menu open", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" });
+    expect(wrapper.find('[role="menu"]').exists()).toBe(true);
+
+    // The open hands focus to the first row; that move is internal to the
+    // menubar and must not read as Tab-out.
+    await nextTick();
+    expect(wrapper.find('[role="menu"]').exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("a disabled row is neither highlighted by hover nor activated by Enter", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" }); // focus New
+    const buttons = fileItemButtons(wrapper);
+
+    await buttons[1]!.trigger("mouseenter"); // "Open" (disabled)
+    expect(buttons[1]!.attributes("data-highlighted")).toBeUndefined();
+    expect(document.activeElement).toBe(buttons[0]!.element); // highlight never left New
+
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "Enter" }); // activates what IS focused
+    expect(wrapper.emitted("select")).toEqual([["new"]]);
+    wrapper.unmount();
+  });
+
+  it("pointer-hover switching between open menus moves focus into the new menu's first item", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" });
+
+    await wrapper.get("#menubar-trigger-view").trigger("mouseenter");
     expect(wrapper.get('[role="menu"]').attributes("aria-label")).toBe("View");
+    expect(document.activeElement).toBe(
+      wrapper.get('[role="menu"]').findAll('button[role="menuitem"]')[0]!.element,
+    ); // Zoom
     wrapper.unmount();
   });
 });

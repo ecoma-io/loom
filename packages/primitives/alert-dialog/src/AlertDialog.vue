@@ -138,31 +138,34 @@ const panelBindings = computed(() => ({
     </AlertDialogTrigger>
 
     <AlertDialogPortal>
-      <!-- Same scrim as Dialog, and it is inert here: Reka's AlertDialogContent
-           prevents both `pointerDownOutside` and `interactOutside`, so a click
-           lands on nothing. That is the point — an accidental click at the edge
-           of the screen must not be able to answer the question. -->
+      <!-- The scrim token Dialog uses, and its paired exit, so a dismissed
+           alert fades rather than cuts. It is inert here: Reka's
+           AlertDialogContent prevents both `pointerDownOutside` and
+           `interactOutside`, so a click lands on nothing. That is the point —
+           an accidental click at the edge of the screen must not be able to
+           answer the question. -->
       <AlertDialogOverlay
-        class="fixed inset-0 z-50 bg-foreground/70 data-[state=open]:animate-fade"
+        class="fixed inset-0 z-overlay bg-foreground/scrim data-[state=open]:animate-fade data-[state=closed]:animate-fade-out"
       />
       <AlertDialogContent
         v-bind="panelBindings"
         :data-destructive="destructive || undefined"
         :class="
           cn(
-            'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
+            'fixed left-1/2 top-1/2 z-overlay -translate-x-1/2 -translate-y-1/2',
             // One width, and no `size` prop to vary it. A decision has one
             // shape; the wider panels exist on Dialog because an authoring
             // surface needs them, and there is no authoring surface here.
             'w-[min(92vw,32rem)]',
             'rounded-lg border border-border bg-popover p-6 text-popover-foreground shadow-lg outline-none',
-            // Scoped to the open state, never unconditional. Reka's Presence
-            // keeps closed content mounted until an animationend arrives, and a
+            // Both states scoped, never unconditional. Reka's Presence keeps
+            // closed content mounted until an animationend arrives, and a
             // mount-only animation never fires a second one — which here would
             // strand a full-screen, input-blocking overlay over a page with no
-            // alert on it. Scoped, the closed element computes
-            // `animation-name: none` and Presence unmounts it at once.
-            'data-[state=open]:animate-scale-in',
+            // alert on it. The paired exit answers the entrance as Dialog's
+            // does, and stays safe under `prefers-reduced-motion`: the 0.01ms
+            // collapse still fires `animationend`, so Presence still unmounts.
+            'data-[state=open]:animate-scale-in data-[state=closed]:animate-scale-out',
             attrs.class as string,
           )
         "

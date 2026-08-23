@@ -186,7 +186,15 @@ withDefaults(
         <!-- Beat 3 — the loading text rises last. The stagger delay applies on
              entry only (exit keeps delay 0, so the film cuts out clean), and
              it is cancelled under reduced motion so the instant swap is not
-             lagged by a delay nobody asked for. -->
+             lagged by a delay nobody asked for.
+
+             The raw 100ms/75ms pair is deliberate: the motion tokens bracket
+             this beat without landing on it — `fast` (140ms) is beat 1's own
+             exit duration, so sharing it would flatten the stagger into one
+             simultaneous move, and `instant` (80ms) reads as a flicker. The
+             choreography only makes sense between the two rungs, which no
+             token expresses; if a delay token ever lands in theme.css, this
+             is the first candidate to move onto it. -->
         <span
           v-if="loadingText"
           class="transition-[opacity,transform] duration-100 ease-out opacity-0 translate-y-1 group-data-[loading]:translate-y-0 group-data-[loading]:opacity-100 group-data-[loading]:delay-75 motion-reduce:group-data-[loading]:delay-0"

@@ -20,6 +20,14 @@ import { optional } from "@ecoma-io/loom-core";
  * arrow-key navigation, a11y sourced from the `tab`/`tabpanel` pattern).
  * Panels are supplied by the host via named slots keyed by each tab's
  * `value` — `<Tabs :tabs="tabs"><template #overview>…</template></Tabs>`.
+ *
+ * The panels are real focus stops: Reka gives each `TabsContent`
+ * `tabindex="0"`, which is the ARIA tabs pattern's answer to "how does a
+ * keyboard reader get from the tab list to the content" — Tab lands on the
+ * active panel. An earlier `focus-visible:outline-none` here therefore
+ * silenced a legitimate focus indicator (WCAG 2.4.7) rather than a cosmetic
+ * one, so the panel wears the canonical ring like every other focusable
+ * surface in the library.
  */
 defineProps<{
   /** The selected tab's value. Omit it and Tabs owns its own selection. */
@@ -73,7 +81,7 @@ defineEmits<{ "update:modelValue": [value: string] }>();
       v-for="tab in tabs"
       :key="tab.value"
       :value="tab.value"
-      class="animate-fade-rise pt-4 focus-visible:outline-none"
+      class="animate-fade-rise pt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo"
     >
       <slot :name="tab.value" />
     </TabsContent>

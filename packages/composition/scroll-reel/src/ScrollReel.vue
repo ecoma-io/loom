@@ -16,6 +16,20 @@ export type ScrollReelSnap = "start" | "center" | "end" | "none";
 
 export type ScrollReelGap = "sm" | "md" | "lg";
 
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it,
+ * and exported so a host can build a partial vocabulary against the real
+ * thing rather than a transcription of it. The type itself lives in the
+ * labels registry (`ScrollReelLabels`) like every other slot's, so
+ * `provideLoomLabels({ scrollReel: … })` reaches this component exactly as
+ * it reaches every primitive — composition sits above labels in the layer
+ * direction, and a host localising one reel should not have to learn a
+ * second seam to do it.
+ */
+export const SCROLL_REEL_LABELS: ScrollReelLabels = {
+  region: "Scrollable content",
+};
+
 const snapClass: Record<ScrollReelSnap, string> = {
   start: "snap-x snap-mandatory snap-start",
   center: "snap-x snap-mandatory snap-center",
@@ -36,18 +50,50 @@ export { snapClass, gapClass };
 <script setup lang="ts">
 import { ref } from "vue";
 import { cn } from "@ecoma-io/loom-core";
+import { useLabels, type LabelOverrides, type ScrollReelLabels } from "@ecoma-io/loom-labels";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** Scroll-snap alignment. "none" disables snap entirely. */
     snap?: ScrollReelSnap;
     /** Gap between items — mirrors Stack's scale. Tightens one notch below `sm`. */
     gap?: ScrollReelGap;
+    /**
+     * Names for what the reel says out loud, as any subset of
+     * `ScrollReelLabels` — the per-instance correction over
+     * `SCROLL_REEL_LABELS`, in the same shape a primitive's `labels` prop
+     * takes.
+     */
+    labels?: LabelOverrides<ScrollReelLabels>;
   }>(),
   { snap: "start", gap: "md" },
 );
 
+// `text`, not `labels`: the prop of that name is one of the three sources this
+// resolves (own prop, then the host vocabulary from `provideLoomLabels`, then
+// these English defaults), and a template reading the raw prop would be
+// reading the overrides rather than the answer.
+const text = useLabels("scrollReel", SCROLL_REEL_LABELS, () => props.labels);
+
 const reel = ref<HTMLDivElement | null>(null);
+
+/**
+ * The behaviour every scroll request below is handed. The reduced-motion rule
+ * in `global.css` cannot reach this path on its own: an explicit
+ * `"smooth"` in a `scrollTo` dictionary overrides the stylesheet's
+ * `scroll-behavior` (that is what the spec says a non-`"auto"` behaviour
+ * value is for), so the CSS kill-switch would stand by while JavaScript
+ * animated the strip anyway. The softening has to happen here, at the
+ * source.
+ */
+function scrollBehavior(): "auto" | "smooth" {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  } catch {
+    // matchMedia may be unavailable; smooth is the behaviour being replaced.
+    return "smooth";
+  }
+}
 
 /**
  * Keyboard navigation for scroll-snap: arrow keys scroll to the next or
@@ -64,12 +110,13 @@ function onKeydown(event: KeyboardEvent) {
 
   event.preventDefault();
 
+  const behavior = scrollBehavior();
   if (event.key === "Home") {
-    el.scrollTo({ left: 0, behavior: "smooth" });
+    el.scrollTo({ left: 0, behavior });
     return;
   }
   if (event.key === "End") {
-    el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+    el.scrollTo({ left: el.scrollWidth, behavior });
     return;
   }
 
@@ -81,7 +128,7 @@ function onKeydown(event: KeyboardEvent) {
     const childEdge = direction === 1 ? child.offsetLeft : child.offsetLeft + child.offsetWidth;
     const isNext = direction === 1 ? childEdge > scrollEdge - 1 : childEdge < scrollEdge + 1;
     if (isNext) {
-      child.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+      child.scrollIntoView({ behavior, block: "nearest", inline: "start" });
       break;
     }
   }
@@ -89,7 +136,7 @@ function onKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <!-- `role="region"` + `tabindex="0"` + `aria-label` make this a named,
+  <!-- `role="region"` + `tabindex="0"` + an accessible name make this a named,
     focusable landmark region. The keyboard handler is what makes the
     scroll-snap strip navigable by arrow keys — a genuine interaction on
     a genuinely interactive element. The rule does not account for
@@ -101,7 +148,7 @@ function onKeydown(event: KeyboardEvent) {
     :class="cn('flex flex-row', snapClass[snap], gapClass[gap])"
     tabindex="0"
     role="region"
-    aria-label="Scrollable content"
+    :aria-label="text.region"
     @keydown="onKeydown"
   >
     <slot />

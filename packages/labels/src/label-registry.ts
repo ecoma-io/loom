@@ -7,6 +7,7 @@ import type {
 import type {
   AlertDialogLabels,
   AvatarGroupLabels,
+  BreadcrumbLabels,
   ColorPickerLabels,
   ComboboxLabels,
   DateRangeLabels,
@@ -22,6 +23,7 @@ import type {
   ProgressLabels,
   RadialProgressLabels,
   RatingLabels,
+  ScrollReelLabels,
   StepperLabels,
   TagsInputLabels,
   TextFieldLabels,
@@ -56,6 +58,8 @@ import type {
 export interface LoomLabels {
   readonly pagination: PaginationLabels;
   readonly windowControls: WindowControlsLabels;
+  readonly breadcrumb: BreadcrumbLabels;
+  readonly scrollReel: ScrollReelLabels;
   // Six slots for the five date and time controls, because four of the six are
   // shared: the two halves of a segmented field's part names, the calendar
   // popover's chrome and a range calendar's cell are each one vocabulary spoken

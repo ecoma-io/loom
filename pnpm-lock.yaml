@@ -325,6 +325,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -786,6 +789,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -1461,9 +1467,6 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
-      '@ecoma-io/loom-field':
-        specifier: workspace:*
-        version: link:../field
       '@ecoma-io/loom-labels':
         specifier: workspace:*
         version: link:../../labels
@@ -1476,6 +1479,10 @@ importers:
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
+    devDependencies:
+      '@ecoma-io/loom-field':
+        specifier: workspace:*
+        version: link:../field
 
   packages/primitives/text-field:
     dependencies:

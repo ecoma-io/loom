@@ -34,6 +34,10 @@ export default defineConfig({
     // can follow the imports without needing them installed in node_modules.
     // These aliases mirror the tsconfig paths and must stay in sync.
     alias: {
+      // The testing subpath is listed before the bare package: a string alias
+      // also matches the specifier it prefixes, and without this line
+      // `@ecoma-io/loom-core/testing` would resolve to `index.ts/testing`.
+      "@ecoma-io/loom-core/testing": pkg("core/src/testing/attach-to-body.ts"),
       "@ecoma-io/loom-core": pkg("core/src/index.ts"),
       "@ecoma-io/loom-labels": pkg("labels/src/index.ts"),
       // Component package aliases. These are needed by Vitest so it can follow

@@ -425,16 +425,19 @@ describe("FileUpload", () => {
     ).toBe(true);
   });
 
-  // The counterpart verdict. A remove button's whole content is an `aria-hidden`
-  // glyph, named by an `aria-label` no paint can reach — nothing there for an
-  // alpha to make illegible, so the dim stays.
-  it("leaves a disabled remove button dimming, because it holds a glyph and no text", () => {
+  // The counterpart verdict, aligned with the zone above rather than at odds
+  // with it: the glyph-only remove control takes the same neutral well every
+  // other unavailable control drains to, so an unavailable uploader reads as
+  // one treatment. WCAG exempts an inactive control from 1.4.11 either way;
+  // what decided this was consistency across Loom, not per-glyph reasoning.
+  it("drains a disabled remove button to the neutral well instead of fading it", () => {
     const wrapper = mount(FileUpload, {
       props: { modelValue: [makeFile("a.txt")], disabled: true },
     });
     const remove = wrapper.get('button[aria-label="Remove a.txt"]');
 
-    expect(remove.classes()).toContain("disabled:opacity-50");
+    expect(remove.classes()).not.toContain("opacity-50");
+    expect(remove.classes()).toContain("disabled:bg-muted");
     expect(remove.text()).toBe("");
   });
 

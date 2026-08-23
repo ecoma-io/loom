@@ -55,8 +55,11 @@ import { useLabels, type LabelOverrides } from "@ecoma-io/loom-labels";
  *
  * The escape contract, and it is the strictest of the overlays: opening moves
  * focus into the panel and *traps* it there, so Tab cycles the dialog's own
- * controls and never reaches the page behind. Esc, the overlay and the close
- * button all close it; closing returns focus to whatever opened it. The page
+ * controls and never reaches the page behind. Esc, an overlay press and the
+ * close control all close it — Esc and the overlay do so whether or not
+ * `closable` is false, which governs the corner control alone; a dialog whose
+ * only exits are its own action row is `AlertDialog`'s job. Closing returns
+ * focus to whatever opened it. The page
  * behind does not scroll while it is open. Everything outside the panel is
  * hidden from assistive technology, which is what makes the block real rather
  * than visual.
@@ -79,7 +82,11 @@ const props = withDefaults(
     description?: string;
     /** Keep the title as the accessible name but drop it from the visual layout. */
     hideTitle?: boolean;
-    /** Show the close affordance in the top corner. Esc and an overlay click close the dialog either way. */
+    /**
+     * Shows the corner close affordance. Esc and an overlay press dismiss the
+     * dialog either way — they are passive exits for a blocking-but-ordinary
+     * question; withdrawing them too is what `AlertDialog` exists for.
+     */
     closable?: boolean;
     /** Panel width. `md` confirms, `lg` multi-section forms, `xl` authoring surfaces. */
     size?: DialogSize;
@@ -126,12 +133,12 @@ const text = useLabels("dialog", DIALOG_LABELS, () => props.labels);
            argument, and a scrim that lingers on the way out is a page that
            feels slow to give itself back. -->
       <DialogOverlay
-        class="fixed inset-0 z-50 bg-foreground/scrim data-[state=open]:animate-fade data-[state=closed]:animate-fade-out"
+        class="fixed inset-0 z-overlay bg-foreground/scrim data-[state=open]:animate-fade data-[state=closed]:animate-fade-out"
       />
       <DialogContent
         :class="
           cn(
-            'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
+            'fixed left-1/2 top-1/2 z-overlay -translate-x-1/2 -translate-y-1/2',
             SIZE_CLASS[size],
             'rounded-lg border border-border bg-popover p-6 text-popover-foreground shadow-lg outline-none',
             // Both states scoped, never unconditional. Reka's Presence keeps

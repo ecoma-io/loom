@@ -5,7 +5,7 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import DateTimePicker from "../src/DateTimePicker.vue";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
-import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 
 // The calendar is portalled to `document.body` and Reka drives it with real
 // pointer capture, focus and layout APIs, none of which jsdom implements. Each

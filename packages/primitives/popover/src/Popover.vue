@@ -77,16 +77,18 @@ defineEmits<{ "update:open": [value: boolean] }>();
         :side-offset="sideOffset"
         :class="
           cn(
-            'z-50 min-w-[12rem] max-w-[min(90vw,22rem)] rounded-md border border-border bg-popover p-3 text-sm text-popover-foreground shadow-md outline-none',
-            // Scoped to the open state, never unconditional. Reka's Presence
+            'z-overlay min-w-[12rem] max-w-[min(90vw,22rem)] rounded-md border border-border bg-popover p-3 text-sm text-popover-foreground shadow-md outline-none',
+            // Both states scoped, never unconditional. Reka's Presence
             // keeps closed content mounted until an animationend arrives, and a
             // mount-only animation never fires a second one — so an
             // unconditional animation class strands an invisible panel over the
             // page, swallowing clicks. Scoped, the closed element computes
             // `animation-name: none` and Presence takes its immediate-unmount
-            // branch instead. The origin below is what makes that scale grow
-            // out of the trigger rather than out of the panel's own centre.
-            'data-[state=open]:animate-scale-in',
+            // branch instead; the paired exit is precisely what Presence is
+            // waiting to hold it for. The origin below is what makes that scale
+            // grow out of the trigger rather than out of the panel's own
+            // centre — on the way out as well as in.
+            'data-[state=open]:animate-scale-in data-[state=closed]:animate-scale-out',
           )
         "
         style="transform-origin: var(--reka-popper-transform-origin)"

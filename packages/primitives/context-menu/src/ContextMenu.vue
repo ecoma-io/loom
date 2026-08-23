@@ -98,16 +98,18 @@ function choose(item: ContextMenuEntry): void {
         align="start"
         :class="
           cn(
-            'z-50 min-w-[12rem] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none',
-            // Scoped to the open state, never unconditional. Reka's Presence
+            'z-overlay min-w-[12rem] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none',
+            // Both states scoped, never unconditional. Reka's Presence
             // keeps closed content mounted until an animationend arrives, and a
             // mount-only animation never fires a second one — so an
             // unconditional animation class strands an invisible menu over the
             // page, catching clicks meant for what is behind it. Scoped, the
             // closed element computes `animation-name: none` and Presence
-            // unmounts it at once. The origin below makes the menu grow out of
-            // the click point rather than out of its own centre.
-            'data-[state=open]:animate-scale-in',
+            // unmounts it at once; the paired exit is precisely what Presence
+            // is waiting to hold it for. The origin below makes the menu grow
+            // out of the click point rather than out of its own centre — on
+            // the way out as well as in.
+            'data-[state=open]:animate-scale-in data-[state=closed]:animate-scale-out',
           )
         "
         style="transform-origin: var(--reka-popper-transform-origin)"

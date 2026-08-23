@@ -23,6 +23,19 @@ describe("Link", () => {
     expect(mutedLink.classes()).toContain("text-muted-foreground");
   });
 
+  it("underlines every variant by default — muted included, so no link is identified by colour alone (WCAG 1.4.1)", () => {
+    for (const variant of ["default", "muted", "accent", "subtle"] as const) {
+      const wrapper = mount(Link, { props: { href: "/x", variant } });
+      expect(wrapper.classes(), `variant ${variant}`).toContain("underline");
+    }
+  });
+
+  it("lets the underline prop remove the underline on any variant, muted included", () => {
+    const muted = mount(Link, { props: { href: "/muted", variant: "muted", underline: false } });
+    expect(muted.classes()).not.toContain("underline");
+    expect(muted.classes()).toContain("no-underline");
+  });
+
   it("removes the underline when underline is false", () => {
     const wrapper = mount(Link, {
       props: { href: "/plain", underline: false },
@@ -59,6 +72,17 @@ describe("Link", () => {
     expect((wrapper.element as HTMLElement).tagName).toBe("SPAN");
     expect(wrapper.attributes("aria-disabled")).toBe("true");
     expect(wrapper.find("a").exists()).toBe(false);
+  });
+
+  it("drains the unavailable link to the neutral well instead of dimming it", () => {
+    const wrapper = mount(Link, {
+      props: { href: "/unavailable", disabled: true },
+      slots: { default: "Unavailable" },
+    });
+
+    expect(wrapper.classes()).toContain("bg-muted");
+    expect(wrapper.classes()).toContain("text-muted-foreground");
+    expect(wrapper.classes()).not.toContain("opacity-50");
   });
 
   it("keeps same-context links free of external browsing attributes", () => {

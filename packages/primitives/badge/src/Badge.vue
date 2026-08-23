@@ -23,7 +23,11 @@ export const badgeVariants = cva(
         // theme.css), which is what these variants were named for.
         primary: "border-transparent bg-primary-muted text-primary-text",
         success: "border-transparent bg-success-muted text-success-text",
-        warning: "border-transparent bg-warning-muted text-warning",
+        // `-text`, not the bare `warning`: the tinted washes are mixed to hold
+        // their contrast against the `*-text` rung in both themes, and the
+        // base hue is not — on the dark `--color-warning` dropped to a
+        // mid-amber that washed out against its own muted fill.
+        warning: "border-transparent bg-warning-muted text-warning-text",
         info: "border-transparent bg-info-muted text-info-text",
         destructive: "border-transparent bg-destructive-muted text-destructive-text",
         accent: "border-accent/40 bg-accent-muted text-accent-text",

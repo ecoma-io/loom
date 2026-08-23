@@ -85,27 +85,22 @@ describe("Switch", () => {
     expect(wrapper.emitted("update:modelValue")).toBeUndefined();
   });
 
-  it("keeps the dim on the track and thumb, which hold no text of their own", () => {
-    // The library-wide rule is that an `opacity` may drain a border, a fill or
-    // a glyph and may never drain text, because compositing at 50% more than
-    // halves the contrast of whatever is underneath. This control renders a
-    // track and a thumb and no words at all, so `disabled:opacity-50` here is
-    // correct and stays. The name lives on a label the *host* owns, outside
-    // this tree — `SwitchDemo.vue` is where that half is pinned.
+  it("drains the unavailable track to the neutral well instead of dimming it", () => {
+    // The library-wide rule is drained, not dimmed: `opacity-50` faded track
+    // and thumb together, compositing both below their measured contrast —
+    // the failure Button records for its own dim. The unchecked track falls
+    // to `bg-muted` and a slackened rim; a checked one keeps the primary wash,
+    // because switched-on is information (the same call Chip makes for a
+    // selected chip).
     const wrapper = mount(Switch, {
-      props: { modelValue: true, disabled: true },
+      props: { modelValue: false, disabled: true },
       attrs: { "aria-label": "Autosave" },
     });
 
     const track = wrapper.get('[role="switch"]');
-    expect(track.classes()).toContain("disabled:opacity-50");
-    expect(track.text()).toBe("");
-
-    const dimmed = wrapper
-      .findAll("*")
-      .filter((el) => el.text().trim() !== "")
-      .filter((el) => el.classes().some((name) => /(^|:)opacity-/.test(name)));
-    expect(dimmed.map((el) => el.classes().join(" "))).toEqual([]);
+    expect(track.classes()).toContain("disabled:data-[state=unchecked]:bg-muted");
+    expect(track.classes()).toContain("disabled:data-[state=unchecked]:border-border");
+    expect(track.classes()).not.toContain("opacity-50");
   });
 
   it("mirrors the model value into data-state, the hook the checked primary fill and the unchecked muted track both key on", async () => {

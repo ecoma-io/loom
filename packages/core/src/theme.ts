@@ -17,7 +17,7 @@
  *   <script>${themeScript}</script>
  */
 
-import { type Ref, computed, onScopeDispose, ref, watch } from "vue";
+import { type Ref, EffectScope, computed, getCurrentScope, onScopeDispose, ref, watch } from "vue";
 
 /** The preference a user expresses — `"system"` defers to the OS. */
 export type ThemePreference = "light" | "dark" | "system";
@@ -39,7 +39,23 @@ interface ThemeState {
   systemIsDark: Ref<boolean>;
   mediaQuery: MediaQueryList | null;
   listener: ((e: MediaQueryListEvent) => void) | null;
+  /** Consumers that can be released — see `useTheme` for who does not count. */
   scopeCount: number;
+  /**
+   * The detached scope that owns the apply/persist watcher below. The side
+   * effects are the shared state's, not the first consumer's: owned by a
+   * consumer's scope they would die the day that component unmounted while
+   * later ones stayed mounted, leaving an app whose theme button had gone
+   * silent. Detached so creation inside a component setup does not link it
+   * into that component's own scope.
+   */
+  owner: EffectScope;
+  /**
+   * The preference last written to `localStorage`. `"system"` resolves away,
+   * so OS dark-mode flips fire the watcher with a preference that has not
+   * changed — without this, every flip rewrites storage with the same value.
+   */
+  lastPersisted: ThemePreference;
 }
 
 /**
@@ -50,20 +66,41 @@ interface ThemeState {
  */
 let sharedState: ThemeState | null = null;
 
+/** Fired once, at the first `useTheme()` call made outside any active effect scope. */
+let warnedOutsideScope = false;
+
 /**
  * Reset the shared state. Intended for test isolation only — a real app
  * never needs this because the state lives for the app's lifetime.
  */
 export function _resetThemeState(): void {
-  if (sharedState?.mediaQuery && sharedState.listener) {
-    sharedState.mediaQuery.removeEventListener("change", sharedState.listener);
+  if (sharedState) {
+    sharedState.owner.stop();
+    if (sharedState.mediaQuery && sharedState.listener) {
+      sharedState.mediaQuery.removeEventListener("change", sharedState.listener);
+    }
   }
   sharedState = null;
+  warnedOutsideScope = false;
 }
 
 function getSharedState(): ThemeState {
+  // A consumer is released by the effect scope it was called from, so a call
+  // from outside any scope is one that could never be released — counting it
+  // would pin the matchMedia listener open forever. It still gets the state,
+  // but it does not count toward teardown, and development is told once so
+  // the eventual leak is attributed to a call site instead of discovered as
+  // an immortal listener.
+  const scoped = getCurrentScope() !== undefined;
+  if (!scoped && !warnedOutsideScope) {
+    warnedOutsideScope = true;
+    console.warn(
+      "[loom] useTheme() called outside an active effect scope; the shared theme state can never be released. Call it from setup() or inside an effectScope().",
+    );
+  }
+
   if (sharedState) {
-    sharedState.scopeCount++;
+    if (scoped) sharedState.scopeCount++;
     return sharedState;
   }
 
@@ -99,15 +136,35 @@ function getSharedState(): ThemeState {
     // matchMedia may be unavailable.
   }
 
-  sharedState = {
+  const owner = new EffectScope(true);
+  const state: ThemeState = {
     preference,
     systemIsDark,
     mediaQuery,
     listener,
-    scopeCount: 1,
+    scopeCount: scoped ? 1 : 0,
+    owner,
+    lastPersisted: stored,
   };
+  sharedState = state;
 
-  return sharedState;
+  // The apply/persist watcher is created exactly once, here in the detached
+  // scope that owns the shared state — never per consumer. N components
+  // calling `useTheme()` must not mean N writes to `data-theme` and
+  // `localStorage` on every change.
+  owner.run(() => {
+    watch([preference, systemIsDark], () => {
+      // Applied even when the preference itself has not moved: an OS flip
+      // under `"system"` resolves differently without any user action.
+      applyToDOM(resolveTheme(preference.value, systemIsDark.value));
+      if (preference.value !== state.lastPersisted) {
+        state.lastPersisted = preference.value;
+        persist(state.lastPersisted);
+      }
+    });
+  });
+
+  return state;
 }
 
 function releaseSharedState(): void {
@@ -115,7 +172,8 @@ function releaseSharedState(): void {
   sharedState.scopeCount--;
   if (sharedState.scopeCount > 0) return;
 
-  // Last consumer gone — tear down the listener.
+  // Last counted consumer gone — stop the side effects, then the listener.
+  sharedState.owner.stop();
   if (sharedState.mediaQuery && sharedState.listener) {
     sharedState.mediaQuery.removeEventListener("change", sharedState.listener);
   }
@@ -157,6 +215,15 @@ function persist(preference: ThemePreference): void {
 /**
  * Read and control the active Loom theme.
  *
+ * Call it from a component `setup()` or inside an `effectScope()` — that
+ * scope is what releases the shared state when its last real consumer
+ * unmounts. A call from outside any effect scope still works, but it can
+ * never be released, so it is not counted and development warns once; the
+ * shared state simply lives as long as whatever creates it next counts for.
+ * The DOM-apply and persistence side effects are created once per app in a
+ * detached scope of their own — never once per consumer — and storage is
+ * only written when the stored preference actually changes.
+ *
  * @example
  * ```vue
  * <script setup>
@@ -179,8 +246,12 @@ export function useTheme(): {
 } {
   const state = getSharedState();
 
-  // Clean up the shared listener when the consuming scope disposes.
-  onScopeDispose(releaseSharedState);
+  // Clean up the shared state when the consuming scope disposes. Only a call
+  // from inside an active scope is registered — and only such a call was
+  // counted by `getSharedState()` in the first place; outside one,
+  // `onScopeDispose` would silently do nothing and the count would never
+  // come back down.
+  if (getCurrentScope() !== undefined) onScopeDispose(releaseSharedState);
 
   /** The user's preference — `"system"` defers to the OS. */
   const theme = computed<ThemePreference>({
@@ -194,13 +265,6 @@ export function useTheme(): {
   const resolvedTheme = computed<ResolvedTheme>(() =>
     resolveTheme(state.preference.value, state.systemIsDark.value),
   );
-
-  // Whenever the preference or the OS signal changes, apply the resolved
-  // theme to the DOM and persist the preference.
-  watch([() => state.preference.value, () => state.systemIsDark.value], () => {
-    applyToDOM(resolvedTheme.value);
-    persist(state.preference.value);
-  });
 
   /** Set the theme preference explicitly. */
   function setTheme(preference: ThemePreference): void {

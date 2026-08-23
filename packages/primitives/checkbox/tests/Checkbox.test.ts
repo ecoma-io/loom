@@ -228,27 +228,41 @@ describe("Checkbox", () => {
     expect(row.get("label").classes()).toContain("cursor-not-allowed");
   });
 
-  it("keeps the dim on the box, which holds no text, and never on the label beside it", () => {
-    // The library-wide rule is that an `opacity` may drain a border, a fill or
-    // a glyph and may never drain text, because compositing at 50% more than
-    // halves the contrast of whatever is underneath. This control is on the
-    // right side of it *by construction* — the box is a sibling of the label,
-    // not a wrapper around it — and this test is what stops a later edit from
-    // hoisting the dim onto the `<label>` and taking the words with it.
+  it("drains the box to the neutral well when disabled, and never the label beside it", () => {
+    // The library-wide rule is drained, not dimmed: `opacity-50` faded box
+    // and border together — the failure Button records for its own dim. An
+    // unchecked box falls to `bg-muted` with a slackened rim; a checked one
+    // keeps its primary untouched (pinned separately below). This test also
+    // stops a later edit from hoisting any fade onto the `<label>` and taking
+    // the words with it.
     const row = mount(ProbeRow, {
       props: { disabled: true },
       slots: { default: h(Checkbox, { label: "Accept the terms" }) },
     });
 
     const box = row.get('[role="checkbox"]');
-    expect(box.classes()).toContain("disabled:opacity-50");
-    expect(box.text()).toBe("");
+    expect(box.classes()).toContain("disabled:data-[state=unchecked]:bg-muted");
+    expect(box.classes()).toContain("disabled:data-[state=unchecked]:border-border");
+    expect(box.classes()).not.toContain("opacity-50");
 
     const dimmed = row
       .findAll("*")
       .filter((el) => el.text().trim() !== "")
       .filter((el) => el.classes().some((name) => /(^|:)opacity-/.test(name)));
     expect(dimmed.map((el) => el.classes().join(" "))).toEqual([]);
+  });
+
+  // One verdict across the selection controls: Switch's thumb and
+  // RadioGroup's dot keep their primary under disabled, so the box does too —
+  // a selected control reads as selected whether or not it is available.
+  it("keeps a checked box's primary fill while unavailable, matching Switch and RadioGroup", () => {
+    const box = mount(Checkbox, {
+      props: { ariaLabel: "Accept the terms", disabled: true, modelValue: true },
+    }).get('[role="checkbox"]');
+
+    expect(box.attributes("data-state")).toBe("checked");
+    expect(box.classes()).toContain("data-[state=checked]:bg-primary");
+    expect(box.classes()).not.toContain("disabled:data-[state=checked]");
   });
 
   it("lets an explicit disabled overrule the row in both directions", () => {

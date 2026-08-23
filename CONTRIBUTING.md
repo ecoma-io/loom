@@ -265,6 +265,15 @@ into every consuming product at once:
 - no state is conveyed by colour alone;
 - motion has a `prefers-reduced-motion` path.
 
+Disabling follows the platform's own split, and which half applies is decided
+by what a control is built on. A control whose root is a native form element
+(`input`, `button`, `select`, `textarea`) is disabled by an enclosing
+`<fieldset disabled>` for free and must not duplicate that; a composite built
+on `role=` elements feels nothing native and calls `useAncestorDisabled()` to
+read the same attribute off the DOM. Reach for the composable when your
+control is composite, and trust the fieldset when it is not — the docblock on
+`useAncestorDisabled` carries the measured reasoning.
+
 An accessibility bug is a bug, and it is filed and fixed as one.
 
 ## Opening a pull request

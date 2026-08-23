@@ -86,18 +86,20 @@ describe("RadioGroup", () => {
     }
   });
 
-  it("keeps the dim on the radio circle and mutes the label in a measured colour instead", () => {
-    // The library-wide rule is that an `opacity` may drain a border, a fill or
-    // a glyph and may never drain text, because compositing at 50% more than
-    // halves the contrast of whatever is underneath. This group is on the right
-    // side of it already: the dim sits on the circle, which holds nothing but
-    // the selected dot, while the label beside it swaps to a colour that was
-    // measured. This test is what stops a later edit from hoisting the dim onto
-    // the `<label>` and taking the option's words down with it.
+  it("drains the unchecked circle instead of dimming it, and never dims text", () => {
+    // The library-wide rule is drained, not dimmed: `opacity-50` composites
+    // whatever is under it below readable contrast — the same failure Button,
+    // Checkbox and Switch record for their own dims, and the reason this
+    // circle now falls to the neutral well with a slackened rim while a
+    // checked one keeps its primary ring. The label beside it swaps to a
+    // colour that was measured. This test is what stops a later edit from
+    // reintroducing a dim on the circle or hoisting one onto the `<label>`
+    // and taking the option's words down with it.
     const wrapper = mount(RadioGroup, { props: { modelValue: "free", options, disabled: true } });
 
     const circle = wrapper.findAll('[role="radio"]')[0]!;
-    expect(circle.classes()).toContain("disabled:opacity-50");
+    expect(circle.classes()).toContain("disabled:data-[state=unchecked]:bg-muted");
+    expect(circle.classes()).toContain("disabled:data-[state=unchecked]:border-border");
     expect(circle.text()).toBe("");
     expect(wrapper.findAll("label")[0]!.classes()).toContain("text-muted-foreground");
 

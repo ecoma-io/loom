@@ -1,7 +1,7 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
-import { attachToBody } from "../../../../packages/core/src/testing/attach-to-body";
+import { attachToBody } from "@ecoma-io/loom-core/testing";
 import DropdownMenu, { type DropdownMenuEntry } from "../src/DropdownMenu.vue";
 
 // jsdom ships no ResizeObserver, and Reka's popper measures with one. Stubbing
@@ -42,6 +42,32 @@ async function mountMenu(props: Record<string, unknown> = {}) {
 /** The menu is portalled out of the wrapper — query the document, never the wrapper. */
 const menu = () => document.querySelector<HTMLElement>('[role="menu"]');
 const items = () => [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+
+/**
+ * The label of whatever menuitem holds focus — the roving cursor is read
+ * through focus, because that is exactly what a keyboard user can see.
+ */
+const focusedLabel = () =>
+  document.activeElement?.closest<HTMLElement>('[role="menuitem"]')?.querySelector("span")
+    ?.textContent ?? null;
+
+function press(key: string) {
+  document.activeElement?.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+}
+
+/**
+ * Open the menu the way a keyboard user does — ArrowDown at the trigger,
+ * which Reka's DropdownMenuTrigger binds to open — and let Reka's entry
+ * focus land.
+ */
+async function openByKeyboard(props: Record<string, unknown> = {}) {
+  const wrapper = await mountMenu({ open: undefined, ...props });
+  const trigger = wrapper.get("button").element;
+  trigger.focus();
+  trigger.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+  await settle();
+  return wrapper;
+}
 
 /**
  * Let Reka's focus, scroll-lock and dismiss machinery settle. The macrotask is
@@ -214,5 +240,79 @@ describe("DropdownMenu", () => {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     await settle();
     expect(document.body.style.overflow).not.toBe("hidden");
+  });
+
+  // The pins below freeze Reka's keyboard contract (2.10.1) as this component
+  // ships it. Arrow walking is `useArrowNavigation` over
+  // `[data-reka-collection-item]:not([data-disabled])` in MenuContentImpl — so
+  // separators and headings, which are not collection items, are skipped by
+  // construction rather than by anyone's good intentions.
+  describe("keyboard contract", () => {
+    it("opens on ArrowDown at the trigger and lands focus on the first command", async () => {
+      await openByKeyboard();
+      expect(focusedLabel()).toBe("Open");
+    });
+
+    it("walks with ArrowDown past the disabled entry and the separator, and back with ArrowUp", async () => {
+      await openByKeyboard(); // entry focus skips Save (disabled) — it starts on Open
+
+      press("ArrowDown");
+      await settle();
+      expect(focusedLabel()).toBe("Delete"); // past Save and the separator in one step
+
+      press("ArrowUp");
+      await settle();
+      expect(focusedLabel()).toBe("Open");
+    });
+
+    // Reka wraps only behind its `loop` prop, which defaults false; before the
+    // prop was forwarded here a wrap pin could only have been wishful. Stop-at-
+    // ends is the default because a cursor that halts says "nothing further".
+    it("stops at both ends of the list unless loop is asked for", async () => {
+      await openByKeyboard();
+
+      press("ArrowUp");
+      await settle();
+      expect(focusedLabel()).toBe("Open"); // already first
+
+      press("ArrowDown");
+      await settle();
+      press("ArrowDown");
+      await settle();
+      expect(focusedLabel()).toBe("Delete"); // already last
+
+      reset();
+      await openByKeyboard({ loop: true });
+      press("ArrowUp");
+      await settle();
+      expect(focusedLabel()).toBe("Delete"); // wrapped backwards past Open
+
+      press("ArrowDown");
+      await settle();
+      expect(focusedLabel()).toBe("Open"); // and forwards again
+    });
+
+    it("jumps to the first and last command with Home and End", async () => {
+      await openByKeyboard();
+
+      press("End");
+      await settle();
+      expect(focusedLabel()).toBe("Delete");
+
+      press("Home");
+      await settle();
+      expect(focusedLabel()).toBe("Open");
+    });
+
+    it("typeahead jumps to the command whose label starts with the typed letter", async () => {
+      const wrapper = await mountMenu({ open: undefined });
+      wrapper.get("button").element.click();
+      await settle();
+      expect(focusedLabel()).toBeNull(); // pointer-opened menus park focus on the menu itself
+
+      press("o");
+      await settle();
+      expect(focusedLabel()).toBe("Open");
+    });
   });
 });

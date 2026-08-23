@@ -152,15 +152,13 @@ const text = useLabels("pagination", PAGINATION_LABELS, () => props.labels);
 defineOptions({ inheritAttrs: false });
 const { attrs, rest: navAttrs } = useSplitAttrs();
 
-// The edge controls keep the dim, and they are the one place in this component
-// where it is still the right answer: their whole content is a chevron marked
-// `aria-hidden`, so there is no text for the alpha to take down with it and the
-// name a screen reader announces is an `aria-label` no paint can reach. WCAG
-// exempts an inactive control from 1.4.11 besides. Prev and First sit disabled
-// on page 1 for as long as a reader is on it, which is the other half of the
-// argument: a faded chevron is the conventional reading of "no further this
-// way", where a drained plate would draw the eye to the control that cannot be
-// used.
+// The edge controls used to keep the dim on the theory that a chevron has no
+// text for an alpha to take down — but the library-wide rule settled since is
+// drained, not dimmed, full stop: the same well every unavailable control
+// wears, so a disabled pager reads as one treatment rather than two. WCAG
+// exempts an inactive control from 1.4.11 either way; what decides it here is
+// that a drained plate is how "no further this way" looks everywhere else in
+// Loom.
 const edgeClass = cn(
   buttonVariants({ variant: "ghost", size: "icon-sm" }),
   // The edges assert `w-8`, a fixed 32px square, but they sit in a flex row
@@ -169,7 +167,7 @@ const edgeClass = cn(
   // below WCAG 2.5.8's 24px floor. The page numbers already floor themselves
   // with `min-w-8`; the edges must refuse to shrink instead, leaving the row to
   // overflow rather than ever compressing a control's own target.
-  "shrink-0 disabled:cursor-not-allowed disabled:opacity-50",
+  "shrink-0 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
 );
 
 // The page buttons borrow Button's own variants rather than restating its
