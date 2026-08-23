@@ -92,6 +92,8 @@ export type {
 } from "@ecoma-io/loom-breadcrumb";
 export { default as Button, buttonVariants } from "@ecoma-io/loom-button";
 export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
+export { default as Card } from "@ecoma-io/loom-card";
+export type { CardPad } from "@ecoma-io/loom-card";
 export { default as Chip, chipVariants } from "@ecoma-io/loom-chip";
 export type { ChipSize, ChipVariant } from "@ecoma-io/loom-chip";
 export { default as ContextMenu } from "@ecoma-io/loom-context-menu";
@@ -115,6 +117,8 @@ export { default as Tooltip } from "@ecoma-io/loom-tooltip";
 export type { TooltipSide } from "@ecoma-io/loom-tooltip";
 
 // Primitives — alphabetical (continued, batch C).
+export { default as Alert, ALERT_LABELS } from "@ecoma-io/loom-alert";
+export type { AlertLabels, AlertVariant } from "@ecoma-io/loom-alert";
 export { default as AlertDialog, ALERT_DIALOG_LABELS } from "@ecoma-io/loom-alert-dialog";
 export type { AlertDialogLabels } from "@ecoma-io/loom-alert-dialog";
 export { default as AvatarGroup, AVATAR_GROUP_LABELS } from "@ecoma-io/loom-avatar-group";

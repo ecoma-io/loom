@@ -185,6 +185,12 @@ export default defineConfig({
         "@ecoma-io/loom-separator": fileURLToPath(
           new URL("../../packages/primitives/separator/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-alert": fileURLToPath(
+          new URL("../../packages/primitives/alert/src/index.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom-card": fileURLToPath(
+          new URL("../../packages/primitives/card/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-skeleton": fileURLToPath(
           new URL("../../packages/primitives/skeleton/src/index.ts", import.meta.url),
         ),

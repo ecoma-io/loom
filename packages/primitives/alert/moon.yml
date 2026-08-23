@@ -1,0 +1,16 @@
+tags: ["layer-primitives", "e2e"]
+project:
+  name: "alert"
+  description: "Alert primitive — persistent inline contextual feedback"
+deps:
+  - "core"
+  - "icon-button"
+  - "labels"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
+  e2e:
+    options:
+      runInCI: skip
+    args: ["packages/primitives/alert/e2e"]
+    env:
+      PW_PROFILE: "smoke"
