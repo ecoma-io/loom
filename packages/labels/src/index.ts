@@ -39,6 +39,7 @@ export type {
   RatingLabels,
   ScrollReelLabels,
   TableLabels,
+  TimelineLabels,
   StepperLabels,
   TagsInputLabels,
   TagsInputRejectReason,

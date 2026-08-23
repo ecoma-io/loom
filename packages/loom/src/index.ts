@@ -123,6 +123,9 @@ export type { TabItem } from "@ecoma-io/loom-tabs";
 export { default as Tooltip } from "@ecoma-io/loom-tooltip";
 export type { TooltipSide } from "@ecoma-io/loom-tooltip";
 
+export { default as Timeline, TIMELINE_LABELS } from "@ecoma-io/loom-timeline";
+export type { TimelineLabels, TimelineStatus } from "@ecoma-io/loom-timeline";
+export { TimelineItem } from "@ecoma-io/loom-timeline";
 export {
   TableCell,
   TableHead,

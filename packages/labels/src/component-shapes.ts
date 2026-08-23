@@ -100,6 +100,18 @@ export interface CarouselLabels {
  * chevrons are shape-only semantics, so the words carry the state to a
  * screen reader instead.
  */
+/**
+ * What Timeline says on its own account: the ordered list's accessible name
+ * and the three status words announced beside each title — a dot's colour
+ * alone is not a state.
+ */
+export interface TimelineLabels {
+  readonly region: string;
+  readonly complete: string;
+  readonly current: string;
+  readonly upcoming: string;
+}
+
 export interface TableLabels {
   readonly region: string;
   readonly sortedAscending: string;
