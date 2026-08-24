@@ -21,7 +21,10 @@ let mounted: VueWrapper | undefined;
 
 const TRIGGER = "<button>Hover me</button>";
 
-async function mountHoverCard(props: Record<string, unknown> = {}, slots: Record<string, string> = {}) {
+async function mountHoverCard(
+  props: Record<string, unknown> = {},
+  slots: Record<string, string> = {},
+) {
   mounted = mount(HoverCard, {
     props: { open: true, ...props },
     slots: { trigger: TRIGGER, default: "<p>Card content</p>", ...slots },
@@ -124,18 +127,21 @@ describe("HoverCard", () => {
   // reachable, and nothing we render is focusable to begin with.
 
   it("strips reachability from tabbable nodes a caller puts in the card anyway, which is why its docs require non-interactive content", async () => {
-    await mountHoverCard({}, {
-      default:
-        '<div><a href="/profile">Open full profile</a><button type="button">Follow</button></div>',
-    });
+    await mountHoverCard(
+      {},
+      {
+        default:
+          '<div><a href="/profile">Open full profile</a><button type="button">Follow</button></div>',
+      },
+    );
     expect(card()!.querySelector("a")!.getAttribute("tabindex")).toBe("-1");
     expect(card()!.querySelector("button")!.getAttribute("tabindex")).toBe("-1");
   });
 
   it("renders no focusable chrome of its own into the card, so read-only slot content stays the only content there is", async () => {
     await mountHoverCard();
-    expect(
-      card()!.querySelectorAll("a, button, input, select, textarea, [tabindex]"),
-    ).toHaveLength(0);
+    expect(card()!.querySelectorAll("a, button, input, select, textarea, [tabindex]")).toHaveLength(
+      0,
+    );
   });
 });
