@@ -12,20 +12,30 @@ export const DIALOG_LABELS: DialogLabels = {
 
 /**
  * How wide the task surface gets. Width is the primitive's decision rather
- * than a class a caller passes, so three dialogs opened from three screens
- * cannot be three different widths: `md` for a confirm or a short form, `lg`
- * for a form with several sections, `xl` for an authoring surface — an editor
- * living inside a dialog.
+ * than a class a caller passes, so four dialogs opened from four screens
+ * cannot be four different widths: `sm` for a minimal prompt — a question
+ * with two buttons, or a single field — `md` for a confirm or a short form,
+ * `lg` for a form with several sections, `xl` for an authoring surface — an
+ * editor living inside a dialog.
+ *
+ * The union is the same one Drawer's `size` takes, so a host parametrising
+ * both surfaces can pass one size through. The ends match exactly: `sm` is
+ * the drawer's own `sm` pair, adopted rather than reinvented. `md` and `lg`
+ * keep the widths they have always had here, which are wider than the
+ * drawer's middle — a centred panel earns more of the screen than an
+ * edge-anchored one that deliberately leaves the page visible.
  */
-export type DialogSize = "md" | "lg" | "xl";
+export type DialogSize = "sm" | "md" | "lg" | "xl";
 
 /**
  * Each width is capped against the viewport, so the largest sizes stay usable
- * on a laptop instead of running off the screen. `satisfies` is what keeps the
- * map and the union honest: adding a member to one and not the other stops
- * compiling.
+ * on a laptop instead of running off the screen — and the smallest takes the
+ * tightest cap, the convention the drawer's scale set. `satisfies` is what
+ * keeps the map and the union honest: adding a member to one and not the other
+ * stops compiling.
  */
 const SIZE_CLASS = {
+  sm: "w-[min(90vw,20rem)]",
   md: "w-[min(92vw,32rem)]",
   lg: "w-[min(92vw,44rem)]",
   xl: "w-[min(94vw,64rem)]",
@@ -88,7 +98,7 @@ const props = withDefaults(
      * question; withdrawing them too is what `AlertDialog` exists for.
      */
     closable?: boolean;
-    /** Panel width. `md` confirms, `lg` multi-section forms, `xl` authoring surfaces. */
+    /** Panel width. `sm` prompts, `md` confirms, `lg` multi-section forms, `xl` authoring surfaces. */
     size?: DialogSize;
     /**
      * The name on the close control, as any subset of `DialogLabels` — what it

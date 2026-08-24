@@ -26,9 +26,17 @@ export type DrawerSide = "left" | "right" | "top" | "bottom";
  * primitive's decision rather than a class a caller passes, so two drawers
  * opened from two screens cannot be two different sizes: `sm` for a filter rail
  * or a navigation sheet, `md` for a record's detail, `lg` for a working surface
- * with a table or a multi-section form in it.
+ * with a table or a multi-section form in it, `xl` for an authoring-scale
+ * surface pinned to the edge.
+ *
+ * The union is the same one Dialog's `size` takes, so a host parametrising
+ * both surfaces can pass one size through. The ends match exactly: `xl` is
+ * the dialog's own width pair, adopted rather than reinvented. `sm`, `md`
+ * and `lg` keep the extents they have always had here, which are shallower
+ * than the dialog's middle — an edge-anchored panel deliberately leaves the
+ * page visible beside it, so it earns less of the axis than a centred one.
  */
-export type DrawerSize = "sm" | "md" | "lg";
+export type DrawerSize = "sm" | "md" | "lg" | "xl";
 
 /**
  * One row per edge, because `side` is not one decision but four made together —
@@ -116,24 +124,32 @@ const SIDES = {
 
 /**
  * The size scale, indexed by the dimension the anchored edge turned it into.
- * Two maps rather than twelve rows on `SIDES`, because `left` and `right` want
+ * Two maps rather than sixteen rows on `SIDES`, because `left` and `right` want
  * the same widths and `top` and `bottom` the same heights — duplicating them
  * per edge is four places for a size to be adjusted in three of.
  *
  * Each is capped against the viewport, so a `lg` drawer on a laptop still
  * leaves the page it is anchored over visible behind it. That gap is the whole
  * difference between a drawer and a full-screen takeover.
+ *
+ * `xl` on the width axis is Dialog's own top-end pair: the tier existed there
+ * first, and sharing it byte-for-byte is what lets a host size-match the two
+ * surfaces. The heights answer to their own ladder instead — every step down
+ * this axis has been ×1.5 (16 → 24 → 36), so 54 continues it rather than
+ * borrowing a width number.
  */
 const EXTENT = {
   width: {
     sm: "w-[min(90vw,20rem)]",
     md: "w-[min(92vw,26rem)]",
     lg: "w-[min(94vw,40rem)]",
+    xl: "w-[min(94vw,64rem)]",
   },
   height: {
     sm: "h-[min(90vh,16rem)]",
     md: "h-[min(92vh,24rem)]",
     lg: "h-[min(94vh,36rem)]",
+    xl: "h-[min(94vh,54rem)]",
   },
 } satisfies Record<"width" | "height", Record<DrawerSize, string>>;
 </script>

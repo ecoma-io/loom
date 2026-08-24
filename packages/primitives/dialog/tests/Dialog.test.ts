@@ -73,23 +73,47 @@ function reset() {
 afterEach(reset);
 
 describe("Dialog", () => {
-  it("widens the panel per size — md for a confirm, lg for a multi-section form, xl for an authoring surface", async () => {
-    const widths: Record<string, string> = {
-      md: "w-[min(92vw,32rem)]",
-      lg: "w-[min(92vw,44rem)]",
-      xl: "w-[min(94vw,64rem)]",
-    };
-    for (const [size, cls] of Object.entries(widths)) {
-      await mountDialog({ size });
-      expect([...panel().classList]).toContain(cls);
-      reset();
-    }
+  // The exact class each union member renders, strings restated here rather
+  // than imported: a test that read `SIZE_CLASS` would agree with any edit to
+  // it, including one that quietly moved a width.
+  it.each([
+    ["sm", "w-[min(90vw,20rem)]"],
+    ["md", "w-[min(92vw,32rem)]"],
+    ["lg", "w-[min(92vw,44rem)]"],
+    ["xl", "w-[min(94vw,64rem)]"],
+  ])("widens the panel per size (%s)", async (size, width) => {
+    await mountDialog({ size });
+    expect([...panel().classList]).toContain(width);
+  });
+
+  it("keeps md and lg at the widths they have always had — the shared middle of the two scales does not drift when a member is added", async () => {
+    await mountDialog({ size: "md" });
+    expect([...panel().classList]).toContain("w-[min(92vw,32rem)]");
+    reset();
+
+    await mountDialog({ size: "lg" });
+    expect([...panel().classList]).toContain("w-[min(92vw,44rem)]");
+  });
+
+  it("matches Drawer at the ends of the scale, which is what lets a host pass one size to either surface", async () => {
+    // Drawer's own pairs, restated rather than imported: one assertion does
+    // not justify putting drawer on this package's dependency list.
+    const DRAWER_SM_WIDTH = "w-[min(90vw,20rem)]";
+    const DRAWER_XL_WIDTH = "w-[min(94vw,64rem)]";
+
+    await mountDialog({ size: "sm" });
+    expect([...panel().classList]).toContain(DRAWER_SM_WIDTH);
+    reset();
+
+    await mountDialog({ size: "xl" });
+    expect([...panel().classList]).toContain(DRAWER_XL_WIDTH);
   });
 
   it("falls back to the confirm-box width when size is omitted, so a plain confirm never renders authoring-wide", async () => {
     await mountDialog();
     const classes = [...panel().classList];
     expect(classes).toContain("w-[min(92vw,32rem)]");
+    expect(classes).not.toContain("w-[min(90vw,20rem)]");
     expect(classes).not.toContain("w-[min(92vw,44rem)]");
     expect(classes).not.toContain("w-[min(94vw,64rem)]");
   });

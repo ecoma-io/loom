@@ -62,14 +62,19 @@ consequence line belongs here; the rest belongs in the default slot.
 ## Sizes
 
 Width is the primitive's decision rather than a class the caller passes, so
-three dialogs opened from three screens cannot be three different widths.
+four dialogs opened from four screens cannot be four different widths. The
+union is the same one [Drawer](./drawer.md) takes, so a host parametrising both
+surfaces can pass one size through.
 
+- `sm` — a minimal prompt: a question with two buttons, or a single field.
 - `md` — a confirm or a short form.
 - `lg` — a form with several sections.
 - `xl` — an authoring surface: an editor living inside a dialog.
 
 Each is capped against the viewport, so even `xl` stays usable on a laptop
-instead of running off the screen.
+instead of running off the screen. At the ends of the scale the two surfaces
+match exactly — `sm` here is the drawer's `sm`, `xl` its `xl`; the middle two
+keep the widths they have always had on each surface.
 
 <Demo title="Sizes, hidden titles and a dialog with no way out but a decision" :source="dialogDemoSource">
   <DialogDemo />
