@@ -64,5 +64,19 @@ const showArchived = ref(false);
         Drop the pointer notch where the panel reads better flush.
       </p>
     </Popover>
+
+    <!-- The interactive preview the HoverCard docs redirect here: a popover's
+         content takes focus, so its links are reachable and operable by
+         keyboard — inside a hover card they would not be. -->
+    <Popover>
+      <template #trigger>
+        <Button variant="outline">@chelsea</Button>
+      </template>
+      <div class="flex max-w-[16rem] flex-col gap-2">
+        <p class="text-sm font-medium">Chelsea Arryn</p>
+        <p class="text-xs text-muted-foreground">Building tools for the web.</p>
+        <a href="#" class="text-xs text-primary underline">Open full profile</a>
+      </div>
+    </Popover>
   </div>
 </template>

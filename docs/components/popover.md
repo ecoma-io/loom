@@ -91,6 +91,11 @@ The behaviour a consumer needs to be able to predict, stated once:
 | Interactive content the user opts into | Popover                            |
 | A task that must be resolved first     | [Dialog](./dialog.md)              |
 
+That third row is also where an interactive *preview* belongs: a
+[HoverCard](./hover-card.md)'s content must stay non-interactive, because a
+keyboard user can never reach inside one. When a preview needs its own links or
+buttons, open it as a popover instead.
+
 ## API
 
 <!-- @api Popover -->
