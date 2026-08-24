@@ -63,7 +63,9 @@ test("the highlighted row stays inside the popover as the keyboard walks past th
     await page.keyboard.press("ArrowUp", { delay: 50 });
   }
   const final = await highlightedSnapshot(page);
-  expect(final, "the walk must end on a highlighted row").not.toBeNull();
+  if (!final) {
+    throw new Error("the walk must end on a highlighted row");
+  }
   // Germany sits near the top of the list, well above where twelve rows of
   // walking started — reaching it while staying inside the clip is the
   // scroll-into-view contract.
@@ -98,7 +100,9 @@ test("every filtered-in row still clears the 24px target-size floor", async ({ p
   expect(rows.length).toBeGreaterThanOrEqual(2);
   for (const row of rows) {
     const box = await row.boundingBox();
-    expect(box, "a filtered row must have a bounding box").not.toBeNull();
+    if (!box) {
+      throw new Error("a filtered row must have a bounding box");
+    }
     expect(box.height).toBeGreaterThanOrEqual(MIN_TARGET_PX);
   }
 });
@@ -123,7 +127,7 @@ test("an IME composition filters once, on commit — not on every intermediate s
 
   const compose = (committed: string, streams: string[]) =>
     input.evaluate(
-      (el, { committed, streams }) => {
+      (el: HTMLInputElement, { committed, streams }) => {
         el.dispatchEvent(new CompositionEvent("compositionstart", { data: "", bubbles: true }));
         for (const partial of streams) {
           el.value = partial;
@@ -145,7 +149,7 @@ test("an IME composition filters once, on commit — not on every intermediate s
   // and none of them may drive the search — a host firing a request per
   // intermediate romaji fragment is precisely the storm the guard exists to
   // prevent.
-  await input.evaluate((el) => {
+  await input.evaluate((el: HTMLInputElement) => {
     el.dispatchEvent(new CompositionEvent("compositionstart", { data: "", bubbles: true }));
     for (const partial of ["v", "vn"]) {
       el.value = partial;

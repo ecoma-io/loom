@@ -46,7 +46,6 @@ async function pressThumbAndDragTo(page: Page, thumb: Locator, anchorX: number, 
  * tracks against a stale width — breaks the arithmetic.
  */
 async function draggedValue(
-  page: Page,
   root: Locator,
   thumb: Locator,
   anchorX: number,
@@ -76,7 +75,7 @@ test("a real pointer drag moves the value with the layout and commits once on re
   if (!rootBox || !startBox) throw new Error("slider boxes must be measurable");
   const anchorX = startBox.x + startBox.width / 2 + 8;
   const targetX = startBox.x - (rootBox.width - startBox.width) * 0.4;
-  const expected = await draggedValue(page, root, thumb, anchorX, targetX);
+  const expected = await draggedValue(root, thumb, anchorX, targetX);
   expect(expected).toBeLessThan(0.65);
 
   await pressThumbAndDragTo(page, thumb, anchorX, targetX);
@@ -157,7 +156,9 @@ test("the thumb clears the WCAG 24px target floor on both axes", async ({ page }
   // larger equivalent target around it, so its own box must carry the floor.
   for (const thumb of await page.locator('[role="slider"]').all()) {
     const box = await thumb.boundingBox();
-    expect(box, "every thumb must have a bounding box").not.toBeNull();
+    if (!box) {
+      throw new Error("every thumb must have a bounding box");
+    }
     expect(box.width).toBeGreaterThanOrEqual(WCAG_TARGET_PX);
     expect(box.height).toBeGreaterThanOrEqual(WCAG_TARGET_PX);
   }

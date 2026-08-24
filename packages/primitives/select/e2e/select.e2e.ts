@@ -53,7 +53,9 @@ test("every open listbox row clears the 24px target-size floor", async ({ page }
   // assertion and still fails the reader who tries to hit it.
   for (const row of await optionRows(page.getByRole("listbox"))) {
     const box = await row.boundingBox();
-    expect(box, "an open Select row must have a bounding box").not.toBeNull();
+    if (!box) {
+      throw new Error("an open Select row must have a bounding box");
+    }
     expect(
       box.height,
       `${String(await row.textContent())} is shorter than the WCAG target-size floor`,
@@ -74,7 +76,9 @@ test("the trigger heights match the text-input scale exactly", async ({ page }) 
   ];
   for (const [name, expected] of cases) {
     const box = await page.getByRole("combobox", { name }).boundingBox();
-    expect(box, "the trigger must have a bounding box").not.toBeNull();
+    if (!box) {
+      throw new Error("the trigger must have a bounding box");
+    }
     // Exact, not a floor: a drift here unaligns every form row that places a
     // Select beside a text input, and nothing else would catch it.
     expect(box.height).toBe(expected);
@@ -117,7 +121,9 @@ test("a disabled row refuses the pointer where it paints and is skipped by the k
   // row — so nothing may be chosen by it.
   const japanese = page.getByRole("option", { name: "日本語" });
   const box = await japanese.boundingBox();
-  expect(box, "the unavailable row must be visible to aim at").not.toBeNull();
+  if (!box) {
+    throw new Error("the unavailable row must be visible to aim at");
+  }
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 
   // The click must have been swallowed whole: no selection fired and the
