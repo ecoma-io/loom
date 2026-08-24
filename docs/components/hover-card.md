@@ -1,8 +1,8 @@
 # HoverCard
 
-A quick preview surface on hover, whose content IS interactive. Unlike a Tooltip,
-the user can move their pointer into the card and interact with it: click a link,
-press a button, select text.
+A quick preview surface on hover. Unlike a Tooltip, the pointer can travel into
+the card and stay a while; unlike a Popover, the card carries nothing to
+operate. Its content is read-only by contract — text, an image, a definition.
 
 <script setup lang="ts">
 import { HoverCard } from "@ecoma-io/loom";
@@ -30,7 +30,7 @@ import { HoverCard } from "@ecoma-io/loom";
 </template>
 ```
 
-<Demo title="HoverCard with basic, placement, and interactive content examples" :source="hoverCardDemoSource">
+<Demo title="HoverCard with basic, placement, and rich preview examples" :source="hoverCardDemoSource">
   <HoverCardDemo />
 </Demo>
 
@@ -45,11 +45,27 @@ anchors relative to the trigger. The card flips when near a viewport boundary.
 must be long enough for the pointer to travel from trigger to content without the
 card vanishing mid-transit — the default of 300ms covers most pointer movements.
 
-## Hover card vs. Tooltip
+## Content contract
 
-A HoverCard's content can contain interactive elements (links, buttons). A Tooltip's
-cannot. If the supplementary surface needs to be clicked, it is a hover card; if it
-only supplements an accessible name, it is a tooltip.
+Everything inside the card must be non-interactive. The platform leaves no other
+honest option: reka strips `tabindex="-1"` onto every tabbable node in the content
+on mount, and the trigger closes the card on blur after `closeDelay` — so by the
+time a keyboard user tabbed toward anything inside, the card would already be
+gone. A link or button in the card is unreachable by keyboard (WCAG 2.1.1),
+whatever the markup allows.
+
+Keep the card to what a user reads, and duplicate anything actionable somewhere
+reachable on the page itself. When a preview genuinely needs its own links or
+buttons, it is not a hover card — it is a [Popover](./popover.md), whose content
+takes focus and whose Esc/outside dismissal gives a keyboard user a way in and
+out.
+
+## Hover card vs. Tooltip vs. Popover
+
+Neither hover surface carries controls. A Tooltip only supplements an accessible
+name and disappears on any pointer exit; a HoverCard holds richer read-only
+content and lets the pointer rest inside it. If the supplementary surface needs
+to be operated — links, buttons, forms — it is a Popover.
 
 ## API
 

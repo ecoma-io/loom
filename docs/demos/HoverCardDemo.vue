@@ -68,12 +68,15 @@ import { HoverCard } from "@ecoma-io/loom";
       </div>
     </section>
 
-    <!-- Interactive content: the card can hold links and buttons, unlike a tooltip. -->
+    <!-- Rich preview: everything in the card is there to be read, nothing to
+         be operated. A keyboard user cannot reach inside a hover card (the
+         content is stripped of tabbability and the card closes on blur), so
+         any action the preview implies lives on the page itself — here, the
+         trigger link. Interactive previews belong in a Popover. -->
     <section>
-      <h3 class="text-title mb-1">Interactive content</h3>
+      <h3 class="text-title mb-1">Rich preview</h3>
       <p class="text-small mb-3">
-        Move the pointer into the card to click the link — the close delay keeps it open during
-        transit.
+        The card holds read-only detail; anything actionable stays outside it.
       </p>
       <HoverCard :open-delay="100" :close-delay="400">
         <template #trigger>
@@ -82,9 +85,7 @@ import { HoverCard } from "@ecoma-io/loom";
         <div class="flex flex-col gap-2">
           <p class="text-small font-medium">Chelsea Arryn</p>
           <p class="text-small text-muted-foreground">Building tools for the web.</p>
-          <!-- The link inside the card is reachable by pointer, which is the
-               difference between a hover card and a tooltip. -->
-          <a href="#" class="text-small text-primary underline">Open full profile</a>
+          <p class="text-small text-muted-foreground">Joined March 2019 · 214 repositories</p>
         </div>
       </HoverCard>
     </section>
