@@ -89,11 +89,16 @@ opened from two screens cannot be two different sizes.
 - `sm` — a filter rail, or a navigation sheet.
 - `md` — a record's detail.
 - `lg` — a working surface with a table or a multi-section form in it.
+- `xl` — an authoring-scale surface pinned to the edge: the footprint of an
+  `xl` dialog, arriving from the side.
 
-Each is capped against the viewport, so even `lg` leaves the page it is
+Each is capped against the viewport, so even `xl` leaves the page it is
 anchored over visible behind it. That remaining gap is the whole difference
 between a drawer and a full-screen takeover, and it is why the cap is not
-negotiable.
+negotiable. The union is the same one [Dialog](./dialog.md) takes, and at the
+ends of the scale the two surfaces match exactly — `xl` here is the dialog's
+`xl`, `sm` its `sm`; the middle two keep the extents they have always had on
+each surface.
 
 <Demo title="Sides, sizes, a scrolling body and a drawer that declines a stray click" :source="drawerDemoSource">
   <DrawerDemo />

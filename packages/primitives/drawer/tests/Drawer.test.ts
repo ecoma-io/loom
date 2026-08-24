@@ -196,10 +196,14 @@ describe("Drawer side", () => {
 });
 
 describe("Drawer size", () => {
+  // The exact class each union member renders, strings restated here rather
+  // than imported: a test that read `EXTENT` would agree with any edit to it,
+  // including one that quietly moved an extent.
   it.each([
     ["sm", "w-[min(90vw,20rem)]"],
     ["md", "w-[min(92vw,26rem)]"],
     ["lg", "w-[min(94vw,40rem)]"],
+    ["xl", "w-[min(94vw,64rem)]"],
   ])("sets a side drawer's width at %s, because width is its own axis", async (size, extent) => {
     await mountDrawer({ side: "right", size });
     expect(classesOf(panel())).toContain(extent);
@@ -209,6 +213,7 @@ describe("Drawer size", () => {
     ["sm", "h-[min(90vh,16rem)]"],
     ["md", "h-[min(92vh,24rem)]"],
     ["lg", "h-[min(94vh,36rem)]"],
+    ["xl", "h-[min(94vh,54rem)]"],
   ])(
     "sets a sheet's height at %s, because the anchored edge turned size into height",
     async (size, extent) => {
@@ -216,6 +221,30 @@ describe("Drawer size", () => {
       expect(classesOf(panel())).toContain(extent);
     },
   );
+
+  it("keeps sm, md and lg at the extents they have always had on both axes — adding xl to the scale moves nothing else", async () => {
+    await mountDrawer({ side: "right", size: "md" });
+    expect(classesOf(panel())).toContain("w-[min(92vw,26rem)]");
+    reset();
+
+    await mountDrawer({ side: "right", size: "lg" });
+    expect(classesOf(panel())).toContain("w-[min(94vw,40rem)]");
+    reset();
+
+    await mountDrawer({ side: "bottom", size: "md" });
+    expect(classesOf(panel())).toContain("h-[min(92vh,24rem)]");
+    reset();
+
+    await mountDrawer({ side: "bottom", size: "lg" });
+    expect(classesOf(panel())).toContain("h-[min(94vh,36rem)]");
+  });
+
+  it("takes xl from Dialog's own top end, which is what lets a host pass one size to either surface", async () => {
+    // Dialog's xl pair, restated rather than imported: one assertion does not
+    // justify putting dialog on this package's dependency list.
+    await mountDrawer({ side: "right", size: "xl" });
+    expect(classesOf(panel())).toContain("w-[min(94vw,64rem)]");
+  });
 
   it("gives the same size two different meanings on two different edges, which is the whole reason side and size are read together", async () => {
     await mountDrawer({ side: "right", size: "lg" });
