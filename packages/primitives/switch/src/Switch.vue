@@ -106,15 +106,26 @@ const field = useFieldControl(() => ({
       style="transition: transform var(--duration-fast) var(--ease-spring)"
       :class="
         cn(
-          'absolute top-1/2 left-0.5 block h-5 w-5 -translate-y-1/2 rounded-full bg-background shadow-sm',
+          'absolute top-1/2 start-0.5 block h-5 w-5 -translate-y-1/2 rounded-full bg-background shadow-sm',
           'active:scale-x-[1.15] active:scale-y-[0.85]',
-          // The travel is a translate, not a `left` change: animating an inset
-          // property relayouts the track on every frame of the slide, while a
-          // transform stays on the compositor. The distance is the checked
-          // inset (1.125rem) minus the resting one (left-0.5), and the
-          // -translate-y-1/2 above composes with it — Tailwind's translate
-          // utilities stack rather than overwrite.
-          'data-[state=checked]:translate-x-[1rem]',
+          // The anchor is the *inline* start edge, so the off state rests on
+          // the reading-order side in every direction — physically left under
+          // LTR (pixel-identical to the old `left-0.5`) and right under RTL,
+          // where a physical `left` would pin both states to one edge and
+          // make the motion read backwards.
+          //
+          // The travel is still a translate, not an inset change: animating an
+          // inset relayouts the track on every frame, while a transform stays
+          // on the compositor. Its sign is the one thing direction has left to
+          // say — checked moves toward the inline-end edge, +x under LTR, -x
+          // under RTL — and it is written through this custom property rather
+          // than a second competing utility because Tailwind's `rtl:` wraps in
+          // a zero-specificity `:where()`, which would leave the flip's winner
+          // to stylesheet order. One rule writes the variable; everything else
+          // reads the fallback, so LTR needs no rule at all (and survives even
+          // a browser without `:dir()`).
+          'data-[state=checked]:translate-x-[var(--switch-travel-x,1rem)]',
+          'rtl:[--switch-travel-x:-1rem]',
         )
       "
     />

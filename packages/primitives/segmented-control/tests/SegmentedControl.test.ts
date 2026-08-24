@@ -187,6 +187,23 @@ describe("SegmentedControl", () => {
     expect(roomy.findAll('[role="radio"]')[0]!.classes()).toContain("px-3");
   });
 
+  // jsdom has no layout engine, so the floor itself is pinned where it is
+  // written — on every segment, in both sizes. The sm segment's `px-1.5` +
+  // `text-micro` leaves a one-character label well under a 24px-wide target,
+  // which is exactly the case that made an explicit width floor necessary
+  // alongside the height one.
+  it("floors every segment at the 24px target minimum in both dimensions, however short its label", () => {
+    for (const size of ["sm", "default"] as const) {
+      const wrapper = mount(SegmentedControl, {
+        props: { options: [{ value: "y", label: "Y" }], modelValue: "y", size },
+        attrs: { "aria-label": "Layout direction" },
+      });
+      const segment = wrapper.get('[role="radio"]');
+      expect(segment.classes()).toContain("min-h-6");
+      expect(segment.classes()).toContain("min-w-6");
+    }
+  });
+
   it("forwards an option's test id to its segment so hosts keep a stable hook onto one choice", () => {
     const wrapper = mount(SegmentedControl, {
       props: { options: OPTIONS, modelValue: "compact" },
