@@ -212,12 +212,14 @@ watch([() => props.modelValue, () => props.options], () => nextTick(updateIndica
           // Named, not the bare `group`: a segmented control is dropped into
           // application chrome, and a bare `group-*` would also answer to any
           // ancestor a host happened to mark up as one.
-          // `min-h-6` is the WCAG 2.5.8 target floor made explicit: the sm
-          // segment's box was previously a product of whatever line-height the
-          // surrounding text happened to hand down, and swapping to the named
-          // `text-micro` (line-height 1.4) dropped it to 23px. A floor that
-          // holds regardless of type metrics is the honest encoding.
-          'group/segment relative z-10 inline-flex min-h-6 items-center justify-center rounded-sm text-muted-foreground',
+          // `min-h-6`/`min-w-6` are the WCAG 2.5.8 target floors made
+          // explicit: the sm segment's box was previously a product of whatever
+          // line-height the surrounding text happened to hand down — swapping
+          // to the named `text-micro` (line-height 1.4) dropped it to 23px,
+          // and a micro label (a one-character density toggle) collapses the
+          // width under 24 too. Floors that hold regardless of type metrics
+          // are the honest encoding.
+          'group/segment relative z-10 inline-flex min-h-6 min-w-6 items-center justify-center rounded-sm text-muted-foreground',
           size === 'sm' ? 'px-1.5 py-px text-micro' : 'px-3 py-1 text-sm',
           'data-[state=checked]:font-medium data-[state=checked]:text-foreground',
           'data-[state=unchecked]:hover:bg-subtle',

@@ -114,6 +114,20 @@ describe("Switch", () => {
     expect(classes).toContain("data-[state=unchecked]:bg-muted-foreground/30");
   });
 
+  // jsdom cannot judge geometry, so the direction contract is pinned where it
+  // is written: the thumb anchors on the inline-start edge (not a physical
+  // left) and the checked travel reads a sign variable only RTL ever defines,
+  // with the LTR value living in the fallback rather than in a competing rule.
+  // The e2e spec beside this package asserts the boxes those classes produce.
+  it("anchors the thumb inline-start and signs the checked travel by direction, so [dir=rtl] mirrors the motion", () => {
+    const wrapper = mount(Switch, { props: { modelValue: false }, attrs: { "aria-label": "X" } });
+    const classes = wrapper.get('[role="switch"] > *').classes();
+    expect(classes).toContain("start-0.5");
+    expect(classes).toContain("data-[state=checked]:translate-x-[var(--switch-travel-x,1rem)]");
+    expect(classes).toContain("rtl:[--switch-travel-x:-1rem]");
+    expect(classes).not.toContain("left-0.5");
+  });
+
   it("renders on a native button with nothing here blocking Space, so the platform's own keyboard handling toggles it", () => {
     const wrapper = mount(Switch, {
       props: { modelValue: false },
