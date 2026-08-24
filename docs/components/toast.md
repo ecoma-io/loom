@@ -55,6 +55,8 @@ stacks cleanly, so a multi-toast host owns that layout itself.
 | `destructive` | an error (recoverable)                  |
 | `accent`      | a highlighted result or action (accent) |
 
+How a toast is announced follows this table too — see [Mechanics](#mechanics).
+
 ## Picking the right component
 
 | Use           | When                                                              |
@@ -69,6 +71,14 @@ stacks cleanly, so a multi-toast host owns that layout itself.
   pauses while hovered or focused.
 - `actionLabel` renders a single inline action button and emits `action`;
   `closable` shows the ✕ close button.
+- **Severity decides how a toast interrupts.** Every toast is read out
+  through a hidden live region the moment it appears; a `destructive` toast
+  announces through an assertive one (`role="alert"`,
+  `aria-live="assertive"`), so an error report interrupts whatever the
+  screen reader is already saying — exactly the messages that must not be
+  missed. Every other variant announces politely, so ordinary notifications
+  never interrupt. There is no prop for this: the variant _is_ the severity,
+  and a second way to set it would only let the two disagree.
 - Motion: the card slides in from the right edge (the swipe-to-dismiss axis)
   and settles on `--ease-spring`. The animation plays on the card's own inner
   element, never on `ToastRoot` — Reka needs `ToastRoot`'s transform free for

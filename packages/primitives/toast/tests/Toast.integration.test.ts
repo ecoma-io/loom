@@ -160,6 +160,45 @@ describe("Toast", () => {
   });
 });
 
+describe("Toast announce politeness", () => {
+  // Issue #91: severity alone decides how a toast interrupts. These pin the
+  // routing through the bundled provider/viewport pair — the composition a
+  // standalone host gets — against real Reka; `ToastItem.test.ts` pins the
+  // same decision on the bare item.
+  //
+  // The hidden region renders two animation frames after the card (see the
+  // labels block below), so every read here goes through the same flush.
+  async function announcement(): Promise<HTMLElement> {
+    for (let i = 0; i < 4; i++) {
+      await nextTick();
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          resolve(null);
+        });
+      });
+    }
+    return document.querySelector<HTMLElement>('[role="alert"]')!;
+  }
+
+  it("announces a destructive toast through an assertive live region, carrying the message", async () => {
+    await mountToast({ variant: "destructive", title: "Render failed" });
+    const region = await announcement();
+    expect(region.getAttribute("aria-live")).toBe("assertive");
+    expect(region.textContent).toContain("Render failed");
+  });
+
+  it("keeps every other severity's announcement polite", async () => {
+    for (const variant of ["info", "success", "warning", "accent"] as const) {
+      await mountToast({ variant, title: "Saved" });
+      const region = await announcement();
+      expect(region.getAttribute("aria-live")).toBe("polite");
+      expect(region.textContent).toContain("Saved");
+      mounted!.unmount();
+      document.body.innerHTML = "";
+    }
+  });
+});
+
 describe("Toast labels", () => {
   /**
    * The hidden region Reka reads out ahead of the card's own text. It renders
