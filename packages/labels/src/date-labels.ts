@@ -250,6 +250,107 @@ export function isTimeSegmentPart(part: string): part is TimeSegmentName {
 }
 
 /**
+ * The one or both vocabularies a segmented field resolves its strings through,
+ * as `useLabels` handed them to the control.
+ *
+ * A shape per control rather than one required parameter set, because this
+ * serves three shapes of control at once: a date-only one resolves through
+ * `date` alone, a time-only one through `time` alone, and the two datetime
+ * controls through both. That spread is exactly why this pair lives here
+ * rather than five times over — five hand-copied `segmentLabel`/
+ * `segmentValueText` pairs had already drifted in their comments, and the only
+ * step left was drifting in the emitted strings themselves, which are
+ * assistive technology's entire view of these fields.
+ */
+export interface SegmentVocabularies {
+  /** The date half's vocabulary, when the control renders date segments. */
+  readonly date?: DateSegmentLabels | undefined;
+  /** The clock half's vocabulary, when the control renders time segments. */
+  readonly time?: TimeSegmentLabels | undefined;
+}
+
+/**
+ * The accessible name of one segment, replacing the English name Reka writes
+ * inside `useDateField`'s own render function — see `DATE_SEGMENT_LABELS`.
+ *
+ * The half that owns the part names it: a date part is answered by the date
+ * vocabulary and a clock part by the time one, which is what lets a host
+ * localising only `timeSegments` still reach the clock segments of a datetime
+ * control. `undefined` for everything else — the `literal` separators, which
+ * Reka renders `aria-hidden` and which must stay unnamed, and any part neither
+ * vocabulary knows.
+ */
+export function segmentAriaLabel(
+  vocabularies: SegmentVocabularies,
+  part: string,
+): string | undefined {
+  const { date, time } = vocabularies;
+  if (date && isDateSegmentPart(part)) return date[part];
+  return time && isTimeSegmentPart(part) ? time[part] : undefined;
+}
+
+/** What `segmentAriaValueText` resolves one segment's value announcement from. */
+export interface SegmentAriaValueTextArgs extends SegmentVocabularies {
+  /** The segment's part name, as Reka's `segments` slot yields it. */
+  readonly part: string;
+  /**
+   * The segment's displayed value, whose emptiness decides whether the field's
+   * own word replaces Reka's — read off digits by `emptySegmentValueText`.
+   */
+  readonly value: string;
+  /**
+   * The field's locale, composed into the filled month's value text. Every
+   * other branch ignores it, but a control always has one to give.
+   */
+  readonly locale: string;
+  /**
+   * The numeric month of the model value the control parsed itself, and never
+   * of `value`: the displayed text is locale-formatted and may carry no
+   * parseable number, so the caller reads the month off what it parsed.
+   * Absent while no full date is chosen, and unused by a time-only control.
+   */
+  readonly month?: number | undefined;
+}
+
+/**
+ * The `aria-valuetext` override for one segment, as an object to `v-bind` —
+ * the shape `emptySegmentValueText` returns and the reason is recorded there.
+ *
+ * This composes the branches the five segmented controls each used to carry by
+ * hand, in the order they must apply: the empty case first, because it is the
+ * only one replacing what Reka wrote; then the filled month, announced through
+ * `filledMonth` so a host can compose `"5 - May"` the way their language
+ * needs; then the filled day period through `filledDayPeriod`, for the same
+ * reason. Anything else returns `{}`, which merges as nothing and leaves
+ * Reka's own value text — a number — exactly as it wrote it.
+ *
+ * The empty message comes from whichever half owns the part, so a host
+ * localising only `timeSegments` still reaches the clock segments of a
+ * datetime control. The fallback to `""` is unreachable for every real caller
+ * — a control always resolves at least its own half — and exists to keep the
+ * function total rather than to be exercised.
+ */
+export function segmentAriaValueText({
+  date,
+  time,
+  part,
+  value,
+  locale,
+  month,
+}: SegmentAriaValueTextArgs): { "aria-valuetext"?: string } {
+  const owner = isTimeSegmentPart(part) ? (time ?? date) : (date ?? time);
+  const empty = emptySegmentValueText(part, value, owner?.empty ?? "");
+  if (empty["aria-valuetext"]) return empty;
+  if (date && part === "month" && month !== undefined) {
+    return { "aria-valuetext": date.filledMonth({ value: month, locale }) };
+  }
+  if (time && part === "dayPeriod") {
+    return { "aria-valuetext": time.filledDayPeriod({ dayPeriod: value }) };
+  }
+  return {};
+}
+
+/**
  * Everything the calendar popover says that is not a date: the panel's own
  * name, the button that opens it, and the two that page the months.
  *

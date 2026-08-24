@@ -28,11 +28,7 @@ import { useAncestorDisabled } from "@ecoma-io/loom-labels";
 import { useFieldControl } from "@ecoma-io/loom-labels";
 import { optional } from "@ecoma-io/loom-core";
 import { useLabels, type LabelOverrides } from "@ecoma-io/loom-labels";
-import {
-  TIME_SEGMENT_LABELS,
-  emptySegmentValueText,
-  isTimeSegmentPart,
-} from "@ecoma-io/loom-labels";
+import { TIME_SEGMENT_LABELS, segmentAriaLabel, segmentAriaValueText } from "@ecoma-io/loom-labels";
 
 /**
  * TimePicker — a time of day, typed into a segmented field. Reach for it
@@ -147,29 +143,17 @@ const text = useLabels("timeSegments", TIME_SEGMENT_LABELS, () => props.labels);
 
 // Read through the ref on every call rather than resolved into a lookup table
 // once: a table built in `setup` freezes the first language and every later
-// switch silently does nothing. `undefined` for the `literal` separators, which
-// Reka renders `aria-hidden` and which must stay unnamed.
+// switch silently does nothing. The resolution rules themselves are the shared
+// helpers' — five hand-copied pairs of these two functions drifted once
+// already, so the branches live in `@ecoma-io/loom-labels` now and only the
+// refs stay here. `undefined` for the `literal` separators, which Reka renders
+// `aria-hidden` and which must stay unnamed.
 function segmentLabel(part: string): string | undefined {
-  return isTimeSegmentPart(part) ? text.value[part] : undefined;
+  return segmentAriaLabel({ time: text.value }, part);
 }
 
-// The companion to `segmentLabel`, and the reason it returns an object rather
-// than a string is in `emptySegmentValueText`: Reka's `aria-valuetext` is a
-// hard-coded "Empty" only while the segment holds nothing, so this replaces
-// that case and leaves the filled one — a number — exactly as Reka wrote it.
-//
-// The dayPeriod is the exception. Reka writes `"AM"` or `"PM"` from its own
-// hour-cycle logic, not from `Intl.DateTimeFormat`, so a localised field
-// still announces the period in English. `filledDayPeriod` lets a host replace
-// those with the locale's own period names (Arabic `"ص"`/`"م"`, Japanese
-// `"午前"`/`"午後"`).
 function segmentValueText(part: string, value: string): { "aria-valuetext"?: string } {
-  const empty = emptySegmentValueText(part, value, text.value.empty);
-  if (empty["aria-valuetext"]) return empty;
-  if (part === "dayPeriod") {
-    return { "aria-valuetext": text.value.filledDayPeriod({ dayPeriod: value }) };
-  }
-  return {};
+  return segmentAriaValueText({ time: text.value, part, value, locale: props.locale });
 }
 
 // One rendered node, so both halves of the fallthrough land on it — the split

@@ -114,8 +114,8 @@ import {
   CALENDAR_PANEL_LABELS,
   DATE_SEGMENT_LABELS,
   RANGE_CELL_LABELS,
-  emptySegmentValueText,
-  isDateSegmentPart,
+  segmentAriaLabel,
+  segmentAriaValueText,
   type RangeCellPart,
 } from "@ecoma-io/loom-labels";
 
@@ -239,33 +239,29 @@ const text = useLabels("dateRange", DATE_RANGE_LABELS, () => props.labels);
 
 // Read through the ref on every call rather than resolved into a lookup table
 // once: a table built in `setup` freezes the first language and every later
-// switch silently does nothing. `undefined` for the `literal` separators, which
-// Reka renders `aria-hidden` and which must stay unnamed.
+// switch silently does nothing. The resolution rules themselves are the shared
+// helpers' — five hand-copied pairs of these two functions drifted once
+// already, so the branches live in `@ecoma-io/loom-labels` now and only the
+// refs stay here. `undefined` for the `literal` separators, which Reka renders
+// `aria-hidden` and which must stay unnamed.
 function segmentLabel(part: string): string | undefined {
-  return isDateSegmentPart(part) ? dateText.value[part] : undefined;
+  return segmentAriaLabel({ date: dateText.value }, part);
 }
 
-// The companion to `segmentLabel`, and the reason it returns an object rather
-// than a string is in `emptySegmentValueText`: Reka's `aria-valuetext` is a
-// hard-coded "Empty" only while the segment holds nothing, so this replaces
-// that case and leaves the filled one — a number, and the locale's own month
-// name — exactly as Reka wrote it.
-//
-// The month is the exception. See DatePicker's `segmentValueText` for the full
-// account; the same reasoning and the same `filledMonth` label apply here,
-// with the month taken from whichever half is rendering the segment.
+// `monthValue` arrives per half — whichever of start and end is rendering the
+// segment passes its own parsed month up from the template.
 function segmentValueText(
   part: string,
   value: string,
   monthValue?: number,
 ): { "aria-valuetext"?: string } {
-  const empty = emptySegmentValueText(part, value, dateText.value.empty);
-  if (empty["aria-valuetext"]) return empty;
-  if (part === "month" && monthValue !== undefined)
-    return {
-      "aria-valuetext": dateText.value.filledMonth({ value: monthValue, locale: props.locale }),
-    };
-  return {};
+  return segmentAriaValueText({
+    date: dateText.value,
+    part,
+    value,
+    locale: props.locale,
+    month: monthValue,
+  });
 }
 
 // Routed exactly as DatePicker routes it, and for the same reasons: `class`
