@@ -143,9 +143,8 @@ import {
   DATE_SEGMENT_LABELS,
   RANGE_CELL_LABELS,
   TIME_SEGMENT_LABELS,
-  emptySegmentValueText,
-  isDateSegmentPart,
-  isTimeSegmentPart,
+  segmentAriaLabel,
+  segmentAriaValueText,
   type RangeCellPart,
 } from "@ecoma-io/loom-labels";
 
@@ -293,37 +292,29 @@ const text = useLabels("dateTimeRange", DATE_TIME_RANGE_LABELS, () => props.labe
 
 // Read through the refs on every call rather than resolved into a lookup table
 // once: a table built in `setup` freezes the first language and every later
-// switch silently does nothing. `undefined` for the `literal` separators, which
-// Reka renders `aria-hidden` and which must stay unnamed.
+// switch silently does nothing. The resolution rules themselves are the shared
+// helpers' — five hand-copied pairs of these two functions drifted once
+// already, so the branches live in `@ecoma-io/loom-labels` now and only the
+// refs stay here; both halves go in, and each answers its own parts.
 function segmentLabel(part: string): string | undefined {
-  if (isDateSegmentPart(part)) return dateText.value[part];
-  return isTimeSegmentPart(part) ? timeText.value[part] : undefined;
+  return segmentAriaLabel({ date: dateText.value, time: timeText.value }, part);
 }
 
-// The companion to `segmentLabel`, and the reason it returns an object rather
-// than a string is in `emptySegmentValueText`: Reka's `aria-valuetext` is a
-// hard-coded "Empty" only while the segment holds nothing, so this replaces
-// that case and leaves the filled one — a number, and the locale's own month
-// name — exactly as Reka wrote it.
-// The half that owns the part owns its empty message too, so a host localising
-// only `timeSegments` still reaches the clock segments of this control.
+// `monthValue` arrives per half — whichever of start and end is rendering the
+// segment passes its own parsed month up from the template.
 function segmentValueText(
   part: string,
   value: string,
   monthValue?: number,
 ): { "aria-valuetext"?: string } {
-  const empty = isTimeSegmentPart(part) ? timeText.value.empty : dateText.value.empty;
-  const emptyResult = emptySegmentValueText(part, value, empty);
-  if (emptyResult["aria-valuetext"]) return emptyResult;
-  if (part === "month" && monthValue !== undefined) {
-    return {
-      "aria-valuetext": dateText.value.filledMonth({ value: monthValue, locale: props.locale }),
-    };
-  }
-  if (part === "dayPeriod") {
-    return { "aria-valuetext": timeText.value.filledDayPeriod({ dayPeriod: value }) };
-  }
-  return {};
+  return segmentAriaValueText({
+    date: dateText.value,
+    time: timeText.value,
+    part,
+    value,
+    locale: props.locale,
+    month: monthValue,
+  });
 }
 
 // Routed exactly as both parents route it, and for the same reasons: `class`

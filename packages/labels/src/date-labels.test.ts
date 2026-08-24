@@ -10,6 +10,8 @@ import {
   isDateSegmentPart,
   isTimeSegmentPart,
   monthName,
+  segmentAriaLabel,
+  segmentAriaValueText,
 } from "./date-labels";
 
 describe("DATE_SEGMENT_LABELS", () => {
@@ -107,6 +109,97 @@ describe("emptySegmentValueText", () => {
     // placeholders are not letters either — an unset dayPeriod reads "AM".
     expect(emptySegmentValueText("dayPeriod", "AM", "Not set")).toEqual({});
     expect(emptySegmentValueText("era", "AD", "Not set")).toEqual({});
+  });
+});
+
+describe("segmentAriaLabel", () => {
+  // One distinct word per half, so a test can tell whose vocabulary answered
+  // rather than merely that something did.
+  const date = { ...DATE_SEGMENT_LABELS, day: "Tag" };
+  const time = { ...TIME_SEGMENT_LABELS, hour: "Stunde" };
+
+  it("answers a date part from the date half alone", () => {
+    expect(segmentAriaLabel({ date }, "day")).toBe("Tag");
+    expect(segmentAriaLabel({ date }, "month")).toBe("Month");
+  });
+
+  it("answers a clock part from the time half alone", () => {
+    expect(segmentAriaLabel({ time }, "hour")).toBe("Stunde");
+    expect(segmentAriaLabel({ time }, "minute")).toBe("Minute");
+  });
+
+  it("lets each half answer its own parts on a datetime control", () => {
+    expect(segmentAriaLabel({ date, time }, "day")).toBe("Tag");
+    expect(segmentAriaLabel({ date, time }, "hour")).toBe("Stunde");
+  });
+
+  it("leaves literals and parts neither half owns unnamed", () => {
+    expect(segmentAriaLabel({ date, time }, "literal")).toBeUndefined();
+    expect(segmentAriaLabel({ date }, "hour")).toBeUndefined();
+    expect(segmentAriaLabel({ time }, "day")).toBeUndefined();
+  });
+});
+
+describe("segmentAriaValueText", () => {
+  // Distinct empty messages and a marked day-period fill, so every assertion
+  // names the slice that produced the string.
+  const date = { ...DATE_SEGMENT_LABELS, empty: "Kein Datum" };
+  const time = {
+    ...TIME_SEGMENT_LABELS,
+    empty: "Keine Zeit",
+    filledDayPeriod: ({ dayPeriod }: { dayPeriod: string }) => `vi-${dayPeriod}`,
+  };
+
+  it("replaces an empty digit segment with the owning half's word", () => {
+    // The half that owns the part owns its empty message too, which is what
+    // keeps a host localising only `timeSegments` reaching a datetime
+    // control's clock segments.
+    expect(segmentAriaValueText({ date, time, part: "hour", value: "hh", locale: "en" })).toEqual({
+      "aria-valuetext": "Keine Zeit",
+    });
+    expect(segmentAriaValueText({ date, time, part: "day", value: "dd", locale: "en" })).toEqual({
+      "aria-valuetext": "Kein Datum",
+    });
+  });
+
+  it("announces a filled month through the date half's filledMonth", () => {
+    expect(
+      segmentAriaValueText({ date, part: "month", value: "3", locale: "en", month: 5 }),
+    ).toEqual({ "aria-valuetext": "5 - May" });
+  });
+
+  it("leaves a filled month alone when no parsed month is available", () => {
+    expect(segmentAriaValueText({ date, part: "month", value: "3", locale: "en" })).toEqual({});
+  });
+
+  it("announces a filled day period through the time half", () => {
+    expect(
+      segmentAriaValueText({ date, time, part: "dayPeriod", value: "PM", locale: "en" }),
+    ).toEqual({ "aria-valuetext": "vi-PM" });
+  });
+
+  it("gives a date-only control nothing for a day period", () => {
+    // A DatePicker has no clock half, so its old pair had no dayPeriod
+    // branch at all — the shared one must be equally silent.
+    expect(segmentAriaValueText({ date, part: "dayPeriod", value: "PM", locale: "en" })).toEqual(
+      {},
+    );
+  });
+
+  it("leaves everything Reka already says correctly untouched", () => {
+    expect(segmentAriaValueText({ date, time, part: "literal", value: "/", locale: "en" })).toEqual(
+      {},
+    );
+    expect(segmentAriaValueText({ date, time, part: "year", value: "2026", locale: "en" })).toEqual(
+      {},
+    );
+  });
+
+  it("keeps a time-only control whole without a date half", () => {
+    expect(segmentAriaValueText({ time, part: "minute", value: "mm", locale: "en" })).toEqual({
+      "aria-valuetext": "Keine Zeit",
+    });
+    expect(segmentAriaValueText({ time, part: "second", value: "41", locale: "en" })).toEqual({});
   });
 });
 

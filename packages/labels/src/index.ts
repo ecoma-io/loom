@@ -59,6 +59,8 @@ export {
   emptySegmentValueText,
   isDateSegmentPart,
   isTimeSegmentPart,
+  segmentAriaLabel,
+  segmentAriaValueText,
 } from "./date-labels";
 export type {
   CalendarPanelLabels,
@@ -66,6 +68,8 @@ export type {
   DateSegmentName,
   RangeCellLabels,
   RangeCellPart,
+  SegmentAriaValueTextArgs,
+  SegmentVocabularies,
   TimeSegmentLabels,
   TimeSegmentName,
 } from "./date-labels";
