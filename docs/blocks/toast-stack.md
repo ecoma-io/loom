@@ -66,6 +66,15 @@ absent `open` value can never reach a card here.
   mobile browser chrome collapses the visual viewport, and `vh` does not
   follow it.
 
+## Severity decides politeness
+
+Each entry is announced by its own severity, inside the one shared provider:
+a `destructive` toast is read out through an assertive live region
+(`role="alert"`, `aria-live="assertive"`), so an error report interrupts
+whatever the screen reader is already saying, and every other variant
+announces politely — an ordinary notification never interrupts. Same rule as
+[`Toast`](/components/toast): no prop decides it, severity alone does.
+
 ## `Toast` or `ToastStack`
 
 | Use          | When                                                        |
@@ -77,7 +86,7 @@ absent `open` value can never reach a card here.
 
 `ToastStackItem`: `id` (`string \| number`) · `title` (`string`) ·
 `description?` (`string`) · `variant?` (`"info" \| "success" \| "warning" \|
-"destructive" \| "ai"`) · `duration?` (`number`, ms — defaults to 4000: a
+"destructive" \| "accent"`) · `duration?` (`number`, ms — defaults to 4000: a
 stack turns over faster than a lone toast). The `dismiss` event carries the
 `id` of the entry to remove.
 

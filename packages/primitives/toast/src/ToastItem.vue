@@ -79,6 +79,20 @@ const toastAccents = {
 } satisfies Record<ToastVariant, { icon: typeof Info; color: string }>;
 
 const accent = computed(() => toastAccents[props.variant]);
+
+// Severity alone decides how the toast interrupts (issue #91): a destructive
+// report announced politely can be swallowed by whatever the screen reader is
+// already saying — exactly the messages that must not be missed. The knob is
+// Reka's own `type`: it hard-wires the hidden announce region's `role` to
+// `alert` and picks that region's politeness from this prop — `foreground`
+// announces `aria-live="assertive"`, `background` politely. Destructive
+// routes foreground; every other severity stays polite, so an ordinary
+// notification never interrupts. Deliberately no prop of Loom's own: the
+// variant the card already carries *is* the severity, and a second way to set
+// it would only let the two disagree.
+const announceType = computed<"foreground" | "background">(() =>
+  props.variant === "destructive" ? "foreground" : "background",
+);
 </script>
 
 <template>
@@ -94,6 +108,7 @@ const accent = computed(() => toastAccents[props.variant]);
        frame; on ToastRoot it genuinely plays. -->
   <ToastRoot
     v-bind="optional({ open })"
+    :type="announceType"
     :duration="duration"
     class="outline-none data-[state=closed]:animate-toast-out"
     @update:open="$emit('update:open', $event)"

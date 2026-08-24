@@ -56,4 +56,36 @@ describe("ToastStack", () => {
     await nextTick();
     expect(dismissed).toEqual([1]);
   });
+
+  // Issue #91, pinned through the block composition: each card's announcement
+  // politeness follows that entry's own severity inside the ONE shared
+  // provider — the destructive report routes assertive and nothing else does,
+  // in both directions. The hidden announce regions render two animation
+  // frames after the cards (Reka's own delay), so flush before reading them.
+  it("routes each entry's announcement by its own severity within the shared viewport", async () => {
+    await mountStack([
+      { id: 1, title: "Member added", description: "John", variant: "success" },
+      { id: 2, title: "Render failed", description: "Missing codec.", variant: "destructive" },
+    ]);
+    for (let i = 0; i < 4; i++) {
+      await nextTick();
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          resolve(null);
+        });
+      });
+    }
+    const regions = [...document.querySelectorAll<HTMLElement>('[role="alert"]')];
+    expect(regions).toHaveLength(2);
+    const assertive = regions.filter((r) => r.getAttribute("aria-live") === "assertive");
+    const polite = regions.filter((r) => r.getAttribute("aria-live") === "polite");
+    expect(assertive).toHaveLength(1);
+    expect(polite).toHaveLength(1);
+    // The assertive region carries the destructive report and only it…
+    expect(assertive[0]!.textContent).toContain("Render failed");
+    expect(assertive[0]!.textContent).not.toContain("Member added");
+    // …and the polite region carries the success without absorbing the error.
+    expect(polite[0]!.textContent).toContain("Member added");
+    expect(polite[0]!.textContent).not.toContain("Render failed");
+  });
 });

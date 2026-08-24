@@ -30,6 +30,13 @@ function dismiss(id: string | number) {
     <Button
       variant="outline"
       size="sm"
+      @click="push('destructive', 'Upload failed', 'Storage quota reached.')"
+    >
+      Toast error
+    </Button>
+    <Button
+      variant="outline"
+      size="sm"
       @click="
         push('success', 'Member added', 'John');
         push('info', 'Workflow updated', 'Weekly SEO');

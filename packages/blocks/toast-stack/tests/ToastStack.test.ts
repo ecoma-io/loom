@@ -42,7 +42,7 @@ vi.mock("@ecoma-io/loom-toast", async () => {
 // drive: the three props ToastStack computes per item, and the one event a
 // card can raise.
 interface MockToastCard {
-  props: (key: "title" | "open" | "duration") => unknown;
+  props: (key: "title" | "open" | "duration" | "variant") => unknown;
   vm: { $emit: (event: "update:open", value: boolean) => void };
 }
 
@@ -65,6 +65,12 @@ describe("ToastStack", () => {
     // ToastStack: `open` is always an explicit `true`, never left for a
     // per-item value to go missing.
     expect(cards.map((card) => card.props("open"))).toEqual([true, true]);
+  });
+
+  it("forwards each entry's variant through — severity reaches the card that decides announcement politeness", () => {
+    const wrapper = mount(ToastStack, { props: { items } });
+    const cards = wrapper.findAllComponents({ name: "ToastItem" }) as unknown as MockToastCard[];
+    expect(cards.map((card) => card.props("variant"))).toEqual(["success", "info"]);
   });
 
   it("defaults an entry's duration to 4000ms — a stack turns over faster than a lone toast — while passing an explicit value through unchanged", () => {
