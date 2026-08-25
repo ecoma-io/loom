@@ -93,6 +93,7 @@
       // internal edge misread as an external one is judged by the wrong rule.
       "@ecoma-io/loom-core/testing": ["./packages/core/src/testing/attach-to-body.ts"],
       "@ecoma-io/loom-labels": ["./packages/labels/src/index.ts"],
+      "@ecoma-io/loom-layout-engine": ["./packages/layout-engine/src/index.ts"],
       // Internal component packages. Each one is added as it migrates from src/
       // to packages/<tier>/<name>/.
       "@ecoma-io/loom-hover-card": ["./packages/primitives/hover-card/src/index.ts"],

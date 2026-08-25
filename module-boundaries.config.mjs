@@ -64,6 +64,20 @@ export const depConstraints = [
     remediation: "If labels needs a component, the dependency is pointing the wrong way.",
   },
 
+  // The platform-independent layout core. It computes geometry from immutable
+  // trees and imports nothing — no Vue, no DOM, not even cn — because a
+  // layout oracle that touched the platform it is held against could not be
+  // an oracle. The empty list is that fact as law, in the same shape as
+  // core's row.
+  {
+    sourceTag: "layer-layout-engine",
+    onlyDependOnLibsWithTags: [],
+    description:
+      "The layout engine is pure geometry over immutable trees. It is imported by the composition adapters and imports nothing.",
+    remediation:
+      "Move the helper the engine needs into the engine itself, or resolve it at the adapter boundary — the core must stay platform-independent.",
+  },
+
   // The generic controls. A primitive may compose another primitive
   // (alert-dialog → button, field → inline-error) — same-layer edges are
   // allowed, and the cycle check below is what keeps that from closing a loop.
@@ -77,12 +91,14 @@ export const depConstraints = [
   },
 
   // Layout compositions (Stack, Grid, Split, …). They may use primitives, and
-  // today use only core — the row states the architecture, not the census.
+  // today use only core and the layout engine — the row states the
+  // architecture, not the census.
   {
     sourceTag: "layer-composition",
     onlyDependOnLibsWithTags: [
       "layer-core",
       "layer-labels",
+      "layer-layout-engine",
       "layer-primitives",
       "layer-composition",
     ],
@@ -177,11 +193,11 @@ export const depConstraints = [
   // the same hand-declared theme-core edge the docs project does.
   {
     sourceTag: "layer-e2e",
-    onlyDependOnLibsWithTags: ["layer-facade", "layer-theme-core"],
+    onlyDependOnLibsWithTags: ["layer-facade", "layer-theme-core", "layer-composition"],
     description:
-      "The site-wide browser suite drives the built site and reads the library's own published a11y contract, so the gate and the published claim cannot drift apart.",
+      "The browser suites drive the built site, read the library's own published a11y contract, and — since Archkeep began judging resolved edges — mount the layout compositions through the conformance route's case files. Stated truthfully: this row licenses ANY e2e-tagged project to import compositions (the root site suite carries the same tag, and a per-project distinction is not expressible here). The bound on escalation is not prose but the mutation row harness-reaches-past-the-compositions-it-proves: anything BENEATH the compositions, reached from any e2e file, reddens.",
     remediation:
-      "Import the contract from the facade's `/a11y` subpath rather than from the package that happens to define it.",
+      "Import the contract from the facade's `/a11y` subpath rather than from the package that happens to define it; a suite that needs to reach past the compositions should grow its own evidence and its own row, not widen this one.",
   },
 
   // `tools/` is the repository's own gate machinery — the architecture
@@ -269,13 +285,18 @@ export const moduleBoundaryOptions = {
  * the right demand: an unexplained suppression is indistinguishable from a
  * boundary that quietly stopped being enforced.
  *
- * Both rows below are the same shape, and it is worth stating once. A
+ * Two of the rows below are the same shape, and it is worth stating once. A
  * suppression removes a VERDICT, never a check: the file is still fully
  * analyzed, anything unreadable in it is still reported, and the next check in
  * the documented order fires at the same line exactly as fixing the specifier
  * would. And a row that stops covering anything is refused with exit 3 on the
- * next whole-workspace run — so neither of these can outlive the reach it
- * accepts.
+ * next whole-workspace run — measured: a file whose accepted reaches were
+ * removed exits 3 naming the row. Deleting the accepted file outright fails
+ * earlier and coarser, exit 1 through the unresolved import that pointed at
+ * it — a less precise message, still fail-closed. Either way none of these
+ * can outlive the reach it accepts. The third row (the conformance route) is
+ * a different shape: it accepts a relative SPELLING whose edge the layer-e2e
+ * row states, so the verdict beside it still fires.
  */
 export const boundarySuppressions = [
   {
@@ -289,6 +310,12 @@ export const boundarySuppressions = [
     messageId: "noRelativeOrAbsoluteExternals",
     reason:
       "the harness's Vite config merges the root vite.config.ts so that the demo it mounts resolves every `@ecoma-io/loom-*` alias the unit suite resolves — one alias map, not two that drift. The root config is owned by no Moon project (there is no root project, and adding one would give the whole repository a second lint and test task), so the specifier resolves to a real file that belongs to nothing and is classified external. Importing the map is the point; duplicating it is the failure this avoids.",
+  },
+  {
+    path: "playwright/harness/conformance.ts",
+    messageId: "noRelativeOrAbsoluteImportsAcrossLibraries",
+    reason:
+      "the conformance route statically imports the four composition packages' e2e/conformance.cases.ts files — deliberately static, never import.meta.glob, because a glob's reaches neither architecture reader can see. Each case file lives in its package's e2e/ directory, which no specifier can name: the exports maps and the tsconfig paths both point at src/index.ts only, and giving browser-evidence fixtures a package entry point would be restructuring the package to suit a spelling. The EDGE those four imports draw is stated by the layer-e2e row (layer-composition, the components the harness proves and nothing beneath); this row accepts only the SPELLING, the same shape as the tools/*.ts pair — Archkeep judges the resolved edge past the suppressed spelling, and the row is where that edge is argued. The case files' own imports are intra-package and judged clean under their packages' rows, and the engine is reached only transitively through the judged composition edge. The residual is named rather than silent: the mutation rows that fire both verdicts in every OTHER harness file prove the suppression is one file's exception, not a blanket.",
   },
 ];
 

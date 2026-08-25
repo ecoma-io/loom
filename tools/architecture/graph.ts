@@ -4,7 +4,7 @@
  * paths, the facade's package.json dependencies, the moon projects glob)
  * that used to drift apart. The filesystem is the source of truth: a
  * component is internal iff its directory exists under `packages/<tier>/`,
- * and the four fixed packages are named here because they have no tier of
+ * and the five fixed packages are named here because they have no tier of
  * their own. Nothing is parsed from package.json — a component's specifier
  * is derived from its directory name, which is the same fact
  * tools/sync-moon-deps.ts uses to map package.json deps to moon projects.
@@ -23,8 +23,8 @@ export const ROOT = join(import.meta.dirname, "..", "..");
 export const TIERS = ["primitives", "composition", "layouts", "blocks"] as const;
 export type Tier = (typeof TIERS)[number];
 
-/** A layer key: a component tier, or one of the four fixed packages. */
-export type Layer = Tier | "core" | "labels" | "loom" | "theme-core";
+/** A layer key: a component tier, or one of the five fixed packages. */
+export type Layer = Tier | "core" | "labels" | "layout-engine" | "loom" | "theme-core";
 
 /** `button` → `@ecoma-io/loom-button`. Directory name == spec suffix, by construction. */
 export function componentSpec(name: string): string {
@@ -42,7 +42,7 @@ export function componentDir(root: string, tier: Tier, name: string): string {
 }
 
 export interface InternalPackage {
-  /** Layer key: the tier for components, the package's own name for the fixed four. */
+  /** Layer key: the tier for components, the package's own name for the fixed packages. */
   tier: Layer;
   /** Directory name: the spec suffix for components, the fixed name otherwise. */
   name: string;
@@ -57,7 +57,7 @@ export interface InternalPackage {
 }
 
 /**
- * The fixed four. The facade specifier is assembled, not written out, because
+ * The fixed five. The facade specifier is assembled, not written out, because
  * eslint's project-service parser trips over the bare at-ecoma-io-slash-loom
  * literal inside a string (the same quirk documented in check-architecture.ts).
  */
@@ -65,6 +65,12 @@ function fixedPackages(root: string): InternalPackage[] {
   const fixed = [
     { tier: "core", name: "core", spec: "@ecoma-io/loom-core", stylesOnly: false },
     { tier: "labels", name: "labels", spec: "@ecoma-io/loom-labels", stylesOnly: false },
+    {
+      tier: "layout-engine",
+      name: "layout-engine",
+      spec: "@ecoma-io/loom-layout-engine",
+      stylesOnly: false,
+    },
     { tier: "theme-core", name: "theme-core", spec: "@ecoma-io/loom-theme-core", stylesOnly: true },
     { tier: "loom", name: "loom", spec: ["@ecoma-io", "loom"].join("/"), stylesOnly: false },
   ] as const;
@@ -91,7 +97,7 @@ export function componentPackages(root: string, tier: Tier): InternalPackage[] {
     });
 }
 
-/** Every internal package: the fixed four plus every filesystem-enumerated component. */
+/** Every internal package: the fixed packages plus every filesystem-enumerated component. */
 export function internalPackages(root = ROOT): InternalPackage[] {
   return [...fixedPackages(root), ...TIERS.flatMap((tier) => componentPackages(root, tier))];
 }

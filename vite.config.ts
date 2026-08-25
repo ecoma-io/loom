@@ -40,6 +40,7 @@ export default defineConfig({
       "@ecoma-io/loom-core/testing": pkg("core/src/testing/attach-to-body.ts"),
       "@ecoma-io/loom-core": pkg("core/src/index.ts"),
       "@ecoma-io/loom-labels": pkg("labels/src/index.ts"),
+      "@ecoma-io/loom-layout-engine": pkg("layout-engine/src/index.ts"),
       // Component package aliases. These are needed by Vitest so it can follow
       // imports without node_modules installation. The library build does not
       // use these paths (it starts from the loom entry and follows relative

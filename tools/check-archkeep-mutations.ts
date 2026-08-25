@@ -133,6 +133,65 @@ export const MUTATIONS: Mutation[] = [
     ],
   },
   {
+    name: "engine-imports-something",
+    attack:
+      "the layout engine imports a Loom package, breaking the leaf row that keeps it platform-independent",
+    // `emptyOnlyTagsConstraintViolation`, not `onlyTagsConstraintViolation`:
+    // a violation against an EMPTY `onlyDependOnLibsWithTags` list is reported
+    // under its own id — the leaf-row verdict, spelled for the empty list.
+    expect: ["emptyOnlyTagsConstraintViolation"],
+    edits: [
+      {
+        path: "packages/layout-engine/src/index.ts",
+        append: '\nimport "@ecoma-io/loom-core";\n',
+      },
+    ],
+  },
+  {
+    name: "engine-imported-from-a-row-that-forbids-it",
+    attack: "labels imports the layout engine, a layer its row does not name",
+    expect: ["onlyTagsConstraintViolation"],
+    edits: [
+      {
+        path: "packages/labels/src/index.ts",
+        append: '\nimport "@ecoma-io/loom-layout-engine";\n',
+      },
+    ],
+  },
+  {
+    name: "relative-climb-in-the-harness-outside-the-suppressed-route",
+    attack:
+      "a relative cross-library import lands in a harness file other than the one named suppression",
+    // The conformance route (playwright/harness/conformance.ts) carries a
+    // single named suppression for exactly this verdict — the four case-file
+    // imports it needs and no specifier can name. This row is what keeps
+    // that suppression an exception rather than a blanket: the same import
+    // shape in any other harness file must still redden.
+    expect: ["noRelativeOrAbsoluteImportsAcrossLibraries"],
+    edits: [
+      {
+        path: "playwright/harness/main.ts",
+        append: '\nimport "../../packages/core/src/cn";\n',
+      },
+    ],
+  },
+  {
+    name: "harness-reaches-past-the-compositions-it-proves",
+    attack: "the harness imports a primitive directly, past the composition reach its row names",
+    // The layer-e2e row admits layer-composition for exactly one reason: the
+    // conformance route mounts the four composition packages whose case files
+    // it drives. This row is what keeps that admission a named reach rather
+    // than a raised ceiling — anything beneath the compositions, reached from
+    // any harness file, must still redden.
+    expect: ["onlyTagsConstraintViolation"],
+    edits: [
+      {
+        path: "playwright/harness/main.ts",
+        append: '\nimport "@ecoma-io/loom-button";\n',
+      },
+    ],
+  },
+  {
     name: "barrel-reexport-upward",
     attack: "a primitive re-exports a block from its own barrel rather than importing it",
     expect: ["onlyTagsConstraintViolation"],

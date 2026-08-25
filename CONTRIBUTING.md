@@ -64,10 +64,10 @@ order, matched against specifier text) and `archkeep check` (the same layer
 order, judged against what each specifier _resolves to_). Two commands expose
 the last one on its own:
 
-| Command                   | What it does                                                                                                                                                                       |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm archkeep:check`     | The module-boundary verdict alone, about two seconds. Reads `module-boundaries.config.mjs` and the Moon project graph                                                              |
-| `pnpm archkeep:mutations` | Breaks the architecture seventeen ways and asserts each one is caught, restoring every file afterwards. Run it after editing `module-boundaries.config.mjs` or any `moon.yml` tags |
+| Command                   | What it does                                                                                                                                                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm archkeep:check`     | The module-boundary verdict alone, about two seconds. Reads `module-boundaries.config.mjs` and the Moon project graph                                                                                                              |
+| `pnpm archkeep:mutations` | Breaks the architecture every way the rows in `tools/check-archkeep-mutations.ts` name and asserts each one is caught, restoring every file afterwards. Run it after editing `module-boundaries.config.mjs` or any `moon.yml` tags |
 
 Exit 1 from `archkeep check` is a boundary crossed; exit **3** is a checker that
 could not reach a verdict, and both fail. Do not paper over the second — a

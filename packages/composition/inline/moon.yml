@@ -1,5 +1,6 @@
 deps:
   - "core"
-tags: ["layer-composition"]
+  - "layout-engine"
+tags: ["layer-composition", "e2e"]
 tasks:
   # Inherit lint and test from .moon/tasks/*.yml.

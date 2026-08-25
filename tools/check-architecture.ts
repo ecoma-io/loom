@@ -167,6 +167,7 @@ export function runChecks(root: string): string[] {
   const LAYERS = {
     core: 0,
     labels: 1,
+    "layout-engine": 0,
     primitives: 2,
     composition: 3,
     layouts: 4,
