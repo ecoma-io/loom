@@ -1,0 +1,15 @@
+# The platform-independent layout core.
+#
+# One pure entry point — layout(tree, available) — that computes the geometry
+# of Loom's layout semantics as typed data. It imports nothing: no Vue, no
+# DOM, not even `cn`. The browser keeps rendering the components exactly as
+# before; this package is the semantic oracle the conformance route holds
+# equal to what the browser renders, and the boundary a non-web backend or a
+# runtime capability would need later.
+tags: ["layer-layout-engine"]
+project:
+  name: "layout-engine"
+  description: "Platform-independent layout computation for Loom's layout semantics"
+
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
