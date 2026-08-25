@@ -9,7 +9,7 @@ host this repository is worked in:
 | Codex       | does not read     | reads             |
 | opencode    | reads             | reads             |
 
-`arch-*` is vendored from `@ecoma-io/lattice` and held byte-identical to the pinned
+`arch-*` is vendored from `@ecoma-io/archkeep` and held byte-identical to the pinned
 release. Everything else is this repository's own, authored in
 `.claude/skills/` and mirrored here.
 

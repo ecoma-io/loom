@@ -6,18 +6,21 @@
 // `@ecoma-io/loom-button` mean *this repository's source* rather than whatever
 // pnpm linked into `node_modules`, and three tools read it: `vue-tsc` for the
 // typecheck, ESLint's project service for the type-aware rules, and
-// `lattice check` for the architecture boundary. The third is the reason this
-// file has this name: Lattice's Moon provider resolves `tsConfig` from the
-// convention `tsconfig.base.json` and a Moon workspace has no configuration
-// surface to name a different one — no `lattice.json` (the `.moon`/
-// `lattice.json` pair is refused outright), no plugin-options table in Moon's
-// own config, and no CLI flag. Filed upstream as
-// https://github.com/ecoma-io/lattice/issues/266.
+// `archkeep check` for the architecture boundary. The third is the reason this
+// file has this name: Archkeep's Moon provider reads `tsConfig` from a chain
+// of exactly two names — `tsconfig.base.json`, then `tsconfig.json` — and a
+// Moon workspace still has no configuration surface to name any other file:
+// no `archkeep.json` (the `.moon`/`archkeep.json` pair is refused outright)
+// and no plugin-options table in Moon's own config. The two-name chain is what
+// closing https://github.com/ecoma-io/archkeep/issues/266 shipped; before it,
+// the single hard-coded name was the whole story.
 //
-// What that gap costs if the file is missing is measured rather than assumed:
-// with the paths table out of reach, every `@ecoma-io/loom-*` specifier in the
-// repository resolves to nothing and the run reports 656 findings it should
-// not — loud, at least, rather than a green report over an unread tree.
+// What that gap costs if the paths table is out of reach is measured rather
+// than assumed: remove this file and the chain falls through to
+// `tsconfig.json`, which extends it but carries no `paths` of its own — every
+// `@ecoma-io/loom-*` specifier in the repository then resolves to nothing and
+// the run exits 1 reporting each as an undeclared npm package. Loud, at least,
+// rather than a green report over an unread tree.
 //
 // `tsconfig.json` extends this and adds the program's file set;
 // `tsconfig.build.json` extends this and adds the declaration emit. Neither

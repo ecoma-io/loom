@@ -8,9 +8,11 @@ project:
 # the single source of the browser matrix, read by both Playwright configs and
 # by tools/e2e-plan.ts — plus the harness's Vite config, its entry, and the
 # harness axe gate. Owned by nobody, none of it was linted or type-checked by
-# `moon ci`, and `lattice check` skipped it outright: a file belonging to no
-# project is not analyzed, is not counted, and does not lower the coverage
-# percentage. Six files were invisible to both gates at once.
+# `moon ci`, and `lattice check` (Archkeep, before the rename) skipped it
+# outright: a file belonging to no project was not analyzed, was not counted,
+# and did not lower the coverage percentage. Six files were invisible to both
+# gates at once. Archkeep names such files now; this directory earned a project
+# instead of an acceptance row.
 #
 # No `e2e` tag, deliberately. The shared e2e task (.moon/tasks/e2e.yml) is
 # inherited by that tag and drives a component's own specs through this

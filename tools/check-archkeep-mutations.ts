@@ -1,5 +1,5 @@
 /**
- * Proof that `lattice check` fails when this repository's architecture is
+ * Proof that `archkeep check` fails when this repository's architecture is
  * broken — not merely that it passes when the architecture is intact.
  *
  * A boundary checker that reports nothing looks exactly like a boundary
@@ -8,16 +8,16 @@
  * `paths` alias that stops resolving turns every internal import into an
  * external one, a project that loses its tag falls out of every row — and all
  * three read as a clean run. So each rule that table states is exercised here
- * against the real tree: the mutation is written to disk, `lattice check` is
+ * against the real tree: the mutation is written to disk, `archkeep check` is
  * run over the whole workspace, the messageId it reports is compared with the
  * one the mutation was designed to produce, and the file is restored byte for
  * byte before the next one starts.
  *
- * Two of the cases below expect Lattice to report NOTHING, and they are the
+ * Two of the cases below expect Archkeep to report NOTHING, and they are the
  * most valuable rows in the file. Each documents a boundary this repository
- * enforces that Lattice structurally cannot see — the reason
+ * enforces that Archkeep structurally cannot see — the reason
  * `tools/check-architecture.ts` is still wired into `pnpm lint` rather than
- * retired in favour of this. If Lattice grows the ability to see one, that row
+ * retired in favour of this. If Archkeep grows the ability to see one, that row
  * turns red, which is the signal to delete it and the corresponding note in
  * `docs/architecture/contract.md`.
  *
@@ -26,7 +26,7 @@
  * harness that resolves a crash by discarding the developer's uncommitted work
  * would be a worse failure than the one it was reporting.
  *
- * Run: `pnpm lattice:mutations` (about forty seconds — one whole-workspace
+ * Run: `pnpm archkeep:mutations` (about forty seconds — one whole-workspace
  * check per mutation, which is the only run the cycle rule is honest in).
  */
 import { execFileSync } from "node:child_process";
@@ -180,6 +180,11 @@ export const MUTATIONS: Mutation[] = [
     name: "alias-bypass-straight-into-a-block",
     attack:
       "a new tsconfig path alias points past a block's entry point, and a primitive imports the alias",
+    // The same alias pointed at the block's `.vue` source — once
+    // ecoma-io/archkeep#264, a blind spot under Lattice 0.11, where
+    // `ts.resolveModuleName` declined the `.vue` target and the specifier was
+    // classified as an undeclared npm package — reports this same id on
+    // Archkeep 0.14, so the two mutations are one row now.
     expect: ["onlyTagsConstraintViolation"],
     edits: [
       {
@@ -192,40 +197,6 @@ export const MUTATIONS: Mutation[] = [
       {
         path: "packages/primitives/badge/src/index.ts",
         append: '\nimport "@loom-mutation/inside-a-block";\n',
-      },
-    ],
-  },
-  {
-    name: "blind-spot-alias-onto-a-vue-file",
-    attack: "the same alias bypass, pointed one file further in — at the block's .vue source",
-    // Reported, but as the WRONG rule, and only because this repository turned
-    // `banTransitiveDependencies` on. Measured, all three cases, on lattice
-    // 0.11.1:
-    //
-    //   alias -> src/index.ts        onlyTagsConstraintViolation   (correct)
-    //   alias -> src/PageHeader.vue  noTransitiveDependencies      (this row)
-    //   ...with banTransitiveDependencies: false, which is the option's own
-    //   default, the same edit reports "no boundary violations" and exits 0.
-    //
-    // The cause is that `ts.resolveModuleName` declines a `.vue` target, and a
-    // non-relative specifier that fails to resolve is classified external —
-    // so a cross-layer reach into a Vue component becomes "an npm package you
-    // did not declare". For a Vue component library that is the difference
-    // between a boundary and a lint note. Reported upstream as
-    // ecoma-io/lattice#264. When it is fixed this row turns red and merges into
-    // the one above.
-    expect: ["noTransitiveDependencies"],
-    edits: [
-      {
-        path: "tsconfig.base.json",
-        replace: [
-          /("@ecoma-io\/loom-core": \["\.\/packages\/core\/src\/index\.ts"\],)/,
-          '$1\n      "@loom-mutation/inside-a-vue-file": ["./packages/blocks/page-header/src/PageHeader.vue"],',
-        ],
-      },
-      {
-        path: "packages/primitives/badge/src/index.ts",
-        append: '\nimport "@loom-mutation/inside-a-vue-file";\n',
       },
     ],
   },
@@ -301,7 +272,7 @@ export const MUTATIONS: Mutation[] = [
     name: "blind-spot-facade-subpath",
     attack: "a primitive imports the facade's `/theme` subpath rather than the facade itself",
     expect: [],
-    note: "`@ecoma-io/loom/theme` is a path alias onto `packages/core/src/theme.ts`, so Lattice resolves the specifier to the CORE project and judges primitives->core, which the table allows. The specifier is the public surface and importing it is importing the facade — a fact about the published entry map that no resolver can recover from the file it lands on. tools/check-architecture.ts check 2 matches the specifier text and reports it; this row is why that check is not redundant.",
+    note: "`@ecoma-io/loom/theme` is a path alias onto `packages/core/src/theme.ts`, so Archkeep resolves the specifier to the CORE project and judges primitives->core, which the table allows. The specifier is the public surface and importing it is importing the facade — a fact about the published entry map that no resolver can recover from the file it lands on. tools/check-architecture.ts check 2 matches the specifier text and reports it; this row is why that check is not redundant.",
     edits: [
       {
         path: "packages/primitives/badge/src/index.ts",
@@ -313,7 +284,7 @@ export const MUTATIONS: Mutation[] = [
     name: "blind-spot-file-owned-by-no-project",
     attack: "a violation is planted in a tracked file that no Moon project owns",
     expect: [],
-    note: "a file belonging to no project is skipped entirely: not analyzed, not reported, and not counted in the denominator `coverage-minimum` divides by — so the run still answers 100%. Reported upstream as ecoma-io/lattice#263. `playwright/` was such a directory until it was made a Moon project; the root-level configs still are.",
+    note: "a file belonging to no project is still analyzed by nothing and no verdict covers it — but since ecoma-io/archkeep#263 landed, around the rename, the run NAMES every such file instead of silently skipping it, and this repository records the ten it accepts in `module-boundaries.config.mjs`'s `coverage.unowned`. The hole is now a recorded decision rather than an invisible one; this row stays because recording a hole does not judge the file inside it.",
     edits: [
       {
         path: "playwright.config.ts",
@@ -323,9 +294,9 @@ export const MUTATIONS: Mutation[] = [
   },
 ];
 
-/** The violation ids `lattice check --format json` reported for this tree. */
-function runLattice(): string[] {
-  const out = join(ROOT, "node_modules", ".cache", "lattice-mutation.json");
+/** The violation ids `archkeep check --format json` reported for this tree. */
+function runArchkeep(): string[] {
+  const out = join(ROOT, "node_modules", ".cache", "archkeep-mutation.json");
   // `--output` writes through a `.tmp` sibling and does not create the
   // directory it was pointed at, so on a tree where `node_modules/.cache` does
   // not exist yet every run exits 3 having written nothing. Locally the
@@ -335,7 +306,7 @@ function runLattice(): string[] {
   let stderr = "";
   try {
     execFileSync(
-      join(ROOT, "node_modules", ".bin", "lattice"),
+      join(ROOT, "node_modules", ".bin", "archkeep"),
       ["check", "--format", "json", "--output", out],
       { cwd: ROOT, stdio: "pipe" },
     );
@@ -351,7 +322,7 @@ function runLattice(): string[] {
     // the CLI had already written to stderr. A harness that cannot read a
     // verdict has proved nothing about any of them.
     throw new Error(
-      `lattice check produced no envelope at ${out}\n${stderr.trim() || "(no stderr)"}`,
+      `archkeep check produced no envelope at ${out}\n${stderr.trim() || "(no stderr)"}`,
     );
   }
   const envelope = JSON.parse(readFileSync(out, "utf8")) as {
@@ -421,12 +392,12 @@ export function runMutations(mutations: readonly Mutation[] = MUTATIONS): Mutati
         }
         writeFileSync(path, next);
       }
-      const actual = runLattice();
+      const actual = runArchkeep();
       const expected = [...mutation.expect].sort();
       // Every expected id must appear. Extra ids are not a failure on their
       // own: a mutation that trips a second rule as well is still evidence the
       // rule it was written for fires, and which ids a site can produce at once
-      // is Lattice's documented ordering, not this repository's claim.
+      // is Archkeep's documented ordering, not this repository's claim.
       const passed =
         expected.length === 0 ? actual.length === 0 : expected.every((id) => actual.includes(id));
       results.push({ name: mutation.name, expected, actual, passed });
