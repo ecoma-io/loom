@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INLINE_GAP_BREAKPOINT, INLINE_GAP_STEPS, inlineLayout } from "./layout";
+import { cases } from "../e2e/conformance.cases";
 
 // The mapping, the scale tables and the throw contract — see stack's
 // layout.test.ts for how the tiers split. Inline's throw set is the widest
@@ -45,5 +46,34 @@ describe("inlineLayout", () => {
     expect(() => inlineLayout({ wrap: false, align: "baseline" }, ctx(800), [])).toThrow(
       /baseline.*CSS-only/,
     );
+  });
+});
+
+// See stack's layout.test.ts for what the coverage floor is and why it is
+// band-aware. Inline's floor adds the wrap demand: every case must state
+// wrap: false explicitly, because the component's default is the one value
+// the adapter throws on.
+describe("case coverage floor", () => {
+  it("covers every gap value in both bands the gap scale distinguishes", () => {
+    const uncovered = (["sm", "md", "lg"] as const).filter((gap) => {
+      const viewports = cases.filter((c) => c.props.gap === gap).flatMap((c) => [...c.viewports]);
+      return !(
+        viewports.some((v) => v < INLINE_GAP_BREAKPOINT) &&
+        viewports.some((v) => v >= INLINE_GAP_BREAKPOINT)
+      );
+    });
+    expect(uncovered).toEqual([]);
+  });
+
+  it("covers every modeled align value at least once", () => {
+    const uncovered = (["start", "center", "end", "stretch"] as const).filter(
+      (align) => !cases.some((c) => c.props.align === align),
+    );
+    expect(uncovered).toEqual([]);
+  });
+
+  it("states wrap: false on every case — the default is CSS-only and throws", () => {
+    expect(cases.length).toBeGreaterThan(0);
+    expect(cases.every((c) => c.props.wrap === false)).toBe(true);
   });
 });

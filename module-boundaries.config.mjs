@@ -285,13 +285,18 @@ export const moduleBoundaryOptions = {
  * the right demand: an unexplained suppression is indistinguishable from a
  * boundary that quietly stopped being enforced.
  *
- * Both rows below are the same shape, and it is worth stating once. A
+ * Two of the rows below are the same shape, and it is worth stating once. A
  * suppression removes a VERDICT, never a check: the file is still fully
  * analyzed, anything unreadable in it is still reported, and the next check in
  * the documented order fires at the same line exactly as fixing the specifier
  * would. And a row that stops covering anything is refused with exit 3 on the
- * next whole-workspace run — so neither of these can outlive the reach it
- * accepts.
+ * next whole-workspace run — measured: a file whose accepted reaches were
+ * removed exits 3 naming the row. Deleting the accepted file outright fails
+ * earlier and coarser, exit 1 through the unresolved import that pointed at
+ * it — a less precise message, still fail-closed. Either way none of these
+ * can outlive the reach it accepts. The third row (the conformance route) is
+ * a different shape: it accepts a relative SPELLING whose edge the layer-e2e
+ * row states, so the verdict beside it still fires.
  */
 export const boundarySuppressions = [
   {
@@ -305,6 +310,12 @@ export const boundarySuppressions = [
     messageId: "noRelativeOrAbsoluteExternals",
     reason:
       "the harness's Vite config merges the root vite.config.ts so that the demo it mounts resolves every `@ecoma-io/loom-*` alias the unit suite resolves — one alias map, not two that drift. The root config is owned by no Moon project (there is no root project, and adding one would give the whole repository a second lint and test task), so the specifier resolves to a real file that belongs to nothing and is classified external. Importing the map is the point; duplicating it is the failure this avoids.",
+  },
+  {
+    path: "playwright/harness/conformance.ts",
+    messageId: "noRelativeOrAbsoluteImportsAcrossLibraries",
+    reason:
+      "the conformance route statically imports the four composition packages' e2e/conformance.cases.ts files — deliberately static, never import.meta.glob, because a glob's reaches neither architecture reader can see. Each case file lives in its package's e2e/ directory, which no specifier can name: the exports maps and the tsconfig paths both point at src/index.ts only, and giving browser-evidence fixtures a package entry point would be restructuring the package to suit a spelling. The EDGE those four imports draw is stated by the layer-e2e row (layer-composition, the components the harness proves and nothing beneath); this row accepts only the SPELLING, the same shape as the tools/*.ts pair — Archkeep judges the resolved edge past the suppressed spelling, and the row is where that edge is argued. The case files' own imports are intra-package and judged clean under their packages' rows, and the engine is reached only transitively through the judged composition edge. The residual is named rather than silent: the mutation rows that fire both verdicts in every OTHER harness file prove the suppression is one file's exception, not a blanket.",
   },
 ];
 

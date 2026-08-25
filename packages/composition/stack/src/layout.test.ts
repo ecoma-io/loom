@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { STACK_GAP_BREAKPOINT, STACK_GAP_STEPS, stackLayout } from "./layout";
+import { cases } from "../e2e/conformance.cases";
 
 // The mapping, the scale tables and the throw contract. What these tests
 // pin is the ADAPTER; what holds the adapter equal to the component's
@@ -47,5 +48,33 @@ describe("stackLayout", () => {
       { style: { axis: "row", width: 120, height: 40 } },
       { style: { axis: "row", width: 80, height: 24 } },
     ]);
+  });
+});
+
+// The coverage floor: every enumerated value of every modeled prop appears
+// in at least one case, at a viewport inside each scale band that value's
+// table distinguishes. Asserted here rather than left to review because a
+// gap="md" case at 800 and 2000 exercises only the 16px step and never the
+// 12px one — "at least two viewports" would certify reach it did not test.
+// Prop interactions belong to the engine's fixtures and the property suite,
+// which express them far more densely; the cases exist to prove the mapping
+// and the scale tables against the browser.
+describe("case coverage floor", () => {
+  it("covers every gap value in both bands the gap scale distinguishes", () => {
+    const uncovered = (["sm", "md", "lg"] as const).filter((gap) => {
+      const viewports = cases.filter((c) => c.props.gap === gap).flatMap((c) => [...c.viewports]);
+      return !(
+        viewports.some((v) => v < STACK_GAP_BREAKPOINT) &&
+        viewports.some((v) => v >= STACK_GAP_BREAKPOINT)
+      );
+    });
+    expect(uncovered).toEqual([]);
+  });
+
+  it("covers every modeled align value at least once", () => {
+    const uncovered = (["start", "center", "end", "stretch"] as const).filter(
+      (align) => !cases.some((c) => c.props.align === align),
+    );
+    expect(uncovered).toEqual([]);
   });
 });

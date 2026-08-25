@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CENTER_GUTTER_STEPS, CENTER_MAX_WIDTH_PX, centerLayout } from "./layout";
+import { cases } from "../e2e/conformance.cases";
 
 // The mapping, the scale tables and the throw contract — see stack's
 // layout.test.ts for how the tiers split. Center is the one component whose
@@ -67,5 +68,35 @@ describe("centerLayout", () => {
     expect(root.children?.[0]?.children).toEqual([
       { style: { axis: "row", width: 200, height: 64, flexShrink: 0 } },
     ]);
+  });
+});
+
+// See stack's layout.test.ts for what the coverage floor is and why it is
+// band-aware. Center's gutter is the one scale in the slice that steps at
+// `3xl`, so its bands are derived from the exported table rather than
+// hardcoded — a new step in CENTER_GUTTER_STEPS reddens this floor until
+// the cases follow it.
+describe("case coverage floor", () => {
+  it("covers every modeled max-width value at least once", () => {
+    const uncovered = (["sm", "md", "lg", "xl"] as const).filter(
+      (maxWidth) => !cases.some((c) => c.props.maxWidth === maxWidth),
+    );
+    expect(uncovered).toEqual([]);
+  });
+
+  it("covers gutter on in every band the gutter table distinguishes, and gutter off at least once", () => {
+    const bounds = CENTER_GUTTER_STEPS.map((step) => step.minWidth).sort((a, b) => a - b);
+    const bands = bounds.map((low, i) => [low, bounds[i + 1] ?? Number.POSITIVE_INFINITY] as const);
+    const viewportsOn = cases
+      .filter((c) => c.props.gutter === true)
+      .flatMap((c) => [...c.viewports]);
+    const uncoveredBands = bands
+      .filter(([low, high]) => !viewportsOn.some((v) => v >= low && v < high))
+      .map(
+        ([low, high]) =>
+          `[${String(low)}, ${high === Number.POSITIVE_INFINITY ? "inf" : String(high)})`,
+      );
+    expect(uncoveredBands).toEqual([]);
+    expect(cases.some((c) => c.props.gutter === false)).toBe(true);
   });
 });

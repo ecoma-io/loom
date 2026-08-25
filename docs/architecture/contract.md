@@ -213,10 +213,14 @@ one. Archkeep resolves instead of matching, so it reaches:
   package's own name, and a `paths` entry that has stopped resolving** — each
   pinned by the mutation suite below.
 
-The constraint table also carries two accepted violations, each with the
-argument for accepting it written into the row. Both are `tools/` and the
+The constraint table also carries three accepted violations, each with the
+argument for accepting it written into the row. Two are `tools/` and the
 harness reaching sibling directories that are Moon projects but not npm
-packages — there is no published name to import instead. A suppression removes
+packages — there is no published name to import instead. The third is a
+different shape: the conformance route's four case-file imports draw a
+relative-spelling verdict whose edge the `layer-e2e` row states (compositions,
+and nothing beneath them), so the suppression accepts the spelling only —
+the row is where the edge is argued. A suppression removes
 a verdict and never a check: the file is still fully analyzed, and Archkeep
 refuses the run outright if a suppression stops covering anything.
 

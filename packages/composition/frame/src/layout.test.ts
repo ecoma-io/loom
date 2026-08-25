@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FRAME_RATIOS, frameLayout } from "./layout";
+import { cases } from "../e2e/conformance.cases";
 
 // The mapping, the scale tables and the throw contract — see stack's
 // layout.test.ts for how the tiers split. Frame's modeled surface is the
@@ -48,5 +49,24 @@ describe("frameLayout", () => {
     expect(tree.children).toEqual([
       { style: { axis: "row", width: 100, height: 50, flexShrink: 0 } },
     ]);
+  });
+});
+
+// See stack's layout.test.ts for what the coverage floor is. The ratio
+// arithmetic is band-independent, so one viewport per value suffices; the
+// parsed free-form form is modeled but not enumerable, so it is demanded by
+// presence rather than by enumeration.
+describe("case coverage floor", () => {
+  it("covers every named ratio at least once", () => {
+    const uncovered = Object.keys(FRAME_RATIOS).filter(
+      (ratio) => !cases.some((c) => c.props.ratio === ratio),
+    );
+    expect(uncovered).toEqual([]);
+  });
+
+  it("exercises the parsed free-form ratio form at least once", () => {
+    expect(cases.some((c) => c.props.ratio !== undefined && !(c.props.ratio in FRAME_RATIOS))).toBe(
+      true,
+    );
   });
 });
