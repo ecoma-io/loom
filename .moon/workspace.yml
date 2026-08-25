@@ -5,6 +5,11 @@ projects:
   - "packages/core"
   - "packages/theme-core"
   - "packages/labels"
+  # The platform-independent layout core. A foundation package rather than a
+  # core subpath because its consumer set and iteration cycle are its own:
+  # only the composition adapters and the conformance harness import it, so
+  # an engine edit must not re-test every package that imports core.
+  - "packages/layout-engine"
   # Component packages (one Moon project per component).
   - "packages/primitives/*"
   - "packages/composition/*"

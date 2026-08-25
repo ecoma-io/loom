@@ -64,6 +64,20 @@ export const depConstraints = [
     remediation: "If labels needs a component, the dependency is pointing the wrong way.",
   },
 
+  // The platform-independent layout core. It computes geometry from immutable
+  // trees and imports nothing — no Vue, no DOM, not even cn — because a
+  // layout oracle that touched the platform it is held against could not be
+  // an oracle. The empty list is that fact as law, in the same shape as
+  // core's row.
+  {
+    sourceTag: "layer-layout-engine",
+    onlyDependOnLibsWithTags: [],
+    description:
+      "The layout engine is pure geometry over immutable trees. It is imported by the composition adapters and imports nothing.",
+    remediation:
+      "Move the helper the engine needs into the engine itself, or resolve it at the adapter boundary — the core must stay platform-independent.",
+  },
+
   // The generic controls. A primitive may compose another primitive
   // (alert-dialog → button, field → inline-error) — same-layer edges are
   // allowed, and the cycle check below is what keeps that from closing a loop.
@@ -77,12 +91,14 @@ export const depConstraints = [
   },
 
   // Layout compositions (Stack, Grid, Split, …). They may use primitives, and
-  // today use only core — the row states the architecture, not the census.
+  // today use only core and the layout engine — the row states the
+  // architecture, not the census.
   {
     sourceTag: "layer-composition",
     onlyDependOnLibsWithTags: [
       "layer-core",
       "layer-labels",
+      "layer-layout-engine",
       "layer-primitives",
       "layer-composition",
     ],
@@ -177,11 +193,11 @@ export const depConstraints = [
   // the same hand-declared theme-core edge the docs project does.
   {
     sourceTag: "layer-e2e",
-    onlyDependOnLibsWithTags: ["layer-facade", "layer-theme-core"],
+    onlyDependOnLibsWithTags: ["layer-facade", "layer-theme-core", "layer-composition"],
     description:
-      "The site-wide browser suite drives the built site and reads the library's own published a11y contract, so the gate and the published claim cannot drift apart.",
+      "The browser suites drive the built site, read the library's own published a11y contract, and — since Archkeep began judging resolved edges — mount the layout compositions through the conformance route's case files. Stated truthfully: this row licenses ANY e2e-tagged project to import compositions (the root site suite carries the same tag, and a per-project distinction is not expressible here). The bound on escalation is not prose but the mutation row harness-reaches-past-the-compositions-it-proves: anything BENEATH the compositions, reached from any e2e file, reddens.",
     remediation:
-      "Import the contract from the facade's `/a11y` subpath rather than from the package that happens to define it.",
+      "Import the contract from the facade's `/a11y` subpath rather than from the package that happens to define it; a suite that needs to reach past the compositions should grow its own evidence and its own row, not widen this one.",
   },
 
   // `tools/` is the repository's own gate machinery — the architecture

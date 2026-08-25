@@ -223,7 +223,7 @@ refuses the run outright if a suppression stops covering anything.
 ### Proving the gate can fail
 
 `pnpm archkeep:mutations` (`tools/check-archkeep-mutations.ts`) breaks the
-architecture seventeen ways against the real tree — an upward import, a cycle, a
+architecture every way its rows name against the real tree — an upward import, a cycle, a
 relative climb, a barrel re-export, a lazy `import()`, an aliased reach past an
 entry point, a project that loses its tag, a `paths` alias left dangling — runs
 `archkeep check` after each, asserts the violation that mutation was written to
