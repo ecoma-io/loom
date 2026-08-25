@@ -295,6 +295,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      '@ecoma-io/loom-layout-engine':
+        specifier: workspace:*
+        version: link:../../layout-engine
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -304,6 +307,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      '@ecoma-io/loom-layout-engine':
+        specifier: workspace:*
+        version: link:../../layout-engine
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -322,6 +328,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      '@ecoma-io/loom-layout-engine':
+        specifier: workspace:*
+        version: link:../../layout-engine
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -361,6 +370,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      '@ecoma-io/loom-layout-engine':
+        specifier: workspace:*
+        version: link:../../layout-engine
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -375,6 +387,8 @@ importers:
       '@internationalized/date':
         specifier: ^3.12.3
         version: 3.12.3
+
+  packages/layout-engine: {}
 
   packages/layouts/app-shell:
     dependencies:
@@ -2028,6 +2042,7 @@ packages:
   '@ecoma-io/archkeep@0.14.0':
     resolution: {integrity: sha512-FNNzcv4iVXZ0hH+AUYo7MgvDlo7Vp7Ch2nj8WR6VGA2/3B8e13VRE+3Q3zSJR1DvlORbNc7CpVsPtyYU4aUznw==}
     engines: {node: '>=22'}
+    deprecated: renamed to @ecoma-io/archkeep — see https://github.com/ecoma-io/archkeep/blob/main/docs/getting-started/upgrading-from-lattice.md
     hasBin: true
     peerDependencies:
       '@nx/eslint-plugin': '>=21'

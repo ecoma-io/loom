@@ -15,19 +15,20 @@ any one file will not tell you.
 
 ## What lives where
 
-| Path                        | What it holds                                                                   |
-| --------------------------- | ------------------------------------------------------------------------------- |
-| `packages/primitives/`      | Generic controls, one directory per component                                   |
-| `packages/blocks/`          | Compositions of primitives, same shape                                          |
-| `packages/core/`            | `cn`, props merging, motion — the shared helpers components are built from      |
-| `packages/theme-core/`      | `theme.css` — **the token source of truth** — plus `global.css` and `fonts.css` |
-| `packages/loom/src/a11y.ts` | `WCAG_TAGS`, the tag set the library holds itself to                            |
-| `docs/`                     | The VitePress site, which imports the library rather than describing it         |
-| `e2e/`                      | Playwright, driving the _built_ site                                            |
-| `tools/`                    | Repository scripts, run from `package.json` and from CI                         |
-| `.github/semgrep/`          | This repository's own analysis rules, with their fixtures beside them           |
-| `playwright/`               | The component E2E harness — mounts one demo via Vite, no VitePress build        |
-| `playwright/profiles.ts`    | The browser profiles, single-sourced to the two Playwright configs              |
+| Path                        | What it holds                                                                                                                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/primitives/`      | Generic controls, one directory per component                                                                                                                                           |
+| `packages/blocks/`          | Compositions of primitives, same shape                                                                                                                                                  |
+| `packages/core/`            | `cn`, props merging, motion — the shared helpers components are built from                                                                                                              |
+| `packages/layout-engine/`   | The platform-independent layout core — pure geometry, imports nothing; the oracle the conformance route holds equal to the browser. Adapters live in each composition's `src/layout.ts` |
+| `packages/theme-core/`      | `theme.css` — **the token source of truth** — plus `global.css` and `fonts.css`                                                                                                         |
+| `packages/loom/src/a11y.ts` | `WCAG_TAGS`, the tag set the library holds itself to                                                                                                                                    |
+| `docs/`                     | The VitePress site, which imports the library rather than describing it                                                                                                                 |
+| `e2e/`                      | Playwright, driving the _built_ site                                                                                                                                                    |
+| `tools/`                    | Repository scripts, run from `package.json` and from CI                                                                                                                                 |
+| `.github/semgrep/`          | This repository's own analysis rules, with their fixtures beside them                                                                                                                   |
+| `playwright/`               | The component E2E harness — mounts one demo via Vite, no VitePress build                                                                                                                |
+| `playwright/profiles.ts`    | The browser profiles, single-sourced to the two Playwright configs                                                                                                                      |
 
 `packages/loom/src/index.ts` is the complete public surface and says so in its own docblock,
 including the two things that deliberately are not in it.

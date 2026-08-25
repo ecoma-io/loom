@@ -46,6 +46,10 @@ on anything at a rank `<=` its own, and only on its own rank or below):
 
 ```
 core 0        shared utilities (cn, optional, attrs, motion, WCAG_TAGS, theme)
+
+layout-engine 0  the platform-independent layout core — a foundation leaf
+              beside core, imported by the composition adapters and
+              importing nothing (the same sentence the archkeep row states)
   ↓
 labels 1      localisation seam, field context, date vocabularies, ancestor-disabled
   ↓
@@ -88,10 +92,12 @@ Rules:
    verbatim into `dist/styles/`, never imported by a component's
    `.ts`/`.vue`. A JS import of `@ecoma-io/loom-theme-core` is a violation.
 
-The exact edge set the checks enforce is derived from the filesystem — the
-packages present under each tier — not from a hand-maintained list. Adding a
-component directory adds it to the graph automatically; the checks then
-verify its edges.
+The exact edge set the checks enforce is derived from the filesystem for
+component packages — a directory under a tier is a package, and adding one
+adds it to the graph automatically — and from a hand-maintained list for the
+fixed foundation packages (`core`, `labels`, `layout-engine`, `theme-core`,
+the facade), which have no tier of their own and are named in
+`tools/architecture/graph.ts`. The checks then verify the edges either way.
 
 ## The public API
 
@@ -277,11 +283,28 @@ test is "what kind of thing is this":
 - A composition of Loom parts into a recognisable UI arrangement → **block**.
 
 Shared non-visual logic that no component owns (utilities, the label seam,
-the WCAG tag set, theme) lives in the foundation packages — `core` for
-anything dependency-free, `labels` for the localisation/field-context
-system. Before writing a shared helper, check `packages/core/src/index.ts`
-and `packages/labels/src/index.ts`; graduate it there rather than
-duplicating it beside a component.
+the WCAG tag set, theme, layout semantics as data) lives in the foundation
+packages. The split is about consumer sets, not size: `core` for helpers
+every package is built from and that are built from nothing here; `labels`
+for the localisation/field-context seam; `layout-engine` for the
+platform-independent layout core, which is dependency-free _and_ a coherent
+subsystem whose only consumers are the composition adapters and the
+conformance harness — putting it in `core` would make every engine edit
+re-test the entire library. Before writing a shared helper, check
+`packages/core/src/index.ts` and `packages/labels/src/index.ts`; graduate it
+there rather than duplicating it beside a component.
+
+Naming a new fixed foundation package is a registry dance, and this
+paragraph is the checklist: `.moon/workspace.yml` (the globs cover tier
+directories and the named projects only), `tools/architecture/graph.ts`
+(`Layer` union + `fixedPackages` — type-coupled to `check-architecture.ts`'s
+`LAYERS` map by its `satisfies` clause, so the two cannot drift), a boundary
+row in `module-boundaries.config.mjs` plus the mutation rows that prove it
+can redden, the `tsconfig.base.json` paths entry, the matching Vite alias —
+and the package's moon `deps:` **by hand**: `sync-moon-deps.ts` covers tier
+directories only, and nothing checks the fixed packages (`labels` declares
+`@ecoma-io/loom-core` in package.json while its moon.yml carries no `deps:`
+at all — drifted silently for exactly that reason).
 
 Rules that do not bend:
 
@@ -293,3 +316,19 @@ Rules that do not bend:
 - **No new public subpackages.** If an overwhelming reason to publish a
   component independently ever appears, document that reason here and in the
   PR that introduces it — it is an architecture decision, not an incident.
+
+### Layout semantics are defined twice, on purpose
+
+Each layout component's semantics exist as CSS (the class records the
+component renders) and as data (its `src/layout.ts` adapter and the layout
+engine behind it). This is deliberate: the CSS is what the browser renders
+and what a consumer ships; the engine is the computable definition a
+geometry test, a future non-web backend or a runtime capability needs. The
+conformance harness (`?conformance=` in `playwright/harness/conformance.ts`)
+is what holds the two equal — a divergence is a red test with no consumer
+symptom, which is the honest shape of the arrangement until a runtime
+consumer exists. No consumer import path reaches the engine: no component
+render path imports it, the facade re-exports none of it, and the
+composition barrels do not re-export their adapters, so the published build
+carries zero engine bytes as an import-graph fact — proven by the byte
+comparison against the pre-slice build, not left to tree-shaking.
