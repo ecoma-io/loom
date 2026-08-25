@@ -174,9 +174,10 @@ The checks are asserted, not advisory, and they are themselves tested — the
 suite that exercises them proves a valid graph passes and each forbidden
 edge fails.
 
-### `lattice check` — the resolved import
+### `archkeep check` — the resolved import
 
-[Lattice](https://github.com/ecoma-io/lattice) is an architecture-governance
+[Archkeep](https://github.com/ecoma-io/archkeep) (Lattice until its 0.13
+release, renamed without changing a verdict) is an architecture-governance
 engine that reads the Moon project graph, resolves every specifier through
 `tsconfig.base.json` with TypeScript's own resolver, and judges the **resolved
 target** against a constraint table. Loom runs it in `pnpm lint` and as its own
@@ -187,7 +188,7 @@ sentence the rank comparison above implements.
 Why a second reader at all, when the layer order was already enforced? Because
 `check-architecture.ts` is a regular expression over specifier text, and it says
 so. That is exact for the spellings it was written for and blind to every other
-one. Lattice resolves instead of matching, so it reaches:
+one. Archkeep resolves instead of matching, so it reaches:
 
 - **a relative path that climbs out of a package** — `check-architecture.ts`
   walks `src/` only, so a package's own `tests/` could reach across a boundary
@@ -203,7 +204,11 @@ one. Lattice resolves instead of matching, so it reaches:
   said they did.
 - **files no project owned.** `playwright/` — the component E2E harness and the
   browser-profile matrix both Playwright configs read — was in no Moon project,
-  so `moon ci` never linted it and Lattice skipped it. It is a Moon project now.
+  so `moon ci` never linted it and Archkeep skipped it silently. It is a Moon
+  project now, and Archkeep names every remaining unowned file on each run;
+  the ten this repository keeps (the root single-file configs, the agent-host
+  hooks, the Semgrep fixtures) are recorded as accepted coverage holes in the
+  table's `coverage.unowned` rather than left invisible.
 - **an alias, a barrel re-export, a dynamic `import()`, a self-import through a
   package's own name, and a `paths` entry that has stopped resolving** — each
   pinned by the mutation suite below.
@@ -212,48 +217,49 @@ The constraint table also carries two accepted violations, each with the
 argument for accepting it written into the row. Both are `tools/` and the
 harness reaching sibling directories that are Moon projects but not npm
 packages — there is no published name to import instead. A suppression removes
-a verdict and never a check: the file is still fully analyzed, and Lattice
+a verdict and never a check: the file is still fully analyzed, and Archkeep
 refuses the run outright if a suppression stops covering anything.
 
 ### Proving the gate can fail
 
-`pnpm lattice:mutations` (`tools/check-lattice-mutations.ts`) breaks the
-architecture eighteen ways against the real tree — an upward import, a cycle, a
+`pnpm archkeep:mutations` (`tools/check-archkeep-mutations.ts`) breaks the
+architecture seventeen ways against the real tree — an upward import, a cycle, a
 relative climb, a barrel re-export, a lazy `import()`, an aliased reach past an
 entry point, a project that loses its tag, a `paths` alias left dangling — runs
-`lattice check` after each, asserts the violation that mutation was written to
+`archkeep check` after each, asserts the violation that mutation was written to
 produce, and restores every file byte for byte. It runs unconditionally in CI.
 
 A constraint row whose tag no project carries selects nothing and approves
 everything while reading as enforced, and `module-boundaries.config.mjs` is a
 file a pull request can edit. This is the gate on the gate.
 
-### What Lattice does not see, and why both checks stay
+### What Archkeep does not see, and why both checks stay
 
-Three of the mutation rows expect Lattice to report **nothing**, and they are
-the reason `check-architecture.ts` is still wired into `pnpm lint`:
+Three invariants stay out of Archkeep's reach — two pinned by mutation rows
+that expect it to report nothing, one by a row that expects the wrong rule —
+and they are the reason `check-architecture.ts` is still wired into
+`pnpm lint`:
 
-| Invariant                                                           | Lattice's answer                                                                                                                                                     | Who enforces it                                           |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| A component importing a facade **subpath** (`@ecoma-io/loom/theme`) | resolves the alias to `packages/core/src/theme.ts` and judges `primitives → core`, which is allowed. The subpath is the public surface; the file it lands on is not. | `check-architecture.ts` check 2                           |
-| A JavaScript import of `theme-core`                                 | the package exports only stylesheets and has no `paths` entry, so the specifier is classified as an undeclared npm package rather than as the token package          | `check-architecture.ts` check 5                           |
-| A violation in a file no Moon project owns                          | skipped, uncounted, and the `coverage-minimum: 100` gate still answers 100% ([lattice#263](https://github.com/ecoma-io/lattice/issues/263))                          | nothing yet — the fix was to give `playwright/` a project |
+| Invariant                                                           | Archkeep's answer                                                                                                                                                                                                                                                                    | Who enforces it                                                                        |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| A component importing a facade **subpath** (`@ecoma-io/loom/theme`) | resolves the alias to `packages/core/src/theme.ts` and judges `primitives → core`, which is allowed. The subpath is the public surface; the file it lands on is not.                                                                                                                 | `check-architecture.ts` check 2                                                        |
+| A JavaScript import of `theme-core`                                 | the package exports only stylesheets and has no `paths` entry, so the specifier is classified as an undeclared npm package rather than as the token package                                                                                                                          | `check-architecture.ts` check 5                                                        |
+| A violation in a file no Moon project owns                          | analyzed by nothing and covered by no verdict. Since [archkeep#263](https://github.com/ecoma-io/archkeep/issues/263) the run names every such file, and this repository records the ten it keeps as accepted coverage holes — but recording a hole does not judge the file inside it | `check-architecture.ts` reads `packages/**/src` only; root files have no second reader |
 
-Two more differences worth knowing, both measured:
+Two blind spots the migration to Archkeep 0.14 closed, kept here because the
+mutation rows that pinned them are gone and the history is worth one sentence
+each: a `paths` alias onto a `.vue` file was judged as an external npm import
+([archkeep#264](https://github.com/ecoma-io/archkeep/issues/264)), and a
+hand-declared `moon.yml` `deps:` edge was never judged at all
+([archkeep#262](https://github.com/ecoma-io/archkeep/issues/262)) — Archkeep
+judges both now, and the `layer-tooling` row states the two reaches that
+visibility turned up instead of suppressing them.
 
-- A `paths` alias whose target is a `.vue` file is treated as an external npm
-  import, so the constraint table never judges it
-  ([lattice#264](https://github.com/ecoma-io/lattice/issues/264)). Loom's own
-  aliases all point at an `index.ts`, and `banTransitiveDependencies: true`
-  makes the misattributed form loud here rather than silent.
-- A dependency hand-declared in a `moon.yml` `deps:` block, with no import
-  behind it, is never judged against the table
-  ([lattice#262](https://github.com/ecoma-io/lattice/issues/262)). Loom has five
-  such edges, all `# preserved`, all pointing downward.
-
-`tsconfig.base.json` exists at that name because Lattice's Moon provider
-resolves it by convention and a Moon workspace has no way to name a different
-file ([lattice#266](https://github.com/ecoma-io/lattice/issues/266)).
+`tsconfig.base.json` exists at that name because Archkeep's Moon provider reads
+`tsConfig` from a chain of exactly two names — `tsconfig.base.json`, then
+`tsconfig.json` — and a Moon workspace still has no way to name any other file
+([archkeep#266](https://github.com/ecoma-io/archkeep/issues/266), closed by the
+chain).
 
 ## Deciding where new code belongs
 

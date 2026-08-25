@@ -40,9 +40,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^21.2.0
         version: 21.2.0
-      '@ecoma-io/lattice':
-        specifier: 0.11.1
-        version: 0.11.1(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
+      '@ecoma-io/archkeep':
+        specifier: 0.14.0
+        version: 0.14.0(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
@@ -2025,8 +2025,8 @@ packages:
       search-insights:
         optional: true
 
-  '@ecoma-io/lattice@0.11.1':
-    resolution: {integrity: sha512-IjAKhtn3bZkd5ekjDiEhoJSRy3quCA5iQso0NZpUIkJ/ryqL0OioXKX10J7HWov9IXymzgz4nto2ZfMdexL15w==}
+  '@ecoma-io/archkeep@0.14.0':
+    resolution: {integrity: sha512-FNNzcv4iVXZ0hH+AUYo7MgvDlo7Vp7Ch2nj8WR6VGA2/3B8e13VRE+3Q3zSJR1DvlORbNc7CpVsPtyYU4aUznw==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -4664,8 +4664,8 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
-  smol-toml@1.7.1:
-    resolution: {integrity: sha512-PPlsspAZ4jbMBu5DMFhfUGDQLu/vrL4SyBROVS37x8ynnVmFIs1VPBz1Co8Xks3TvpIaZXmU85y4DrQ+UyVFoQ==}
+  smol-toml@1.8.0:
+    resolution: {integrity: sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==}
     engines: {node: '>= 18'}
 
   source-map-js@1.2.1:
@@ -5514,9 +5514,9 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@ecoma-io/lattice@0.11.1(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))':
+  '@ecoma-io/archkeep@0.14.0(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))':
     dependencies:
-      smol-toml: 1.7.1
+      smol-toml: 1.8.0
       typescript: 5.9.3
     optionalDependencies:
       vue: 3.5.40(typescript@5.9.3)
@@ -7916,7 +7916,7 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  smol-toml@1.7.1: {}
+  smol-toml@1.8.0: {}
 
   source-map-js@1.2.1: {}
 

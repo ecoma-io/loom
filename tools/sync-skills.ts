@@ -1,5 +1,5 @@
 /**
- * Vendor the Lattice agent skills into the two directories the coding agents
+ * Vendor the Archkeep agent skills into the two directories the coding agents
  * this repository is worked in actually read, and record what was written.
  *
  * Measured on 2026-08-23 with a fixture holding one skill in each tree, then
@@ -21,10 +21,10 @@
  * symlink out as a text file holding a path, which is a contributor with files
  * where the skills should be, no skills, and no error saying so.
  *
- * The source is the Lattice *repository* at the pinned version's tag rather
+ * The source is the Archkeep *repository* at the pinned version's tag rather
  * than the package in `node_modules`: `skills/` exists in the repo but is
- * absent from the npm tarball's `files` array as of 0.11.1, so there is
- * nothing under `node_modules/@ecoma-io/lattice/skills` to copy. The
+ * absent from the npm tarball's `files` array as of 0.14.0, so there is
+ * nothing under `node_modules/@ecoma-io/archkeep/skills` to copy. The
  * `node_modules` path is tried first anyway, so this starts sourcing locally,
  * offline and without a tag lookup the day upstream ships it.
  *
@@ -56,8 +56,8 @@ import { dirname, join, posix, relative, sep } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
 const MANIFEST = join(ROOT, "tools", "skills.manifest.json");
-const PACKAGE = "@ecoma-io/lattice";
-const REPO = "ecoma-io/lattice";
+const PACKAGE = "@ecoma-io/archkeep";
+const REPO = "ecoma-io/archkeep";
 
 /** Both trees are written; the first is also where owned skills are authored. */
 export const TREES = [".claude/skills", ".agents/skills"] as const;

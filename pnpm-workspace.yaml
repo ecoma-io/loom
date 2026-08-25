@@ -50,7 +50,7 @@ allowBuilds:
 
 # pnpm holds a newly-published version back for its minimum release age before
 # it will install it — the window in which a compromised release is usually
-# caught and unpublished. `@ecoma-io/lattice` is excluded because it is an
+# caught and unpublished. `@ecoma-io/archkeep` is excluded because it is an
 # `ecoma-io` package this repository's own maintainer publishes, so the
 # supply-chain risk the delay buys down is not the risk this package carries,
 # and `--frozen-lockfile` in CI would otherwise refuse the install until the
@@ -61,7 +61,7 @@ allowBuilds:
 # without anyone deciding to. Renovate's bump edits this line, which is the
 # moment to re-read it.
 minimumReleaseAgeExclude:
-  - "@ecoma-io/lattice@0.11.1"
+  - "@ecoma-io/archkeep@0.14.0"
 
 # Advisories in transitive devDependencies, held forward until the packages that
 # own them ship a release that does it for us. Nine of them, in two chains:

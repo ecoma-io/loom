@@ -208,7 +208,7 @@ jobs:
         run: node --experimental-strip-types tools/check-architecture.ts
 
       # The third architecture gate, and the one that judges resolved imports
-      # rather than specifier text. `lattice check` reads the Moon project
+      # rather than specifier text. `archkeep check` reads the Moon project
       # graph, resolves every `.ts`/`.vue` specifier through
       # `tsconfig.base.json`, and judges the resolved target against
       # `module-boundaries.config.mjs`. It is deliberately NOT a moon task and
@@ -222,19 +222,19 @@ jobs:
       # collapsing the second into success would turn an outage into a green
       # build.
       - name: Check module boundaries
-        run: pnpm lattice:check
+        run: pnpm archkeep:check
 
       # And the proof that the step above can fail at all. A constraint row
       # whose tag no project carries, a `paths` alias that stopped resolving, a
       # project that lost its tag — each reads as a clean run, and
       # `module-boundaries.config.mjs` is a file a pull request can edit. The
-      # harness breaks the architecture eighteen ways against the real tree,
+      # harness breaks the architecture seventeen ways against the real tree,
       # asserts the violation each one was written to produce, and restores
       # every file byte for byte. Unconditional on purpose: a gate on the gate
       # that runs only when someone remembered to change the right file is a
       # gate nobody notices has stopped running.
       - name: Prove the boundary gate fails on a broken architecture
-        run: pnpm lattice:mutations
+        run: pnpm archkeep:mutations
 
       # Moon's own task cache, and what it adds to `runInCI: affected` is the
       # other half of the same idea: selection decides which tasks a run

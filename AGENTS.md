@@ -118,27 +118,30 @@ what a test exercises without touching any project's own files.
 The layer order (`core -> labels -> primitives -> composition -> layouts ->
 blocks -> facade`) is enforced twice, and the split is the point.
 `tools/check-architecture.ts` matches specifier _text_ under each package's
-`src/`; `lattice check` reads the Moon project graph, resolves each specifier
+`src/`; `archkeep check` reads the Moon project graph, resolves each specifier
 through `tsconfig.base.json`, and judges the _resolved target_ against
 `module-boundaries.config.mjs`. Neither subsumes the other — the table in
 `docs/architecture/contract.md` records which invariant each one owns, and the
-three that Lattice structurally cannot see are pinned as expect-nothing rows in
-`tools/check-lattice-mutations.ts` so that a fix upstream turns them red.
+three that Archkeep structurally cannot see are pinned in
+`tools/check-archkeep-mutations.ts` — two as expect-nothing rows, one expecting
+the wrong rule — so that a fix upstream turns them red.
 
 Three things about this that reading one file will not tell you:
 
 - **Every Moon project carries a `layer-*` tag, and the constraint table keys on
   it.** Removing or mistyping one does not weaken the rule quietly — it drops
-  the project out of every row, which Lattice reports as
+  the project out of every row, which Archkeep reports as
   `projectWithoutTagsCannotHaveDependencies`. Moon rejects a colon in a tag, so
   the dash form is not a style choice. The `e2e` tag is a separate axis and
   still means "owns browser evidence"; the two coexist on one line.
-- **`tsconfig.base.json` is load-bearing at that exact name.** Lattice's Moon
-  provider resolves it by convention and offers no way to name another file
-  (ecoma-io/lattice#266). Without it every internal specifier resolves to
-  nothing and the run reports 656 findings on a clean tree — loud, but for a
-  reason that is a filename.
-- **`pnpm lattice:mutations` is the gate on the gate.** A constraint row whose
+- **`tsconfig.base.json` is load-bearing at one of exactly two names.**
+  Archkeep's Moon provider reads the first of `tsconfig.base.json`, then
+  `tsconfig.json`, that the root carries — closing ecoma-io/archkeep#266 — and
+  still offers no way to name any other file. This repository's
+  `tsconfig.json` extends the base file but carries no `paths` of its own, so
+  with the base file out of reach every internal specifier resolves to nothing
+  and the run exits 1 reporting each as an undeclared npm package.
+- **`pnpm archkeep:mutations` is the gate on the gate.** A constraint row whose
   tag no project carries approves everything while reading as enforced. Run it
   after touching the boundary config or a project's tags.
 
@@ -210,20 +213,21 @@ directory:
 | `arch-review`   | reviewing a diff or pull request for architecture consequences     |
 | `arch-migrate`  | bringing something not yet governed under the boundary law         |
 
-`arch-*` is vendored from `@ecoma-io/lattice` and held byte-identical to the pinned
+`arch-*` is vendored from `@ecoma-io/archkeep` and held byte-identical to the pinned
 release; `add-component` is this repository's own. Change either with `pnpm sync-skills`
 and never by editing a file in those directories — `pnpm check-skills`, which runs inside
 `pnpm lint`, rejects a hand-edit, a drifted mirror, and a dependency bump that was never
 re-synced.
 
-**The skills write `lattice <command>` bare, and it is not on `PATH`.** It is a dev
-dependency of this repository, so every one of them is `pnpm exec lattice <command>` here
-— or `pnpm lattice:check`, which is the same gate CI runs. Two commands the skills name
-do not apply yet: `lattice drift` and `lattice reconcile` both exit 3 asking for a tracked
-`architecture-intent.json`, which this repository has deliberately not adopted. Everything
-else — `check`, `graph`, `discover`, `context`, `impact`, `waivers`, `fitness`,
-`provenance`, `adr` — answers against the Moon project graph and
-`module-boundaries.config.mjs`.
+**The skills write `archkeep <command>` bare, and it is not on `PATH`.** It is a dev
+dependency of this repository, so every one of them is `pnpm exec archkeep <command>`
+here — or `pnpm archkeep:check`, which is the same gate CI runs. Two commands the skills
+name do not apply yet: `archkeep drift` and `archkeep reconcile` both exit 3 asking for a
+tracked `architecture-intent.json`, which this repository has deliberately not adopted,
+and `archkeep debt` and `archkeep history` want a snapshot directory it does not keep.
+Everything else — `check`, `graph`, `discover`, `context`, `impact`, `waivers`,
+`fitness`, `provenance`, `adr`, `report`, `health` — answers against the Moon project
+graph and `module-boundaries.config.mjs`.
 
 ## Working here
 

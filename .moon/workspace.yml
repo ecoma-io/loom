@@ -19,7 +19,8 @@ projects:
   # The component E2E harness and the shared browser profiles. Named because
   # it is a top-level TypeScript home like `tools/`: without a project of its
   # own nothing lints it, nothing type-checks it as part of a project, and
-  # `lattice check` skips every file in it as owned by no project.
+  # `archkeep check` judges no file in it — a file owned by no project is named
+  # as an unowned coverage hole, never analyzed.
   - "playwright"
   # Repository tooling — the architecture checker and its tests, the component
   # artifact check, moon-deps sync. `tooling/*` was a dead glob (the directory

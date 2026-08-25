@@ -25,7 +25,7 @@ import { join, posix, relative, sep } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
 const MANIFEST = join(ROOT, "tools", "skills.manifest.json");
-const PACKAGE = "@ecoma-io/lattice";
+const PACKAGE = "@ecoma-io/archkeep";
 
 /** An exact semver pin — no range operator, no tag, no url. */
 const EXACT_PIN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;

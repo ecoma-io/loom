@@ -1,5 +1,5 @@
 /**
- * Loom's module-boundary law, as data, for `lattice check`.
+ * Loom's module-boundary law, as data, for `archkeep check`.
  *
  * The dependency direction this file states is not a new one. It is the same
  * order `tools/architecture/graph.ts` registers and `tools/check-architecture.ts`
@@ -9,7 +9,7 @@
  *
  * What is new is *who* can see it. `check-architecture.ts` reads the specifier
  * text of every file under a package's `src/` with a regular expression; it is
- * deliberately narrow, and it says so. Lattice resolves each specifier with
+ * deliberately narrow, and it says so. Archkeep resolves each specifier with
  * TypeScript's own resolver and judges the resolved target, so the spellings a
  * regex cannot follow — a relative path that climbs out of a package, an
  * absolute `packages/…` specifier, a re-export chain, a `.vue` block — reach
@@ -17,7 +17,7 @@
  * `docs/architecture.md` records which invariant each one owns.
  *
  * The tag vocabulary uses DASH separators (`layer-primitives`), not colons.
- * Moon's own validation rejects a colon in a tag, and Lattice's Moon provider
+ * Moon's own validation rejects a colon in a tag, and Archkeep's Moon provider
  * emits `moon.yml`'s tags verbatim — so a table written for `layer:primitives`
  * would match no project here while reading as enforced. Note that Moon *also*
  * derives colon-prefixed tags of its own from a project's `layer`/`stack`
@@ -188,11 +188,21 @@ export const depConstraints = [
   // checker, the component-artifact gate, the moon-deps sync, the E2E plan. It
   // is not shipped, and it reads the tree as data rather than importing it. A
   // tool that imported a component would be running the library to check it.
+  //
+  // `layer-e2e` and `layer-docs` are not the library, and the two reaches they
+  // permit are load-bearing rather than drift: `e2e-plan.ts` is a pure
+  // function of the changed file set plus the browser profile matrix
+  // (`playwright/profiles.ts`) and the documentation page list
+  // (`e2e/docs-pages.ts`), and `stage-docs.ts` reads the site's base path.
+  // Those edges have existed since the split — their relative-path spelling is
+  // suppressed below — but Lattice 0.11 judged only the spelling and never the
+  // resolved edge, so `onlyDependOnLibsWithTags: []` could read as true.
+  // Archkeep judges the edge, and the row states it.
   {
     sourceTag: "layer-tooling",
-    onlyDependOnLibsWithTags: [],
+    onlyDependOnLibsWithTags: ["layer-e2e", "layer-docs"],
     description:
-      "Repository tooling inspects the tree as data. It is never published and never imports the library it checks.",
+      "Repository tooling inspects the tree as data. It is never published and never imports the library it checks — the browser matrix, the page list and the site's base path are infrastructure it reads, not the library.",
     remediation:
       "Read the file rather than importing it — a checker that loads what it judges cannot report on a tree that will not load.",
   },
@@ -302,3 +312,47 @@ export const fitness = [
       "a boundary check that stopped reading a directory reports exactly what a clean directory reports. This repository's own claim is that every analyzable tracked file it owns is judged, so a file that stops being read turns this red instead of turning the report quiet.",
   },
 ];
+
+/**
+ * The tracked analyzable files this workspace knowingly leaves owned by no
+ * project. Archkeep names every one of them on each run — a warning that
+ * cannot be answered in the negative, because a file judged by nothing is
+ * exactly what a stopped checker also looks like — and a row here is the
+ * recorded answer. Three populations, three arguments:
+ *
+ * - The agent-host hooks are run by the coding agents the moment a file is
+ *   written, which is the whole point of them: `.claude/` is host
+ *   configuration, not a package, and no build or task consumes these files.
+ * - The Semgrep fixtures are sample code that is defective on purpose, so a
+ *   rule that never fires can be caught. They are data for a test of an
+ *   analysis rule; the `.vue` file among them exists because the XSS rule
+ *   targets a template expression.
+ * - The five root single-file configs have no project to belong to: there is
+ *   deliberately no Moon project at the root, for the reason the
+ *   `playwright/harness/vite.config.mts` suppression below states — one would
+ *   own every file no other project claims and give the whole repository a
+ *   second lint and test task.
+ *
+ * A row that stops matching any unowned file is refused on the next run, so
+ * these cannot outlive the files they name — a root config that gains a
+ * project deletes its row by this edit, not by silence.
+ */
+export const coverage = {
+  unowned: [
+    {
+      path: ".claude/hooks/*.mjs",
+      reason:
+        "agent-host integration, run by the coding agents on every file write rather than by any build or task; `.claude/` is host configuration, not a package anything depends on.",
+    },
+    {
+      path: ".github/semgrep/*",
+      reason:
+        "fixtures for this repository's own Semgrep rules — deliberately defective sample code that exists to prove a rule fires; data for an analysis test, never code a boundary should judge.",
+    },
+    {
+      path: "{commitlint.config.mjs,eslint.config.mjs,playwright.config.ts,vite.config.ts,vitest.setup.ts}",
+      reason:
+        "single-file root entry configs for the linters and the test/build runners; there is deliberately no Moon project at the root — one would own every unclaimed file and give the whole repository a second lint and test task.",
+    },
+  ],
+};
