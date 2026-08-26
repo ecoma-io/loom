@@ -20,8 +20,6 @@
  * gutters that widen at wider breakpoints, so ultrawide viewports add
  * whitespace rails rather than stretching lines of text.
  */
-export type SplitLayoutCollapseAt = string;
-
 export type SplitLayoutGap = "sm" | "md" | "lg" | "none";
 
 const gapClass: Record<Exclude<SplitLayoutGap, "none">, string> = {
@@ -40,14 +38,12 @@ withDefaults(
   defineProps<{
     /** Which side the primary panel sits on. Controls stacking order when collapsed: "left" stacks the side panel above, "right" stacks it below. */
     side?: "left" | "right";
-    /** Below this CSS width the two panels stack vertically instead of sitting side by side. Default: `"48rem"`. */
-    collapseAt?: SplitLayoutCollapseAt;
     /** Minimum width for the side panel (e.g. "16rem"). The content area takes the rest. */
     minSideWidth?: string;
     /** Gap between panels. Tightens one notch below sm (except "none"). */
     gap?: SplitLayoutGap;
   }>(),
-  { side: "left", collapseAt: "48rem", minSideWidth: "16rem", gap: "none" },
+  { side: "left", minSideWidth: "16rem", gap: "none" },
 );
 </script>
 

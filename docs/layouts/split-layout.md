@@ -1,10 +1,10 @@
 # SplitLayout
 
 Full-page two-panel layout with intrinsic collapse. SplitLayout places a side
-panel and a content area side by side above a `collapseAt` width, and stacks
-them vertically below it — with an optional full-width header above. The
-intrinsic collapse means no viewport media query: the layout wraps when the
-container is too narrow.
+panel and a content area side by side, and stacks them vertically once the
+container is too narrow for both — with an optional full-width header above.
+The intrinsic collapse means no viewport media query: the layout wraps when
+the container is too narrow.
 
 <script setup lang="ts">
 import { SplitLayout } from "@ecoma-io/loom";
@@ -50,9 +50,8 @@ Controls which side the panel sits on and the stacking order when collapsed:
 The minimum width for the side panel. The content area takes the rest. Any
 valid CSS length — `"16rem"`, `"240px"`. Default: `"16rem"`.
 
-## Collapse at
-
-The CSS width below which the two panels stack. Default: `"48rem"`.
+Widening it also delays the collapse: the pair gives up on one line when the
+container can no longer fit this minimum plus the content's half.
 
 ## Gap
 
@@ -71,8 +70,8 @@ application header bars that must remain visible regardless of collapse state.
 
 ## Responsive behavior
 
-- **Mobile (below collapse width):** side and content stack vertically — side on top when `side="left"`, content on top when `side="right"`
-- **Tablet (collapse width and up):** compact split — side panel sits alongside content; content fills remaining space
+- **Narrow container:** side and content stack vertically — side on top when `side="left"`, content on top when `side="right"`
+- **Container wide enough:** compact split — side panel sits alongside content; content fills remaining space
 - **Desktop:** wider gutters at `sm` breakpoint
 - **Ultrawide (`3xl`):** panel gutters widen further, extra viewport goes to whitespace rails rather than stretching lines of text
 
