@@ -273,6 +273,13 @@ describe("DatePicker field", () => {
       getSegments().every((segment) => segment.getAttribute("aria-label") !== "Due date"),
     ).toBe(true);
   });
+
+  it("carries a caller's aria-labelledby onto the group instead of stripping it", async () => {
+    mountPicker({ modelValue: ISO }, { "aria-labelledby": "caller-due-label" });
+    await settle();
+
+    expect(getField().getAttribute("aria-labelledby")).toBe("caller-due-label");
+  });
 });
 
 describe("DatePicker ISO boundary", () => {

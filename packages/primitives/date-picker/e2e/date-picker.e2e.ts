@@ -71,19 +71,7 @@ test("the segmented field carries an accessible name for the reader", async ({ p
   // Correct behaviour per the component's own contract: a caller passing
   // `aria-labelledby` names the group with it (the docblock promises exactly
   // this, and the whole documentation page is written that way).
-  //
-  // Skipped because the group currently ends up unnamed: `groupLabelledBy`
-  // computes `undefined` when the caller supplies their own labelledby, and
-  // the explicit `:aria-labelledby` binding written after the `v-bind` spread
-  // then strips the caller's attribute out of the spread — an individual
-  // binding beats the object it follows, so the intended "caller wins"
-  // resolves to nobody winning. Suspected mechanism:
-  // DatePicker.vue's `groupLabelledBy` + trailing `:aria-labelledby` override.
   const due = page.locator('[aria-labelledby="date-picker-demo-due"]');
-  test.skip(
-    true,
-    "suspected defect: the trailing :aria-labelledby binding overrides the spread, stripping a caller's aria-labelledby off the group",
-  );
   await expect(due).toHaveCount(1);
   await expect(due).toBeVisible();
 });
