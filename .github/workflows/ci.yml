@@ -934,6 +934,14 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
 
+      # The container user never matches the workspace mount's owner, so git
+      # refuses the repository ("dubious ownership") when the `prepare`
+      # script's `lefthook install` asks git about it — measured 2026-08-26,
+      # every leg of this job's first container run died there. checkout sets
+      # its own safe.directory under a throwaway HOME that does not outlive
+      # the step; this one persists for pnpm install and everything after.
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - run: pnpm install --frozen-lockfile
 
       # No browser install, no browser cache: the job container above ships
