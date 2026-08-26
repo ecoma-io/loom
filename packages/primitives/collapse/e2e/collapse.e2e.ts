@@ -25,8 +25,14 @@ test("opening grows the region; closing conceals it under hidden at zero height"
   await trigger.click();
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   await expect(region).toHaveAttribute("data-state", "open", { timeout: 5_000 });
-  const expandedHeight = (await region.boundingBox())?.height ?? -1;
-  expect(expandedHeight).toBeGreaterThan(20);
+  // data-state flips when the height film starts, not when it settles, so a
+  // single boundingBox() read races the transition — a merge-queue batch on
+  // 2026-08-26 caught 0px and 6.4px across two retries of this same assertion.
+  // Poll until the film has actually grown the box, the way the closing half
+  // below already polls for the shrink.
+  await expect
+    .poll(async () => (await region.boundingBox())?.height ?? -1, { timeout: 5_000 })
+    .toBeGreaterThan(20);
 
   await trigger.click();
   // Concealment contract, cross-engine: Reka writes hidden="until-found" on
