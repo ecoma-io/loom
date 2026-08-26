@@ -637,13 +637,15 @@ jobs:
   # One discovery step replaces the fixed 3-browser × 8-shard matrix. `e2e-plan`
   # classifies what actually changed (see tools/e2e-plan.ts) and emits the exact
   # set of browser workloads the run needs: a docs-only change runs the axe
-  # sweep at `standard`, a component change runs only the affected components'
-  # own specs through the harness at `smoke`, a theme change runs both the sweep
-  # and the theme-sensitive components, a dependency bump (lockfile) runs the
-  # sweep the graph cannot scope, and a no-op (nothing relevant changed)
-  # emits an empty `include` — `e2e-run` expands to zero legs and passes.
-  # Discovery reads moon's affected answer and applies policy; it decides
-  # nothing the graph already decides.
+  # sweep at `standard`, a component change with own specs runs only the affected
+  # components' specs through the harness at `smoke`, a spec-less component
+  # change at PR level runs no browser legs (semantic evidence from browserless
+  # tier, contrast pairs from theme-core, rendering-dependent sweep as push
+  # backstop), a theme change runs both the sweep and the theme-sensitive
+  # components, a dependency bump (lockfile) runs the sweep the graph cannot scope,
+  # and a no-op (nothing relevant changed) emits an empty `include` — `e2e-run`
+  # expands to zero legs and passes. Discovery reads moon's affected answer and
+  # applies policy; it decides nothing the graph already decides.
   #
   # The base is the same one `verify` resolves: on a pull request it is the
   # merge commit this branch will land on, on a push to main the commit it grew
