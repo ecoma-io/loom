@@ -2,16 +2,17 @@
  * Browserless accessibility sweep over all component demos.
  *
  * This tier runs in jsdom (Vitest) and proves the semantic half of the WCAG
- * contract — the 53 rules that read only DOM, attributes, and cascade, without
+ * contract — the 50 rules that read only DOM, attributes, and cascade, without
  * requiring layout geometry, hit-testing, pseudo-element styles, computed colors,
- * canvas, or media state. The rendering-dependent half (17 rules) runs in the
+ * canvas, or media state. The rendering-dependent half (13 rules) runs in the
  * browser gates (playwright/harness/accessibility.e2e.ts and e2e/accessibility.e2e.ts).
  *
  * The split is pinned by packages/core/tests/a11y-scope.test.ts, which asserts
- * that BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES equals exactly the rule set
- * WCAG_TAGS selects in axe-core 4.12.1. This gate proves the semantic 53 only;
- * it must never be quoted as "WCAG 2.2 AA passed" — the full claim requires both
- * tiers, and the browser gates still carry color-contrast.
+ * that BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES ∪ TAGGED_BUT_DISABLED_RULES
+ * equals exactly the rule set WCAG_TAGS selects in axe-core 4.12.1. This gate
+ * proves the semantic 50 only; it must never be quoted as "WCAG 2.2 AA passed" —
+ * the full claim requires both tiers, and the browser gates still carry
+ * color-contrast.
  *
  * Measured runtime: ~52s for all 94 demos × light+dark at maxWorkers 1 (jsdom is
  * slower than Chromium per-scan but avoids browser bootstrap; 6.6× faster than

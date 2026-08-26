@@ -26,10 +26,10 @@
  * experimental rules into a runtime tier is a deliberate policy decision, not a side effect of a
  * refactor.
  *
- * The effective rule set this gate has ALWAYS enforced is 65 rules: BROWSERLESS_RULES (51)
- * ∪ BROWSER_REQUIRED_RULES (14). TAGGED_BUT_DISABLED (7) are split out so that pins and
+ * The effective rule set this gate has ALWAYS enforced is 63 rules: BROWSERLESS_RULES (50)
+ * ∪ BROWSER_REQUIRED_RULES (13). TAGGED_BUT_DISABLED (7) are split out so that pins and
  * documentation can reference them explicitly. The union of all three sets equals the
- * full 72 WCAG-tagged rules in axe-core 4.12.1, which is how we document what we
+ * full 70 WCAG-tagged rules in axe-core 4.12.1, which is how we document what we
  * COULD test, not what we DO test. Every rule runs in the tier that can judge it; disabled
  * rules are deliberately kept out of runtime tiers until the maintainer decides otherwise.
  */
@@ -40,7 +40,7 @@ export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"
  * attributes, and cascade (no layout geometry, hit-testing, pseudo-elements,
  * computed colors, canvas, or media state).
  *
- * These 51 rules are verified to produce identical verdicts in jsdom 30 and
+ * These 50 rules are verified to produce identical verdicts in jsdom 30 and
  * Chromium on violation fixtures, and to agree on all 94 demos. Each entry
  * was classified by scanning its check helpers for browser-API dependencies;
  * the partition is pinned by packages/core/tests/a11y-scope.test.ts.
@@ -103,14 +103,14 @@ export const BROWSERLESS_RULES = [
  * hit-test results, pseudo-element styles, computed color pipelines, canvas,
  * or media state (src, currentSrc, plays), which jsdom does not provide.
  *
- * These 14 rules are the complement of BROWSERLESS_RULES within the EFFECTIVE WCAG_TAGS
- * set (65 rules total, excluding 7 disabled-by-default experimental rules). The split is:
- * - 12 rendering-dependent (geometry, hit-testing, computed colors, canvas, media, iframe content)
+ * These 13 rules are the complement of BROWSERLESS_RULES within the EFFECTIVE WCAG_TAGS
+ * set (63 rules total, excluding 7 disabled-by-default rules). The split is:
+ * - 11 rendering-dependent (geometry, hit-testing, computed colors, canvas, media, iframe content)
  * - 2 conservative-partial (table rules whose `matches` predicate uses border
  *   geometry; kept in browser until Table semantic markup is pinned)
  */
 export const BROWSER_REQUIRED_RULES = [
-  // Rendering-dependent (12): each checks geometry/hit-test/computed styles/canvas/media/iframe
+  // Rendering-dependent (11): each checks geometry/hit-test/computed styles/canvas/media/iframe
   "aria-hidden-focus", // isModalOpen → elementsFromPoint, cantTell in jsdom
   "avoid-inline-spacing", // letter-spacing unresolved + Range.getClientRects gate → false-pass
   "bypass", // same modal-open throw; also pageLevel (page-scoped, wrong in component harness)
@@ -147,8 +147,8 @@ export const BROWSER_REQUIRED_RULES = [
  */
 export const TAGGED_BUT_DISABLED_RULES = [
   // Browserless-safe disabled rules (3)
-  "aria-roledescription", // disabled-by-default, experimental
-  "audio-caption", // disabled-by-default, experimental
+  "aria-roledescription", // disabled-by-default, deprecated
+  "audio-caption", // disabled-by-default, deprecated
   "p-as-heading", // disabled-by-default, experimental
   // Browser-required disabled rules (4)
   "css-orientation-lock", // disabled-by-default, experimental

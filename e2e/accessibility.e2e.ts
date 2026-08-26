@@ -99,7 +99,8 @@ for (const page of documentationPages()) {
     // same input they already proved in the light pass; only color-dependent
     // checks can differ. The union of light-full + dark-contrast equals the
     // old coverage (full WCAG_TAGS in both themes), and the dark pass is ~27%
-    // faster because semantic rules (53 of 70) are not re-run on identical DOM.
+    // faster because the semantic rules (50 of the 63 the tag set actually
+    // runs) are not re-run on identical DOM.
     const { violations } = await new AxeBuilder({ page: browserPage })
       .withRules(["color-contrast"])
       // No excludes — the same bar the light-theme test holds itself to.
