@@ -68,6 +68,7 @@ export default defineConfig({
       "@ecoma-io/loom-badge": pkg("primitives/badge/src/index.ts"),
       "@ecoma-io/loom-breadcrumb": pkg("primitives/breadcrumb/src/index.ts"),
       "@ecoma-io/loom-button": pkg("primitives/button/src/index.ts"),
+      "@ecoma-io/loom-calendar": pkg("primitives/calendar/src/index.ts"),
       "@ecoma-io/loom-chip": pkg("primitives/chip/src/index.ts"),
       "@ecoma-io/loom-context-menu": pkg("primitives/context-menu/src/index.ts"),
       "@ecoma-io/loom-dropdown-menu": pkg("primitives/dropdown-menu/src/index.ts"),

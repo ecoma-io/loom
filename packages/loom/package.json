@@ -23,6 +23,7 @@
     "@ecoma-io/loom-badge": "workspace:*",
     "@ecoma-io/loom-breadcrumb": "workspace:*",
     "@ecoma-io/loom-button": "workspace:*",
+    "@ecoma-io/loom-calendar": "workspace:*",
     "@ecoma-io/loom-card": "workspace:*",
     "@ecoma-io/loom-carousel": "workspace:*",
     "@ecoma-io/loom-center": "workspace:*",

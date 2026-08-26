@@ -233,6 +233,9 @@ export default defineConfig({
         "@ecoma-io/loom-button": fileURLToPath(
           new URL("../../packages/primitives/button/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-calendar": fileURLToPath(
+          new URL("../../packages/primitives/calendar/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-chip": fileURLToPath(
           new URL("../../packages/primitives/chip/src/index.ts", import.meta.url),
         ),

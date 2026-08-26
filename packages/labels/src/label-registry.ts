@@ -6,6 +6,7 @@ import type {
 } from "./date-labels";
 import type {
   AlertLabels,
+  CalendarLabels,
   CarouselLabels,
   TableLabels,
   TimelineLabels,
@@ -79,6 +80,12 @@ export interface LoomLabels {
   readonly rangeCell: RangeCellLabels;
   readonly dateRange: DateRangeLabels;
   readonly dateTimeRange: DateTimeRangeLabels;
+  // The standalone Calendar's own pager names and selection line — a slot of
+  // its own, not a share of `calendarPanel`, because that slice also carries
+  // the popover's open button and the panel name, neither of which an
+  // always-visible surface renders. Its heading and cell names need no slot:
+  // the control's own `locale` formats them.
+  readonly calendar: CalendarLabels;
   // The form controls that say something of their own. `Select` is deliberately
   // absent: every string it renders arrives as a prop or an option, so it has
   // no slot rather than an empty one.
