@@ -6,9 +6,9 @@
  * The layout uses the same intrinsic flex-wrap collapse as the Sidebar
  * composition primitive. The nav panel gets a fixed flex-basis and the content
  * area gets `flex-grow: 999`, so when the container cannot fit the content's
- * `min-width: 50%`, both panels wrap to full-width — the nav stacks above the
- * content. No media query, no JavaScript — the layout derives its own
- * breakpoint from the container's width.
+ * `min-width: 50%`, the pair wraps onto separate lines — the nav keeps its
+ * declared width on the line above the content. No media query, no JavaScript
+ * — the layout derives its own breakpoint from the container's width.
  *
  * The nav panel recedes into the sunken elevation layer so the content reads as
  * the work surface. The content area scrolls independently so long settings
@@ -41,16 +41,18 @@ withDefaults(
 
     <!--
       `flex-wrap: wrap` is the intrinsic collapse mechanism. When the content
-      panel can't fit its `min-width: 50%`, both panels wrap to full-width —
-      the nav becomes a full-width section above the content. No media query;
-      the layout derives its own breakpoint from the container's width.
+      panel can't fit its `min-width: 50%`, the pair wraps onto separate lines
+      — the nav keeps its declared `navWidth` on the line above the content,
+      and the content takes the whole next line. No media query; the layout
+      derives its own breakpoint from the container's width.
     -->
     <div :class="cn('flex flex-1 flex-row')" :style="{ flexWrap: 'wrap' }">
       <!--
         The nav panel: fixed-basis, no growth, no shrink. It does not yield
-        width to the content area — when the container is too narrow, it wraps
-        to full-width instead of compressing. Sunken elevation marks it as
-        chrome, not work surface.
+        width to the content area and never compresses — when the container
+        is too narrow for both, it wraps to its own line at this declared
+        width rather than shrinking. Sunken elevation marks it as chrome,
+        not work surface.
       -->
       <nav
         :style="{
