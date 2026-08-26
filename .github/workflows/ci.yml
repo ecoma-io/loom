@@ -889,6 +889,27 @@ jobs:
   e2e-run:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    # The official Playwright image: browsers and their system dependencies are
+    # preinstalled, so no leg ever runs `playwright install --with-deps` — the
+    # step that starved under concurrency before (measured 2026-08: 12 of 26
+    # pw-infra legs hit the 20-minute ceiling on the apt half, and 2026-08-26 a
+    # WebKit leg burned its whole 20 minutes in apt before being cancelled).
+    # The tag must equal the `@playwright/test` version the lockfile resolves:
+    # browsers are built per Playwright revision, and a mismatch fails on
+    # "Executable doesn't exist". Bump the lockfile, bump this tag, in one
+    # commit.
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      # Firefox's sandbox spawns through an unprivileged user namespace, and
+      # Docker's default seccomp profile refuses that clone() inside a job
+      # container — measured 2026-08-26: every Firefox leg died on
+      # "Sandbox: CanCreateUserNamespace() clone() failure: EPERM" while
+      # Chromium and WebKit ran green. CAP_SYS_ADMIN is enough for the default
+      # profile to admit the syscall, keeping Firefox's own sandbox intact;
+      # the `seccomp=unconfined` alternative turns seccomp off entirely.
+      options: --cap-add SYS_ADMIN
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     # `e2e-build-docs` is skipped when no leg needs the built site, and a
     # skipped need normally skips the dependent job too — the `!cancelled()`
     # form runs the legs in that case while still failing them if the build
@@ -921,45 +942,34 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
 
+      # The container user never matches the workspace mount's owner, so git
+      # refuses the repository ("dubious ownership") when the `prepare`
+      # script's `lefthook install` asks git about it — measured 2026-08-26,
+      # every leg of this job's first container run died there. checkout sets
+      # its own safe.directory under a throwaway HOME that does not outlive
+      # the step; this one persists for pnpm install and everything after.
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - run: pnpm install --frozen-lockfile
 
-      # The browser install is the single step that times out on a loaded runner:
-      # the full `pw-infra` matrix measured 12 of 26 legs failing at the 20-minute
-      # job ceiling, every one on `playwright install --with-deps <engine>` —
-      # the apt system-deps half starves when many legs install concurrently.
-      # Cache the installed browser tree keyed on the engine so a warm leg
-      # restores it instead of re-downloading under contention; the key carries
-      # the Playwright version (which pin the engine) and the engine name.
-      # `--with-deps` still runs on a cache miss only, and only that leg pays
-      # the apt tax.
-      #
-      # Restore and save are split deliberately, matching the docs-dist cache:
-      # the combined actions/cache saves in a post step that runs even on
-      # failure, and a leg that died mid-install would freeze a partial browser
-      # tree under the key. As ordinary steps, the explicit save never runs
-      # after a failed install.
-      - name: Restore Playwright browsers
-        id: pw-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ matrix.install }}-${{ hashFiles('pnpm-lock.yaml') }}
+      # No browser install, no browser cache: the job container above ships
+      # every engine and its system dependencies preinstalled. This replaces
+      # the restore/install/save trio this job carried for the apt starvation
+      # (measured 12 of 26 pw-infra legs at the 20-minute ceiling, and a WebKit
+      # leg cancelled 2026-08-26 after spending its whole budget in apt); with
+      # the engines in the image, `pnpm install` is the only per-leg setup
+      # that remains, and it cannot starve the way apt did.
 
-      - name: Install Playwright browser
-        # One leg runs exactly one browser project, which needs exactly one
-        # engine — `matrix.install` names it (the mobile project ids are
-        # viewports over the same engines). Installing only that engine is the
-        # difference between ~40 and ~110 seconds of per-leg setup. On a cache
-        # hit the browser tree is already restored, so the install is a no-op
-        # and the apt system-deps half never runs.
-        run: pnpm exec playwright install --with-deps ${{ matrix.install }}
-
-      - name: Save Playwright browsers
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ matrix.install }}-${{ hashFiles('pnpm-lock.yaml') }}
+      # actions/cache compresses entries with zstd (the build job's save runs
+      # `tar --use-compress-program zstdmt`), and the Playwright image does
+      # not ship the zstd binary — the first container run failed every root
+      # leg's site restore on exactly that. One small package; the apt
+      # starvation this container exists to escape was dozens of large ones
+      # under 29-way contention, a different failure class by an order of
+      # magnitude.
+      - name: Install zstd for the site cache
+        if: matrix.config == 'playwright.config.ts'
+        run: apt-get update -qq && apt-get install -y -qq zstd
 
       # A root leg restores the site `e2e-build-docs` built for this exact
       # commit; `fail-on-cache-miss` makes a missing build a loud failure
@@ -992,6 +1002,13 @@ jobs:
       # step must never do.
       - name: Run Playwright
         env:
+          # Firefox refuses to run as root unless $HOME belongs to root, and
+          # the runner overrides HOME to /github/home (a host mount owned by
+          # pwuser) even when the container block sets HOME — measured across
+          # the 2026-08-26 rounds: container-scoped env lost to the runner's,
+          # so the only scope that reliably reaches the browser process is
+          # this step's.
+          HOME: /root
           PW_PROFILE: ${{ matrix.profile }}
           HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
           PW_PREBUILT_DOCS: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
