@@ -281,6 +281,195 @@ const TEXT_PAIRINGS: Pairing[] = [
     floor: TEXT_FLOOR,
     label: "text on info-muted",
   },
+
+  // Text-variant tokens on documented dark surfaces (sunken through popover)
+  // These are the lighter steps of functional colours calibrated for text use
+  // Documented in theme.css to clear 4.5:1 on every dark surface
+  {
+    fg: "color-primary-text",
+    bg: "color-sunken",
+    floor: TEXT_FLOOR,
+    label: "primary-text on sunken (DateTimePicker, Stepper, Pagination, Select focus)",
+  },
+  {
+    fg: "color-primary-text",
+    bg: "color-background",
+    floor: TEXT_FLOOR,
+    label: "primary-text on background (Link, Toast)",
+  },
+  {
+    fg: "color-primary-text",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "primary-text on card",
+  },
+  {
+    fg: "color-primary-text",
+    bg: "color-popover",
+    floor: TEXT_FLOOR,
+    label: "primary-text on popover",
+  },
+  {
+    fg: "color-accent-text",
+    bg: "color-background",
+    floor: TEXT_FLOOR,
+    label: "accent-text on background (Link)",
+  },
+  {
+    fg: "color-accent-text",
+    bg: "color-sunken",
+    floor: TEXT_FLOOR,
+    label: "accent-text on sunken",
+  },
+  {
+    fg: "color-accent-text",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "accent-text on card",
+  },
+  {
+    fg: "color-accent-text",
+    bg: "color-popover",
+    floor: TEXT_FLOOR,
+    label: "accent-text on popover",
+  },
+  {
+    fg: "color-destructive-text",
+    bg: "color-background",
+    floor: TEXT_FLOOR,
+    label: "destructive-text on background (Field, TagsInput, Textarea validation)",
+  },
+  {
+    fg: "color-destructive-text",
+    bg: "color-sunken",
+    floor: TEXT_FLOOR,
+    label: "destructive-text on sunken",
+  },
+  {
+    fg: "color-destructive-text",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "destructive-text on card",
+  },
+  {
+    fg: "color-destructive-text",
+    bg: "color-popover",
+    floor: TEXT_FLOOR,
+    label: "destructive-text on popover",
+  },
+  {
+    fg: "color-success-text",
+    bg: "color-background",
+    floor: TEXT_FLOOR,
+    label: "success-text on background (Toast)",
+  },
+  {
+    fg: "color-success-text",
+    bg: "color-sunken",
+    floor: TEXT_FLOOR,
+    label: "success-text on sunken",
+  },
+  {
+    fg: "color-success-text",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "success-text on card",
+  },
+  {
+    fg: "color-success-text",
+    bg: "color-popover",
+    floor: TEXT_FLOOR,
+    label: "success-text on popover",
+  },
+  {
+    fg: "color-warning-text",
+    bg: "color-background",
+    floor: TEXT_FLOOR,
+    label: "warning-text on background (Textarea validation)",
+  },
+  {
+    fg: "color-warning-text",
+    bg: "color-sunken",
+    floor: TEXT_FLOOR,
+    label: "warning-text on sunken",
+  },
+  {
+    fg: "color-warning-text",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "warning-text on card",
+  },
+  {
+    fg: "color-warning-text",
+    bg: "color-popover",
+    floor: TEXT_FLOOR,
+    label: "warning-text on popover",
+  },
+  {
+    fg: "color-info-text",
+    bg: "color-background",
+    floor: TEXT_FLOOR,
+    label: "info-text on background (Toast)",
+  },
+  {
+    fg: "color-info-text",
+    bg: "color-sunken",
+    floor: TEXT_FLOOR,
+    label: "info-text on sunken",
+  },
+  {
+    fg: "color-info-text",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "info-text on card",
+  },
+  {
+    fg: "color-info-text",
+    bg: "color-popover",
+    floor: TEXT_FLOOR,
+    label: "info-text on popover",
+  },
+
+  // Additional usage-derived pairs from component analysis
+  {
+    fg: "color-foreground",
+    bg: "color-sunken",
+    floor: TEXT_FLOOR,
+    label: "foreground on sunken (sidebar chrome)",
+  },
+  {
+    fg: "color-foreground",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "foreground on card (TitleBar)",
+  },
+  {
+    fg: "color-muted-foreground",
+    bg: "color-subtle",
+    floor: TEXT_FLOOR,
+    label: "muted-foreground on subtle (EmptyState icon)",
+  },
+  {
+    fg: "color-foreground",
+    bg: "color-muted",
+    floor: TEXT_FLOOR,
+    label: "foreground on muted (Surface variant)",
+  },
+  {
+    fg: "color-background",
+    bg: "color-foreground",
+    floor: TEXT_FLOOR,
+    label: "background on foreground (Tooltip inversion)",
+  },
+  {
+    fg: "color-muted-foreground",
+    bg: "color-card",
+    floor: TEXT_FLOOR,
+    label: "muted-foreground on card (TimelineItem upcoming)",
+  },
+  // Note: `bg-transparent` is a Tailwind utility (background-color: transparent), not a theme token.
+  // Contrast on transparent backgrounds is measured against the page background (color-background),
+  // which is covered by the existing `color-muted-foreground` on `color-background` pair.
 ];
 
 const GRAPHICAL_PAIRINGS: Pairing[] = [
