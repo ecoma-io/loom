@@ -257,6 +257,9 @@ export default defineConfig({
         "@ecoma-io/loom-menubar": fileURLToPath(
           new URL("../../packages/primitives/menubar/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-navigation-menu": fileURLToPath(
+          new URL("../../packages/primitives/navigation-menu/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-popover": fileURLToPath(
           new URL("../../packages/primitives/popover/src/index.ts", import.meta.url),
         ),

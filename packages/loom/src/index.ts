@@ -116,6 +116,8 @@ export { List, ListItem } from "@ecoma-io/loom-list";
 export type { ListItemShape } from "@ecoma-io/loom-list";
 export { default as Menubar } from "@ecoma-io/loom-menubar";
 export type { MenubarItem, MenubarMenu } from "@ecoma-io/loom-menubar";
+export { default as NavigationMenu } from "@ecoma-io/loom-navigation-menu";
+export type { NavigationMenuItem, NavigationMenuLink } from "@ecoma-io/loom-navigation-menu";
 export { default as Popover } from "@ecoma-io/loom-popover";
 export type { PopoverAlign, PopoverSide } from "@ecoma-io/loom-popover";
 export { default as SpeedDial } from "@ecoma-io/loom-speed-dial";

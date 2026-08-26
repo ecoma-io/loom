@@ -76,6 +76,7 @@ export default defineConfig({
       "@ecoma-io/loom-inline-error": pkg("primitives/inline-error/src/index.ts"),
       "@ecoma-io/loom-link": pkg("primitives/link/src/index.ts"),
       "@ecoma-io/loom-menubar": pkg("primitives/menubar/src/index.ts"),
+      "@ecoma-io/loom-navigation-menu": pkg("primitives/navigation-menu/src/index.ts"),
       "@ecoma-io/loom-popover": pkg("primitives/popover/src/index.ts"),
       "@ecoma-io/loom-speed-dial": pkg("primitives/speed-dial/src/index.ts"),
       "@ecoma-io/loom-tabs": pkg("primitives/tabs/src/index.ts"),
