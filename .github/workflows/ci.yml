@@ -902,6 +902,12 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
       env:
         PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+        # The runner overrides HOME to /github/home, a host mount whose owner
+        # is not this container's root user — and Firefox refuses to launch
+        # unless $HOME belongs to the current user. Pointing HOME back at the
+        # image's own /root is the workaround Firefox's own error guidance
+        # names. Chromium and WebKit do not make this check.
+        HOME: /root
     # `e2e-build-docs` is skipped when no leg needs the built site, and a
     # skipped need normally skips the dependent job too — the `!cancelled()`
     # form runs the legs in that case while still failing them if the build
@@ -951,6 +957,17 @@ jobs:
       # leg cancelled 2026-08-26 after spending its whole budget in apt); with
       # the engines in the image, `pnpm install` is the only per-leg setup
       # that remains, and it cannot starve the way apt did.
+
+      # actions/cache compresses entries with zstd (the build job's save runs
+      # `tar --use-compress-program zstdmt`), and the Playwright image does
+      # not ship the zstd binary — the first container run failed every root
+      # leg's site restore on exactly that. One small package; the apt
+      # starvation this container exists to escape was dozens of large ones
+      # under 29-way contention, a different failure class by an order of
+      # magnitude.
+      - name: Install zstd for the site cache
+        if: matrix.config == 'playwright.config.ts'
+        run: apt-get update -qq && apt-get install -y -qq zstd
 
       # A root leg restores the site `e2e-build-docs` built for this exact
       # commit; `fail-on-cache-miss` makes a missing build a loud failure
