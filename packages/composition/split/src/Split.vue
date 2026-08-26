@@ -2,10 +2,10 @@
 /**
  * Split — two-panel layout with intrinsic collapse.
  *
- * A flex row that places a side panel and a content area side by side above
- * a `collapseAt` width, and stacks them vertically below it. The side panel
- * gets a fixed minimum width; the content area grows to fill the remaining
- * space.
+ * A flex row that places a side panel and a content area side by side, and
+ * stacks them vertically once the container is too narrow for both. The side
+ * panel gets a fixed minimum width; the content area grows to fill the
+ * remaining space.
  *
  * This is the Every Layout "Sidebar" pattern, simplified for the common
  * two-panel case. The intrinsic collapse — panels stack when the container is
@@ -13,9 +13,9 @@
  * a sidebar-narrowed workspace and full-bleed on an ultra-wide monitor.
  *
  * A Split is a component, not a hand-rolled flex row with a media query,
- * because the collapse width is a layout decision the call site should name
- * rather than compute, and the stacking order (side above or below) is an
- * intent the `side` prop expresses.
+ * because the wrap-and-floor technique is non-obvious and easy to get wrong,
+ * and the stacking order (side above or below) is an intent the `side` prop
+ * expresses.
  */
 export type SplitSide = "left" | "right";
 
@@ -37,14 +37,12 @@ withDefaults(
   defineProps<{
     /** The side the panel sits on. Controls stacking order when collapsed: "left" stacks the panel above, "right" stacks it below. */
     side?: SplitSide;
-    /** Below this CSS width the two panels stack vertically instead of sitting side by side. Default: `"48rem"`. */
-    collapseAt?: string;
     /** Minimum width for the side panel (e.g. "16rem"). The content area takes the rest. */
     minSideWidth?: string;
     /** Gap between the two panels. Tightens one notch below `sm` (except "none"). */
     gap?: SplitGap;
   }>(),
-  { side: "left", collapseAt: "48rem", minSideWidth: "16rem", gap: "md" },
+  { side: "left", minSideWidth: "16rem", gap: "md" },
 );
 </script>
 
@@ -52,8 +50,8 @@ withDefaults(
   <!--
     `flex-wrap` is the intrinsic collapse mechanism: when the combined
     `min-width` of both panels exceeds the container, the second panel wraps
-    to a new line. The `collapseAt` prop sets the breakpoint that controls
-    when `flex-wrap` is active.
+    to a new line. Where that happens is decided by the panels' own minimum
+    widths — there is no breakpoint prop to set it with.
   -->
   <div
     :class="

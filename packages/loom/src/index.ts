@@ -276,7 +276,7 @@ export type { ReadingGutter } from "@ecoma-io/loom-reading";
 export { default as Settings } from "@ecoma-io/loom-settings";
 export type { SettingsNavWidth } from "@ecoma-io/loom-settings";
 export { default as SplitLayout } from "@ecoma-io/loom-split-layout";
-export type { SplitLayoutCollapseAt, SplitLayoutGap } from "@ecoma-io/loom-split-layout";
+export type { SplitLayoutGap } from "@ecoma-io/loom-split-layout";
 
 // Blocks — alphabetical.
 export { default as AppHeader } from "@ecoma-io/loom-app-header";

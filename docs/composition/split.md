@@ -1,8 +1,8 @@
 # Split
 
 Two-panel layout with intrinsic collapse. Split places a side panel and a
-content area side by side above a `collapseAt` width, and stacks them
-vertically below it. No media queries — the layout wraps when the container
+content area side by side, and stacks them vertically once the container is
+too narrow for both. No media queries — the layout wraps when the container
 is too narrow.
 
 <script setup lang="ts">
@@ -31,10 +31,10 @@ import { Split } from "@ecoma-io/loom";
 ## How the intrinsic collapse works
 
 Split uses `flex-wrap`: the content area demands at least 50% of the
-container width (`min-width: 50%`), and the side panel has a fixed
-`min-width`. When the container is too narrow to fit both, the second panel
-wraps to a new line and both take full width — no media query needed, and it
-works identically inside any container.
+container width (`min-width: 50%`), and the side panel holds its declared
+minimum width. When the container is too narrow to fit both, the second
+panel wraps to a new line and each keeps its declared width there — no media
+query needed, and it works identically inside any container.
 
 ## Side
 
@@ -50,9 +50,8 @@ Controls which side the panel sits on and the stacking order when collapsed:
 The minimum width for the side panel. The content area takes the rest. Any
 valid CSS length — `"16rem"`, `"240px"`. Default: `"16rem"`.
 
-## Collapse at
-
-The CSS width below which the two panels stack. Default: `"48rem"`.
+Widening it also delays the collapse: the pair gives up on one line when the
+container can no longer fit this minimum plus the content's half.
 
 ## Gap
 
