@@ -100,13 +100,6 @@ describe("browserless accessibility sweep — semantic WCAG rules (jsdom tier)",
             attachTo: document.body,
           });
 
-          // Append the same end-of-demo sentinel button the browser harness uses
-          // (for parity — the harness scans the full container, including this sentinel)
-          const sentinel = document.createElement("button");
-          sentinel.id = "harness-sentinel";
-          sentinel.textContent = "harness end-of-demo sentinel";
-          document.body.appendChild(sentinel);
-
           // Wait for the component to settle (microtasks, async setup)
           // Measured: 30ms is sufficient for all 94 demos; shorter delays cause intermittent failures.
           await new Promise((resolve) => setTimeout(resolve, 30));
