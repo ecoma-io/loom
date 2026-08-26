@@ -21,7 +21,7 @@ export {
 } from "./motion";
 
 // The WCAG scope the library holds itself to.
-export { WCAG_TAGS } from "./a11y-scope";
+export { WCAG_TAGS, BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "./a11y-scope";
 
 // Theme switching (also re-exported from the public @ecoma-io/loom entry).
 export { useTheme, themeScript } from "./theme";
