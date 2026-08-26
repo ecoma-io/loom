@@ -897,10 +897,10 @@ jobs:
     # treat an empty `include`.
     needs: [e2e-discover, e2e-build-docs]
     if: ${{ !cancelled() && needs.e2e-discover.result == 'success' && needs.e2e-discover.outputs.matrix != '[]' && (needs.e2e-build-docs.result == 'success' || needs.e2e-build-docs.result == 'skipped') }}
-    # Sized for the slowest quarter-suite: at `workers: 1` the worst engine's
-    # whole root run is ~23 minutes, so a 4-shard leg is ~6 minutes of tests
-    # plus ~2 of setup — and Playwright's two CI retries with traces can add
-    # minutes on a genuinely failing shard, which is what the headroom is for.
+    # Sized for the slowest quarter-suite: post-#122 WCAG gate split, a 4-shard
+    # leg runs ~11 minutes of tests on the worst engine (Firefox, ~10.9m measured
+    # down from ~12.2m pre-split) plus ~2 of setup, with headroom for
+    # Playwright's two CI retries with traces on a genuinely failing shard.
     timeout-minutes: 20
     strategy:
       # One battery failing in engine A must not hose the other engines' answer
