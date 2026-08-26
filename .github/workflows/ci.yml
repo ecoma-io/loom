@@ -900,6 +900,14 @@ jobs:
     # commit.
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
+      # Firefox's sandbox spawns through an unprivileged user namespace, and
+      # Docker's default seccomp profile refuses that clone() inside a job
+      # container — measured 2026-08-26: every Firefox leg died on
+      # "Sandbox: CanCreateUserNamespace() clone() failure: EPERM" while
+      # Chromium and WebKit ran green. CAP_SYS_ADMIN is enough for the default
+      # profile to admit the syscall, keeping Firefox's own sandbox intact;
+      # the `seccomp=unconfined` alternative turns seccomp off entirely.
+      options: --cap-add SYS_ADMIN
       env:
         PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
         # The runner overrides HOME to /github/home, a host mount whose owner
