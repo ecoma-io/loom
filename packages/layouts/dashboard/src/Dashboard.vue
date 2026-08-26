@@ -12,10 +12,10 @@
  *
  * The sidebar and aside use the Every Layout "Sidebar" flex-wrap technique:
  * each panel gets a fixed flex-basis and the grid area gets `flex-grow: 999`,
- * so when the container cannot fit the content's minimum, both panels wrap to
- * full-width and the sidebar or aside stacks above the grid instead of sitting
- * beside it. No media query, no JavaScript — the layout derives its own
- * breakpoints from the container's width.
+ * so when the container cannot fit the content's minimum, each panel takes
+ * its own line at its declared width — the sidebar stacks above the grid, and
+ * the aside below it. No media query, no JavaScript — the layout derives its
+ * own breakpoints from the container's width.
  *
  * The `#aside` slot is gated behind a `2xl` breakpoint because supplementary
  * metrics are a luxury that only wide desktops can afford: the aside is hidden
@@ -64,9 +64,10 @@ withDefaults(
     <!--
       The sidebar+grid row uses flex-wrap. The sidebar gets a fixed
       flex-basis (~16rem) and the grid area gets `flex-grow: 999`, so
-      when the container is too narrow both panels wrap to full-width —
-      the sidebar stacks above the grid. No media query; the layout
-      derives its own breakpoint from the container's width.
+      when the container is too narrow each panel takes its own line —
+      the sidebar keeps its declared width on the line above the grid.
+      No media query; the layout derives its own breakpoint from the
+      container's width.
     -->
     <div
       :style="{ flexWrap: 'wrap' }"

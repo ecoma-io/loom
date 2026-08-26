@@ -52,8 +52,9 @@ import { Dashboard } from "@ecoma-io/loom";
 | 2xl+     | Side-by-side             | Auto-fit, wider tiles        | Side metrics panel |
 
 The sidebar collapses intrinsically via flex-wrap — no media query or
-JavaScript. When the grid area cannot honour its `min-width: 50%`, the
-sidebar wraps to full-width and stacks above the grid.
+JavaScript. When the grid area cannot honour its `min-width: 50%`, the pair
+wraps onto separate lines and the sidebar stacks above the grid at its
+declared width.
 
 The aside slot is gated behind the `2xl` breakpoint: supplementary metrics
 are a luxury that only wide desktops can afford. Below that width the grid

@@ -33,9 +33,13 @@ import { MasterDetail } from "@ecoma-io/loom";
 
 ## Responsive behavior
 
-- **Below 48rem:** master and detail stack vertically — master on top, detail below
-- **48rem and up:** master sits alongside detail; detail fills remaining space
+- **Narrow container:** master and detail stack vertically — master on top at its declared width, detail below
+- **Wide enough container:** master sits alongside detail; detail fills remaining space
 - **Ultrawide:** detail gutters widen (`3xl`), extra viewport goes to whitespace
+
+Where the stack happens is intrinsic, not a fixed breakpoint: the pair gives
+up on one line when the container can no longer fit the master panel plus the
+detail's half — roughly twice `minMasterWidth` (28rem at the default).
 
 ## API
 
