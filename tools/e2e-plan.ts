@@ -237,35 +237,44 @@ const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
 
 /**
  * How many `--shard` pieces the root cross-cutting suite is cut into, per
- * browser. Sized from measurement, not habit: at `workers: 1` one browser's
- * whole suite is ~17–23 minutes, and with the docs site built once and
- * downloaded (rather than rebuilt in every leg) a shard's overhead is ~1
- * minute — so 4 shards puts a leg at ~5–7 minutes, comfortably under the
- * job timeout, where the old fixed 8 spent as long setting up as testing.
+ * browser. Sized from measurement, not habit.
  *
- * That measurement was taken over 102 documentation pages, and it is the page
- * count — not the component count — that the number has to follow: every spec
- * in the suite (axe, contrast, target-size, keyboard, focus-not-obscured,
- * responsive) iterates `documentationPages()`, so its wall clock is roughly
- * pages × 0.17–0.22 minutes (17–23 min over those 102 pages, the spread being
- * the engine). Held at a constant 4, the same split would be ~22 minutes a leg
- * at 400 pages — and CI would report that as a timeout on whichever commit
- * happened to cross the line, not as a plan that had stopped fitting.
+ * Original sizing: 30 pages each, calibrated at 102 pages over 4 shards. The
+ * split sizes by worst-shard wall clock because the root suite's per-browser
+ * runtime IS its slowest shard (shards run in parallel legs).
  *
- * So a shard is sized by workload instead: ~30 pages each, which at the worst
- * engine's 0.22 min/page is ~6–7 minutes of tests plus ~1 of setup. 102 pages
- * still yields exactly 4, so this changes no leg at today's size; past that
- * the split grows one shard per 30 pages added, and because the per-shard
- * workload is what is held constant, `ci.yml`'s `timeout-minutes: 20` stays
- * sized as its comment claims without being touched.
+ * Pre-#122 baseline (run 32929370780, merge group for #121, commit 1453b45,
+ * 2026-08-26 04:13Z): Firefox median 7.2m per shard (~26 pages), worst single
+ * shard 12.2m. Chromium median 6.0m, worst 8.0m. WebKit median 4.6m, worst 7.9m.
+ *
+ * Post-#122 measurements (run 32933034655, merge group for #122, commit
+ * 7884045, 2026-08-26 05:10Z): the WCAG gate split made the dark pass
+ * contrast-only. Firefox median fell to 5.9m (~18% improvement), worst single
+ * shard 10.9m. Chromium median 5.4m, worst 6.4m. WebKit median 3.8m, worst 5.0m.
+ *
+ * The #122 savings are already banked as shorter shards: median 7.2→5.9m,
+ * worst 12.2→10.9m. No constant change is needed to capture that win.
+ *
+ * Why 30 stays (not 34, which would give 3 shards at today's 102 pages):
+ * ceil(102/N)=3 requires N≥34. At the measured worst-shard cost
+ * (Firefox: 10.9m / 26 pages ≈ 25.2s/page), a 34-page shard runs
+ * 34 × 25.2s ≈ 14.3m — LONGER than today's 10.9m worst shard. That trades
+ * wall-clock (the point of parallel legs) for compute (12→9 legs). Wall-clock
+ * comes first; a 30% wall regression to save 25% compute is a bad trade.
+ *
+ * When 34 becomes right: when worst-shard per-page cost falls enough that
+ * 34 × cost ≤ ~10m (i.e., cost ≤ ~17.6s/page). At that point, 3 shards at 34
+ * pages each land the worst engine near today's 10.9m envelope, and the
+ * reduction to 9 legs is pure gain. Until that measurement exists, 30 stands.
  *
  * The cap is `harnessShardCount`'s philosophy from the other side: bounded,
  * never proportional. Eight shards is already 40 legs on the `full` profile's
  * five engines, so the matrix stops widening there and per-shard workload
  * starts growing again — a deliberate ceiling with a known expiry, since at
- * ~600 pages a capped shard is back at ~17 minutes and it is the cap, or the
- * job timeout, that has to be revisited. Both numbers are recorded here so
- * that recalibration starts from this evidence rather than from a guess.
+ * ~240 pages a capped shard (30 pages each) is back at ~17 minutes and it is
+ * the cap, or the job timeout, that has to be revisited. Both numbers are
+ * recorded here so that recalibration starts from this evidence rather than
+ * from a guess.
  */
 const PAGES_PER_ROOT_SHARD = 30;
 const ROOT_SHARD_CAP = 8;
@@ -617,7 +626,11 @@ export function runSelfCheck(): void {
   // would redden an unrelated docs pull request the day it crossed a boundary
   // — the shard count moving with the page count is the design, not a
   // regression. What is asserted is the policy, at the counts that define it.
-  assert.equal(rootShardCount(102), 4, "today's 102 pages keep the 4 shards the constant had");
+  assert.equal(
+    rootShardCount(102),
+    4,
+    "today's 102 pages stay at 4 shards; the post-split win is shorter wall-clock, not fewer legs",
+  );
   assert.equal(rootShardCount(120), 4, "the last page count that still fits four shards");
   assert.equal(rootShardCount(121), 5, "one page past it buys a shard, not a longer leg");
   assert.equal(rootShardCount(240), ROOT_SHARD_CAP, "the cap is reached, not exceeded");
