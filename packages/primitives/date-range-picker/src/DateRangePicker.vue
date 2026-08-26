@@ -309,10 +309,10 @@ const field = useFieldControl(() => ({
 }));
 
 // `aria-labelledby` for the group, resolved against the row — DatePicker's
-// reasoning, and the same three-way guard.
-const groupLabelledBy = computed(() =>
-  attrs["aria-label"] || attrs["aria-labelledby"] ? undefined : field.labelledBy,
-);
+// reasoning, minus the old third arm of the guard: a caller's own labelledby
+// has to survive here, because the binding below beats the spread and an
+// `undefined` would strip it instead of deferring to it.
+const groupLabelledBy = computed(() => (attrs["aria-label"] ? undefined : field.labelledBy));
 
 function fromIso(value: string | undefined): DateValue | undefined {
   if (!value) return undefined;

@@ -258,15 +258,17 @@ const field = useFieldControl(() => ({
   required: props.required,
 }));
 
-// `aria-labelledby` for the group, resolved against the row. A caller who passes
-// `aria-labelledby` as a fallthrough attr wins (it reaches this control's own
-// `ariaLabelledby` through `useFieldControl`). A caller who passes `aria-label`
-// wins too — `aria-labelledby` overrides `aria-label` in ARIA, so the row's
-// label must not appear when the caller named the control themselves. Otherwise,
-// the row's label (published by Field as `labelledBy`) is the accessible name.
-const groupLabelledBy = computed(() =>
-  attrs["aria-label"] || attrs["aria-labelledby"] ? undefined : field.labelledBy,
-);
+// `aria-labelledby` for the group, resolved against the row. `field.labelledBy`
+// already resolves caller-first — a fallthrough `aria-labelledby` reaches
+// `useFieldControl` as this control's own `ariaLabelledby` — and the row's
+// label (published by Field) names the group when no caller did. Only a
+// caller's `aria-label` suppresses that: they named the control themselves, so
+// the row must not speak over it. A caller's `aria-labelledby` must never
+// resolve to `undefined` here: the individual binding below beats the `v-bind`
+// spread it follows, so an `undefined` strips the caller's attribute right
+// back off the group and leaves it unnamed — measured as exactly that before
+// the guard let the caller's value through.
+const groupLabelledBy = computed(() => (attrs["aria-label"] ? undefined : field.labelledBy));
 
 function fromIso(value: string | undefined): DateValue | undefined {
   if (!value) return undefined;
