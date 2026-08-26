@@ -84,22 +84,24 @@ function of the changed file set plus moon's affected answer), consumed by the
 `e2e-discover` → `e2e-build-docs` → `e2e-run` jobs in
 `.github/workflows/ci.yml`. The scenarios it classifies are documented at the
 top of that tool; the short version is that a component change runs only the
-affected components' own specs at `smoke` (a component without own specs still
-has its demo swept by the harness axe gate, so a Badge.vue edit costs one
-chromium leg, not the whole-repo sweep), a docs, theme or dependency-bump
-change runs the root sweep (built once, shared to every leg through the
-actions cache), an infra change runs everything, and nothing relevant runs
-nothing. Harness legs group every affected component into one Playwright run
-per browser, sharding only past a bounded threshold — the job count is bounded
-by browsers × shard cap, never by the component count. The root sweep is cut
-the same way from the other side: its shard count is derived from the number of
-documentation pages the suite iterates, so a leg carries roughly one fixed
-workload as the site grows rather than lengthening until it hits the job
-timeout — bounded by a cap, with the sizing evidence in the tool. The full matrix
-(`PW_PROFILE=full`, all five browser projects) stays available for a change
-that edits `playwright/` itself, the harness, or the root config — and is what
-`pnpm e2e:full` runs. The browser profiles themselves have one home,
-`playwright/profiles.ts`, read by both Playwright configs and by the plan.
+affected components' own specs at `smoke`. A component without own specs runs
+no browser legs at PR level: semantic evidence comes from the browserless tier
+(docs/demos-a11y.test.ts via moon's affected closure), contrast pairs are pinned
+browserlessly by theme-core tests, and the rendering-dependent demo sweep is kept
+as a push-to-main backstop. A docs, theme or dependency-bump change runs the
+root sweep (built once, shared to every leg through the actions cache), an infra
+change runs everything, and nothing relevant runs nothing. Harness legs group
+every affected component into one Playwright run per browser, sharding only past
+a bounded threshold — the job count is bounded by browsers × shard cap, never
+by the component count. The root sweep is cut the same way from the other side:
+its shard count is derived from the number of documentation pages the suite
+iterates, so a leg carries roughly one fixed workload as the site grows rather
+than lengthening until it hits the job timeout — bounded by a cap, with the
+sizing evidence in the tool. The full matrix (`PW_PROFILE=full`, all five browser
+projects) stays available for a change that edits `playwright/` itself, the
+harness, or the root config — and is what `pnpm e2e:full` runs. The browser
+profiles themselves have one home, `playwright/profiles.ts`, read by both
+Playwright configs and by the plan.
 
 The unit-test side gets the same boundary from moon itself: `moon ci` runs the
 directly-affected tasks, and CI then replays `moon query projects --affected

@@ -23,9 +23,12 @@
  *               `standard`; no component browser jobs (a prose edit needs the
  *               axe sweep, not per-component evidence).
  *   component   packages/**, docs/demos → the affected components' own specs,
- *               at `smoke` (a component without own specs still has its demo
- *               swept by the harness axe gate, so a Badge.vue edit costs one
- *               chromium leg, not the whole-repo sweep).
+ *               at `smoke`. A component without own specs runs no browser legs
+ *               at PR level: semantic evidence comes from the browserless tier
+ *               (docs/demos-a11y.test.ts, re-run via moon's affected closure),
+ *               contrast pairs are pinned browserlessly by theme-core tests,
+ *               and the rendering-dependent demo sweep is kept as a push-to-main
+ *               backstop.
  *   noop        none of the above — the matrix is empty and `e2e-run` expands
  *               to zero legs.
  *
@@ -62,6 +65,22 @@ import { documentationPages } from "../e2e/docs-pages.ts";
 
 // Repo root (the script lives in `tools/`).
 const ROOT = new URL("..", import.meta.url).pathname;
+
+/**
+ * Whether this run is at pull-request level.
+ *
+ * PR-level events (pull_request, merge_group) treat a spec-less component change
+ * as needing no browser legs: semantic evidence arrives from the browserless tier
+ * (docs/demos-a11y.test.ts via moon's affected closure), contrast pairs are pinned
+ * by theme-core tests, and the rendering-dependent demo sweep is kept as a push-to-main
+ * backstop. Push/dispatch events still run the harness leg as that backstop.
+ *
+ * Absent (a local run), this conservatively defaults to PR-level behavior: the tool
+ * is usually run locally to test the plan shape, and a local developer's run should
+ * model the CI path that costs less.
+ */
+const isPrLevel = (): boolean =>
+  process.env.GITHUB_EVENT_NAME !== "push" && process.env.GITHUB_EVENT_NAME !== "workflow_dispatch";
 
 // The reverse of the harness's kebabToPascal (`?component=` → demo filename):
 // a project id is `badge`, its demo is `docs/demos/BadgeDemo.vue`. The
@@ -427,16 +446,33 @@ export function plan(
       // changed.
       return rootLegs("standard");
     case "component": {
-      // The affected components' own evidence, cheapest first: e2e-tagged
-      // projects' specs plus the axe gate over every affected demo. A change
-      // in a component with no specs (a Badge.vue edit) still sweeps the demo
-      // — the harness gate in light and dark. A change set that mixes
-      // component code with a docs prose/plugin page keeps BOTH: the harness
-      // legs cover the component, and the root sweep (the only gate over the
-      // generated token/API tables) is added back when a non-demo docs file
-      // rode along — classifyFiles labels the whole change `component` and
-      // would otherwise drop the prose side's sweep entirely.
+      // A component change follows one of three policies:
+      //
+      // 1. Spec-less component, no docs prose change, PR-level: zero browser legs.
+      //    Semantic evidence arrives from the browserless tier (docs/demos-a11y.test.ts)
+      //    via moon's affected closure (button → loom → docs). Contrast pairs are
+      //    pinned browserlessly by theme-core tests (#121). The rendering-dependent
+      //    demo sweep is kept as a push-to-main backstop (runs below). This drops
+      //    a whole CI job (~1.5–2.2 m bootstrap-dominated) for exactly the change
+      //    class that needed it least.
+      //
+      // 2. Spec-less component, no docs prose, push/dispatch: harness leg as the backstop.
+      //    The semantic and contrast evidence still run browserlessly, but the
+      //    rendering-dependent sweep must still execute on merge.
+      //
+      // 3. Component with specs, or docs touched: harness leg(s) as today.
+      //    Behavioral/geometry evidence needs a browser; a prose change keeps the
+      //    root sweep (generated tables) alongside the component legs.
       const touchedDocs = files.some((f) => /^docs\/(?!demos\/)/.test(f));
+      const isSpecLessComponent = withE2E.length === 0 && !touchedDocs && affectedDemos.length > 0;
+
+      // Case 1: spec-less component at PR level → no browser legs
+      if (isSpecLessComponent && isPrLevel()) {
+        return [];
+      }
+
+      // Case 2: spec-less component at push/dispatch → harness leg (backstop)
+      // Case 3: has specs or docs touched → harness legs + optional root sweep
       const harness =
         withE2E.length || affectedDemos.length ? harnessLegs("smoke") : rootLegs("smoke");
       const extra = touchedDocs ? rootLegs("smoke") : [];
@@ -528,17 +564,29 @@ export function runSelfCheck(): void {
     tasks: Object.fromEntries(tasks.map((t) => [t, {}])),
   });
 
-  // A badge edit (no e2e specs of its own) yields exactly one chromium harness
-  // leg — the axe gate over badge's demo — and never the root sweep. This is
-  // the invariant the fixed matrix optimised away; the harness gate still
-  // holds badge to WCAG_TAGS in both themes.
-  const badgeOnly = plan("component", [project("badge", "packages/primitives/badge", [])]);
-  const badgeLeg = badgeOnly[0];
-  assert.ok(badgeLeg, "a component edit must produce a harness leg");
-  assert.equal(badgeOnly.length, 1, "badge-only edit -> one smoke leg, not a matrix");
+  // A badge edit (no e2e specs of its own) has different behavior at PR level
+  // vs push/dispatch. At PR level, it runs zero browser legs: semantic evidence
+  // arrives from the browserless tier (docs/demos-a11y.test.ts via moon's affected
+  // closure), contrast pairs are pinned browserlessly by theme-core tests, and
+  // the rendering-dependent demo sweep is kept as a push-to-main backstop.
+  //
+  // Temporarily override PR_LEVEL for testing by setting GITHUB_EVENT_NAME.
+  const originalEventName = process.env.GITHUB_EVENT_NAME;
+  process.env.GITHUB_EVENT_NAME = "pull_request";
+  const badgeOnlyPr = plan("component", [project("badge", "packages/primitives/badge", [])]);
+  assert.equal(badgeOnlyPr.length, 0, "spec-less component at PR level -> zero browser legs");
+
+  // At push/dispatch, the same change runs the harness leg as the backstop.
+  process.env.GITHUB_EVENT_NAME = "push";
+  const badgeOnlyPush = plan("component", [project("badge", "packages/primitives/badge", [])]);
+  const badgeLeg = badgeOnlyPush[0];
+  assert.ok(badgeLeg, "spec-less component at push -> harness leg");
+  assert.equal(badgeOnlyPush.length, 1, "badge-only edit at push -> one smoke leg, not a matrix");
   assert.equal(badgeLeg.config, CONFIG_PATHS.harness);
   assert.deepEqual(badgeLeg.demos, ["badge"]);
   assert.deepEqual(badgeLeg.specs, [HARNESS_AXE_GATE]);
+  // Restore original environment
+  process.env.GITHUB_EVENT_NAME = originalEventName;
 
   // An e2e-tagged project's change adds its own specs to the same leg.
   const button = plan("component", [
@@ -604,13 +652,29 @@ export function runSelfCheck(): void {
   // The regression cases the fixed matrix could hide, asserted here so the
   // exact behavior this file exists to provide stays pinned:
   //
-  // 1. A demo edit — the file that *is* a component's browser evidence — routes
-  //    to the harness gate sweeping that component, never the root sweep.
-  //    Moon's affected set for a BadgeDemo.vue edit is `docs` only
-  //    (empirically), so the reverse map must supply the `badge` id.
-  const demoEdit = plan("component", [project("docs", "docs", [])], ["docs/demos/BadgeDemo.vue"]);
-  assert.equal(demoEdit.length, 1, "a demo edit -> one harness leg");
-  const demoEditRow = demoEdit[0];
+  // 1. A demo edit — the file that *is* a component's browser evidence — has
+  //    different behavior at PR level vs push/dispatch. At PR level, a demo-only
+  //    edit (no component specs, no docs prose) runs zero browser legs for the
+  //    same reason as a spec-less component: semantic evidence arrives from the
+  //    browserless tier, contrast pairs are pinned browserlessly, and the
+  //    rendering-dependent sweep is kept as a push-to-main backstop.
+  //
+  //    Moon's affected set for a BadgeDemo.vue edit is `docs` only (empirically),
+  //    so the reverse map must supply the `badge` id — and it does, via the
+  //    for-loop that maps demo files to components.
+  process.env.GITHUB_EVENT_NAME = "pull_request";
+  const demoEditPr = plan("component", [project("docs", "docs", [])], ["docs/demos/BadgeDemo.vue"]);
+  assert.equal(demoEditPr.length, 0, "demo-only edit at PR level -> zero browser legs");
+
+  // At push/dispatch, a demo edit runs the harness leg as the backstop.
+  process.env.GITHUB_EVENT_NAME = "push";
+  const demoEditPush = plan(
+    "component",
+    [project("docs", "docs", [])],
+    ["docs/demos/BadgeDemo.vue"],
+  );
+  assert.equal(demoEditPush.length, 1, "demo-only edit at push -> one harness leg");
+  const demoEditRow = demoEditPush[0];
   assert.ok(demoEditRow, "the single harness leg exists");
   assert.equal(demoEditRow.config, CONFIG_PATHS.harness);
   assert.deepEqual(demoEditRow.demos, ["badge"], "the demo's component is swept");
