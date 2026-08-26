@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { WCAG_TAGS } from "@ecoma-io/loom/a11y";
+import { BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import type { Page } from "@playwright/test";
 
 /**
@@ -14,14 +14,23 @@ import type { Page } from "@playwright/test";
  * it would be exactly the repository-wide sweep the affected model exists to
  * avoid. This spec closes the gap: given the changed components' demo names
  * (`HARNESS_DEMOS`, set by the e2e matrix's harness legs), it mounts each demo
- * through the same harness and holds it to the *same* `WCAG_TAGS` bar, in light
- * and dark. One component's demo is the component's browser evidence, so an
- * accessibility violation introduced by a component change is caught here,
- * without paying for VitePress.
+ * through the same harness and holds it to the rendering-dependent half of
+ * `WCAG_TAGS` — the 14 rules that require layout geometry, hit-testing,
+ * pseudo-element styles, computed colors, canvas, iframe content, or media state.
  *
- * `WCAG_TAGS` is imported, not restated, so this gate and the root gate and the
- * documentation site's live panel can never drift apart — the same array by
- * construction, the reason it is a literal in none of them.
+ * The semantic half of the old gate (51 rules) now runs browserlessly in
+ * `docs/demos-a11y.test.ts`, which sweeps the same demos in jsdom with the
+ * `BROWSERLESS_RULES` allowlist. That tier is affected-scoped via moon's
+ * `button → loom → docs` closure, so every component edit re-runs the demo
+ * sweep fresh (replaying from cache otherwise). This gate keeps exactly the
+ * rendering-dependent complement; the split is pinned by
+ * `packages/core/tests/a11y-scope.test.ts`, which asserts that
+ * `BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES ∪ TAGGED_BUT_DISABLED_RULES`
+ * equals exactly the rule set `WCAG_TAGS` selects in axe-core 4.12.1.
+ *
+ * `BROWSER_REQUIRED_RULES` is imported rather than restated, so this gate and
+ * the browserless gate and the root gate can never drift apart — the same
+ * partition by construction, the reason the lists are literals in none of them.
  */
 
 /**
@@ -86,7 +95,7 @@ async function scan(page: Page, demo: string, theme: "light" | "dark"): Promise<
   }, theme);
 
   const { violations } = await new AxeBuilder({ page })
-    .withTags([...WCAG_TAGS])
+    .withRules([...(BROWSER_REQUIRED_RULES as readonly string[])] as string[])
     // No excludes, and keeping it that way is the point — the same rule holds
     // here as at the root gate: an exclusion is not justified by naming a
     // cause, only by that cause being outside this repository's reach. The
@@ -103,12 +112,16 @@ async function scan(page: Page, demo: string, theme: "light" | "dark"): Promise<
 }
 
 for (const demo of demos) {
-  test(`${demo} demo has no violations against Loom's WCAG tag set (light)`, async ({ page }) => {
+  test(`${demo} demo has no violations against the rendering-dependent WCAG rules (light)`, async ({
+    page,
+  }) => {
     const report = await scan(page, demo, "light");
     expect(report, report.join("\n")).toEqual([]);
   });
 
-  test(`${demo} demo has no violations against Loom's WCAG tag set (dark)`, async ({ page }) => {
+  test(`${demo} demo has no violations against the rendering-dependent WCAG rules (dark)`, async ({
+    page,
+  }) => {
     const report = await scan(page, demo, "dark");
     expect(report, report.join("\n")).toEqual([]);
   });

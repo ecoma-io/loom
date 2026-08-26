@@ -73,6 +73,9 @@ importers:
       '@vue/typescript-plugin':
         specifier: 3.3.9
         version: 3.3.9(typescript@5.9.3)
+      axe-core:
+        specifier: ~4.12.1
+        version: 4.12.1
       eslint:
         specifier: ^10.8.0
         version: 10.8.0(jiti@2.7.0)(supports-color@10.2.2)
