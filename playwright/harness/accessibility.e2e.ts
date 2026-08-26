@@ -15,18 +15,18 @@ import type { Page } from "@playwright/test";
  * avoid. This spec closes the gap: given the changed components' demo names
  * (`HARNESS_DEMOS`, set by the e2e matrix's harness legs), it mounts each demo
  * through the same harness and holds it to the rendering-dependent half of
- * `WCAG_TAGS` — the 17 rules that require layout geometry, hit-testing,
- * pseudo-element styles, computed colors, canvas, or media state.
+ * `WCAG_TAGS` — the 14 rules that require layout geometry, hit-testing,
+ * pseudo-element styles, computed colors, canvas, iframe content, or media state.
  *
- * The semantic half of the old gate (53 rules) now runs browserlessly in
+ * The semantic half of the old gate (51 rules) now runs browserlessly in
  * `docs/demos-a11y.test.ts`, which sweeps the same demos in jsdom with the
  * `BROWSERLESS_RULES` allowlist. That tier is affected-scoped via moon's
  * `button → loom → docs` closure, so every component edit re-runs the demo
  * sweep fresh (replaying from cache otherwise). This gate keeps exactly the
  * rendering-dependent complement; the split is pinned by
  * `packages/core/tests/a11y-scope.test.ts`, which asserts that
- * `BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES` equals exactly the rule set
- * `WCAG_TAGS` selects in axe-core 4.12.1.
+ * `BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES ∪ TAGGED_BUT_DISABLED_RULES`
+ * equals exactly the rule set `WCAG_TAGS` selects in axe-core 4.12.1.
  *
  * `BROWSER_REQUIRED_RULES` is imported rather than restated, so this gate and
  * the browserless gate and the root gate can never drift apart — the same
