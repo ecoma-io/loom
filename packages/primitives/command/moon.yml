@@ -1,0 +1,8 @@
+deps:
+  - "core"
+tags: ["layer-primitives"]
+project:
+  name: "command"
+  description: "Command primitive — keyboard-driven command search with grouped results"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
