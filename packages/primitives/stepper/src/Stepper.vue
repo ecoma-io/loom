@@ -14,6 +14,7 @@ import type { StepperLabels } from "@ecoma-io/loom-labels";
 export const STEPPER_LABELS: StepperLabels = {
   group: "Progress",
   position: ({ step, stepCount }) => `Step ${String(step)} of ${String(stepCount)}`,
+  step: ({ step }) => `Step ${String(step)}:`,
   completed: ({ title }) => `${title} (completed)`,
 };
 
@@ -335,6 +336,14 @@ function onUpdate(value: number | undefined): void {
                language. The visible half is `aria-hidden` and excluded from the
                name computation; the hidden half carries the whole finished
                sentence the vocabulary returned. -->
+          <!-- The position leads the name for the same reason: the trigger's
+               visible text is the step's number, and WCAG 2.5.3 (Label in
+               Name) makes a control's visible text part of its accessible
+               name. Measured 2026-08-26, `label-content-name-mismatch` fired
+               on every non-completed trigger until the number joined the
+               name — a voice user saying "Step 2" has to land on the same
+               trigger one saying "Shipping" does. -->
+          <span class="sr-only">{{ text.step({ step: index + 1 }) }}</span>
           <template v-if="state === 'completed'">
             <span aria-hidden="true">{{ step.title }}</span>
             <span class="sr-only">{{ text.completed({ title: step.title }) }}</span>

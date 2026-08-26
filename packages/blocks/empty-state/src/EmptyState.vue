@@ -44,15 +44,25 @@ defineProps<{
     >
       <slot name="icon" />
     </div>
-    <p class="animate-fade-rise text-title text-foreground" :style="{ animationDelay: '60ms' }">
-      {{ title }}
-    </p>
-    <p
-      v-if="description"
-      class="animate-fade-rise max-w-sm text-balance text-small text-muted-foreground"
-      :style="{ animationDelay: '120ms' }"
-    >
-      {{ description }}
+    <!-- One paragraph, not a short titled one before a longer one. The empty
+         state is a single message, and a short, larger, bolder <p> sitting
+         before a smaller one is exactly the fake-heading shape `p-as-heading`
+         flags (WCAG 1.3.1; measured 2026-08-26 on this block's own demo).
+         Block spans keep the stacked look and the stagger. -->
+    <p>
+      <span
+        class="block animate-fade-rise text-title text-foreground"
+        :style="{ animationDelay: '60ms' }"
+      >
+        {{ title }}
+      </span>
+      <span
+        v-if="description"
+        class="mt-1.5 block animate-fade-rise max-w-sm text-balance text-small text-muted-foreground"
+        :style="{ animationDelay: '120ms' }"
+      >
+        {{ description }}
+      </span>
     </p>
     <div v-if="$slots.action" class="animate-fade-rise mt-4" :style="{ animationDelay: '180ms' }">
       <slot name="action" />

@@ -39,15 +39,20 @@ function triggers(wrapper: ReturnType<typeof mountStepper>) {
 }
 
 describe("Stepper ARIA contract", () => {
-  it("names each trigger with its own step's title", () => {
+  it("names each trigger with its step's position and title", () => {
     const wrapper = mountStepper({ modelValue: 1 });
 
+    // The trigger's visible text is the step's number, so WCAG 2.5.3 (Label
+    // in Name) makes the position part of the name — the sr-only half of the
+    // title span. textContent concatenates the halves without the space an
+    // accessible-name computation inserts; the exact strings still pin the
+    // composition.
     const names = triggers(wrapper).map((trigger) => {
       const labelId = trigger.attributes("aria-labelledby");
       return document.getElementById(labelId ?? "")?.textContent.trim();
     });
 
-    expect(names).toEqual(["Cart", "Shipping", "Payment", "Review"]);
+    expect(names).toEqual(["Step 1:Cart", "Step 2:Shipping", "Step 3:Payment", "Step 4:Review"]);
   });
 
   it("marks the current step with aria-current=step on the trigger, not on the wrapper a reader never reaches", () => {
@@ -378,9 +383,11 @@ describe("Stepper labels", () => {
     const name = document.getElementById(completed.attributes("aria-labelledby")!)!;
 
     // The name computation in miniature: an `aria-hidden` subtree contributes
-    // nothing to it, so what a screen reader reads is the one node left.
+    // nothing to it, so what a screen reader reads is the two nodes left —
+    // the position every trigger's name leads with, then the finished
+    // sentence the vocabulary returned.
     const announced = [...name.children].filter((el) => el.getAttribute("aria-hidden") !== "true");
-    expect(announced.map((el) => el.textContent.trim())).toEqual(["Xong: Cart"]);
+    expect(announced.map((el) => el.textContent.trim())).toEqual(["Step 1:", "Xong: Cart"]);
     // The visible title is still rendered, and still the visible one.
     expect(name.querySelector("[aria-hidden='true']")?.textContent).toBe("Cart");
   });
