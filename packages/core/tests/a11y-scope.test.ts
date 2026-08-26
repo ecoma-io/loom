@@ -74,16 +74,26 @@ describe("WCAG rule partition", () => {
     // Each of these was MEASURED (2026-08-26) to answer wrongly or not at all
     // in jsdom on a real violation — a reclassification mistake here would mask
     // defects. The first two are also caught by the source scan below (direct
-    // `boundingClientRect` reads); the last three reach geometry only through
+    // `boundingClientRect` reads); the next three reach geometry only through
     // bundled commons helpers the scan cannot see, so THIS list is their guard.
     expect(BROWSER_REQUIRED_RULES).toContain("color-contrast"); // cantTell on every node
     expect(BROWSER_REQUIRED_RULES).toContain("target-size"); // zero rects read compliant
     expect(BROWSER_REQUIRED_RULES).toContain("aria-hidden-focus"); // cantTell via modal-open
     expect(BROWSER_REQUIRED_RULES).toContain("bypass"); // cantTell via modal-open
     expect(BROWSER_REQUIRED_RULES).toContain("scrollable-region-focusable"); // never matches
+    // Adopted 2026-08-26 with their own measured jsdom failure modes:
+    expect(BROWSER_REQUIRED_RULES).toContain("label-content-name-mismatch"); // jsdom answered incomplete where Chromium reported 12 real violations on the stepper demo
+    expect(BROWSER_REQUIRED_RULES).toContain("p-as-heading"); // the jsdom demo tier mounts demos with no stylesheet, so class-styled emphasis is invisible to it
+    expect(BROWSER_REQUIRED_RULES).toContain("td-has-header"); // 3x3 border-only table: violates in Chromium, never matches in jsdom
+    expect(BROWSER_REQUIRED_RULES).toContain("table-fake-caption"); // border-only table with a colspanned first-row cell: violates in Chromium, never matches in jsdom
   });
 
   it("TAGGED_BUT_DISABLED rules are all enabled === false in axe-core 4.12.1", () => {
+    // Only the two OUT-OF-REACH rules remain (audio-caption, 1.2.1; css-
+    // orientation-lock, 1.3.4 — reasons in a11y-scope.ts). The other five
+    // disabled rules were adopted into the runtime tiers 2026-08-26, so this
+    // pin no longer covers them; their tier placement is pinned by the
+    // tripwire and self-audit tests.
     /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
     const rules = axe.getRules([...WCAG_TAGS]);
     for (const ruleId of TAGGED_BUT_DISABLED_RULES) {
