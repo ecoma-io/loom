@@ -910,12 +910,6 @@ jobs:
       options: --cap-add SYS_ADMIN
       env:
         PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
-        # The runner overrides HOME to /github/home, a host mount whose owner
-        # is not this container's root user — and Firefox refuses to launch
-        # unless $HOME belongs to the current user. Pointing HOME back at the
-        # image's own /root is the workaround Firefox's own error guidance
-        # names. Chromium and WebKit do not make this check.
-        HOME: /root
     # `e2e-build-docs` is skipped when no leg needs the built site, and a
     # skipped need normally skips the dependent job too — the `!cancelled()`
     # form runs the legs in that case while still failing them if the build
@@ -1008,6 +1002,13 @@ jobs:
       # step must never do.
       - name: Run Playwright
         env:
+          # Firefox refuses to run as root unless $HOME belongs to root, and
+          # the runner overrides HOME to /github/home (a host mount owned by
+          # pwuser) even when the container block sets HOME — measured across
+          # the 2026-08-26 rounds: container-scoped env lost to the runner's,
+          # so the only scope that reliably reaches the browser process is
+          # this step's.
+          HOME: /root
           PW_PROFILE: ${{ matrix.profile }}
           HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
           PW_PREBUILT_DOCS: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
