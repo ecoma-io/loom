@@ -15,10 +15,13 @@ import type { Page } from "@playwright/test";
  * avoid. This spec closes the gap: given the changed components' demo names
  * (`HARNESS_DEMOS`, set by the e2e matrix's harness legs), it mounts each demo
  * through the same harness and holds it to the rendering-dependent half of
- * `WCAG_TAGS` — the 13 rules that require layout geometry, hit-testing,
- * pseudo-element styles, computed colors, canvas, iframe content, or media state.
+ * `WCAG_TAGS` — the 17 rules that require layout geometry, hit-testing,
+ * pseudo-element styles, computed colors, cascade-dependent font metrics,
+ * canvas, iframe content, or media state (13 always-enabled, plus the four
+ * adopted from axe's disabled set on 2026-08-26, whose findings on loom's own
+ * demos were fixed in the same change).
  *
- * The semantic half of the old gate (50 rules) now runs browserlessly in
+ * The semantic half of the old gate (51 rules) now runs browserlessly in
  * `docs/demos-a11y.test.ts`, which sweeps the same demos in jsdom with the
  * `BROWSERLESS_RULES` allowlist. That tier is affected-scoped via moon's
  * `button → loom → docs` closure, so every component edit re-runs the demo

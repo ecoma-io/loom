@@ -85,9 +85,13 @@ index decides the number, so there is no id to keep in sync: reordering the
 array reorders the flow.
 
 The `title` is doing two jobs at once. It is the visible label, and it is the
-accessible name of that step's trigger — the description is attached to the same
-trigger with `aria-describedby`, so a screen reader reads "Shipping, where it
-goes" as one thing rather than as two unrelated pieces of text.
+heart of that step's trigger's accessible name — the trigger's own visible text
+is its number, so the name leads with the position and follows with the title
+("Step 2: Shipping"). That leading position is WCAG 2.5.3 (Label in Name): a
+voice user saying "Step 2" has to land on the same trigger one saying
+"Shipping" does. The description is attached to the same trigger with
+`aria-describedby`, so a screen reader reads "Shipping, where it goes" as one
+thing rather than as two unrelated pieces of text.
 
 <Demo title="Steps">
   <div class="w-full">
@@ -204,21 +208,24 @@ to.
 
 ## Labels
 
-Three names, and two of them exist because Reka UI says them in English of its
+Four names, and two of them exist because Reka UI says them in English of its
 own accord.
 
 ```ts
 interface StepperLabels {
   group: string; // the spine's own name, standing in for Reka's "progress"
   position: (args: { step: number; stepCount: number }) => string;
+  step: (args: { step: number }) => string;
   completed: (args: { title: string }) => string;
 }
 ```
 
-`position` and `completed` are functions of raw values rather than templates
-with a hole in them, so `Intl.NumberFormat` decides how the digits are written
-and your own translation decides where they sit in the sentence. `completed`
-receives the step's title and returns that step's _whole_ accessible name
+`position`, `step` and `completed` are functions of raw values rather than
+templates with a hole in them, so `Intl.NumberFormat` decides how the digits
+are written and your own translation decides where they sit in the sentence.
+`step` is the position that leads every trigger's accessible name, joined
+before the title ("Step 2:"), and `completed` receives the step's title and
+returns that step's _whole_ accessible name
 — "Payment (completed)" in English — because where a language puts a qualifier
 relative to the thing it qualifies is a property of the language, and a suffix
 Loom appended would be Loom deciding it for you.

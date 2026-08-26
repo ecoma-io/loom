@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { WCAG_TAGS } from "@ecoma-io/loom/a11y";
+import { BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import { documentationPages } from "./docs-pages";
 
-// One `axe-core` run per rendered page, scoped to the WCAG tag set the
-// library holds itself to (`WCAG_TAGS`, imported rather than restated — see
-// its own docblock for why one array has to answer to both this gate and the
-// documentation site's live accessibility panel). The page list itself is
+// One `axe-core` run per rendered page, scoped to the effective rule set the
+// library holds itself to (`BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES`,
+// imported rather than restated — see a11y-scope's docblock for why the
+// partition has exactly one home). The page list itself is
 // read off `docs/` at definition time through `documentationPages()`, so a
 // page added tomorrow is swept without anyone remembering to list it here.
 //
@@ -18,7 +18,7 @@ import { documentationPages } from "./docs-pages";
 for (const page of documentationPages()) {
   const label = page === "." ? "/" : `/${page}`;
 
-  test(`${label} (light) has no violations against Loom's WCAG tag set`, async ({
+  test(`${label} (light) has no violations against Loom's effective WCAG rule set`, async ({
     page: browserPage,
   }) => {
     // Tell VitePress to start in light mode. The `vitepress-theme-appearance`
@@ -38,7 +38,17 @@ for (const page of documentationPages()) {
     });
 
     const { violations } = await new AxeBuilder({ page: browserPage })
-      .withTags([...WCAG_TAGS])
+      // The rule lists, not the tags: a tag-type runOnly cannot select the
+      // five rules adopted out of axe's disabled set on 2026-08-26, and this
+      // gate is the only judge of the built site's non-demo content — the
+      // prose and the token tables `design-tokens.ts` emits, exactly the
+      // markup `td-has-header` and `table-fake-caption` exist for. The site
+      // is held to the same 68-rule effective set as the demo tiers, with no
+      // gap between them.
+      .withRules([
+        ...(BROWSERLESS_RULES as readonly string[]),
+        ...(BROWSER_REQUIRED_RULES as readonly string[]),
+      ] as string[])
       // No excludes, and keeping it that way is the point.
       //
       // There were two, both blaming the vendor, and both wrong. Code blocks
@@ -98,9 +108,12 @@ for (const page of documentationPages()) {
     // non-empty in both). Therefore semantic and geometry rules re-prove the
     // same input they already proved in the light pass; only color-dependent
     // checks can differ. The union of light-full + dark-contrast equals the
-    // old coverage (full WCAG_TAGS in both themes), and the dark pass is ~27%
-    // faster because the semantic rules (50 of the 63 the tag set actually
-    // runs) are not re-run on identical DOM.
+    // old coverage (the full rule set in both themes), and the dark pass is
+    // ~27% faster because the semantic rules are not re-run on identical
+    // DOM — the light pass runs all 68 effective rules, the five adopted
+    // from axe's disabled set on 2026-08-26 included, so only color-
+    // dependent checks can differ between the themes, and this pass re-runs
+    // exactly those.
     const { violations } = await new AxeBuilder({ page: browserPage })
       .withRules(["color-contrast"])
       // No excludes — the same bar the light-theme test holds itself to.

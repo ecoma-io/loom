@@ -84,7 +84,17 @@ const userItems: DropdownMenuEntry[] = [
       <template #userMenu>
         <DropdownMenu :items="userItems">
           <template #trigger>
-            <Button variant="ghost" size="icon-sm" class="rounded-full p-0" aria-label="Account">
+            <!-- The initials are this trigger's visible text, so the name has
+                 to carry them: WCAG 2.5.3 (Label in Name) — a voice user
+                 saying "TT" must land on the same button one saying
+                 "Account" does. Measured 2026-08-26: `label-content-name-
+                 mismatch` fired here until the initials joined the name. -->
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              class="rounded-full p-0"
+              aria-label="Account (TT)"
+            >
               <Avatar size="sm" fallback="TT" />
             </Button>
           </template>

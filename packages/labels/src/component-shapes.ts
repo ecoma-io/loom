@@ -661,7 +661,7 @@ export interface RatingLabels {
  * carries how that one is taken out of the accessibility tree, and why it has
  * to be taken out rather than translated in place.
  *
- * `position` and `completed` take values rather than returning fragments Loom
+ * `position`, `step` and `completed` take values rather than returning fragments Loom
  * would join. "Step 3 of 12" is not four keys and a preposition; it is one
  * sentence a translator has to be able to re-order, and the same is true of
  * where a language puts a qualifier relative to the thing it qualifies. See
@@ -681,6 +681,16 @@ export interface StepperLabels {
    * `Intl.NumberFormat` can write the digits.
    */
   readonly position: LabelOf<{ step: number; stepCount: number }>;
+  /**
+   * A trigger's position, joined into that trigger's accessible name. The
+   * indicator a reader sees is the step's number, and WCAG 2.5.3 (Label in
+   * Name) makes a control's visible text part of its name, so a voice user
+   * saying "Step 2" must land on the same trigger one saying "Shipping" does
+   * — the number has to join the name, and this is where it joins. Measured
+   * 2026-08-26: `label-content-name-mismatch` fired on every Stepper trigger
+   * before this key existed.
+   */
+  readonly step: LabelOf<{ step: number }>;
   /**
    * A finished step's whole accessible name, built from its title. ARIA has a
    * value for "you are here" and none for "done", and the check glyph is

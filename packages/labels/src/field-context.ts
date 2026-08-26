@@ -57,8 +57,8 @@ export interface FieldContext {
    * and without a claim both inputs adopt the same generated id — a duplicate
    * id, and a `<label for>` that resolves to whichever the browser reaches
    * first. The `axe` gate cannot be the backstop: `duplicate-id-active` is
-   * tagged `wcag2a-obsolete`/`deprecated` in axe-core, not `wcag2a`, so it does
-   * not match `WCAG_TAGS` and `e2e/accessibility.e2e.ts` never runs it.
+   * tagged `wcag2a-obsolete`/`deprecated` in axe-core, not `wcag2a`, so it is
+   * in neither runtime list and `e2e/accessibility.e2e.ts` never runs it.
    *
    * Reactive rather than a plain boolean because the claim can move: a `v-if`
    * swapping the first control for the second must promote the second, or the

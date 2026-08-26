@@ -243,3 +243,19 @@
 html {
   scroll-padding-top: 64px;
 }
+
+/* VitePress's search button (local provider) renders the shortcut keycaps
+ * (Ctrl/⌘ + K) as real text inside the button while its accessible name is
+ * only the translated "Search" — so the visible "K" is text the name does
+ * not carry, exactly what label-content-name-mismatch (WCAG 2.5.3) flags.
+ * Surfaced 2026-08-26, the first run of that rule over the built site after
+ * its adoption. The correct fix is aria-hidden on the keycap span upstream;
+ * until VitePress ships it, the keycaps are hidden rather than the rule
+ * excluded — the hint is a nicety, the criterion is not. The selector is the
+ * two-class compound VitePress itself uses for this span, not the bare class:
+ * its rule is (0,2,0), so a single-class override loses on specificity no
+ * matter how late it loads — measured when the first, weaker attempt sailed
+ * through the build and changed nothing at runtime. */
+.DocSearch-Button .DocSearch-Button-Keys {
+  display: none;
+}
