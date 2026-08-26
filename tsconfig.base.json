@@ -117,6 +117,7 @@
       "@ecoma-io/loom-badge": ["./packages/primitives/badge/src/index.ts"],
       "@ecoma-io/loom-breadcrumb": ["./packages/primitives/breadcrumb/src/index.ts"],
       "@ecoma-io/loom-button": ["./packages/primitives/button/src/index.ts"],
+      "@ecoma-io/loom-calendar": ["./packages/primitives/calendar/src/index.ts"],
       "@ecoma-io/loom-chip": ["./packages/primitives/chip/src/index.ts"],
       "@ecoma-io/loom-context-menu": ["./packages/primitives/context-menu/src/index.ts"],
       "@ecoma-io/loom-dropdown-menu": ["./packages/primitives/dropdown-menu/src/index.ts"],

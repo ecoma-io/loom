@@ -80,6 +80,42 @@ export interface AlertLabels {
 }
 
 /**
+ * What this surface speaks of its own account: the names of the two buttons
+ * that page the months, and the two halves of the selection line under the
+ * header.
+ *
+ * Everything else a reader is told is already shaped by the control's own
+ * `locale` — the month-and-year heading and each day cell's full-date name
+ * are formatted from it, so there is no English behind them for this slot to
+ * replace.
+ *
+ * **The selection line exists because the engine announces nothing.** A
+ * choice reaches the DOM only as `aria-selected` flipping on a cell, and a
+ * flipped attribute under an unmoved focus point is silent to a screen
+ * reader — there is no field beside this surface whose value change would be
+ * announced instead. The line is DateRangePicker's `role="status"` summary,
+ * reduced to what a point selection has to say.
+ */
+export interface CalendarLabels {
+  /** The button that pages the calendar back one month. */
+  readonly previousMonth: string;
+  /** The button that pages the calendar on one month. */
+  readonly nextMonth: string;
+  /**
+   * What that line says once a day is chosen. It receives the day already
+   * written out in full by the control's own formatter — the same string the
+   * chosen cell is named with — because formatting it a second way here would
+   * build a second `Intl` path beside the one that exists.
+   */
+  readonly chosen: LabelOf<{ date: string }>;
+  /**
+   * What the same line says while nothing is chosen, and what it returns to
+   * when the chosen day is picked again.
+   */
+  readonly cleared: string;
+}
+
+/**
  * What Carousel says on its own account: the region's name, the two controls'
  * names, and the sentence that turns a position into a sentence. `slide` is
  * a message in the labels package's sense — it receives the raw numbers and

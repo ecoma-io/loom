@@ -468,12 +468,15 @@ export function monthName(locale: string, month: number): string {
 
 /**
  * A whole day written out — weekday, day, month and year — in the control's
- * locale, which is the half of a range cell's name that is not a qualifier.
+ * locale, which is the half of a range cell's name that is not a qualifier,
+ * and the whole of a standalone calendar cell's name: a surface with no field
+ * echoing the value has its cells carry the full date themselves.
  *
- * Both range controls' English defaults need it and neither should own it; a
- * host replacing those defaults formats with whatever their own application
- * already uses and never calls this. Like `monthName`, it stays off the
- * package barrel.
+ * Both range controls' English defaults need it and neither should own it;
+ * the Calendar reaches it through this module for the same reason, so one
+ * formatter cache serves every grid in the library. A host replacing those
+ * defaults formats with whatever their own application already uses and never
+ * calls this. Like `monthName`, it stays off the public facade.
  */
 export function formatFullDay(locale: string, date: DateValue): string {
   let formatter = dayFormatters.get(locale);

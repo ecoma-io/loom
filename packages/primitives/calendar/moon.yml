@@ -1,0 +1,9 @@
+deps:
+  - "core"
+  - "labels"
+tags: ["layer-primitives"]
+project:
+  name: "calendar"
+  description: "Calendar primitive — a browsable temporal surface, not a picker"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.

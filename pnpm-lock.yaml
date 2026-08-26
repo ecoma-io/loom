@@ -497,6 +497,9 @@ importers:
       '@ecoma-io/loom-button':
         specifier: workspace:*
         version: link:../primitives/button
+      '@ecoma-io/loom-calendar':
+        specifier: workspace:*
+        version: link:../primitives/calendar
       '@ecoma-io/loom-card':
         specifier: workspace:*
         version: link:../primitives/card
@@ -869,6 +872,27 @@ importers:
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/calendar:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@internationalized/date':
+        specifier: ^3.12.0
+        version: 3.12.3
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
@@ -2045,7 +2069,6 @@ packages:
   '@ecoma-io/archkeep@0.14.0':
     resolution: {integrity: sha512-FNNzcv4iVXZ0hH+AUYo7MgvDlo7Vp7Ch2nj8WR6VGA2/3B8e13VRE+3Q3zSJR1DvlORbNc7CpVsPtyYU4aUznw==}
     engines: {node: '>=22'}
-    deprecated: renamed to @ecoma-io/archkeep — see https://github.com/ecoma-io/archkeep/blob/main/docs/getting-started/upgrading-from-lattice.md
     hasBin: true
     peerDependencies:
       '@nx/eslint-plugin': '>=21'
