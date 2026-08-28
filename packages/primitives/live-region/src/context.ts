@@ -84,17 +84,33 @@ export function ensureStandaloneRegions(): void {
   standaloneMounted = true;
   const host = document.createElement("div");
   host.setAttribute("data-loom-live-region", "");
+  const apps: ReturnType<typeof createApp>[] = [];
   for (const politeness of ["polite", "assertive"] as const) {
     const mountPoint = document.createElement("div");
     host.appendChild(mountPoint);
     mountingStandalone = true;
     try {
-      createApp(LiveRegion, { politeness }).mount(mountPoint);
+      const app = createApp(LiveRegion, { politeness });
+      app.mount(mountPoint);
+      apps.push(app);
     } finally {
       mountingStandalone = false;
     }
   }
   document.body.appendChild(host);
+  // The pair is a page-lifetime singleton — it must outlive the component
+  // that first asked for it, or in-flight announcements would die with it —
+  // so its teardown rides the page's, not any caller's.
+  window.addEventListener(
+    "pagehide",
+    () => {
+      for (const app of apps) app.unmount();
+      standaloneWriters.clear();
+      standaloneMounted = false;
+      host.remove();
+    },
+    { once: true },
+  );
 }
 
 /**
