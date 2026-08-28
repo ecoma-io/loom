@@ -110,6 +110,7 @@
       "@ecoma-io/loom-collapse": ["./packages/primitives/collapse/src/index.ts"],
       "@ecoma-io/loom-card": ["./packages/primitives/card/src/index.ts"],
       "@ecoma-io/loom-skeleton": ["./packages/primitives/skeleton/src/index.ts"],
+      "@ecoma-io/loom-skip-link": ["./packages/primitives/skip-link/src/index.ts"],
       "@ecoma-io/loom-spinner": ["./packages/primitives/spinner/src/index.ts"],
       "@ecoma-io/loom-surface": ["./packages/primitives/surface/src/index.ts"],
       "@ecoma-io/loom-accordion": ["./packages/primitives/accordion/src/index.ts"],

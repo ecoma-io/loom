@@ -90,6 +90,7 @@
     "@ecoma-io/loom-sidebar": "workspace:*",
     "@ecoma-io/loom-sidebar-nav": "workspace:*",
     "@ecoma-io/loom-skeleton": "workspace:*",
+    "@ecoma-io/loom-skip-link": "workspace:*",
     "@ecoma-io/loom-slider": "workspace:*",
     "@ecoma-io/loom-speed-dial": "workspace:*",
     "@ecoma-io/loom-spinner": "workspace:*",

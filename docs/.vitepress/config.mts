@@ -212,6 +212,9 @@ export default defineConfig({
         "@ecoma-io/loom-skeleton": fileURLToPath(
           new URL("../../packages/primitives/skeleton/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-skip-link": fileURLToPath(
+          new URL("../../packages/primitives/skip-link/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-spinner": fileURLToPath(
           new URL("../../packages/primitives/spinner/src/index.ts", import.meta.url),
         ),

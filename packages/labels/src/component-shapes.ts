@@ -882,3 +882,13 @@ export interface ScrollReelLabels {
   /** The reel region's accessible name. */
   readonly region: string;
 }
+
+/**
+ * The one string this component renders: the bypass link's visible text.
+ * It is the first thing a keyboard user meets on the page, so it is the
+ * first string a host translating the interface translates.
+ */
+export interface SkipLinkLabels {
+  /** The link's visible text. */
+  readonly label: string;
+}
