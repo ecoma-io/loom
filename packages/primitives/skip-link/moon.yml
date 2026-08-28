@@ -1,0 +1,9 @@
+deps:
+  - "core"
+  - "labels"
+tags: ["layer-primitives"]
+project:
+  name: "skip-link"
+  description: "SkipLink primitive — the WCAG 2.4.1 bypass-blocks link"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.

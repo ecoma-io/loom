@@ -61,6 +61,7 @@ export default defineConfig({
       "@ecoma-io/loom-collapse": pkg("primitives/collapse/src/index.ts"),
       "@ecoma-io/loom-card": pkg("primitives/card/src/index.ts"),
       "@ecoma-io/loom-skeleton": pkg("primitives/skeleton/src/index.ts"),
+      "@ecoma-io/loom-skip-link": pkg("primitives/skip-link/src/index.ts"),
       "@ecoma-io/loom-spinner": pkg("primitives/spinner/src/index.ts"),
       "@ecoma-io/loom-surface": pkg("primitives/surface/src/index.ts"),
       "@ecoma-io/loom-accordion": pkg("primitives/accordion/src/index.ts"),

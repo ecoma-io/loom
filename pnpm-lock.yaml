@@ -698,6 +698,9 @@ importers:
       '@ecoma-io/loom-skeleton':
         specifier: workspace:*
         version: link:../primitives/skeleton
+      '@ecoma-io/loom-skip-link':
+        specifier: workspace:*
+        version: link:../primitives/skip-link
       '@ecoma-io/loom-slider':
         specifier: workspace:*
         version: link:../primitives/slider
@@ -1526,6 +1529,18 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/skip-link:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

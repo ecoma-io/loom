@@ -39,6 +39,7 @@ export type {
   RadialProgressLabels,
   RatingLabels,
   ScrollReelLabels,
+  SkipLinkLabels,
   TableLabels,
   TimelineLabels,
   StepperLabels,

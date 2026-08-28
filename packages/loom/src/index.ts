@@ -72,6 +72,8 @@ export { default as Separator } from "@ecoma-io/loom-separator";
 export type { SeparatorOrientation } from "@ecoma-io/loom-separator";
 export { default as Skeleton, skeletonVariants } from "@ecoma-io/loom-skeleton";
 export type { SkeletonVariant } from "@ecoma-io/loom-skeleton";
+export { default as SkipLink, SKIP_LINK_LABELS } from "@ecoma-io/loom-skip-link";
+export type { SkipLinkLabels } from "@ecoma-io/loom-skip-link";
 export { default as Spinner, spinnerVariants } from "@ecoma-io/loom-spinner";
 export type { SpinnerSize } from "@ecoma-io/loom-spinner";
 export { default as Surface, surfaceVariants } from "@ecoma-io/loom-surface";
