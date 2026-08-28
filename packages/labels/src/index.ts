@@ -20,6 +20,7 @@ export type {
   BreadcrumbLabels,
   CalendarLabels,
   CarouselLabels,
+  CopyButtonLabels,
   ColorPickerLabels,
   ComboboxLabels,
   DataGridLabels,

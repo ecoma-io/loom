@@ -35,6 +35,7 @@
     "@ecoma-io/loom-combobox": "workspace:*",
     "@ecoma-io/loom-command": "workspace:*",
     "@ecoma-io/loom-context-menu": "workspace:*",
+    "@ecoma-io/loom-copy-button": "workspace:*",
     "@ecoma-io/loom-core": "workspace:*",
     "@ecoma-io/loom-dashboard": "workspace:*",
     "@ecoma-io/loom-dashboard-grid": "workspace:*",
