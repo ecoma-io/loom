@@ -359,7 +359,13 @@ function itemId(index: number): string {
       />
     </div>
 
-    <div v-if="isOpen" :id="listboxId" role="listbox" class="max-h-[300px] overflow-y-auto p-1">
+    <div
+      v-if="isOpen"
+      :id="listboxId"
+      role="listbox"
+      :aria-labelledby="inputId"
+      class="max-h-[300px] overflow-y-auto p-1"
+    >
       <template
         v-for="entry in renderEntries"
         :key="entry.kind === 'heading' ? entry.groupId : entry.item.value"
