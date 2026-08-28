@@ -371,6 +371,9 @@ export default defineConfig({
         "@ecoma-io/loom-time-picker": fileURLToPath(
           new URL("../../packages/primitives/time-picker/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-tree-view": fileURLToPath(
+          new URL("../../packages/primitives/tree-view/src/index.ts", import.meta.url),
+        ),
         // Compositions.
         "@ecoma-io/loom-center": fileURLToPath(
           new URL("../../packages/composition/center/src/index.ts", import.meta.url),

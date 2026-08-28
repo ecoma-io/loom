@@ -49,6 +49,7 @@ export type {
   TextFieldLabels,
   TextareaLabels,
   ToastLabels,
+  TreeViewLabels,
   WindowControlsLabels,
 } from "./component-shapes";
 

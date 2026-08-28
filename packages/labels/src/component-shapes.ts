@@ -852,6 +852,18 @@ export interface ToastLabels {
 }
 
 /**
+ * The strings the TreeView says that no node in it says. Everything else a
+ * tree renders arrives as a node's own `label`, so the bag is small — but the
+ * one string it does carry is one a reader waits on: a lazy branch that is
+ * fetching its children has to say so rather than sit silent, because an
+ * expand that produces nothing reads as a broken control.
+ */
+export interface TreeViewLabels {
+  /** Shown on, and announced for, a node whose children are being fetched. */
+  readonly loading: string;
+}
+
+/**
  * The three buttons' accessible names. There are four, because the middle
  * button is one control in two states and a language may well name them with
  * unrelated words.

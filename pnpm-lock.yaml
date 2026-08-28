@@ -761,6 +761,9 @@ importers:
       '@ecoma-io/loom-tooltip':
         specifier: workspace:*
         version: link:../primitives/tooltip
+      '@ecoma-io/loom-tree-view':
+        specifier: workspace:*
+        version: link:../primitives/tree-view
       '@ecoma-io/loom-window-controls':
         specifier: workspace:*
         version: link:../primitives/window-controls
@@ -1767,6 +1770,18 @@ importers:
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/tree-view:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
