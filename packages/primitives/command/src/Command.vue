@@ -31,7 +31,7 @@ export interface CommandGroup {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useId, watch } from "vue";
+import { computed, nextTick, ref, useId, watch } from "vue";
 import { cn } from "@ecoma-io/loom-core";
 
 /**
@@ -142,6 +142,20 @@ function setOpen(value: boolean): void {
  * whenever the query changes so the first match is always ready to select.
  */
 const highlightedIndex = ref(0);
+
+const listboxRef = ref<HTMLElement | null>(null);
+
+// Arrow-key focus never leaves the input (aria-activedescendant), so the
+// scrollable listbox must be tab-reachable itself — an overflow container no
+// keyboard can reach is the scrollable-region-focusable violation the harness
+// axe gate exists to catch. Scrolling the highlighted option into view is the
+// other half: an active item moved off-screen is navigation the user cannot
+// see. jsdom has no scrollIntoView, hence the optional call.
+watch([highlightedIndex, isOpen], async () => {
+  if (!isOpen.value) return;
+  await nextTick();
+  listboxRef.value?.querySelector("[data-active]")?.scrollIntoView?.({ block: "nearest" });
+});
 
 /**
  * Items filtered by the current query. Case-insensitive substring match
@@ -358,11 +372,12 @@ function itemId(index: number): string {
         @keydown="onKeydown"
       />
     </div>
-
     <div
       v-if="isOpen"
       :id="listboxId"
+      ref="listboxRef"
       role="listbox"
+      tabindex="0"
       :aria-labelledby="inputId"
       class="max-h-[300px] overflow-y-auto p-1"
     >
