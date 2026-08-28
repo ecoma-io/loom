@@ -27,10 +27,10 @@ test("ToggleGroup's arrow keys move focus past a disabled button without flippin
   await page.keyboard.press("ArrowRight", { delay: 50 });
   await expect(bold).toBeFocused();
 
-  // Tab leaves the group for the demo's next control: the View group's first
-  // button, pinned by name. A `role`-attribute read of `activeElement` cannot
-  // judge this landing — a plain `<button>` carries no role — so the
-  // assertion targets the element itself.
+  // Tab leaves the group for the demo's next control: the View group's
+  // active item, which holds the roving tab stop. A `role`-attribute read
+  // of `activeElement` cannot judge this landing — a plain `<button>`
+  // carries no role — so the assertion targets the element itself.
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Grid", exact: true })).toBeFocused();
+  await expect(page.getByRole("button", { name: "List", exact: true })).toBeFocused();
 });
