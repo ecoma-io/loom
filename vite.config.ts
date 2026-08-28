@@ -117,6 +117,7 @@ export default defineConfig({
       "@ecoma-io/loom-text-field": pkg("primitives/text-field/src/index.ts"),
       "@ecoma-io/loom-time-picker": pkg("primitives/time-picker/src/index.ts"),
       "@ecoma-io/loom-tree-view": pkg("primitives/tree-view/src/index.ts"),
+      "@ecoma-io/loom-visually-hidden": pkg("primitives/visually-hidden/src/index.ts"),
       // Compositions.
       "@ecoma-io/loom-center": pkg("composition/center/src/index.ts"),
       "@ecoma-io/loom-frame": pkg("composition/frame/src/index.ts"),

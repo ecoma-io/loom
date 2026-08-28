@@ -1,0 +1,9 @@
+tags: ["layer-primitives"]
+project:
+  name: "visually-hidden"
+  description: "VisuallyHidden primitive — content assistive technology reads that never paints"
+
+# No `deps:` — the component imports nothing but Vue, so there is no edge for
+# the graph to carry.
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
