@@ -629,6 +629,9 @@ importers:
       '@ecoma-io/loom-list':
         specifier: workspace:*
         version: link:../primitives/list
+      '@ecoma-io/loom-live-region':
+        specifier: workspace:*
+        version: link:../primitives/live-region
       '@ecoma-io/loom-loading-state':
         specifier: workspace:*
         version: link:../blocks/loading-state
@@ -1352,6 +1355,15 @@ importers:
       '@lucide/vue':
         specifier: ^1.28.0
         version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/live-region:
+    dependencies:
+      '@ecoma-io/loom-visually-hidden':
+        specifier: workspace:*
+        version: link:../visually-hidden
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

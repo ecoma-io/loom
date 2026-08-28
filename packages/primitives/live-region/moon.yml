@@ -1,0 +1,12 @@
+deps:
+  - "visually-hidden"
+tags: ["layer-primitives"]
+project:
+  name: "live-region"
+  description: "LiveRegion primitive — shared announcement seam for assistive tech"
+
+# The `visually-hidden` edge is the clip technique: the live region hides
+# inside a VisuallyHidden, so a change to that component must mark this one
+# affected.
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
