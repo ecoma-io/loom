@@ -1,15 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
-
-/**
- * The role of whatever currently holds focus, or `null` outside a styled
- * control. Read through `document.activeElement` rather than a `:focus`
- * locator: the harness mounts no chrome, so once Tab leaves the group focus
- * falls on `<body>`, which a strict `:focus` locator cannot even match as a
- * resolvable element.
- */
-async function focusedRole(page: Page): Promise<string | null> {
-  return page.evaluate(() => document.activeElement?.getAttribute("role") ?? null);
-}
+import { test, expect } from "@playwright/test";
 
 test("ToggleGroup's arrow keys move focus past a disabled button without flipping anything, and the group is one real Tab stop", async ({
   page,
@@ -38,6 +27,10 @@ test("ToggleGroup's arrow keys move focus past a disabled button without flippin
   await page.keyboard.press("ArrowRight", { delay: 50 });
   await expect(bold).toBeFocused();
 
+  // Tab leaves the group for the demo's next control: the View group's first
+  // button, pinned by name. A `role`-attribute read of `activeElement` cannot
+  // judge this landing — a plain `<button>` carries no role — so the
+  // assertion targets the element itself.
   await page.keyboard.press("Tab");
-  expect(await focusedRole(page)).not.toBe(null);
+  await expect(page.getByRole("button", { name: "Grid", exact: true })).toBeFocused();
 });
