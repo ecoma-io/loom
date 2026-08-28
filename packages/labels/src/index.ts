@@ -29,6 +29,7 @@ export type {
   DialogLabels,
   DrawerLabels,
   EditableLabels,
+  ErrorSummaryLabels,
   FileUploadLabels,
   FileUploadRejectReason,
   FileUploadRejection,

@@ -115,6 +115,7 @@ export default defineConfig({
         "primitives/date-time-range-picker/src/index.ts",
       ),
       "@ecoma-io/loom-editable": pkg("primitives/editable/src/index.ts"),
+      "@ecoma-io/loom-error-summary": pkg("blocks/error-summary/src/index.ts"),
       "@ecoma-io/loom-file-upload": pkg("primitives/file-upload/src/index.ts"),
       "@ecoma-io/loom-pagination": pkg("primitives/pagination/src/index.ts"),
       "@ecoma-io/loom-tags-input": pkg("primitives/tags-input/src/index.ts"),

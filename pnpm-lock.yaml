@@ -185,6 +185,21 @@ importers:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)
 
+  packages/blocks/error-summary:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
   packages/blocks/form-actions:
     dependencies:
       '@ecoma-io/loom-core':
@@ -581,6 +596,9 @@ importers:
       '@ecoma-io/loom-error-state':
         specifier: workspace:*
         version: link:../blocks/error-state
+      '@ecoma-io/loom-error-summary':
+        specifier: workspace:*
+        version: link:../blocks/error-summary
       '@ecoma-io/loom-field':
         specifier: workspace:*
         version: link:../primitives/field

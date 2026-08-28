@@ -368,6 +368,9 @@ export default defineConfig({
         "@ecoma-io/loom-editable": fileURLToPath(
           new URL("../../packages/primitives/editable/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-error-summary": fileURLToPath(
+          new URL("../../packages/blocks/error-summary/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-file-upload": fileURLToPath(
           new URL("../../packages/primitives/file-upload/src/index.ts", import.meta.url),
         ),

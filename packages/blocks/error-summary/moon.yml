@@ -1,0 +1,12 @@
+deps:
+  - "core"
+  - "labels"
+tags: ["layer-blocks"]
+project:
+  name: "error-summary"
+  description: "ErrorSummary block — focusable form error summary (GOV.UK pattern)"
+
+# Depends on labels for the heading/description seam and core for cn. The
+# entries are host data, so there is no field-integration edge yet.
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
