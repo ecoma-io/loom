@@ -75,6 +75,7 @@ export default defineConfig({
       "@ecoma-io/loom-dropdown-menu": pkg("primitives/dropdown-menu/src/index.ts"),
       "@ecoma-io/loom-icon-button": pkg("primitives/icon-button/src/index.ts"),
       "@ecoma-io/loom-inline-error": pkg("primitives/inline-error/src/index.ts"),
+      "@ecoma-io/loom-live-region": pkg("primitives/live-region/src/index.ts"),
       "@ecoma-io/loom-link": pkg("primitives/link/src/index.ts"),
       "@ecoma-io/loom-menubar": pkg("primitives/menubar/src/index.ts"),
       "@ecoma-io/loom-navigation-menu": pkg("primitives/navigation-menu/src/index.ts"),

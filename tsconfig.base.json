@@ -124,6 +124,7 @@
       "@ecoma-io/loom-dropdown-menu": ["./packages/primitives/dropdown-menu/src/index.ts"],
       "@ecoma-io/loom-icon-button": ["./packages/primitives/icon-button/src/index.ts"],
       "@ecoma-io/loom-inline-error": ["./packages/primitives/inline-error/src/index.ts"],
+      "@ecoma-io/loom-live-region": ["./packages/primitives/live-region/src/index.ts"],
       "@ecoma-io/loom-link": ["./packages/primitives/link/src/index.ts"],
       "@ecoma-io/loom-menubar": ["./packages/primitives/menubar/src/index.ts"],
       "@ecoma-io/loom-navigation-menu": ["./packages/primitives/navigation-menu/src/index.ts"],

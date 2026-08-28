@@ -65,6 +65,7 @@
     "@ecoma-io/loom-inline-error": "workspace:*",
     "@ecoma-io/loom-kbd": "workspace:*",
     "@ecoma-io/loom-labels": "workspace:*",
+    "@ecoma-io/loom-live-region": "workspace:*",
     "@ecoma-io/loom-link": "workspace:*",
     "@ecoma-io/loom-list": "workspace:*",
     "@ecoma-io/loom-loading-state": "workspace:*",

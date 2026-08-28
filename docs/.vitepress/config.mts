@@ -254,6 +254,9 @@ export default defineConfig({
         "@ecoma-io/loom-inline-error": fileURLToPath(
           new URL("../../packages/primitives/inline-error/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-live-region": fileURLToPath(
+          new URL("../../packages/primitives/live-region/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-link": fileURLToPath(
           new URL("../../packages/primitives/link/src/index.ts", import.meta.url),
         ),

@@ -112,6 +112,8 @@ export type { IconButtonSize, IconButtonVariant } from "@ecoma-io/loom-icon-butt
 export { default as InlineError } from "@ecoma-io/loom-inline-error";
 export { default as Kbd, kbdVariants } from "@ecoma-io/loom-kbd";
 export type { KbdSize } from "@ecoma-io/loom-kbd";
+export { default as LiveRegion, useAnnounce } from "@ecoma-io/loom-live-region";
+export type { Announce, LiveRegionContext, LiveRegionPoliteness } from "@ecoma-io/loom-live-region";
 export { default as Link, linkVariants } from "@ecoma-io/loom-link";
 export type { LinkVariant } from "@ecoma-io/loom-link";
 export { List, ListItem } from "@ecoma-io/loom-list";
