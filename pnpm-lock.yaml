@@ -533,6 +533,9 @@ importers:
       '@ecoma-io/loom-context-menu':
         specifier: workspace:*
         version: link:../primitives/context-menu
+      '@ecoma-io/loom-copy-button':
+        specifier: workspace:*
+        version: link:../primitives/copy-button
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../core
@@ -1052,6 +1055,24 @@ importers:
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/copy-button:
+    dependencies:
+      '@ecoma-io/loom-icon-button':
+        specifier: workspace:*
+        version: link:../icon-button
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@ecoma-io/loom-live-region':
+        specifier: workspace:*
+        version: link:../live-region
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

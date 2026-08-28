@@ -94,6 +94,12 @@ export type {
 } from "@ecoma-io/loom-breadcrumb";
 export { default as Button, buttonVariants } from "@ecoma-io/loom-button";
 export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
+export { default as CopyButton } from "@ecoma-io/loom-copy-button";
+export type {
+  CopyButtonLabels,
+  CopyButtonSize,
+  CopyButtonVariant,
+} from "@ecoma-io/loom-copy-button";
 export { default as Calendar, CALENDAR_LABELS } from "@ecoma-io/loom-calendar";
 export type { CalendarLabels } from "@ecoma-io/loom-calendar";
 export { default as Carousel, CAROUSEL_LABELS } from "@ecoma-io/loom-carousel";

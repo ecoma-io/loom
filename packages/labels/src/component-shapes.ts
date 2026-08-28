@@ -131,6 +131,21 @@ export interface CarouselLabels {
 }
 
 /**
+ * What CopyButton says on its own account: its own name and the two
+ * outcomes. `copy` is the icon-only button's accessible name; `copied` and
+ * `failed` are the announcements assistive technology hears — the visible
+ * glyph swap is deliberately not the only carrier of the state.
+ */
+export interface CopyButtonLabels {
+  /** The button's accessible name. */
+  readonly copy: string;
+  /** Announced when the clipboard accepts the write. */
+  readonly copied: string;
+  /** Announced when the clipboard refuses or the host's `getText` throws — the button stays operable, so the next click retries. */
+  readonly failed: string;
+}
+
+/**
  * What Table says on its own account: the scrollable region's fallback name
  * (a caption prop overrides it) and the sort control's state in words —
  * chevrons are shape-only semantics, so the words carry the state to a

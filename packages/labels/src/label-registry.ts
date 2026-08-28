@@ -8,6 +8,7 @@ import type {
   AlertLabels,
   CalendarLabels,
   CarouselLabels,
+  CopyButtonLabels,
   TableLabels,
   TimelineLabels,
   AlertDialogLabels,
@@ -74,6 +75,7 @@ export interface LoomLabels {
   readonly breadcrumb: BreadcrumbLabels;
   readonly scrollReel: ScrollReelLabels;
   readonly skipLink: SkipLinkLabels;
+  readonly copyButton: CopyButtonLabels;
   // Six slots for the five date and time controls, because four of the six are
   // shared: the two halves of a segmented field's part names, the calendar
   // popover's chrome and a range calendar's cell are each one vocabulary spoken
