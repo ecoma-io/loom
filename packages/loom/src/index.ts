@@ -104,6 +104,8 @@ export { default as Calendar, CALENDAR_LABELS } from "@ecoma-io/loom-calendar";
 export type { CalendarLabels } from "@ecoma-io/loom-calendar";
 export { default as Carousel, CAROUSEL_LABELS } from "@ecoma-io/loom-carousel";
 export type { CarouselLabels } from "@ecoma-io/loom-carousel";
+export { default as Meter, meterVariants, METER_LABELS } from "@ecoma-io/loom-meter";
+export type { MeterLabels, MeterSize } from "@ecoma-io/loom-meter";
 export { default as Card } from "@ecoma-io/loom-card";
 export type { CardPad } from "@ecoma-io/loom-card";
 export { default as Chip, chipVariants } from "@ecoma-io/loom-chip";

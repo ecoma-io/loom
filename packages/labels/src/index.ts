@@ -33,6 +33,7 @@ export type {
   FileUploadRejectReason,
   FileUploadRejection,
   IndicatorLabels,
+  MeterLabels,
   NumberFieldLabels,
   OtpInputLabels,
   OtpInputType,

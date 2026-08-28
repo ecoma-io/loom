@@ -644,6 +644,9 @@ importers:
       '@ecoma-io/loom-menubar':
         specifier: workspace:*
         version: link:../primitives/menubar
+      '@ecoma-io/loom-meter':
+        specifier: workspace:*
+        version: link:../primitives/meter
       '@ecoma-io/loom-metric-card':
         specifier: workspace:*
         version: link:../blocks/metric-card
@@ -1397,6 +1400,21 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/meter:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

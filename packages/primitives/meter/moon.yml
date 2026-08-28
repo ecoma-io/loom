@@ -1,0 +1,9 @@
+deps:
+  - "core"
+  - "labels"
+tags: ["layer-primitives"]
+project:
+  name: "meter"
+  description: "Meter primitive — scalar capacity gauge on the meter role"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.

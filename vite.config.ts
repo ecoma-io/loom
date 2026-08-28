@@ -78,6 +78,7 @@ export default defineConfig({
       "@ecoma-io/loom-live-region": pkg("primitives/live-region/src/index.ts"),
       "@ecoma-io/loom-link": pkg("primitives/link/src/index.ts"),
       "@ecoma-io/loom-menubar": pkg("primitives/menubar/src/index.ts"),
+      "@ecoma-io/loom-meter": pkg("primitives/meter/src/index.ts"),
       "@ecoma-io/loom-navigation-menu": pkg("primitives/navigation-menu/src/index.ts"),
       "@ecoma-io/loom-popover": pkg("primitives/popover/src/index.ts"),
       "@ecoma-io/loom-speed-dial": pkg("primitives/speed-dial/src/index.ts"),

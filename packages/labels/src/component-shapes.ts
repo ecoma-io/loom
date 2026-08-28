@@ -547,6 +547,35 @@ export interface IndicatorLabels {
 }
 
 /**
+ * Everything this gauge publishes that is not the host's own label — and all
+ * four keys exist because the meter role has no English of its own.
+ *
+ * `valueText` takes `{ value, min, max }` rather than a pre-formatted string.
+ * A host handed "17 of 40" can format the digits for its locale and word the
+ * qualifier — "17 of 40 seats", "17 / 40 places", "used 17 out of 40" — but a
+ * host handed the formatted string can only re-read it. The rounding therefore
+ * lives in Loom's default, not in the component, so it is a wording choice a
+ * host replaces along with the words.
+ *
+ * The three band words (`optimal`, `cautionary`, `critical`) name the HTML
+ * meter element's three quality regions — the non-colour cue that is mandatory
+ * when `threshold` is on. They are not adjectives applied to a value; they are
+ * the region's own name, so a language can pick the word that reads naturally
+ * as a label beside the gauge ("Optimal" / "Caution" / "Critical").
+ */
+export interface MeterLabels {
+  /** Fallback accessible name when no label/ariaLabel/ariaLabelledby is provided. */
+  readonly name: string;
+  /** The announced value, from the clamped amount and the range it sits in. */
+  readonly valueText: LabelOf<{ value: number; min: number; max: number }>;
+  /** The word for the optimal band — the region containing the optimum value. */
+  readonly optimal: string;
+  /** The word for the cautionary band — a suboptimal region, but not the worst. */
+  readonly cautionary: string;
+  /** The word for the critical band — the farthest region from the optimum. */
+  readonly critical: string;
+}
+/**
  * Everything this control publishes to assistive technology — and all three of
  * these are names Reka UI would otherwise supply in English of its own accord.
  *

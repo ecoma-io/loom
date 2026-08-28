@@ -24,6 +24,7 @@ import type {
   EditableLabels,
   FileUploadLabels,
   IndicatorLabels,
+  MeterLabels,
   NumberFieldLabels,
   OtpInputLabels,
   PaginationLabels,
@@ -129,6 +130,7 @@ export interface LoomLabels {
   // to say so through a shared slot.
   readonly progress: ProgressLabels;
   readonly radialProgress: RadialProgressLabels;
+  readonly meter: MeterLabels;
   readonly colorPicker: ColorPickerLabels;
   // The one selection composite: everything a tree renders arrives as a node's
   // own label, so its slot is only the strings the control says about itself.
