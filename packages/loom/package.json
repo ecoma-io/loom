@@ -112,6 +112,7 @@
     "@ecoma-io/loom-title-bar": "workspace:*",
     "@ecoma-io/loom-toast": "workspace:*",
     "@ecoma-io/loom-toast-stack": "workspace:*",
+    "@ecoma-io/loom-toolbar": "workspace:*",
     "@ecoma-io/loom-tooltip": "workspace:*",
     "@ecoma-io/loom-tree-view": "workspace:*",
     "@ecoma-io/loom-visually-hidden": "workspace:*",
