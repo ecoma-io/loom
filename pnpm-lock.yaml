@@ -764,6 +764,9 @@ importers:
       '@ecoma-io/loom-toast-stack':
         specifier: workspace:*
         version: link:../blocks/toast-stack
+      '@ecoma-io/loom-toolbar':
+        specifier: workspace:*
+        version: link:../primitives/toolbar
       '@ecoma-io/loom-tooltip':
         specifier: workspace:*
         version: link:../primitives/tooltip
@@ -1800,6 +1803,15 @@ importers:
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/toolbar:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

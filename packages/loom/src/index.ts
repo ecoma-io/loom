@@ -252,6 +252,8 @@ export { default as TextField, TEXT_FIELD_LABELS } from "@ecoma-io/loom-text-fie
 export type { TextFieldLabels, TextFieldSize, TextFieldType } from "@ecoma-io/loom-text-field";
 export { default as TimePicker } from "@ecoma-io/loom-time-picker";
 export type { TimePickerLabels } from "@ecoma-io/loom-time-picker";
+export { default as Toolbar, ToolbarSeparator } from "@ecoma-io/loom-toolbar";
+export type { ToolbarContext, ToolbarOrientation } from "@ecoma-io/loom-toolbar";
 export { Toast, ToastItem, TOAST_LABELS } from "@ecoma-io/loom-toast";
 export type { ToastVariant, ToastLabels } from "@ecoma-io/loom-toast";
 export { default as TreeView, TREE_VIEW_LABELS } from "@ecoma-io/loom-tree-view";

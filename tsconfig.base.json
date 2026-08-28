@@ -166,6 +166,7 @@
       "@ecoma-io/loom-textarea": ["./packages/primitives/textarea/src/index.ts"],
       "@ecoma-io/loom-text-field": ["./packages/primitives/text-field/src/index.ts"],
       "@ecoma-io/loom-time-picker": ["./packages/primitives/time-picker/src/index.ts"],
+      "@ecoma-io/loom-toolbar": ["./packages/primitives/toolbar/src/index.ts"],
       "@ecoma-io/loom-tree-view": ["./packages/primitives/tree-view/src/index.ts"],
       "@ecoma-io/loom-visually-hidden": ["./packages/primitives/visually-hidden/src/index.ts"],
       "@ecoma-io/loom-window-controls": ["./packages/primitives/window-controls/src/index.ts"],
