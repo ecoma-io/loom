@@ -52,9 +52,12 @@ number>` is one prop rather than two generic shapes, for the same reason
 [Combobox](/components/combobox) is: `v-model` needs a binding whose type does
 not depend on another prop's value.
 
-A branch renders when it has children to show. `children` is the contract — an
-array of any length means static data, and a node _without_ one under a
-`loadChildren` tree is a branch still to fetch.
+A branch renders when it has children to show. `children` is the contract —
+an array of any length means static data, and a node _without_ one under a
+`loadChildren` tree is a branch still to fetch. The distinction is
+load-bearing there: an explicit `children: []` is a known-empty leaf — it
+never becomes a fetch target and never grows a chevron — while the absent
+property is the only thing that marks a row as a branch still to fetch.
 
 ## Choosing several
 
