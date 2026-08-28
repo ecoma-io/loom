@@ -1,0 +1,9 @@
+deps:
+  - "core"
+tags: ["layer-primitives"]
+
+project:
+  name: "navigation-menu"
+  description: "NavigationMenu primitive — WAI-ARIA navigation menu with dropdown panels for site navigation"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.

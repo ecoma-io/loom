@@ -69,6 +69,7 @@
     "@ecoma-io/loom-master-detail": "workspace:*",
     "@ecoma-io/loom-menubar": "workspace:*",
     "@ecoma-io/loom-metric-card": "workspace:*",
+    "@ecoma-io/loom-navigation-menu": "workspace:*",
     "@ecoma-io/loom-number-field": "workspace:*",
     "@ecoma-io/loom-otp-input": "workspace:*",
     "@ecoma-io/loom-page-header": "workspace:*",

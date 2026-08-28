@@ -125,6 +125,7 @@
       "@ecoma-io/loom-inline-error": ["./packages/primitives/inline-error/src/index.ts"],
       "@ecoma-io/loom-link": ["./packages/primitives/link/src/index.ts"],
       "@ecoma-io/loom-menubar": ["./packages/primitives/menubar/src/index.ts"],
+      "@ecoma-io/loom-navigation-menu": ["./packages/primitives/navigation-menu/src/index.ts"],
       "@ecoma-io/loom-popover": ["./packages/primitives/popover/src/index.ts"],
       "@ecoma-io/loom-speed-dial": ["./packages/primitives/speed-dial/src/index.ts"],
       "@ecoma-io/loom-tabs": ["./packages/primitives/tabs/src/index.ts"],

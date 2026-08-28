@@ -635,6 +635,9 @@ importers:
       '@ecoma-io/loom-metric-card':
         specifier: workspace:*
         version: link:../blocks/metric-card
+      '@ecoma-io/loom-navigation-menu':
+        specifier: workspace:*
+        version: link:../primitives/navigation-menu
       '@ecoma-io/loom-number-field':
         specifier: workspace:*
         version: link:../primitives/number-field
@@ -1307,6 +1310,18 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/navigation-menu:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

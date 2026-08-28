@@ -7,12 +7,13 @@ ends up behind a button.
 
 ## The decision
 
-| The user…                                                       | Reach for      |
-| --------------------------------------------------------------- | -------------- |
-| Clicks a visible button, then picks from a command list         | `DropdownMenu` |
-| Right-clicks a thing in place                                   | `ContextMenu`  |
-| Works a persistent strip of app-wide menus (File · Edit · View) | `Menubar`      |
-| Is choosing the **value of a field**                            | `Select`       |
+| The user…                                                       | Reach for        |
+| --------------------------------------------------------------- | ---------------- |
+| Clicks a visible button, then picks from a command list         | `DropdownMenu`   |
+| Right-clicks a thing in place                                   | `ContextMenu`    |
+| Works a persistent strip of app-wide menus (File · Edit · View) | `Menubar`        |
+| Is choosing the **value of a field**                            | `Select`         |
+| Navigates between pages or sections of a site                   | `NavigationMenu` |
 
 Two questions settle almost every case:
 
@@ -53,6 +54,11 @@ separately).
 - **Menubar** is always present, always in the Tab order as a strip, and
   switches menus on hover once one is open. It exists for application
   chrome; a page with one dropdown does not become better with a menubar.
+- **NavigationMenu** is a site-navigation landmark: a `<nav>` wrapper whose
+  triggers open panels of _links_ — not commands. Use it for page or section
+  navigation (Products · Docs · Blog), never for actions. The keyboard model
+  follows the APG Navigation Menu pattern (roving tabindex, ArrowDown opens,
+  Escape closes).
 - **Submenus**: none of the wrappers expose nested menus yet. When a design
   reaches for one, first ask whether the child items deserve their own
   dialog or section — nesting is the last resort, and it will land as a
