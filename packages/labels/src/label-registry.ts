@@ -15,6 +15,7 @@ import type {
   BreadcrumbLabels,
   ColorPickerLabels,
   ComboboxLabels,
+  DataGridLabels,
   DateRangeLabels,
   DateTimeRangeLabels,
   DialogLabels,
@@ -65,6 +66,7 @@ import type {
 export interface LoomLabels {
   readonly alert: AlertLabels;
   readonly table: TableLabels;
+  readonly dataGrid: DataGridLabels;
   readonly timeline: TimelineLabels;
   readonly carousel: CarouselLabels;
   readonly pagination: PaginationLabels;

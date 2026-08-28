@@ -338,6 +338,9 @@ export default defineConfig({
         "@ecoma-io/loom-combobox": fileURLToPath(
           new URL("../../packages/primitives/combobox/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-data-grid": fileURLToPath(
+          new URL("../../packages/primitives/data-grid/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-date-picker": fileURLToPath(
           new URL("../../packages/primitives/date-picker/src/index.ts", import.meta.url),
         ),

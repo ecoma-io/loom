@@ -154,6 +154,14 @@ export interface TableLabels {
   readonly sortedDescending: string;
   readonly sort: string;
 }
+export interface DataGridLabels {
+  readonly region: string;
+  readonly selectAll: string;
+  readonly selectRow: string;
+  readonly sortedAscending: string;
+  readonly sortedDescending: string;
+  readonly sort: string;
+}
 
 /**
  * The two sentences the row says that are not a member's own name.

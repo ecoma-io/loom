@@ -103,6 +103,7 @@ export default defineConfig({
       "@ecoma-io/loom-toast": pkg("primitives/toast/src/index.ts"),
       "@ecoma-io/loom-window-controls": pkg("primitives/window-controls/src/index.ts"),
       "@ecoma-io/loom-combobox": pkg("primitives/combobox/src/index.ts"),
+      "@ecoma-io/loom-data-grid": pkg("primitives/data-grid/src/index.ts"),
       "@ecoma-io/loom-date-picker": pkg("primitives/date-picker/src/index.ts"),
       "@ecoma-io/loom-date-range-picker": pkg("primitives/date-range-picker/src/index.ts"),
       "@ecoma-io/loom-date-time-picker": pkg("primitives/date-time-picker/src/index.ts"),

@@ -22,6 +22,7 @@ export type {
   CarouselLabels,
   ColorPickerLabels,
   ComboboxLabels,
+  DataGridLabels,
   DateRangeLabels,
   DateTimeRangeLabels,
   DialogLabels,

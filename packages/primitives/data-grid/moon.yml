@@ -1,0 +1,17 @@
+deps:
+  - "checkbox"
+  - "core"
+  - "labels"
+  - "table"
+tags: ["layer-primitives", "e2e"]
+project:
+  name: "data-grid"
+  description: "DataGrid primitive — interactive grid with row selection and sortable columns"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
+  e2e:
+    options:
+      runInCI: skip
+    args: ["packages/primitives/data-grid/e2e"]
+    env:
+      PW_PROFILE: "smoke"
