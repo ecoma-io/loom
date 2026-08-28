@@ -527,6 +527,9 @@ importers:
       '@ecoma-io/loom-combobox':
         specifier: workspace:*
         version: link:../primitives/combobox
+      '@ecoma-io/loom-command':
+        specifier: workspace:*
+        version: link:../primitives/command
       '@ecoma-io/loom-context-menu':
         specifier: workspace:*
         version: link:../primitives/context-menu
@@ -1016,6 +1019,15 @@ importers:
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/command:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       vue:
         specifier: ^3.5.0
         version: 3.5.40(typescript@5.9.3)

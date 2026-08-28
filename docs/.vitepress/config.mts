@@ -335,6 +335,9 @@ export default defineConfig({
         "@ecoma-io/loom-window-controls": fileURLToPath(
           new URL("../../packages/primitives/window-controls/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-command": fileURLToPath(
+          new URL("../../packages/primitives/command/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-combobox": fileURLToPath(
           new URL("../../packages/primitives/combobox/src/index.ts", import.meta.url),
         ),

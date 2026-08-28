@@ -156,6 +156,8 @@ export type {
 export { default as Checkbox } from "@ecoma-io/loom-checkbox";
 export { default as ColorPicker, COLOR_PICKER_LABELS } from "@ecoma-io/loom-color-picker";
 export type { ColorPickerLabels } from "@ecoma-io/loom-color-picker";
+export { default as Command } from "@ecoma-io/loom-command";
+export type { CommandItem, CommandGroup } from "@ecoma-io/loom-command";
 export { default as Combobox, comboboxVariants, COMBOBOX_LABELS } from "@ecoma-io/loom-combobox";
 export type { ComboboxLabels, ComboboxOption, ComboboxSize } from "@ecoma-io/loom-combobox";
 export { default as DataGrid, DATA_GRID_LABELS } from "@ecoma-io/loom-data-grid";
