@@ -206,6 +206,8 @@ export type {
   EditableLabels,
   EditableSubmitMode,
 } from "@ecoma-io/loom-editable";
+export { default as ErrorSummary, ERROR_SUMMARY_LABELS } from "@ecoma-io/loom-error-summary";
+export type { ErrorSummaryEntry, ErrorSummaryLabels } from "@ecoma-io/loom-error-summary";
 export { default as Field } from "@ecoma-io/loom-field";
 export { default as Fieldset } from "@ecoma-io/loom-fieldset";
 export { default as FileUpload, FILE_UPLOAD_LABELS } from "@ecoma-io/loom-file-upload";

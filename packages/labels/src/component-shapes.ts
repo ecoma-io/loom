@@ -479,6 +479,21 @@ export interface EditableLabels {
 }
 
 /**
+ * What the ErrorSummary says on its own account: the heading that names the
+ * problem and states the count — a reader should know the size of the list
+ * before it is read — and the optional line under it. The heading takes the
+ * **number**, never a finished sentence, for the reason `LabelOf` gives:
+ * "2 errors" has one plural form in English and another in Arabic, and a
+ * host handed the integer reaches `Intl.PluralRules`.
+ */
+export interface ErrorSummaryLabels {
+  /** The summary's heading, carrying the number of field errors it lists. */
+  readonly heading: LabelOf<{ count: number }>;
+  /** Supporting text under the heading, before the list. Empty by default; render nothing when it is. */
+  readonly description: LabelOf<{ count: number }>;
+}
+
+/**
  * Everything this control puts in front of a reader that is not a file name —
  * and it is the most prose in the library, which is why every one of these
  * takes raw values and returns a finished string.

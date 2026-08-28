@@ -21,6 +21,7 @@ import type {
   DateTimeRangeLabels,
   DialogLabels,
   DrawerLabels,
+  ErrorSummaryLabels,
   EditableLabels,
   FileUploadLabels,
   IndicatorLabels,
@@ -104,6 +105,7 @@ export interface LoomLabels {
   readonly rating: RatingLabels;
   readonly tagsInput: TagsInputLabels;
   readonly editable: EditableLabels;
+  readonly errorSummary: ErrorSummaryLabels;
   readonly textField: TextFieldLabels;
   // Two slots for one counter vocabulary, and the keys match on purpose so a
   // host's bag copies across. Not one slot, because `textField` also carries

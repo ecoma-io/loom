@@ -164,6 +164,7 @@
         "./packages/primitives/date-time-range-picker/src/index.ts"
       ],
       "@ecoma-io/loom-editable": ["./packages/primitives/editable/src/index.ts"],
+      "@ecoma-io/loom-error-summary": ["./packages/blocks/error-summary/src/index.ts"],
       "@ecoma-io/loom-file-upload": ["./packages/primitives/file-upload/src/index.ts"],
       "@ecoma-io/loom-pagination": ["./packages/primitives/pagination/src/index.ts"],
       "@ecoma-io/loom-tags-input": ["./packages/primitives/tags-input/src/index.ts"],

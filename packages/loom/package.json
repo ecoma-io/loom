@@ -51,6 +51,7 @@
     "@ecoma-io/loom-editable": "workspace:*",
     "@ecoma-io/loom-empty-state": "workspace:*",
     "@ecoma-io/loom-error-state": "workspace:*",
+    "@ecoma-io/loom-error-summary": "workspace:*",
     "@ecoma-io/loom-field": "workspace:*",
     "@ecoma-io/loom-fieldset": "workspace:*",
     "@ecoma-io/loom-file-upload": "workspace:*",
