@@ -35,6 +35,7 @@ import type {
   TextFieldLabels,
   TextareaLabels,
   ToastLabels,
+  TreeViewLabels,
   WindowControlsLabels,
 } from "./component-shapes";
 
@@ -125,4 +126,7 @@ export interface LoomLabels {
   readonly progress: ProgressLabels;
   readonly radialProgress: RadialProgressLabels;
   readonly colorPicker: ColorPickerLabels;
+  // The one selection composite: everything a tree renders arrives as a node's
+  // own label, so its slot is only the strings the control says about itself.
+  readonly treeView: TreeViewLabels;
 }

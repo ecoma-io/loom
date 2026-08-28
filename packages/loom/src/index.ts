@@ -245,6 +245,8 @@ export { default as TimePicker } from "@ecoma-io/loom-time-picker";
 export type { TimePickerLabels } from "@ecoma-io/loom-time-picker";
 export { Toast, ToastItem, TOAST_LABELS } from "@ecoma-io/loom-toast";
 export type { ToastVariant, ToastLabels } from "@ecoma-io/loom-toast";
+export { default as TreeView, TREE_VIEW_LABELS } from "@ecoma-io/loom-tree-view";
+export type { TreeNode, TreeViewLabels, TreeViewSelectionMode } from "@ecoma-io/loom-tree-view";
 export { default as WindowControls, WINDOW_CONTROLS_LABELS } from "@ecoma-io/loom-window-controls";
 export type { WindowPlatform, WindowControlsLabels } from "@ecoma-io/loom-window-controls";
 

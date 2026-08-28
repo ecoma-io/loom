@@ -1,0 +1,11 @@
+# The Moon project graph does not read package.json dependencies for tasks —
+# it reads this. `tools/sync-moon-deps.ts` keeps the two in step for edges
+# package.json can express; the `# preserved` form covers the ones it cannot.
+deps:
+  - core
+  - labels
+tags:
+  - layer-primitives
+project:
+  name: tree-view
+  description: Hierarchical tree with keyboard navigation, lazy branches and single or multiple selection.
