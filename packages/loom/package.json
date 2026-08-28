@@ -111,6 +111,7 @@
     "@ecoma-io/loom-time-picker": "workspace:*",
     "@ecoma-io/loom-timeline": "workspace:*",
     "@ecoma-io/loom-title-bar": "workspace:*",
+    "@ecoma-io/loom-toggle-group": "workspace:*",
     "@ecoma-io/loom-toast": "workspace:*",
     "@ecoma-io/loom-toast-stack": "workspace:*",
     "@ecoma-io/loom-toolbar": "workspace:*",

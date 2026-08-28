@@ -150,6 +150,7 @@
       "@ecoma-io/loom-slider": ["./packages/primitives/slider/src/index.ts"],
       "@ecoma-io/loom-stepper": ["./packages/primitives/stepper/src/index.ts"],
       "@ecoma-io/loom-switch": ["./packages/primitives/switch/src/index.ts"],
+      "@ecoma-io/loom-toggle-group": ["./packages/primitives/toggle-group/src/index.ts"],
       "@ecoma-io/loom-toast": ["./packages/primitives/toast/src/index.ts"],
       "@ecoma-io/loom-command": ["./packages/primitives/command/src/index.ts"],
       "@ecoma-io/loom-combobox": ["./packages/primitives/combobox/src/index.ts"],

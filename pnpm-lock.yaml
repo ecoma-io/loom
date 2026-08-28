@@ -767,6 +767,9 @@ importers:
       '@ecoma-io/loom-toast-stack':
         specifier: workspace:*
         version: link:../blocks/toast-stack
+      '@ecoma-io/loom-toggle-group':
+        specifier: workspace:*
+        version: link:../primitives/toggle-group
       '@ecoma-io/loom-toolbar':
         specifier: workspace:*
         version: link:../primitives/toolbar
@@ -1812,6 +1815,21 @@ importers:
       '@lucide/vue':
         specifier: ^1.28.0
         version: 1.28.0(vue@3.5.40(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/toggle-group:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.1(vue@3.5.40(typescript@5.9.3))
