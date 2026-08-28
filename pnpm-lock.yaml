@@ -539,6 +539,9 @@ importers:
       '@ecoma-io/loom-dashboard-grid':
         specifier: workspace:*
         version: link:../blocks/dashboard-grid
+      '@ecoma-io/loom-data-grid':
+        specifier: workspace:*
+        version: link:../primitives/data-grid
       '@ecoma-io/loom-date-picker':
         specifier: workspace:*
         version: link:../primitives/date-picker
@@ -1022,6 +1025,30 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.40(typescript@5.9.3)
+
+  packages/primitives/data-grid:
+    dependencies:
+      '@ecoma-io/loom-checkbox':
+        specifier: workspace:*
+        version: link:../checkbox
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@ecoma-io/loom-table':
+        specifier: workspace:*
+        version: link:../table
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.28.0(vue@3.5.40(typescript@5.9.3))
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.1(vue@3.5.40(typescript@5.9.3))

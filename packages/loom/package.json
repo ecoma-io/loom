@@ -37,6 +37,7 @@
     "@ecoma-io/loom-core": "workspace:*",
     "@ecoma-io/loom-dashboard": "workspace:*",
     "@ecoma-io/loom-dashboard-grid": "workspace:*",
+    "@ecoma-io/loom-data-grid": "workspace:*",
     "@ecoma-io/loom-date-picker": "workspace:*",
     "@ecoma-io/loom-date-range-picker": "workspace:*",
     "@ecoma-io/loom-date-time-picker": "workspace:*",

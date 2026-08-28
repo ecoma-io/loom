@@ -151,6 +151,7 @@
       "@ecoma-io/loom-switch": ["./packages/primitives/switch/src/index.ts"],
       "@ecoma-io/loom-toast": ["./packages/primitives/toast/src/index.ts"],
       "@ecoma-io/loom-combobox": ["./packages/primitives/combobox/src/index.ts"],
+      "@ecoma-io/loom-data-grid": ["./packages/primitives/data-grid/src/index.ts"],
       "@ecoma-io/loom-date-picker": ["./packages/primitives/date-picker/src/index.ts"],
       "@ecoma-io/loom-date-range-picker": ["./packages/primitives/date-range-picker/src/index.ts"],
       "@ecoma-io/loom-date-time-picker": ["./packages/primitives/date-time-picker/src/index.ts"],

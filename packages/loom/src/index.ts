@@ -158,6 +158,13 @@ export { default as ColorPicker, COLOR_PICKER_LABELS } from "@ecoma-io/loom-colo
 export type { ColorPickerLabels } from "@ecoma-io/loom-color-picker";
 export { default as Combobox, comboboxVariants, COMBOBOX_LABELS } from "@ecoma-io/loom-combobox";
 export type { ComboboxLabels, ComboboxOption, ComboboxSize } from "@ecoma-io/loom-combobox";
+export { default as DataGrid, DATA_GRID_LABELS } from "@ecoma-io/loom-data-grid";
+export type {
+  DataGridLabels,
+  DataGridColumn,
+  DataGridSort,
+  DataGridSortState,
+} from "@ecoma-io/loom-data-grid";
 export { default as DatePicker } from "@ecoma-io/loom-date-picker";
 export type { DatePickerLabels } from "@ecoma-io/loom-date-picker";
 export { default as DateRangePicker, DATE_RANGE_LABELS } from "@ecoma-io/loom-date-range-picker";

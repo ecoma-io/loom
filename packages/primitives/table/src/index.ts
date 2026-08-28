@@ -1,7 +1,7 @@
 export { default } from "./Table.vue";
 export { TABLE_LABELS } from "./Table.vue";
 export { default as TableRow, tableRowVariants } from "./TableRow.vue";
-export { default as TableHead, nextSort } from "./TableHead.vue";
+export { default as TableHead, headAlignClass, nextSort } from "./TableHead.vue";
 export { default as TableCell } from "./TableCell.vue";
 // The label *type* is the registry's — re-exported here so a consumer reaching
 // for the component package finds it beside the component.
