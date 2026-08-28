@@ -380,6 +380,9 @@ export default defineConfig({
         "@ecoma-io/loom-tree-view": fileURLToPath(
           new URL("../../packages/primitives/tree-view/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-visually-hidden": fileURLToPath(
+          new URL("../../packages/primitives/visually-hidden/src/index.ts", import.meta.url),
+        ),
         // Compositions.
         "@ecoma-io/loom-center": fileURLToPath(
           new URL("../../packages/composition/center/src/index.ts", import.meta.url),
