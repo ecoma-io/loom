@@ -14,6 +14,6 @@
   },
   "peerDependencies": {
     "vue": "^3.5.0",
-    "reka-ui": "*"
+    "reka-ui": "^2.10.0"
   }
 }
