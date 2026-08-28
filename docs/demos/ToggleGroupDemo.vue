@@ -28,7 +28,11 @@ const viewItems: ToggleGroupItem[] = [
   { value: "board", label: "Board" },
 ];
 
-const formats = ref<string[]>(["bold"]);
+// Nothing pressed initially, so the e2e that clicks Bold pins a toggle ON —
+// the pressed state is the host's to seed, and a pre-pressed Bold would make
+// that first click a toggle OFF.
+const formats = ref<string[]>([]);
+
 const view = ref<string | null>("list");
 </script>
 
