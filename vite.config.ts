@@ -101,6 +101,7 @@ export default defineConfig({
       "@ecoma-io/loom-slider": pkg("primitives/slider/src/index.ts"),
       "@ecoma-io/loom-stepper": pkg("primitives/stepper/src/index.ts"),
       "@ecoma-io/loom-switch": pkg("primitives/switch/src/index.ts"),
+      "@ecoma-io/loom-toggle-group": pkg("primitives/toggle-group/src/index.ts"),
       "@ecoma-io/loom-toast": pkg("primitives/toast/src/index.ts"),
       "@ecoma-io/loom-window-controls": pkg("primitives/window-controls/src/index.ts"),
       "@ecoma-io/loom-command": pkg("primitives/command/src/index.ts"),

@@ -332,6 +332,9 @@ export default defineConfig({
         "@ecoma-io/loom-switch": fileURLToPath(
           new URL("../../packages/primitives/switch/src/index.ts", import.meta.url),
         ),
+        "@ecoma-io/loom-toggle-group": fileURLToPath(
+          new URL("../../packages/primitives/toggle-group/src/index.ts", import.meta.url),
+        ),
         "@ecoma-io/loom-toast": fileURLToPath(
           new URL("../../packages/primitives/toast/src/index.ts", import.meta.url),
         ),
