@@ -41,12 +41,17 @@ Combobox selects a **value** — a language, a country, a form field. Command
 executes an **action** — open settings, go to docs, create a project. The two
 share a surface vocabulary and keyboard model, but their intents differ:
 
-|             | Combobox                            | Command             |
-| ----------- | ----------------------------------- | ------------------- |
-| Purpose     | Select a value for a form field     | Execute an action   |
-| Model       | `v-model` (two-way binding)         | `@select` callback  |
-| Form wiring | Inside a `Field`, posts with `name` | No form integration |
-| Items       | `ComboboxOption`                    | `CommandItem`       |
+<table tabindex="0">
+  <thead>
+    <tr><th></th><th scope="col">Combobox</th><th scope="col">Command</th></tr>
+  </thead>
+  <tbody>
+    <tr><th scope="row">Purpose</th><td>Select a value for a form field</td><td>Execute an action</td></tr>
+    <tr><th scope="row">Model</th><td><code>v-model</code> (two-way binding)</td><td><code>@select</code> callback</td></tr>
+    <tr><th scope="row">Form wiring</th><td>Inside a <code>Field</code>, posts with <code>name</code></td><td>No form integration</td></tr>
+    <tr><th scope="row">Items</th><td><code>ComboboxOption</code></td><td><code>CommandItem</code></td></tr>
+  </tbody>
+</table>
 
 ## Items
 
