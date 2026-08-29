@@ -310,6 +310,26 @@ export interface ComboboxLabels {
   /** The visible summary standing in for the tokens the trigger did not have room for. */
   readonly overflow: LabelOf<{ hidden: number }>;
 }
+/**
+ * Everything a Command says that does not arrive as one of its items — the
+ * search field's placeholder plus the strings spoken around the result list.
+ * Command renders its own chrome and the host's items fill only the list, so
+ * this slot is exactly the reverse of `Select`'s absence: it exists because
+ * the chrome is real, and it stays one line apart from `ComboboxLabels`
+ * because the two controls share their surface vocabulary and keyboard model.
+ */
+export interface CommandLabels {
+  /** Placeholder text for the search input. */
+  readonly placeholder: string;
+  /** Text shown when no items match the query. */
+  readonly emptyMessage: string;
+  /** Accessible label for the search input. */
+  readonly searchLabel: string;
+  /** Singular result count text. Use {count} as placeholder. */
+  readonly resultSingular: string;
+  /** Plural result count text. Use {count} as placeholder. */
+  readonly resultPlural: string;
+}
 
 /**
  * The strings this control says that no other member of the family says: the

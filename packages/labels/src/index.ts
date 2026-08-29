@@ -23,6 +23,7 @@ export type {
   CopyButtonLabels,
   ColorPickerLabels,
   ComboboxLabels,
+  CommandLabels,
   DataGridLabels,
   DateRangeLabels,
   DateTimeRangeLabels,
