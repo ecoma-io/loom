@@ -194,14 +194,29 @@ const bodyColumnIndex = (i: number): number => (props.selectable ? i + 1 : i);
 const isCellActive = (row: number, col: number): boolean =>
   activeCell.value.row === row && activeCell.value.col === col;
 
-// Rows arriving or leaving can strand the active cell outside the matrix.
+// Rows arriving or leaving can strand the active cell outside the matrix. The
+// floor is -1, not 0: the header row is a valid roving stop too, and a floor
+// of 0 would push the header onto a body row that does not exist once every
+// row is gone, leaving the grid with no Tab stop at all.
 watch(
   () => [props.rows.length, props.selectable, props.columns.length] as const,
   () => {
-    activeCell.value = {
-      row: Math.min(Math.max(activeCell.value.row, 0), Math.max(props.rows.length - 1, 0)),
-      col: Math.min(activeCell.value.col, colCount.value - 1),
+    const previous = activeCell.value;
+    const next = {
+      row: Math.min(Math.max(previous.row, -1), Math.max(props.rows.length - 1, -1)),
+      col: Math.min(previous.col, colCount.value - 1),
     };
+    activeCell.value = next;
+    // A shrink that moves the active cell strands real focus too: the focused
+    // cell unmounts, focus falls to <body>, and onFocusin — which only hears
+    // focus arriving inside the grid — never learns. The clamped cell is
+    // within the surviving matrix, so it exists to take focus back.
+    if (
+      (previous.row !== next.row || previous.col !== next.col) &&
+      table.value?.contains(document.activeElement)
+    ) {
+      focusCell(next.row, next.col);
+    }
   },
 );
 

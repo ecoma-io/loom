@@ -159,6 +159,33 @@ describe("roving tabindex", () => {
   });
 });
 
+describe("rows changing under the active cell", () => {
+  it("keeps the active cell on the header row when rows shrink to none", async () => {
+    const wrapper = mountGrid();
+    cell(wrapper, 0, 0).element.focus();
+    await cell(wrapper, 0, 0).trigger("keydown", { key: "ArrowUp" });
+    expect(document.activeElement).toBe(cell(wrapper, -1, 0).element);
+    // A floor of 0 would clamp the header to a body row that does not exist
+    // once every row is gone, leaving the grid with no Tab stop at all.
+    await wrapper.setProps({ rows: [] });
+    await nextTick();
+    const stops = wrapper.findAll('[data-r][tabindex="0"]');
+    expect(stops).toHaveLength(1);
+    expect(stops[0]?.attributes("data-r")).toBe("-1");
+  });
+
+  it("moves real focus to the clamped cell when the active one unmounts", async () => {
+    const wrapper = mountGrid();
+    cell(wrapper, 2, 1).element.focus();
+    expect(document.activeElement).toBe(cell(wrapper, 2, 1).element);
+    await wrapper.setProps({ rows: ROWS.slice(0, 1) });
+    await nextTick();
+    // The shrink unmounts the focused cell; without an explicit move, focus
+    // falls to <body> and the grid's own onFocusin never hears about it.
+    expect(document.activeElement).toBe(cell(wrapper, 0, 1).element);
+  });
+});
+
 describe("sorting", () => {
   it("cycles a sortable header through ascending, descending, unsorted", async () => {
     const wrapper = mountGrid();
