@@ -14,8 +14,12 @@ test.beforeEach(async ({ page }) => {
 });
 
 /** The demo's `side="right"` instance: its flex-wrap row. */
+// The harness drives the Vite dev server (client-side render), where Vue
+// serializes the style object as `flex-wrap: wrap` — WITH the space, unlike
+// the space-less SSR form the root suite's FLEX_WRAP selector targets. Match
+// the property name only so both spellings find the row.
 function rightRow(page: Page) {
-  return page.locator('[style*="flex-wrap:wrap"]').filter({ hasText: "Right panel" });
+  return page.locator('[style*="flex-wrap:"]').filter({ hasText: "Right panel" });
 }
 
 /** The panel's rendered box, or a hard failure: a missing box is a layout
