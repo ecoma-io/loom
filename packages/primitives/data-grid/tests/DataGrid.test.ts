@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
 import { provideLoomLabels } from "@ecoma-io/loom-labels";
 import DataGrid, { DATA_GRID_LABELS } from "../src/DataGrid.vue";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 enableAutoUnmount(afterEach);
 
@@ -322,5 +324,30 @@ describe("labels", () => {
     expect(cell(wrapper, -1, 0).find('[role="checkbox"]').attributes("aria-label")).toBe(
       "Alles auswählen",
     );
+  });
+});
+
+describe("DataGrid docs", () => {
+  it("documents no slot the component does not declare", () => {
+    const md = readFileSync(
+      join(import.meta.dirname, "../../../../docs/components/data-grid.md"),
+      "utf8",
+    );
+    const sfc = readFileSync(join(import.meta.dirname, "../src/DataGrid.vue"), "utf8");
+    const declared = new Set(
+      [...sfc.matchAll(/<slot(?:\s+name="([\w-]+)")?[^>]*>/g)].map((m) => m[1] ?? "default"),
+    );
+    // Backticked `#name` tokens in the page's prose are promises about a
+    // scoped slot. A documented slot the SFC does not declare is a phantom
+    // API — the page must name exactly what the template renders ("#header"
+    // drifted this way once; the generated @api table cannot catch prose).
+    const documented = [...md.matchAll(/`#([\w-]+)`/g)]
+      .map((m) => m[1] ?? "")
+      .filter((name) => name !== "");
+    for (const name of documented) {
+      expect(declared.has(name), `docs promise a #${name} slot DataGrid does not declare`).toBe(
+        true,
+      );
+    }
   });
 });
