@@ -189,6 +189,28 @@ describe("Calendar selection announcement", () => {
     expect(getStatus().textContent).toBe("No date chosen.");
   });
 
+  it("keeps the status line out of the accessibility tree until the first choice, so a preselected calendar does not announce on mount", () => {
+    mountCalendar({ modelValue: ISO });
+    const status = getStatus();
+    expect(status.getAttribute("aria-hidden")).toBe("true");
+    // The line still reads the bound value visually; hiding it is a
+    // mount-time silence, not a blank display.
+    expect(status.textContent).toBe(`${expectedFullDay(ISO)} chosen.`);
+  });
+
+  it("unhides the line exactly when choosing emits, so the announcement is the change and not the initial state", async () => {
+    const wrapper = mountCalendar();
+    expect(getStatus().getAttribute("aria-hidden")).toBe("true");
+
+    const now = today(getLocalTimeZone());
+    getDay(now.toString()).click();
+    await settle();
+
+    expect(getStatus().getAttribute("aria-hidden")).toBeNull();
+    expect(getStatus().textContent).toBe(`${expectedFullDay(now.toString())} chosen.`);
+    expect(wrapper.emitted("update:modelValue")).toEqual([[now.toString()]]);
+  });
+
   it("takes both halves of the line from the labels prop", async () => {
     mountCalendar({
       labels: {

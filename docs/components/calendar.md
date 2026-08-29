@@ -148,6 +148,15 @@ what makes it announceable rather than noise; DateRangePicker's summary above
 its grids is the same precedent at range size. Both strings are part of the
 label seam, like every other word the surface says.
 
+The line is `aria-hidden` until the first choice is made. A live region
+announces its content the moment it enters the document, so a calendar opened
+on a preselected value would otherwise read that value out as if the user had
+just picked it; hiding the line at mount silences the non-event, and the
+first click or `Enter` reveals it with the new text already in it — the
+announcement is then the change itself. Programmatic `v-model` updates never
+reveal it, which is the same rule from the other side: only a user's own
+action announces.
+
 Three states, three cues, none of them colour: the selected day is
 `aria-selected`, today is `aria-current="date"` and carries a dot under its
 number, and an out-of-bounds day is `aria-disabled`, struck through, and
