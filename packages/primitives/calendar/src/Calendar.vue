@@ -16,7 +16,7 @@ export const CALENDAR_LABELS: CalendarLabels = {
 </script>
 
 <script setup lang="ts">
-import { computed, useId } from "vue";
+import { computed, ref, useId } from "vue";
 import {
   CalendarRoot,
   CalendarHeader,
@@ -209,7 +209,18 @@ const rootValue = computed(() =>
   }),
 );
 
+// The status line below announces by changing, but a live region also
+// announces its content the moment it enters the document — so a calendar
+// mounted with a preselected value would read the chosen date out as if the
+// user had just picked it. `announced` stays false until the first real
+// selection event, and the line is aria-hidden meanwhile: hidden, it says
+// nothing at mount; revealed on the first change, it announces exactly that
+// change. Programmatic `modelValue` sets never fire this handler, so they
+// correctly stay silent too — only a user's own action opens the region.
+const announced = ref(false);
+
 function onDateChange(date: DateValue | undefined) {
+  announced.value = true;
   emit("update:modelValue", date ? toIso(date) : undefined);
 }
 
@@ -300,7 +311,13 @@ function selectionStatus(selected: DateValue | DateValue[] | undefined): string 
 
     <!-- Visually subordinate on purpose — the grid is the interface, and this
          is its spoken half: what a picker's field would have echoed. -->
-    <p role="status" class="text-xs text-muted-foreground">{{ selectionStatus(selected) }}</p>
+    <p
+      role="status"
+      :aria-hidden="announced ? undefined : 'true'"
+      class="text-xs text-muted-foreground"
+    >
+      {{ selectionStatus(selected) }}
+    </p>
 
     <CalendarGrid
       v-for="month in grid"
