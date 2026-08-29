@@ -48,34 +48,63 @@ withDefaults(
     when there isn't.
   -->
   <div
-    :class="
-      cn(
-        'flex',
-        side === 'right' ? 'flex-row-reverse' : 'flex-row',
-        gap ? 'gap-3 sm:gap-4' : undefined,
-      )
-    "
+    :class="cn('flex flex-row', gap ? 'gap-3 sm:gap-4' : undefined)"
     :style="{ flexWrap: 'wrap' }"
   >
-    <div
-      :style="{
-        flexBasis: sideWidth,
-        flexGrow: 0,
-        flexShrink: 1,
-      }"
-    >
-      <slot name="side" />
-    </div>
-
-    <div
-      :style="{
-        flexBasis: 0,
-        flexGrow: 999,
-        flexShrink: 1,
-        minWidth: contentMin,
-      }"
-    >
-      <slot />
-    </div>
+    <!--
+      Document order follows `side`, so the wrapped stack never contradicts
+      the side-by-side row and screen-reader order matches the visual one:
+      content first when `side="right"`, sidebar first when `side="left"`.
+      flex-row (never reverse) plus this ordering is what makes the wrap
+      produce content-above-sidebar for `side="right"`.
+    -->
+    <template v-if="side === 'right'">
+      <!-- Content: fills all remaining space (flex-grow: 999), but its
+           min-width: contentMin triggers wrapping when there isn't room. -->
+      <div
+        :style="{
+          flexBasis: 0,
+          flexGrow: 999,
+          flexShrink: 1,
+          minWidth: contentMin,
+        }"
+      >
+        <slot />
+      </div>
+      <!-- Sidebar: preferred width as flex-basis, does not grow. -->
+      <div
+        :style="{
+          flexBasis: sideWidth,
+          flexGrow: 0,
+          flexShrink: 1,
+        }"
+      >
+        <slot name="side" />
+      </div>
+    </template>
+    <template v-else>
+      <!-- Sidebar: preferred width as flex-basis, does not grow. -->
+      <div
+        :style="{
+          flexBasis: sideWidth,
+          flexGrow: 0,
+          flexShrink: 1,
+        }"
+      >
+        <slot name="side" />
+      </div>
+      <!-- Content: fills all remaining space (flex-grow: 999), but its
+           min-width: contentMin triggers wrapping when there isn't room. -->
+      <div
+        :style="{
+          flexBasis: 0,
+          flexGrow: 999,
+          flexShrink: 1,
+          minWidth: contentMin,
+        }"
+      >
+        <slot />
+      </div>
+    </template>
   </div>
 </template>

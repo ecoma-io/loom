@@ -145,6 +145,17 @@ test("SplitLayout stacks below collapse width and splits above", async ({ page }
   expect(mainBox).toBeTruthy();
   expect(mainBox!.y).toBeGreaterThanOrEqual(sideBox!.y + sideBox!.height - 1);
 
+  // The demo's second instance is `side="right"`: its stack must read
+  // content above, panel below — never the reverse (ecoma-io/loom#158).
+  const rowRight = demo.locator(FLEX_WRAP).nth(1);
+  const sideRight = rowRight.locator("> div").nth(1);
+  const mainRight = rowRight.locator("> div").first();
+  const sideRightBox = await sideRight.boundingBox();
+  const mainRightBox = await mainRight.boundingBox();
+  expect(sideRightBox).toBeTruthy();
+  expect(mainRightBox).toBeTruthy();
+  expect(mainRightBox!.y + mainRightBox!.height).toBeLessThanOrEqual(sideRightBox!.y + 1);
+
   // Wide: side by side.
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.goto("layouts/split-layout");
@@ -158,4 +169,14 @@ test("SplitLayout stacks below collapse width and splits above", async ({ page }
   expect(sideWideBox).toBeTruthy();
   expect(mainWideBox).toBeTruthy();
   expect(mainWideBox!.x).toBeGreaterThan(sideWideBox!.x + sideWideBox!.width - 1);
+
+  // Wide right instance: the panel stays on the right of the content.
+  const rowRightWide = page.locator("figure").first().locator(FLEX_WRAP).nth(1);
+  const sideRightWide = rowRightWide.locator("> div").nth(1);
+  const mainRightWide = rowRightWide.locator("> div").first();
+  const sideRightWideBox = await sideRightWide.boundingBox();
+  const mainRightWideBox = await mainRightWide.boundingBox();
+  expect(sideRightWideBox).toBeTruthy();
+  expect(mainRightWideBox).toBeTruthy();
+  expect(sideRightWideBox!.x).toBeGreaterThan(mainRightWideBox!.x + mainRightWideBox!.width - 1);
 });

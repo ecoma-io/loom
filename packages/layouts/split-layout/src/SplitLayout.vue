@@ -72,50 +72,76 @@ withDefaults(
       container's width.
     -->
     <div
-      :class="
-        cn(
-          'flex flex-1',
-          side === 'right' ? 'flex-row-reverse' : 'flex-row',
-          gap !== 'none' ? gapClass[gap] : undefined,
-        )
-      "
+      :class="cn('flex flex-1 flex-row', gap !== 'none' ? gapClass[gap] : undefined)"
       :style="{ flexWrap: 'wrap' }"
     >
       <!--
-        The side panel holds a fixed basis and does not grow. It sits on the
-        sunken elevation so the content area reads as the work surface lifted
-        above navigation chrome. Gutters widen at wider breakpoints.
+        Document order follows `side`, so screen-reader order matches the
+        visual one and the wrapped stack never contradicts the row: content
+        first when `side="right"` (stack: content above, panel below), side
+        first when `side="left"`. flex-row (never reverse) plus this ordering
+        is what makes the wrap produce content-above-panel for `side="right"`.
       -->
-      <div
-        :style="{
-          flexBasis: minSideWidth,
-          flexGrow: 0,
-          flexShrink: 0,
-          minWidth: minSideWidth,
-        }"
-        :class="cn('bg-sunken w-full px-4 sm:px-6 3xl:px-8')"
-      >
-        <slot name="side" />
-      </div>
-
-      <!--
-        The content panel takes all remaining space (`flex-grow: 999`) when the
-        container is wide enough. Its `min-width: 50%` triggers wrapping below
-        tablet-like widths. It scrolls independently so long content never
-        pushes the side panel off-screen. Gutters widen at wider breakpoints so
-        ultrawide viewports add whitespace rails rather than stretching lines.
-      -->
-      <div
-        :style="{
-          flexBasis: 0,
-          flexGrow: 999,
-          flexShrink: 1,
-          minWidth: '50%',
-        }"
-        :class="cn('bg-background overflow-y-auto px-4 sm:px-6 3xl:px-8')"
-      >
-        <slot />
-      </div>
+      <template v-if="side === 'right'">
+        <!-- Content: takes all remaining space (flex-grow: 999); its
+             min-width: 50% triggers wrapping below tablet-like widths. Scrolls
+             independently so long content never pushes the panel off-screen. -->
+        <div
+          :style="{
+            flexBasis: 0,
+            flexGrow: 999,
+            flexShrink: 1,
+            minWidth: '50%',
+          }"
+          :class="cn('bg-background overflow-y-auto px-4 sm:px-6 3xl:px-8')"
+        >
+          <slot />
+        </div>
+        <!-- The side panel holds a fixed basis and does not grow; the sunken
+             elevation makes the content read as the work surface above
+             navigation chrome. -->
+        <div
+          :style="{
+            flexBasis: minSideWidth,
+            flexGrow: 0,
+            flexShrink: 0,
+            minWidth: minSideWidth,
+          }"
+          :class="cn('bg-sunken w-full px-4 sm:px-6 3xl:px-8')"
+        >
+          <slot name="side" />
+        </div>
+      </template>
+      <template v-else>
+        <!-- The side panel holds a fixed basis and does not grow; the sunken
+             elevation makes the content read as the work surface above
+             navigation chrome. -->
+        <div
+          :style="{
+            flexBasis: minSideWidth,
+            flexGrow: 0,
+            flexShrink: 0,
+            minWidth: minSideWidth,
+          }"
+          :class="cn('bg-sunken w-full px-4 sm:px-6 3xl:px-8')"
+        >
+          <slot name="side" />
+        </div>
+        <!-- Content: takes all remaining space (flex-grow: 999); its
+             min-width: 50% triggers wrapping below tablet-like widths. Scrolls
+             independently so long content never pushes the panel off-screen. -->
+        <div
+          :style="{
+            flexBasis: 0,
+            flexGrow: 999,
+            flexShrink: 1,
+            minWidth: '50%',
+          }"
+          :class="cn('bg-background overflow-y-auto px-4 sm:px-6 3xl:px-8')"
+        >
+          <slot />
+        </div>
+      </template>
     </div>
   </div>
 </template>

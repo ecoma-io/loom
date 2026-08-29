@@ -63,10 +63,16 @@ describe("SplitLayout", () => {
     expect(root.classes()).not.toContain("sm:gap-4");
   });
 
-  it("places the side panel on the right when side is 'right'", () => {
+  it("puts the content first in document order when side is 'right', so the wrap stacks content above the panel", () => {
     const wrapper = layoutOf({ side: "right" });
-    const row = wrapper.findAll("div")[1]!;
-    expect(row.classes()).toContain("flex-row-reverse");
+    const divs = wrapper.findAll("div");
+    // Right side: root [0], flex row [1], content [2], side panel [3] — the
+    // DOM order the docs promise for the collapsed stack (content above,
+    // panel below).
+    expect(divs[2]!.text()).toContain("Main content");
+    expect(divs[3]!.text()).toContain("Side panel");
+    expect(divs[2]!.attributes("style") ?? "").toMatch(/flex:\s*999/);
+    expect(divs[1]!.classes()).not.toContain("flex-row-reverse");
   });
 
   it("wraps when the container is too narrow for both panels", () => {

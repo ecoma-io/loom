@@ -54,42 +54,71 @@ withDefaults(
     widths — there is no breakpoint prop to set it with.
   -->
   <div
-    :class="
-      cn(
-        'flex',
-        side === 'right' ? 'flex-row-reverse' : 'flex-row',
-        gap !== 'none' ? gapClass[gap] : undefined,
-      )
-    "
+    :class="cn('flex flex-row', gap !== 'none' ? gapClass[gap] : undefined)"
     :style="{
       flexWrap: 'wrap',
     }"
   >
-    <!-- Side panel: fixed minimum width, does not grow. When collapsed the
-         panel takes full width (flex-basis: 100%). -->
-    <div
-      :style="{
-        flexBasis: minSideWidth,
-        flexGrow: 0,
-        flexShrink: 0,
-        minWidth: minSideWidth,
-      }"
-    >
-      <slot name="side" />
-    </div>
-
-    <!-- Content area: fills remaining space, but demands at least 50% of
-         the container before wrapping. When collapsed it also takes full
-         width. -->
-    <div
-      :style="{
-        flexBasis: 0,
-        flexGrow: 999,
-        flexShrink: 1,
-        minWidth: '50%',
-      }"
-    >
-      <slot />
-    </div>
+    <!--
+      Document order follows `side`, so the wrapped stack never contradicts
+      the side-by-side row and screen-reader order matches the visual one:
+      content first when `side="right"`, side first when `side="left"`.
+      flex-row (never reverse) plus this ordering is what makes the wrap
+      produce content-above-panel for `side="right"`.
+    -->
+    <template v-if="side === 'right'">
+      <!-- Content area: fills remaining space, but demands at least 50% of
+           the container before wrapping. When collapsed it also takes full
+           width. -->
+      <div
+        :style="{
+          flexBasis: 0,
+          flexGrow: 999,
+          flexShrink: 1,
+          minWidth: '50%',
+        }"
+      >
+        <slot />
+      </div>
+      <!-- Side panel: fixed minimum width, does not grow. When collapsed the
+           panel takes full width (flex-basis: 100%). -->
+      <div
+        :style="{
+          flexBasis: minSideWidth,
+          flexGrow: 0,
+          flexShrink: 0,
+          minWidth: minSideWidth,
+        }"
+      >
+        <slot name="side" />
+      </div>
+    </template>
+    <template v-else>
+      <!-- Side panel: fixed minimum width, does not grow. When collapsed the
+           panel takes full width (flex-basis: 100%). -->
+      <div
+        :style="{
+          flexBasis: minSideWidth,
+          flexGrow: 0,
+          flexShrink: 0,
+          minWidth: minSideWidth,
+        }"
+      >
+        <slot name="side" />
+      </div>
+      <!-- Content area: fills remaining space, but demands at least 50% of
+           the container before wrapping. When collapsed it also takes full
+           width. -->
+      <div
+        :style="{
+          flexBasis: 0,
+          flexGrow: 999,
+          flexShrink: 1,
+          minWidth: '50%',
+        }"
+      >
+        <slot />
+      </div>
+    </template>
   </div>
 </template>
