@@ -312,7 +312,10 @@ function handleTypeahead(event: KeyboardEvent): void {
   if (event.key.length !== 1 || event.altKey || event.ctrlKey || event.metaKey) return;
   if (flatRows.value.length === 0) return;
   const char = event.key.toLowerCase();
-  if (typeaheadBuffer !== char) typeaheadBuffer += char;
+  // Repeat detection reads the buffer's LAST character: a multi-character
+  // prefix must survive a repeated final character so the walk cycles to
+  // the next match instead of extending the prefix to a non-match.
+  if (typeaheadBuffer.slice(-1) !== char) typeaheadBuffer += char;
   const query = typeaheadBuffer;
   const start = currentRowIndex() + 1;
   for (let step = 0; step < flatRows.value.length; step++) {
