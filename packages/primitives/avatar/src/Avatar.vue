@@ -111,7 +111,7 @@ const props = withDefaults(
     shape?: AvatarShape;
     /** Which visual treatment the avatar receives. `accent` applies the accent rim and `accentLabel` for a screen reader, so the distinction never rests on the hue alone. */
     variant?: AvatarVariant;
-    /** What a screen reader announces after the name of an `accent` avatar. Localise it. Set it empty when something outside already says so — `AvatarGroup` does, because each row item composes its own name — and nothing is added for a `default` avatar either way. */
+    /** What a screen reader announces after the name of an `accent` avatar — "Accent" by default, so the accent never rests on the hue alone. Localise it. Set it empty when something outside already says so — `AvatarGroup` does, because each row item composes its own name — and nothing is added for a `default` avatar either way. */
     accentLabel?: string;
   }>(),
   {
@@ -119,7 +119,7 @@ const props = withDefaults(
     size: "md",
     shape: "circle",
     variant: "default",
-    accentLabel: "",
+    accentLabel: "Accent",
   },
 );
 
