@@ -21,8 +21,15 @@ describe("Split", () => {
     expect(splitOf().find("div").classes()).toContain("flex-row");
   });
 
-  it("places the side panel on the right when side is 'right'", () => {
-    expect(splitOf({ side: "right" }).find("div").classes()).toContain("flex-row-reverse");
+  it("puts the content first in document order when side is 'right', so the wrap stacks content above the panel", () => {
+    const wrapper = splitOf({ side: "right" });
+    const divs = wrapper.findAll("div");
+    // Right side: document order is [content, panel] — the DOM order the
+    // docs promise for the collapsed stack (content above, panel below).
+    expect(divs[1]!.find("p").text()).toBe("content");
+    expect(divs[2]!.find("p").text()).toBe("panel");
+    expect(divs[1]!.attributes("style") ?? "").toMatch(/flex:\s*999/);
+    expect(wrapper.find("div").classes()).not.toContain("flex-row-reverse");
   });
 
   it("gives the side panel a fixed minimum width that does not grow", () => {

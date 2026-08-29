@@ -20,8 +20,15 @@ describe("Sidebar", () => {
     expect(sidebarOf().find("div").classes()).toContain("flex-row");
   });
 
-  it("places the sidebar on the right when side is 'right'", () => {
-    expect(sidebarOf({ side: "right" }).find("div").classes()).toContain("flex-row-reverse");
+  it("puts the content first in document order when side is 'right', so the wrap stacks content above the sidebar", () => {
+    const wrapper = sidebarOf({ side: "right" });
+    const divs = wrapper.findAll("div");
+    // Right side: document order is [content, sidebar] — the DOM order the
+    // docs promise for the collapsed stack (content above, sidebar below).
+    expect(divs[1]!.find("p").text()).toBe("content");
+    expect(divs[2]!.find("p").text()).toBe("nav");
+    expect(divs[1]!.attributes("style") ?? "").toMatch(/flex:\s*999/);
+    expect(wrapper.find("div").classes()).not.toContain("flex-row-reverse");
   });
 
   it("gives the sidebar its preferred width as flex-basis, but does not let it grow", () => {
