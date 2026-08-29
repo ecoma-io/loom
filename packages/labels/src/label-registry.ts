@@ -16,6 +16,7 @@ import type {
   BreadcrumbLabels,
   ColorPickerLabels,
   ComboboxLabels,
+  CommandLabels,
   DataGridLabels,
   DateRangeLabels,
   DateTimeRangeLabels,
@@ -100,6 +101,7 @@ export interface LoomLabels {
   // no slot rather than an empty one.
   readonly numberField: NumberFieldLabels;
   readonly combobox: ComboboxLabels;
+  readonly command: CommandLabels;
   readonly otpInput: OtpInputLabels;
   readonly fileUpload: FileUploadLabels;
   readonly rating: RatingLabels;

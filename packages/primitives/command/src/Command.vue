@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { CommandLabels, LabelOverrides } from "@ecoma-io/loom-labels";
 /**
  * One searchable item in the command list. `value` is what the host receives on
  * select; `label` is what the reader sees and what the filter matches against.
@@ -28,11 +29,25 @@ export interface CommandGroup {
   /** Group heading text. */
   heading: string;
 }
+
+/**
+ * Loom's English, co-located with the component so it tree-shakes with it.
+ * Every string a Command actually says is the chrome around the host's items,
+ * so the whole slot is here and none of it hides in the template.
+ */
+export const COMMAND_LABELS: CommandLabels = {
+  placeholder: "Type to search…",
+  emptyMessage: "No results found.",
+  searchLabel: "Search",
+  resultSingular: "{count} result available",
+  resultPlural: "{count} results available",
+};
 </script>
 
 <script setup lang="ts">
 import { computed, nextTick, ref, useId, watch } from "vue";
 import { cn } from "@ecoma-io/loom-core";
+import { useLabels } from "@ecoma-io/loom-labels";
 
 /**
  * Command — a keyboard-driven command search, the universal "Cmd+K" pattern.
@@ -51,11 +66,9 @@ import { cn } from "@ecoma-io/loom-core";
  * `aria-activedescendant` navigation: focus stays in the input while the
  * highlighted item moves, which is the only model that keeps typing fluid.
  *
- * `aria-expanded` is deliberately absent. A Combobox opens and closes a
- * listbox that may or may not be relevant; a Command always shows its list,
- * because filtering *is* the command. The container is always a `role="combobox"`
- * with a visible `role="listbox"` inside it, not a popover that appears and
- * disappears.
+ * `aria-expanded` is deliberately absent. The input is a fixed searchbox, not
+ * a popover trigger, so it has no collapsed state to announce: the listbox is
+ * visible on mount and returns on any interaction after Escape closes it.
  */
 const props = withDefaults(
   defineProps<{
@@ -67,25 +80,15 @@ const props = withDefaults(
     query?: string | undefined;
     /** Whether the command menu is open. */
     open?: boolean | undefined;
-    /** Labels for internal elements. */
-    labels?: Partial<{
-      /** Placeholder text for the search input. */
-      placeholder: string;
-      /** Text shown when no items match the query. */
-      emptyMessage: string;
-      /** Label for the search input. */
-      searchLabel: string;
-      /** Singular result count text. Use {count} as placeholder. */
-      resultSingular: string;
-      /** Plural result count text. Use {count} as placeholder. */
-      resultPlural: string;
-    }>;
+    /** Names for the strings this control supplies itself. */
+    labels?: LabelOverrides<CommandLabels> | undefined;
     /** Accessible label by reference for the search input. */
     ariaLabelledby?: string;
   }>(),
   {
     query: undefined,
     open: undefined,
+    labels: undefined,
   },
 );
 
@@ -98,14 +101,7 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
-const resolvedLabels = computed(() => ({
-  placeholder: "Type to search…",
-  emptyMessage: "No results found.",
-  searchLabel: "Search",
-  resultSingular: "{count} result available",
-  resultPlural: "{count} results available",
-  ...props.labels,
-}));
+const resolvedLabels = useLabels("command", COMMAND_LABELS, () => props.labels);
 
 const inputId = useId();
 const listboxId = useId();
@@ -135,6 +131,17 @@ function setOpen(value: boolean): void {
   } else {
     internalOpen.value = value;
   }
+}
+
+/**
+ * Bring the listbox back after Escape closed it. Focus never leaves the
+ * search input, so without this a closed Command is a dead end — the only
+ * escape, before this fix, was unmounting the component. Controlled mode is
+ * untouched: the emit the host chose stays with the host, and this rewrites
+ * only the fallback state a host never bound.
+ */
+function restoreOpen(): void {
+  if (props.open === undefined) internalOpen.value = true;
 }
 
 /**
@@ -298,6 +305,11 @@ function selectHighlighted(): void {
 }
 
 function onKeydown(event: KeyboardEvent): void {
+  // A closed Command returns on any interaction except the two that leave it —
+  // Escape (the key that closed it, still under the same finger) and Tab
+  // (which moves focus elsewhere). Keydown fires before the input event, so
+  // typing also lands on an open list.
+  if (!isOpen.value && event.key !== "Escape" && event.key !== "Tab") restoreOpen();
   switch (event.key) {
     case "ArrowDown": {
       event.preventDefault();
@@ -379,6 +391,8 @@ function itemId(index: number): string {
         class="w-full px-3 py-2 text-sm bg-transparent text-foreground border-none outline-none placeholder:text-muted-foreground"
         @input="onInput"
         @keydown="onKeydown"
+        @focus="restoreOpen"
+        @click="restoreOpen"
       />
     </div>
     <div

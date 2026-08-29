@@ -106,6 +106,16 @@ on every keystroke, so the most relevant item is always one Enter away.
 Focus stays in the input throughout — the active item is tracked with
 `aria-activedescendant`, not real focus movement.
 
+Escape closes the list when the query is already empty. Focus never leaves the
+input, so the list returns on any further interaction — focussing or clicking
+the input, or pressing any key except `Escape` (the one that closed it) and
+`Tab` (which moves on).
+
+The placeholder, the input's accessible name, the empty message and the
+result-count announcement all come through the labels seam: `labels` overrides
+the vocabulary per instance, `provideLoomLabels({ command: … })` for a whole
+application. See [Localisation](/foundations/localisation).
+
 ## Accessibility
 
 - `role="searchbox"` on the input (more specific than `combobox` for search)

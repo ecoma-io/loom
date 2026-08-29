@@ -1,6 +1,7 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick } from "vue";
+import { provideLoomLabels } from "@ecoma-io/loom-labels";
 import Command, { type CommandItem, type CommandGroup } from "../src/Command.vue";
 
 const items: CommandItem[] = [
@@ -523,5 +524,69 @@ describe("Command labels prop", () => {
     mountCommand({ labels: { placeholder: "Custom placeholder" } });
     expect(getInput().getAttribute("placeholder")).toBe("Custom placeholder");
     expect(getInput().getAttribute("aria-label")).toBe("Search");
+  });
+});
+
+describe("Command labels seam", () => {
+  it("resolves its vocabulary through provideLoomLabels", async () => {
+    mount(
+      defineComponent({
+        setup() {
+          provideLoomLabels(() => ({ command: { emptyMessage: "Rien trouvé" } }));
+          return () => h(Command, { items });
+        },
+      }),
+      { attachTo: document.body },
+    );
+    await type("zzz");
+    expect(getRows()[0]?.textContent.trim()).toBe("Rien trouvé");
+  });
+});
+
+describe("Command reopens after Escape", () => {
+  it("reopens the listbox on focus after Escape closed it", async () => {
+    mountCommand();
+    await settle();
+    pressKey("Escape");
+    await settle();
+    expect(getListbox()).toBeNull();
+    getInput().focus();
+    await settle();
+    expect(getListbox()).not.toBeNull();
+  });
+
+  it("reopens the listbox on a navigation key while closed", async () => {
+    mountCommand();
+    await settle();
+    pressKey("Escape");
+    await settle();
+    expect(getListbox()).toBeNull();
+    pressKey("ArrowDown");
+    await settle();
+    expect(getListbox()).not.toBeNull();
+  });
+
+  it("stays closed when Escape or Tab is pressed again", async () => {
+    mountCommand();
+    await settle();
+    pressKey("Escape");
+    await settle();
+    expect(getListbox()).toBeNull();
+    pressKey("Escape");
+    await settle();
+    expect(getListbox()).toBeNull();
+    pressKey("Tab");
+    await settle();
+    expect(getListbox()).toBeNull();
+  });
+
+  it("does not reopen a controlled closed menu", async () => {
+    const wrapper = mountCommand({ open: false });
+    await settle();
+    expect(getListbox()).toBeNull();
+    getInput().focus();
+    await settle();
+    expect(getListbox()).toBeNull();
+    wrapper.unmount();
   });
 });
