@@ -253,6 +253,16 @@ watch(flatItems, (items) => {
 });
 
 /**
+ * The documented reset: the highlight returns to the first match whenever the
+ * query changes — whether the query came from typing or from a parent updating
+ * the controlled `query` prop. Typing reaches this watcher through `setQuery`,
+ * which is why onInput no longer resets the highlight itself.
+ */
+watch(queryValue, () => {
+  highlightedIndex.value = 0;
+});
+
+/**
  * The total number of results, announced to assistive technology through a live
  * region. Changes only when the filtered set changes, not on every keystroke.
  */
@@ -329,7 +339,6 @@ function onKeydown(event: KeyboardEvent): void {
 function onInput(event: Event): void {
   const value = (event.target as HTMLInputElement).value;
   setQuery(value);
-  highlightedIndex.value = 0;
 }
 
 function selectItem(item: CommandItem): void {

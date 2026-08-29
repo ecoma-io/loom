@@ -418,6 +418,24 @@ describe("Command controlled query", () => {
     await type("dark");
     expect(wrapper.emitted("update:query")).toEqual([["dark"]]);
   });
+
+  it("resets the highlight to the first match when the controlled query changes", async () => {
+    const wrapper = mountCommand({ query: "" });
+    await settle();
+    pressKey("ArrowDown");
+    pressKey("ArrowDown");
+    await settle();
+    expect(labels()[2]).toBe("Edit profile");
+    // Without a reset, the highlight would stay on the third row of the
+    // narrowed list ("Create project") — stale after the parent changed query.
+    await wrapper.setProps({ query: "e" });
+    await settle();
+    const rows = getRows();
+    expect(labels()[0]).toBe("Open settings");
+    expect(getInput().getAttribute("aria-activedescendant")).toBe(rows[0]?.id);
+    expect(rows[0]?.hasAttribute("data-active")).toBe(true);
+    wrapper.unmount();
+  });
 });
 
 describe("Command controlled open", () => {
