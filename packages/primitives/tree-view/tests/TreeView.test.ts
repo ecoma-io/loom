@@ -260,6 +260,31 @@ describe("TreeView — the typeahead", () => {
       vi.useRealTimers();
     }
   });
+
+  it("keeps a multi-character prefix when the last character repeats, and cycles to the next match", async () => {
+    vi.useFakeTimers();
+    try {
+      mountTree({
+        nodes: [
+          { value: "cable", label: "Cable" },
+          { value: "cabin", label: "Cabin" },
+          { value: "cache", label: "Cache" },
+        ],
+      });
+      item("cable").focus();
+      await press("c");
+      expect(focusedValue()).toBe("cabin");
+      await press("a");
+      expect(focusedValue()).toBe("cache");
+      // The repeated 'a' must not extend the buffer to "caa" — the contract
+      // in TreeView.vue's docblock pins it: the same character typed again
+      // cycles to that character's next match, wrapping past the walk's start.
+      await press("a");
+      expect(focusedValue()).toBe("cable");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("TreeView — selection", () => {
