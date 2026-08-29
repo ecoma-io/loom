@@ -45,6 +45,15 @@ const props = withDefaults(
     open?: boolean | undefined;
     /** Names for what the alert says on its own account, as any subset of `AlertLabels`. */
     labels?: LabelOverrides<AlertLabels>;
+    /**
+     * How assertively the alert announces itself, overriding the per-tone
+     * default. Destructive and warning news are assertive `role="alert"`
+     * interruptions; neutral, info and success are polite `role="status"` —
+     * a "Saved" note should not cut off what is being read. `"off"` removes
+     * the live semantics for surfaces that are not interruptions at all,
+     * such as a static wall of notices.
+     */
+    live?: "assertive" | "polite" | "off";
   }>(),
   {
     // `undefined` is the uncontrolled state, and only an explicit default
@@ -95,6 +104,15 @@ function dismiss(): void {
 }
 
 const accent = computed(() => TONE_ACCENTS[props.variant]);
+
+// The interruption an alert makes follows its stakes: failure and warning
+// news is the assertive role, the rest polite. A live region that says
+// "Saved" on every save should not be cutting off whatever is being read.
+const live = computed<"assertive" | "polite" | "off">(
+  () =>
+    props.live ??
+    (props.variant === "destructive" || props.variant === "warning" ? "assertive" : "polite"),
+);
 </script>
 
 <template>
@@ -107,7 +125,7 @@ const accent = computed(() => TONE_ACCENTS[props.variant]);
     <div
       v-if="isOpen"
       v-bind="$attrs"
-      role="alert"
+      :role="live === 'off' ? undefined : live === 'assertive' ? 'alert' : 'status'"
       :class="cn('flex items-start gap-3 rounded-md border border-transparent p-3', accent?.wash)"
     >
       <slot name="icon">

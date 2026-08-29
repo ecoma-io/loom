@@ -5,11 +5,13 @@ until the reader or the host removes it. It is not Toast: a toast floats
 above the page and leaves on its own; an alert sits in the flow where the
 condition it reports lives, and it never disappears by itself.
 
-`role="alert"` announces on insertion, which is the right contract for
-feedback that appears in response to something — save results, sync
-failures, quota crossings. A wall of alerts rendered statically on page
-load announces itself too (AntD and Chakra ship the same trade); prefer
-`role="status"` via your own wrapper if you truly need silent-at-load.
+An alert's interruption matches its stakes: `warning` and `destructive`
+tones announce as `role="alert"` (assertive), while `neutral`, `info` and
+`success` announce as the polite `role="status"` — a "Saved" note should
+not cut off what is being read. The `live` prop overrides the per-tone
+default for surfaces where the automatic choice does not fit; `live="off"`
+removes the live semantics for static walls of notices that should not
+interrupt at all.
 
 <script setup lang="ts">
 import { Alert } from "@ecoma-io/loom";
