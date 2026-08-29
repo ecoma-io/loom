@@ -79,7 +79,7 @@ prescribes.
 ## Sorting
 
 A `sortable: true` column renders a tri-state header control cycling
-ascending → descending → descending → none — the same semantics as
+ascending → descending → none — the same semantics as
 `TableHead`. State lives with the host through `v-model:sort`; omit the
 binding and the headers cycle on their own while still reporting every
 change through both `update:sort` and `sort-change`. The sorted column
@@ -96,7 +96,6 @@ glyph — chevrons are shape-only semantics.
 
 Cells render `row[column.key]` by default; the `#cell` slot (scoped with
 `row`, `column`, `value`) takes over for Badges, links or action clusters.
-Headers render `column.header`; the `#header` slot takes over per column.
 
 ## Labels
 
