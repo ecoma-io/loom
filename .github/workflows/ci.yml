@@ -33,7 +33,15 @@ jobs:
   verify:
     name: Verify
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # This budget is a backstop for runner contention, not the hang detector:
+    # at 15 minutes it fired mid `moon run` three times in one concurrency
+    # burst on 2026-08-28 (ecoma-io/loom#140), where GitHub's only message was
+    # "The operation was canceled" — no task named. A hung task now fails by
+    # name through the shared test task's own timeout (.moon/tasks/test.yml),
+    # so this number is sized for legitimate work: recent Verify runs are
+    # p50 ≈ 10 min and 13.4 min at the slowest green, and 25 minutes keeps
+    # roughly double the p95 as burst headroom instead of a mid-run cancel.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

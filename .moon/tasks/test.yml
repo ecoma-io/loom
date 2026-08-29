@@ -80,3 +80,12 @@ tasks:
     options:
       cache: true
       runInCI: affected
+      # A test that hangs must fail as its own task — moon names the timed-out
+      # target — instead of running on until the Verify job's timeout-minutes
+      # cancels the whole `moon run` with GitHub's only message, "The operation
+      # was canceled", and no culprit (three Verify runs lost that way in one
+      # concurrency burst on 2026-08-28, ecoma-io/loom#140). 300s mirrors the
+      # shared e2e task's budget (.moon/tasks/e2e.yml) and sits ~13x above the
+      # measured per-project duration (docs:test ≈ 22.7s at maxWorkers: 1,
+      # described above).
+      timeout: 300
