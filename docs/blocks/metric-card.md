@@ -43,7 +43,7 @@ weight the host did not ask for.
 
 The arrow shape distinguishes up from down even without hue, and "flat" is
 an em dash rather than a horizontal arrow that could be mistaken for a minus
-sign or a separator. `text-success` / `text-destructive` / `text-muted-foreground`
+sign or a separator. `text-success-text` / `text-destructive-text` / `text-muted-foreground`
 are the semantic tokens rather than fixed greens and reds, so the card adapts
 to whatever the theme maps those to.
 
