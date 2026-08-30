@@ -547,6 +547,32 @@ describe("DateRangePicker status line", () => {
 
     expect(getStatus().textContent).toContain("14 March 2026");
   });
+
+  it("keeps a preselected range silent at open, announcing only what the user changes", async () => {
+    mountPicker({ modelValue: RANGE });
+    await openCalendar();
+
+    // The live region arrives in the document with the host's value already
+    // in it (the panel remounts on every open) — announcing it would read a
+    // value the user did not choose, here. Used by whoever set it.
+    const status = getStatus();
+    expect(status.getAttribute("aria-hidden")).toBe("true");
+
+    getDay(`${RANGE.start.slice(0, 8)}28`).click();
+    await settle();
+  });
+
+  it("hides the status line from assistive technology until the first user selection", async () => {
+    mountPicker();
+    await openCalendar();
+
+    expect(getStatus().getAttribute("aria-hidden")).toBe("true");
+
+    getDay(PICK_START).click();
+    await settle();
+
+    expect(getStatus().getAttribute("aria-hidden")).toBeNull();
+  });
 });
 
 describe("DateRangePicker calendar", () => {

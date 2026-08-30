@@ -346,8 +346,16 @@ const rootValue = computed(() =>
 // ends are, so the panel stays open over a half-made selection. Closing on the
 // first click would hide the calendar exactly when the reader still needs it.
 const open = ref(false);
+// Mount-silent live region, the rule #176 set for Calendar: the panel (and
+// with it this line) mounts afresh on every open, so a preselected value
+// would otherwise be announced on insertion as if the reader had just chosen
+// it. The region stays aria-hidden until Reka reports a user-driven change —
+// `@update:model-value` fires on interaction, never on a host's prop write —
+// then it is live for both, like any open region.
+const announced = ref(false);
 
 function onRangeChange(range: CalendarRangeValue) {
+  announced.value = true;
   if (range.start && range.end) open.value = false;
   emit(
     "update:modelValue",
@@ -666,7 +674,13 @@ function onOpenAutoFocus(event: Event) {
             </DateRangePickerNext>
           </DateRangePickerHeader>
 
-          <p role="status" class="text-xs text-muted-foreground">{{ rangeStatus(range) }}</p>
+          <p
+            role="status"
+            :aria-hidden="announced ? undefined : 'true'"
+            class="text-xs text-muted-foreground"
+          >
+            {{ rangeStatus(range) }}
+          </p>
 
           <!-- Two months stacked below `sm`, side by side above it — and both
                of them in the document at every width. Hiding the second one
