@@ -153,9 +153,12 @@ announces its content the moment it enters the document, so a calendar opened
 on a preselected value would otherwise read that value out as if the user had
 just picked it; hiding the line at mount silences the non-event, and the
 first click or `Enter` reveals it with the new text already in it — the
-announcement is then the change itself. Programmatic `v-model` updates never
-reveal it, which is the same rule from the other side: only a user's own
-action announces.
+announcement is then the change itself. Before that first action,
+programmatic `v-model` updates never reveal it either — the same rule from
+the other side: a value inserted while the region is hidden is announced by
+whoever set it, not by the calendar. After the first user action the region
+is an ordinary live region, and speaks real selection changes whichever side
+caused them, which is exactly what it is for.
 
 Three states, three cues, none of them colour: the selected day is
 `aria-selected`, today is `aria-current="date"` and carries a dot under its

@@ -34,15 +34,16 @@ focus-not-obscured e2e tests cover what axe does not yet automate.
 
 ```ts
 // packages/loom/src/a11y.ts
-export { WCAG_TAGS } from "@ecoma-io/loom-core";
+export { WCAG_TAGS, BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "@ecoma-io/loom-core";
 ```
 
 The package's main entry re-exports every component, which makes it
 unresolvable for a tool that compiles no Vue single-file component at all —
 a CI script, an end-to-end runner driving a built page. `@ecoma-io/loom/a11y`
-is a second, narrow entry point that exports nothing but this array, so a
-consumer that needs only the WCAG scope can read it without pulling in the
-rest of the library.
+is a second, narrow entry point: `WCAG_TAGS` and the browserless/browser
+partition (which rules a jsdom-tier test can answer, and which a browser gate
+cannot) — a consumer that needs only the WCAG scope, or that partition, can
+read them without pulling in the rest of the library.
 
 ## Focus rings are a promise
 
