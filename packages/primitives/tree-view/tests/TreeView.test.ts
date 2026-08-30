@@ -206,6 +206,17 @@ describe("TreeView — the roving tab stop", () => {
     expect(tabStops()).toEqual(["animals"]);
   });
 
+  it("never lets a disabled row become the entry tab stop, even after the arrows rest on it", async () => {
+    mountTree({ nodes: treeNodes });
+    item("plants").focus();
+    await press("ArrowDown");
+    expect(focusedValue()).toBe("minerals");
+    // The arrows rest on the disabled row, but the entry stop must still
+    // answer "where Tab would land" — the first enabled row — not "where the
+    // reader currently is".
+    expect(tabStops()).toEqual(["animals"]);
+  });
+
   it("reaches the last visible row with End and the first with Home", async () => {
     mountTree({ nodes: treeNodes, defaultExpanded: ["animals", "mammals"] });
     item("animals").focus();

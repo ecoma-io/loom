@@ -186,9 +186,11 @@ const rowByValue = computed(() => new Map(flatRows.value.map((row) => [row.value
 // arrow key — the first row a Tab is allowed to land on. A disabled row is
 // reachable from inside the tree but never *entered* from outside it.
 const tabStopValue = computed<string | number | null>(() => {
-  if (focusValue.value != null && rowByValue.value.has(focusValue.value)) {
-    return focusValue.value;
-  }
+  // The stop answers "where Tab would land", not "where the reader is": the
+  // arrows deliberately rest on disabled rows, but entering the tree from
+  // outside must land on the first enabled one.
+  const focused = focusValue.value != null ? rowByValue.value.get(focusValue.value) : undefined;
+  if (focused && !focused.disabled) return focusValue.value;
   const firstEnabled = flatRows.value.find((row) => !row.disabled);
   return firstEnabled?.value ?? null;
 });
