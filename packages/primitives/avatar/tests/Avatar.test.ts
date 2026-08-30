@@ -71,16 +71,11 @@ describe("Avatar", () => {
     expect(person.classes()).toContain("bg-muted");
   });
 
-  it("names the accent variant for a screen reader only when an accentLabel is provided, so the rim alone is not the whole signal", () => {
-    // No accentLabel → no sr-only text; the accent rim is visual only.
-    const rimOnly = mount(Avatar, { props: { fallback: "OP", alt: "Opus", variant: "accent" } });
-    expect(rimOnly.find(".sr-only").exists()).toBe(false);
-
-    // With an accentLabel → the sr-only text appears.
-    const named = mount(Avatar, {
-      props: { fallback: "OP", alt: "Opus", variant: "accent", accentLabel: "Accent" },
-    });
-    expect(named.get(".sr-only").text()).toBe("Accent");
+  it("names an accent avatar for a screen reader by default, so the distinction never rests on the hue alone", () => {
+    // No accentLabel → the docs' "Accent" default applies; an unlabelled
+    // accent avatar must still be distinguishable from a default one.
+    const accent = mount(Avatar, { props: { fallback: "OP", alt: "Opus", variant: "accent" } });
+    expect(accent.get(".sr-only").text()).toBe("Accent");
   });
 
   it("takes a localised accent label", () => {
