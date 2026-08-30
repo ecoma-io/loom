@@ -158,4 +158,24 @@ describe("ScrollReel", () => {
       restore();
     }
   });
+
+  it("does not swallow caret keys aimed at a nested editable", () => {
+    // The reel's keydown listener sits on the scrolling div, so a keypress
+    // inside a nested input — search field, combobox, contenteditable chip —
+    // bubbles into it. The reel must step aside, or ArrowLeft/Right/Home/End
+    // can never move the caret.
+    const wrapper = mount(ScrollReel, {
+      slots: { default: '<input aria-label="search" />' },
+    });
+    const root = wrapper.get("div");
+    const scrollTo = vi.fn();
+    (root.element as HTMLElement).scrollTo = scrollTo;
+    const input = root.element.querySelector("input");
+    if (!(input instanceof HTMLInputElement)) throw new Error("expected a nested input");
+
+    for (const key of ["ArrowLeft", "ArrowRight", "Home", "End"]) {
+      input.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+    }
+    expect(scrollTo).not.toHaveBeenCalled();
+  });
 });
