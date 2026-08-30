@@ -189,7 +189,7 @@ const colCount = computed(() => props.columns.length + (props.selectable ? 1 : 0
 // column first when `selectable`. Exactly one cell carries tabindex 0 — the
 // active cell — so Tab enters and leaves the grid once; everything else is
 // -1 and reachable only through the matrix moves.
-const activeCell = ref({ row: 0, col: 0 });
+const activeCell = ref({ row: props.rows.length > 0 ? 0 : -1, col: 0 });
 const bodyColumnIndex = (i: number): number => (props.selectable ? i + 1 : i);
 const isCellActive = (row: number, col: number): boolean =>
   activeCell.value.row === row && activeCell.value.col === col;
@@ -230,7 +230,10 @@ function focusCell(row: number, col: number): void {
 
 function moveTo(row: number, col: number): void {
   focusCell(
-    Math.min(Math.max(row, -1), Math.max(props.rows.length - 1, 0)),
+    // The floor is -1, not 0, for the same reason the watcher below uses it:
+    // with no body row, 0 would clamp onto a row that does not exist and
+    // strand the grid with no Tab stop (the header is `data-r="-1"`).
+    Math.min(Math.max(row, -1), Math.max(props.rows.length - 1, -1)),
     Math.min(Math.max(col, 0), colCount.value - 1),
   );
 }

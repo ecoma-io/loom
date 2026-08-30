@@ -174,6 +174,32 @@ describe("rows changing under the active cell", () => {
     expect(stops[0]?.attributes("data-r")).toBe("-1");
   });
 
+  it("keeps a Tab stop on the header when the grid mounts empty", () => {
+    const wrapper = mountGrid({ rows: [] });
+    // The initial active cell must already respect the -1 floor: an
+    // unclamped {row: 0} matches no body row and makes the whole grid
+    // unreachable by Tab.
+    const stops = wrapper.findAll('[data-r][tabindex="0"]');
+    expect(stops).toHaveLength(1);
+    expect(stops[0]?.attributes("data-r")).toBe("-1");
+  });
+
+  it("stays on the header when an arrow is pressed after rows shrink to none", async () => {
+    const wrapper = mountGrid({ rows: ROWS.slice(0, 1) });
+    cell(wrapper, 0, 0).element.focus();
+    await wrapper.setProps({ rows: [] });
+    await nextTick();
+    expect(document.activeElement).toBe(cell(wrapper, -1, 0).element);
+    // ArrowDown from the clamped header must rest on the header again, not
+    // clamp to a body row that does not exist (moveTo's floor differs from
+    // the watcher's) — that would strand the stop and leave no Tab stop.
+    await cell(wrapper, -1, 0).trigger("keydown", { key: "ArrowDown" });
+    await nextTick();
+    const stops = wrapper.findAll('[data-r][tabindex="0"]');
+    expect(stops).toHaveLength(1);
+    expect(stops[0]?.attributes("data-r")).toBe("-1");
+  });
+
   it("moves real focus to the clamped cell when the active one unmounts", async () => {
     const wrapper = mountGrid();
     cell(wrapper, 2, 1).element.focus();
