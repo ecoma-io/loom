@@ -25,13 +25,7 @@ const groups: CommandGroup[] = [{ heading: "Navigation" }, { heading: "Actions" 
 </script>
 
 <template>
-  <Command
-    :items="items"
-    :groups="groups"
-    placeholder="Search commands…"
-    aria-label="Commands"
-    @select="(v) => console.log(v)"
-  />
+  <Command :items="items" :groups="groups" @select="(v) => console.log(v)" />
 </template>
 ```
 
