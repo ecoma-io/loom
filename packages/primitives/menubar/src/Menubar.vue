@@ -194,6 +194,52 @@ function noteFocus(item: MenubarItem, index: number): void {
   if (item.disabled || item.separator) return;
   activeIndex.value = index;
 }
+/*
+ * The typeahead. APG menubars match a prefix of the item's label, starting
+ * after the focused row and wrapping; a character's repeated key re-cycles
+ * to its own next match rather than extending the prefix to a non-match, so
+ * the pending buffer is kept but the repeated final character is not
+ * appended. The buffer is 500 ms, case-insensitive, and the timer is released
+ * on unmount so a menubar torn down mid-typeahead leaves nothing pending —
+ * the same contract the TreeView sibling keeps.
+ */
+const TYPEAHEAD_RESET_MS = 500;
+let typeaheadBuffer = "";
+let typeaheadTimer: ReturnType<typeof setTimeout> | undefined;
+
+function typeaheadJump(items: MenubarItem[], from: number): void {
+  const query = typeaheadBuffer;
+  // The whole buffered prefix decides the match: repeated characters extend
+  // it, and a fresh character restarts it, so "Co" reaches "Copy" only when
+  // both keys follow each other within the timeout.
+  const n = items.length;
+  for (let step = 1; step <= n; step++) {
+    const i = (from + step) % n;
+    const item = items[i];
+    if (item && !item.separator && !item.disabled && item.label.toLowerCase().startsWith(query)) {
+      goTo(items, i);
+      break;
+    }
+  }
+}
+
+function handleTypeahead(e: KeyboardEvent, items: MenubarItem[]): void {
+  if (e.key.length !== 1 || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === " " || e.key === "Enter") return; // activation keys, handled above
+  const char = e.key.toLowerCase();
+  if (typeaheadBuffer.slice(-1) !== char) typeaheadBuffer += char;
+  e.preventDefault();
+  typeaheadJump(items, activeIndex.value);
+  if (typeaheadTimer !== undefined) clearTimeout(typeaheadTimer);
+  typeaheadTimer = setTimeout(() => {
+    typeaheadBuffer = "";
+    typeaheadTimer = undefined;
+  }, TYPEAHEAD_RESET_MS);
+}
+
+onBeforeUnmount(() => {
+  if (typeaheadTimer !== undefined) clearTimeout(typeaheadTimer);
+});
 
 /**
  * The APG's closed-state traversal: Left/Right across the strip land on the
@@ -274,6 +320,12 @@ function onMenuKeydown(e: KeyboardEvent, menu: MenubarMenu): void {
     case "Escape":
       e.preventDefault();
       close(true);
+      break;
+    // Every other key is a printable character: APG typeahead moves focus to
+    // the next item whose label begins with it. `default` sees only these —
+    // Space/Enter/Escape each have their own case above.
+    default:
+      handleTypeahead(e, items);
       break;
   }
 }

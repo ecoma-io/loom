@@ -355,6 +355,35 @@ describe("Menubar keyboard navigation", () => {
     ); // Zoom
     wrapper.unmount();
   });
+  it("a printable character moves focus to the next item whose label starts with it, wrapping at the end", async () => {
+    vi.useFakeTimers();
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" }); // focus New (0)
+    const buttons = fileItemButtons(wrapper);
+
+    // One key matches the first label starting with it: "s" → Save.
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "s" });
+    expect(document.activeElement).toBe(buttons[2]!.element); // Save
+
+    // The 500 ms buffer has expired, so the next key starts a fresh prefix.
+    vi.advanceTimersByTime(501);
+    // From the last item the walk wraps to the top and lands on the first match.
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "n" });
+    expect(document.activeElement).toBe(buttons[0]!.element); // New
+    wrapper.unmount();
+    vi.useRealTimers();
+  });
+
+  it("typeahead skips a disabled row: no match means focus does not move", async () => {
+    const wrapper = mountMenubar();
+    await wrapper.get("#menubar-trigger-file").trigger("keydown", { key: "ArrowDown" }); // focus New (0)
+    const buttons = fileItemButtons(wrapper);
+
+    // "Open" is the only row starting with "o" and it is disabled.
+    await wrapper.get('[role="menu"]').trigger("keydown", { key: "o" });
+    expect(document.activeElement).toBe(buttons[0]!.element); // stayed on New
+    wrapper.unmount();
+  });
 });
 
 describe("Menubar top-level trigger focusability", () => {
