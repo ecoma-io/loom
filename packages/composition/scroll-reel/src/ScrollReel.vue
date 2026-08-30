@@ -93,6 +93,12 @@ function onKeydown(event: KeyboardEvent) {
   const el = reel.value;
   if (!el) return;
 
+  // A keypress inside a nested editable (search field, combobox, contenteditable
+  // chip) bubbles up to this listener: the arrows and Home/End are the caret's
+  // keys there, not the reel's. Step aside so the text control keeps them —
+  // the same boundary Toolbar draws at its own listener.
+  if ((event.target as HTMLElement).closest("input, select, textarea, [contenteditable]")) return;
+
   const direction = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
   if (direction === 0 && event.key !== "Home" && event.key !== "End") return;
 
