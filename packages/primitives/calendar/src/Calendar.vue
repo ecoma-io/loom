@@ -215,8 +215,10 @@ const rootValue = computed(() =>
 // user had just picked it. `announced` stays false until the first real
 // selection event, and the line is aria-hidden meanwhile: hidden, it says
 // nothing at mount; revealed on the first change, it announces exactly that
-// change. Programmatic `modelValue` sets never fire this handler, so they
-// correctly stay silent too — only a user's own action opens the region.
+// change. Programmatic `modelValue` sets never fire this handler (a host
+// prop write is not an interaction), so before the first user action they
+// stay silent too — after it, the region is an ordinary live region and
+// speaks real changes from either side, which is correct.
 const announced = ref(false);
 
 function onDateChange(date: DateValue | undefined) {
