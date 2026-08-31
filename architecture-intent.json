@@ -1,0 +1,119 @@
+{
+  "version": "1",
+  "boundaries": [
+    { "name": "core", "match": ["tag:layer-core"] },
+    { "name": "labels", "match": ["tag:layer-labels"] },
+    { "name": "primitives", "match": ["tag:layer-primitives"] },
+    { "name": "composition", "match": ["tag:layer-composition"] },
+    { "name": "layouts", "match": ["tag:layer-layouts"] },
+    { "name": "blocks", "match": ["tag:layer-blocks"] },
+    { "name": "facade", "match": ["tag:layer-facade"] }
+  ],
+  "forbidden": [
+    {
+      "from": "core",
+      "to": "labels",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "core",
+      "to": "primitives",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "core",
+      "to": "composition",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "core",
+      "to": "layouts",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "core",
+      "to": "blocks",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "core",
+      "to": "facade",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "labels",
+      "to": "primitives",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "labels",
+      "to": "composition",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "labels",
+      "to": "layouts",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "labels",
+      "to": "blocks",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "labels",
+      "to": "facade",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "primitives",
+      "to": "composition",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "primitives",
+      "to": "layouts",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "primitives",
+      "to": "blocks",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "primitives",
+      "to": "facade",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "composition",
+      "to": "layouts",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "composition",
+      "to": "blocks",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "composition",
+      "to": "facade",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "layouts",
+      "to": "blocks",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "layouts",
+      "to": "facade",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    },
+    {
+      "from": "blocks",
+      "to": "facade",
+      "reason": "dependency direction is one-way upward: lower layers may not depend on higher layers"
+    }
+  ]
+}
