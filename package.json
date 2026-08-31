@@ -95,7 +95,7 @@
     "axe-core": "~4.12.1",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
-    "@ecoma-io/archkeep": "0.14.0",
+    "@ecoma-io/archkeep": "0.18.1",
     "@eslint/js": "^10.0.1",
     "@moonrepo/cli": "^2.4.6",
     "@playwright/test": "^1.62.1",
