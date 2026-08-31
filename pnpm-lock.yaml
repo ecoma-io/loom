@@ -7,6 +7,7 @@ settings:
 overrides:
   vitepress>vite: ^6.4.3
   miniflare>undici: ^7.29.0
+  '@ecoma-io/archkeep': file:../archkeep/packages/archkeep/ecoma-io-archkeep-0.18.0.tgz
 
 importers:
 
@@ -41,8 +42,8 @@ importers:
         specifier: ^21.2.0
         version: 21.2.0
       '@ecoma-io/archkeep':
-        specifier: 0.14.0
-        version: 0.14.0(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
+        specifier: file:../archkeep/packages/archkeep/ecoma-io-archkeep-0.18.0.tgz
+        version: file:../archkeep/packages/archkeep/ecoma-io-archkeep-0.18.0.tgz(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.0(jiti@2.7.0)(supports-color@10.2.2))
@@ -2258,17 +2259,21 @@ packages:
       search-insights:
         optional: true
 
-  '@ecoma-io/archkeep@0.14.0':
-    resolution: {integrity: sha512-FNNzcv4iVXZ0hH+AUYo7MgvDlo7Vp7Ch2nj8WR6VGA2/3B8e13VRE+3Q3zSJR1DvlORbNc7CpVsPtyYU4aUznw==}
+  '@ecoma-io/archkeep@file:../archkeep/packages/archkeep/ecoma-io-archkeep-0.18.0.tgz':
+    resolution: {integrity: sha512-MEszXoF1KiFYAlb/t8ti2XSHOHE6oo2A5nK6S82W93Su1W277u7LE3JZgvGkcFkLq3RuawjZ/37On8JLYeP7cA==, tarball: file:../archkeep/packages/archkeep/ecoma-io-archkeep-0.18.0.tgz}
+    version: 0.18.0
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
       '@nx/eslint-plugin': '>=21'
+      fast-xml-parser: 5.11.1
       nx: '>=21'
       typescript: '>=5 <7'
       vue: '>=3'
     peerDependenciesMeta:
       '@nx/eslint-plugin':
+        optional: true
+      fast-xml-parser:
         optional: true
       nx:
         optional: true
@@ -5747,7 +5752,7 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@ecoma-io/archkeep@0.14.0(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))':
+  '@ecoma-io/archkeep@file:../archkeep/packages/archkeep/ecoma-io-archkeep-0.18.0.tgz(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))':
     dependencies:
       smol-toml: 1.8.0
       typescript: 5.9.3

@@ -61,7 +61,7 @@ allowBuilds:
 # without anyone deciding to. Renovate's bump edits this line, which is the
 # moment to re-read it.
 minimumReleaseAgeExclude:
-  - "@ecoma-io/archkeep@0.14.0"
+  - "@ecoma-io/archkeep@0.18.0"
 
 # Advisories in transitive devDependencies, held forward until the packages that
 # own them ship a release that does it for us. Nine of them, in two chains:
@@ -102,3 +102,5 @@ overrides:
   # GHSA-jr45-8vmc-qm54, GHSA-v3r7-h72x-cjcm. All fixed in 7.29.0, and the 7.x
   # line is what miniflare asks for.
   miniflare>undici: "^7.29.0"
+  # Local tarball override for v0.18.0 dogfooding — archkeep is not published to npm yet
+  "@ecoma-io/archkeep": "file:../archkeep/packages/archkeep/ecoma-io-archkeep-0.18.0.tgz"
