@@ -22,9 +22,9 @@ function healthy(): Facts {
   const manifest: Manifest = {
     vendor: {
       package: "@ecoma-io/archkeep",
-      version: "0.18.1",
-      ref: "v0.18.1",
-      source: "ecoma-io/archkeep@v0.18.1",
+      version: "0.21.0",
+      ref: "v0.21.0",
+      source: "ecoma-io/archkeep@v0.21.0",
       skills: ["arch-check"],
     },
     owned: ["add-component"],
@@ -41,7 +41,7 @@ function healthy(): Facts {
   return {
     manifest,
     manifestError: null,
-    pin: "0.18.1",
+    pin: "0.21.0",
     present: {
       ".claude/skills/arch-check/SKILL.md": "aaa",
       ".agents/skills/arch-check/SKILL.md": "aaa",
@@ -82,13 +82,13 @@ describe("check-skills", () => {
     const facts = healthy();
     facts.pin = "0.15.0";
     const problems = evaluate(facts);
-    expect(says(problems, "vendored from 0.18.1")).toBe(true);
+    expect(says(problems, "vendored from 0.21.0")).toBe(true);
     expect(says(problems, "leaves no diff")).toBe(true);
   });
 
   it("rejects a version range where an exact pin is required", () => {
     const facts = healthy();
-    facts.pin = "^0.18.1";
+    facts.pin = "^0.21.0";
     const problems = evaluate(facts);
     expect(says(problems, "which is a range")).toBe(true);
     // And it must not also claim a stale vendor: the range is the finding.
