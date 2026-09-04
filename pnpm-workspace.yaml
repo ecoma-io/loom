@@ -9,6 +9,10 @@ packages:
   - "packages/composition/*"
   - "packages/blocks/*"
   - "packages/layouts/*"
+  # Official Templates are consumer applications owned by their own Moon
+  # project (see .moon/workspace.yml); pnpm must see them or the starter's
+  # `workspace:*` dependency would not link.
+  - "templates/*"
   - "e2e"
   - "tooling/*"
 

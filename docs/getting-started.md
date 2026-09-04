@@ -82,5 +82,7 @@ question:
 | Start from  | [Templates](/templates/)                                            | Runnable applications to begin a project from     |
 | Study       | [Showcase](/showcase/)                                              | Complete compositions, built to be read           |
 
-Templates and Showcase are the newest sections of this journey — both are
-landing pages today, and the first of each is being built.
+Templates is the newest section with content in it: the
+[contract](/templates/contract) is defined and the starter is runnable.
+Showcase is still its landing page today, and its first composition is being
+built.
