@@ -1950,6 +1950,28 @@ importers:
 
   packages/theme-core: {}
 
+  templates/saas-shell:
+    dependencies:
+      '@ecoma-io/loom':
+        specifier: workspace:*
+        version: link:../..
+      vue:
+        specifier: ^3.5.40
+        version: 3.5.40(typescript@5.9.3)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.8
+        version: 6.0.8(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0))(vue@3.5.40(typescript@5.9.3))
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      vite:
+        specifier: ^8.2.0
+        version: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)
+
   templates/starter:
     dependencies:
       '@ecoma-io/loom':

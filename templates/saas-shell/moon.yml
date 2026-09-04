@@ -1,0 +1,32 @@
+tags: ["layer-templates"]
+project:
+  name: "saas-shell"
+  description: "The production SaaS app shell — a copy-to-start application on the published package"
+
+# The consumer dependency on the published package is real, but this project
+# sits outside `packages/`, the only tree tools/sync-moon-deps.ts derives edges
+# for — so the edge is hand-declared, the same way the docs site's is. Without
+# it a facade change would not mark this template affected and its build would
+# not re-run.
+# preserved
+deps:
+  - "loom"
+
+tasks:
+  # The template builds from the facade's SOURCE — its Vite config aliases the
+  # published specifiers there (see vite.config.ts) — so the whole library is
+  # an input: a component edit that left this hash untouched would replay a
+  # starter built against the previous facade. Same shape, and same reason, as
+  # the docs project's build inputs.
+  build:
+    command: "pnpm build"
+    inputs:
+      - "**/*"
+      - "/packages/**"
+      - "!/packages/**/node_modules/**"
+      - "/pnpm-lock.yaml"
+    outputs:
+      - "dist"
+    options:
+      cache: true
+      runInCI: affected
