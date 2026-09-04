@@ -65,7 +65,7 @@ allowBuilds:
 # without anyone deciding to. Renovate's bump edits this line, which is the
 # moment to re-read it.
 minimumReleaseAgeExclude:
-  - "@ecoma-io/archkeep@0.14.0 || 0.18.1 || 0.21.0 || 0.23.0"
+  - "@ecoma-io/archkeep@0.14.0 || 0.18.1 || 0.21.0 || 0.23.0 || 0.24.0"
 
 # Advisories in transitive devDependencies, held forward until the packages that
 # own them ship a release that does it for us. Nine of them, in two chains:

@@ -83,8 +83,9 @@ describe("Table", () => {
   });
 
   it("carries density on the table so cells cannot disagree with their neighbours", () => {
-    const compact = mountTable().wrapper;
-    void compact;
+    // The default-density table stays mounted as the neighbour the assertion
+    // argues against; nothing reads its wrapper.
+    mountTable();
     const wrapper = mount({
       setup() {
         return () => h(Table, { caption: "D", density: "compact" }, { default: () => [] });

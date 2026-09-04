@@ -1,9 +1,9 @@
 {
   "vendor": {
     "package": "@ecoma-io/archkeep",
-    "version": "0.23.0",
-    "ref": "v0.23.0",
-    "source": "ecoma-io/archkeep@v0.23.0",
+    "version": "0.24.0",
+    "ref": "v0.24.0",
+    "source": "ecoma-io/archkeep@v0.24.0",
     "skills": ["arch-change", "arch-check", "arch-context", "arch-migrate", "arch-review"]
   },
   "owned": ["add-component"],
