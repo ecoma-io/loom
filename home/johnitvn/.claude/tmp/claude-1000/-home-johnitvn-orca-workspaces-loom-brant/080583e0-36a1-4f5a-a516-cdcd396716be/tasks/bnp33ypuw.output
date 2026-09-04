@@ -1,0 +1,9 @@
+$ vue-tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/typecheck.tsbuildinfo
+TYPECHECK=0
+Branches     : 92.43% ( 2919/3158 )
+Functions    : 98.44% ( 1201/1220 )
+Lines        : 99% ( 3091/3122 )
+================================================================================
+TEST=0
+
+[exited with code 0]
