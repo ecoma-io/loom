@@ -29,6 +29,11 @@
  *               contrast pairs are pinned browserlessly by theme-core tests,
  *               and the rendering-dependent demo sweep is kept as a push-to-main
  *               backstop.
+ *   template    templates/** — a template source change (App.vue, vite.config,
+ *               moon.yml, etc.) → the template harness at `smoke`, chromium only.
+ *               Every template is tested, not only the one that changed: a single
+ *               template edit is fast enough (seconds per template) that narrowing
+ *               the set adds complexity with no meaningful CI cost.
  *   noop        none of the above — the matrix is empty and `e2e-run` expands
  *               to zero legs.
  *
@@ -156,7 +161,12 @@ const DOCS_ONLY_PATTERNS = [/^docs\/(?!demos\/)/];
 // itself, plus the demos the docs mounts as harness fixtures.
 const COMPONENT_PATTERNS = [/^packages\/(?!theme-core\/)/, /^docs\/demos\//];
 
-type Scenario = "pw-infra" | "theme" | "deps" | "docs" | "component" | "noop";
+// A template change is anything under templates/. Templates are standalone
+// Vite apps — not VitePress pages — so a template edit needs the template
+// browser harness, not the root docs suite or the component harness.
+const TEMPLATE_PATTERNS = [/^templates\//];
+
+type Scenario = "pw-infra" | "theme" | "deps" | "docs" | "component" | "template" | "noop";
 
 export function classifyFiles(files: string[]): Scenario {
   if (!files.length) return "noop";
@@ -166,6 +176,9 @@ export function classifyFiles(files: string[]): Scenario {
   if (matches(PW_INFRA_PATTERNS)) return "pw-infra";
   if (matches(THEME_PATTERNS)) return "theme";
   if (matches(DEPS_PATTERNS)) return "deps";
+  // A template change takes precedence over docs and component — templates
+  // have their own harness and do not need the docs site or component harness.
+  if (matches(TEMPLATE_PATTERNS)) return "template";
   // docs/ prose changed, and nothing else that an earlier scenario owns. The
   // negative check is scoped to the *component* boundary — a demo edit must
   // not ride along as prose — so a routine prose change that also touches
@@ -221,11 +234,13 @@ export function affectedProjects(base: string): AffectedProject[] {
 // ---- workload grouping --------------------------------------------------------
 
 // A `root` leg drives the docs-site suite, a `harness` leg the component
-// harness. The values are the config paths the legs run with, so the CI job
-// can consume `matrix.config` without re-deriving it by label.
+// harness, a `template` leg the template browser harness. The values are the
+// config paths the legs run with, so the CI job can consume `matrix.config`
+// without re-deriving it by label.
 const CONFIG_PATHS = {
   root: "playwright.config.ts",
   harness: "playwright/harness/playwright.config.ts",
+  template: "playwright/template/playwright.config.ts",
 } as const;
 
 // The harness axe gate, appended to every harness leg's specs. Playwright's
@@ -487,6 +502,18 @@ export function plan(
       const extra = touchedDocs ? rootLegs("smoke") : [];
       return [...harness, ...extra];
     }
+    case "template": {
+      // A template change runs the template browser harness at `smoke` on
+      // chromium only. Every template is tested, not just the one that changed:
+      // a single template edit is fast enough (seconds per template) that
+      // narrowing the set adds complexity with no meaningful CI cost.
+      //
+      // Templates are standalone Vite apps — not VitePress pages — so there is
+      // no root sweep. They do not need the component harness either.
+      return PROFILE_PROJECTS.smoke.flatMap((browser) =>
+        Array.from({ length: 1 }, (_, i) => row("smoke", "template", [], [], browser, 1, i + 1)),
+      );
+    }
     default:
       return [];
   }
@@ -564,6 +591,8 @@ export function runSelfCheck(): void {
   assert.equal(classifyFiles(["packages/theme-core/src/theme.css"]), "theme");
   assert.equal(classifyFiles(["playwright.config.ts"]), "pw-infra");
   assert.equal(classifyFiles(["pnpm-lock.yaml"]), "deps"); // a dependency bump
+  assert.equal(classifyFiles(["templates/saas-shell/src/App.vue"]), "template");
+  assert.equal(classifyFiles(["templates/starter/moon.yml"]), "template");
   assert.equal(classifyFiles([]), "noop");
 
   // plan — the affected-set decisions, against real demo files on disk.
@@ -733,6 +762,13 @@ export function runSelfCheck(): void {
       .filter((r) => r.config === CONFIG_PATHS.harness)
       .every((r) => r.demos.includes("button")),
   );
+
+  // 6. A template change runs the template harness at smoke on chromium only.
+  const templatePlan = plan("template", [], ["templates/saas-shell/src/App.vue"]);
+  assert.equal(templatePlan.length, 1, "template change -> one smoke leg on chromium");
+  assert.equal(templatePlan[0].config, CONFIG_PATHS.template);
+  assert.equal(templatePlan[0].profile, "smoke");
+  assert.equal(templatePlan[0].browser, "chromium");
 }
 
 if (import.meta.main) {
