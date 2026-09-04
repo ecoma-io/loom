@@ -41,6 +41,10 @@ pnpm-debug.log*
 # at the moment it is made.
 .claude/worktrees/
 
+# Stray local home directory — a previous session accidentally created this
+# inside the repo. It should never be tracked.
+/home/
+
 # VitePress build output and its dependency cache.
 docs/.vitepress/dist/
 docs/.vitepress/cache/
