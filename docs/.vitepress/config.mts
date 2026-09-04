@@ -84,6 +84,13 @@ const FOUNDATIONS = pagesIn("foundations", [
 // a reader is more likely to reach for by shape ("a form") than by name.
 const PATTERNS = pagesIn("patterns", ["forms"]);
 
+// As above for Templates and Showcase — a directory whose only page is its
+// landing reads better as one link than as a group whose header and sole item
+// point at the same address, so the section becomes a multi-item group only
+// when a real page joins the directory.
+const TEMPLATES = pagesIn("templates");
+const SHOWCASE = pagesIn("showcase");
+
 export default defineConfig({
   title: "Loom",
   description:
@@ -128,17 +135,38 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
+      // The journey, left to right: pick a control, see how controls combine,
+      // then start from something runnable or study something finished.
       { text: "Components", link: COMPONENTS[0]?.link ?? "/" },
+      { text: "Patterns", link: PATTERNS[0]?.link ?? "/" },
+      { text: "Templates", link: "/templates/" },
+      { text: "Showcase", link: "/showcase/" },
       { text: "GitHub", link: "https://github.com/ecoma-io/loom" },
     ],
     sidebar: [
       { text: "Overview", link: "/" },
+      { text: "Getting started", link: "/getting-started" },
       { text: "Foundations", items: FOUNDATIONS },
       { text: "Primitives", items: COMPONENTS },
       { text: "Composition", items: COMPOSITION },
       { text: "Blocks", items: BLOCKS },
       { text: "Layouts", items: LAYOUTS },
       { text: "Patterns", items: PATTERNS },
+      // Spread `items` only when the directory carries pages beyond its
+      // landing: VitePress keys the group wrapper's `tabindex` and handlers
+      // off `items` being present, so an entry with an empty items array
+      // would render a focusable but inert wrapper — a dead keyboard tab
+      // stop in the sidebar of every page.
+      {
+        text: "Templates",
+        link: "/templates/",
+        ...(TEMPLATES.length ? { items: TEMPLATES } : {}),
+      },
+      {
+        text: "Showcase",
+        link: "/showcase/",
+        ...(SHOWCASE.length ? { items: SHOWCASE } : {}),
+      },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],
     editLink: {

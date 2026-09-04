@@ -57,6 +57,15 @@ describe("pagesIn", () => {
     expect(colour?.text).toBe("Colour");
   });
 
+  it("leaves a directory's index page out of its own listing, because the landing is the group header's target rather than an item", () => {
+    // `templates/` is the one directory that ships a landing page today, so
+    // this is the assertion that fails if the `index.md` filter in `pagesIn`
+    // is ever dropped — every other scanned directory has no index to leak.
+    const links = [...pagesIn("templates"), ...pagesIn("foundations")].map((page) => page.link);
+
+    expect(links.every((link) => !link.endsWith("/index"))).toBe(true);
+  });
+
   it("keeps a slug that no reading order mentions, so adding a page is never a silent omission from the navigation", () => {
     const all = pagesIn("foundations");
     const partial = pagesIn("foundations", ["motion"]);
