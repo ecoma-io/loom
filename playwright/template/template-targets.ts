@@ -51,10 +51,3 @@ export function templateTargets(): TemplateTarget[] {
     route: "/",
   }));
 }
-
-/**
- * The URL the health-check endpoint listens on. The serve script starts a tiny
- * HTTP server here, and the Playwright config's `webServer.url` polls it.
- */
-export const HEALTH_CHECK_PORT = 5199;
-export const HEALTH_CHECK_URL = `http://localhost:${String(HEALTH_CHECK_PORT)}/health`;

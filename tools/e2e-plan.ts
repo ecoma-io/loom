@@ -30,10 +30,15 @@
  *               and the rendering-dependent demo sweep is kept as a push-to-main
  *               backstop.
  *   template    templates/** — a template source change (App.vue, vite.config,
- *               moon.yml, etc.) → the template harness at `smoke`, chromium only.
- *               Every template is tested, not only the one that changed: a single
- *               template edit is fast enough (seconds per template) that narrowing
- *               the set adds complexity with no meaningful CI cost.
+ *               moon.yml, etc.) → the template browser harness at `standard`
+ *               (chromium, firefox, webkit). Every template is tested, not only
+ *               the one that changed: a single template edit is fast enough
+ *               (seconds per template) that narrowing the set adds complexity
+ *               with no meaningful CI cost. The template suites carry the axe
+ *               gate and the 375px scroll-container focusability check, and
+ *               WebKit is the engine that witnesses the latter — Chromium
+ *               auto-focuses scroll containers, so a smoke-only (chromium) leg
+ *               would pass with the defect fully present.
  *   noop        none of the above — the matrix is empty and `e2e-run` expands
  *               to zero legs.
  *
@@ -503,15 +508,18 @@ export function plan(
       return [...harness, ...extra];
     }
     case "template": {
-      // A template change runs the template browser harness at `smoke` on
-      // chromium only. Every template is tested, not just the one that changed:
-      // a single template edit is fast enough (seconds per template) that
-      // narrowing the set adds complexity with no meaningful CI cost.
+      // A template change runs the template browser harness at `standard`.
+      // Every template is tested, not just the one that changed: a single
+      // template edit is fast enough (seconds per template) that narrowing the
+      // set adds complexity with no meaningful CI cost. The profile is
+      // `standard` and not `smoke` because the keyboard gate's focusability
+      // check speaks for WebKit — Chromium auto-focuses scroll containers, so
+      // a chromium-only leg would pass with the defect fully present.
       //
       // Templates are standalone Vite apps — not VitePress pages — so there is
       // no root sweep. They do not need the component harness either.
-      return PROFILE_PROJECTS.smoke.flatMap((browser) =>
-        Array.from({ length: 1 }, (_, i) => row("smoke", "template", [], [], browser, 1, i + 1)),
+      return PROFILE_PROJECTS.standard.flatMap((browser) =>
+        Array.from({ length: 1 }, (_, i) => row("standard", "template", [], [], browser, 1, i + 1)),
       );
     }
     default:
@@ -763,16 +771,29 @@ export function runSelfCheck(): void {
       .every((r) => r.demos.includes("button")),
   );
 
-  // 6. A template change runs the template harness at smoke on chromium only.
+  // 6. A template change runs the template harness at `standard` — one leg per
+  // standard-profile browser.
   const templatePlan = plan("template", [], ["templates/saas-shell/src/App.vue"]);
-  assert.equal(templatePlan.length, 1, "template change -> one smoke leg on chromium");
-  // `.at(0)` is `T | undefined` under every tsconfig, so the narrowing here is
-  // real for the checker and not a no-op the lint rules would flag.
-  const templateRow = templatePlan.at(0);
-  assert.ok(templateRow, "template change -> expected exactly one leg");
-  assert.equal(templateRow.config, CONFIG_PATHS.template);
-  assert.equal(templateRow.profile, "smoke");
-  assert.equal(templateRow.browser, "chromium");
+  assert.ok(
+    templatePlan.every((r) => r.config === CONFIG_PATHS.template && r.profile === "standard"),
+    "template change -> one standard leg per standard-profile browser",
+  );
+  assert.equal(
+    templatePlan.length,
+    PROFILE_PROJECTS.standard.length,
+    "template change -> one leg per standard-profile browser",
+  );
+  assert.deepEqual(
+    templatePlan.map((r) => r.browser),
+    PROFILE_PROJECTS.standard,
+  );
+  // Chromium auto-focuses scroll containers, so the keyboard gate's 375px
+  // focusability check speaks for WebKit: if a future edit drops webkit from
+  // the template profile, this is where it turns red.
+  assert.ok(
+    templatePlan.some((r) => r.browser === "webkit"),
+    "template plan must include a webkit leg",
+  );
 }
 
 if (import.meta.main) {
