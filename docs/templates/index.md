@@ -28,9 +28,21 @@ surface, that is a defect in the surface, and it is filed as one.
 - A composition whose purpose is to be read rather than started from — that
   is the [Showcase](/showcase/)'s job.
 
+## The templates
+
+### SaaS shell
+
+A complete application shell for a SaaS product: `AppShell` + `SidebarNav`
+navigation around a dashboard (derived metric cards, a sortable and filterable
+customer `DataGrid` with its empty-state pairing) and a settings form
+(`FormLayout`, `Field`-wrapped controls, native form submission). The
+composition a data-heavy product copies first.
+
+[README](https://github.com/ecoma-io/loom/blob/main/templates/saas-shell/README.md)
+
 ## Status
 
-The [template contract](/templates/contract) is defined, and the first
-template proves it buildable: the [starter](https://github.com/ecoma-io/loom/blob/main/templates/starter/README.md)
-— a runnable consumer of the published package, held to the contract's file
-set, boundary and build. This page lists each template as it lands.
+The [template contract](/templates/contract) is defined. The starter proves it
+buildable, and the SaaS shell is the first production template — the contract's
+file set, boundary and build, plus the page-scale composition the starter
+deliberately omits. This page lists each template as it lands.
