@@ -359,7 +359,7 @@ export function plan(
 ): MatrixRow[] {
   const row = (
     profile: BrowserProfile,
-    config: "root" | "harness",
+    config: keyof typeof CONFIG_PATHS,
     specs: string[],
     demos: string[],
     browser: keyof typeof ENGINE_FOR_PROJECT,
@@ -766,9 +766,13 @@ export function runSelfCheck(): void {
   // 6. A template change runs the template harness at smoke on chromium only.
   const templatePlan = plan("template", [], ["templates/saas-shell/src/App.vue"]);
   assert.equal(templatePlan.length, 1, "template change -> one smoke leg on chromium");
-  assert.equal(templatePlan[0].config, CONFIG_PATHS.template);
-  assert.equal(templatePlan[0].profile, "smoke");
-  assert.equal(templatePlan[0].browser, "chromium");
+  // `.at(0)` is `T | undefined` under every tsconfig, so the narrowing here is
+  // real for the checker and not a no-op the lint rules would flag.
+  const templateRow = templatePlan.at(0);
+  assert.ok(templateRow, "template change -> expected exactly one leg");
+  assert.equal(templateRow.config, CONFIG_PATHS.template);
+  assert.equal(templateRow.profile, "smoke");
+  assert.equal(templateRow.browser, "chromium");
 }
 
 if (import.meta.main) {
