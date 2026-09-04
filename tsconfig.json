@@ -11,6 +11,7 @@
   "include": [
     "packages/**/*",
     "e2e/**/*",
+    "templates/**/*",
     "docs/**/*",
     // Listed separately because TypeScript's wildcards skip directories whose
     // name starts with a dot — `docs/**/*` alone silently leaves the entire

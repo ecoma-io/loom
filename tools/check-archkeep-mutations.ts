@@ -328,6 +328,24 @@ export const MUTATIONS: Mutation[] = [
     ],
   },
   {
+    name: "template-reaches-past-the-published-entry-point",
+    attack: "a template imports a component package directly, the import a consumer cannot write",
+    // The layer-templates row licenses exactly the docs row's reach — the
+    // published facade and the theme CSS. A resolved deep import lands on the
+    // owning component project, which the template row does not name, so the
+    // same attack the docs mutation proves is proved here for templates.
+    expect: ["onlyTagsConstraintViolation"],
+    edits: [
+      {
+        path: "templates/starter/src/App.vue",
+        replace: [
+          /^<script setup lang="ts">$/m,
+          '<script setup lang="ts">\nimport "@ecoma-io/loom-badge";',
+        ],
+      },
+    ],
+  },
+  {
     name: "blind-spot-facade-subpath",
     attack: "a primitive imports the facade's `/theme` subpath rather than the facade itself",
     expect: [],

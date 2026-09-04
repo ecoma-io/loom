@@ -1,0 +1,17 @@
+/**
+ * The one stylesheet import a Loom host needs — Tailwind's engine, the Loom
+ * theme, the self-hosted faces, base element styling and motion, in the order
+ * `global.css` owns. A template writes no stylesheet of its own beyond what
+ * the published entry already carries.
+ *
+ * The extra `@source` exists only inside this repository. Tailwind skips
+ * `node_modules` in source detection, and against the published package
+ * `global.css`'s own `@source "../"` already scans the built library — here
+ * the published specifiers resolve to source (see vite.config.ts), so the
+ * source tree is registered the way the docs site and the E2E harness
+ * register it. Delete this rule when the template is copied into a real
+ * project.
+ */
+@import "@ecoma-io/loom/styles/global.css";
+
+@source "../../../packages/";

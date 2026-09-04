@@ -30,6 +30,7 @@ surface, that is a defect in the surface, and it is filed as one.
 
 ## Status
 
-The template contract — directory layout, entrypoint, build and test
-commands, metadata — is being defined first, and the first application
-template follows it. This page lists each template as it lands.
+The [template contract](/templates/contract) is defined, and the first
+template proves it buildable: the [starter](https://github.com/ecoma-io/loom/blob/main/templates/starter/README.md)
+— a runnable consumer of the published package, held to the contract's file
+set, boundary and build. This page lists each template as it lands.

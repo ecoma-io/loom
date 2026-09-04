@@ -17,6 +17,11 @@ projects:
   - "packages/layouts/*"
   # The public facade.
   - "packages/loom"
+  # Official Templates — runnable consumer applications of the published
+  # package, one Moon project per template. Registered so the boundary table
+  # judges them (each carries `layer-templates`) and so their build, lint and
+  # test tasks exist; the contract they satisfy is docs/templates/contract.md.
+  - "templates/*"
   # The documentation site.
   - "docs"
   # Cross-cutting E2E.
@@ -34,6 +39,24 @@ projects:
   # run the architecture-rule tests on the PR path.
   - "tools"
 
+# Moon's workspace sync rewrites project manifests from the Moon project
+# graph, writing each Moon dependency as the target project's PACKAGE NAME.
+# For every other project here the project id and the package suffix agree,
+# so the sync is invisible; for the templates it is wrong on arrival — the
+# Moon project `loom` carries the package name `@ecoma-io/loom-facade`, and a
+# template whose manifest names an internal package a consumer cannot install
+# is not a consumer. The starter's real dependency is declared in its own
+# package.json (`@ecoma-io/loom: workspace:*`, the published name) and its
+# Moon edge is the hand-declared one in moon.yml, so nothing is lost by
+# stopping the write-back. Measured on moon 2.4.6: at the defaults every
+# `starter:build` re-injects `@ecoma-io/loom-facade`; turning all three syncs
+# off together stops it; turning any one of them off alone does not. No
+# committed file in this workspace has ever carried a moon-synced edit — the
+# tree stays clean across builds without the sync.
+pipeline:
+  syncProjects: false
+  syncProjectDependencies: false
+  syncWorkspace: false
 vcs:
   client: git
   defaultBranch: main

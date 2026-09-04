@@ -71,7 +71,7 @@
     "prepare": "lefthook install",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0 && node tools/check-component-artifacts.ts && node --experimental-strip-types tools/check-architecture.ts && pnpm archkeep:check && pnpm check-skills",
+    "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0 && node tools/check-component-artifacts.ts && node tools/check-template-artifacts.ts && node --experimental-strip-types tools/check-architecture.ts && pnpm archkeep:check && pnpm check-skills",
     "archkeep:check": "archkeep check",
     "archkeep:mutations": "node --experimental-strip-types tools/check-archkeep-mutations.ts",
     "sync-skills": "node --experimental-strip-types tools/sync-skills.ts",
