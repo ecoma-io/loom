@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import type { Page } from "@playwright/test";
+import { waitForAppSettled } from "./settle.ts";
 import { templateTargets } from "./template-targets.ts";
 
 /**
@@ -47,10 +48,14 @@ if (targets.length === 0) {
     await page.evaluate((value) => {
       document.documentElement.setAttribute("data-theme", value);
     }, theme);
-    // The app must actually mount before axe reads it. Wait for a real
-    // element rather than a frame, because Firefox is the engine where a
-    // timing race reads as "clean".
+    // The app must actually mount — and stop changing — before axe reads it.
+    // Wait for a real element rather than a frame, because Firefox is the
+    // engine where a timing race reads as "clean"; the settle wait then
+    // covers the loading-skeleton swap, so the scan sees the dashboard and
+    // not the skeleton. A template without a loading state settles on the
+    // first equal sample, costing one tick.
     await page.locator("#app > *").first().waitFor();
+    await waitForAppSettled(page);
     // And the theme's repaint must have landed before axe reads computed
     // colours. Light's `--color-background` is `hsl(213 25% 96%)` and dark's
     // is `hsl(213 25% 10%)` (theme.css), red channel >200 in light and <50 in

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { waitForAppSettled } from "./settle.ts";
 import { templateTargets } from "./template-targets.ts";
 
 /**
@@ -24,11 +25,6 @@ import { templateTargets } from "./template-targets.ts";
  * scenario runs the `standard` profile rather than `smoke`.
  */
 
-// Selectors mirror Playwright's own tabbability rules: natively focusable
-// elements that are not disabled, plus any explicit non-negative tabindex.
-const TABBABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
 interface ScrollableReport {
   selector: string;
   focusable: boolean;
@@ -48,11 +44,17 @@ if (targets.length === 0) {
       test("focus ring clears on mouse click and restores on Tab", async ({ page }) => {
         await page.goto(url);
         await page.locator("#app > *").first().waitFor();
+        await waitForAppSettled(page);
 
-        // The first tabbable element of the mounted app. Every template
-        // carries at least one — the starter's theme toggle alone qualifies —
-        // but a miss must fail loudly here rather than skip silently.
-        const first = page.locator(`#app ${TABBABLE}`).first();
+        // A real mouse click, so the engine's :focus-visible heuristics run
+        // for real rather than under a synthetic focus() that always matches.
+        // The target is a button and deliberately not the first tabbable
+        // element: in saas-shell that is the SkipLink anchor, whose contract
+        // keys its reveal and outline to plain `:focus` — not `:focus-visible`
+        // — because focus arriving from programmatic handoff is real focus,
+        // so a mouse click legitimately leaves its ring on. Loom buttons key
+        // the ring to :focus-visible, which is the contract under test.
+        const first = page.locator("#app button").first();
         await expect(first).toBeVisible();
 
         // A real mouse click, so the engine's :focus-visible heuristics run
@@ -77,6 +79,11 @@ if (targets.length === 0) {
         await page.setViewportSize({ width: 375, height: 800 });
         await page.goto(url);
         await page.locator("#app > *").first().waitFor();
+        // The settle wait matters more here than the mount wait: DataGrid
+        // assigns the scroll region's tabindex from a ResizeObserver callback
+        // that lands after mount, and a census that ran before it would fail
+        // a healthy page.
+        await waitForAppSettled(page);
 
         // Find the elements that actually scroll horizontally: an explicit
         // overflow-x scroll container whose content is wider than its box.
