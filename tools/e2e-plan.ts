@@ -166,9 +166,9 @@ const DOCS_ONLY_PATTERNS = [/^docs\/(?!demos\/)/];
 // itself, plus the demos the docs mounts as harness fixtures.
 const COMPONENT_PATTERNS = [/^packages\/(?!theme-core\/)/, /^docs\/demos\//];
 
-// A template change is anything under templates/. Templates are standalone
-// Vite apps — not VitePress pages — so a template edit needs the template
-// browser harness, not the root docs suite or the component harness.
+// A template change is anything under templates/. Templates are consumer-
+// shaped Vite apps — not VitePress pages — so a template edit needs the
+// template browser harness, not the root docs suite or the component harness.
 const TEMPLATE_PATTERNS = [/^templates\//];
 
 type Scenario = "pw-infra" | "theme" | "deps" | "docs" | "component" | "template" | "noop";
@@ -516,8 +516,8 @@ export function plan(
       // check speaks for WebKit — Chromium auto-focuses scroll containers, so
       // a chromium-only leg would pass with the defect fully present.
       //
-      // Templates are standalone Vite apps — not VitePress pages — so there is
-      // no root sweep. They do not need the component harness either.
+      // Templates are consumer-shaped Vite apps — not VitePress pages — so
+      // there is no root sweep. They do not need the component harness either.
       return PROFILE_PROJECTS.standard.flatMap((browser) =>
         Array.from({ length: 1 }, (_, i) => row("standard", "template", [], [], browser, 1, i + 1)),
       );
@@ -599,7 +599,7 @@ export function runSelfCheck(): void {
   assert.equal(classifyFiles(["packages/theme-core/src/theme.css"]), "theme");
   assert.equal(classifyFiles(["playwright.config.ts"]), "pw-infra");
   assert.equal(classifyFiles(["pnpm-lock.yaml"]), "deps"); // a dependency bump
-  assert.equal(classifyFiles(["templates/saas-shell/src/App.vue"]), "template");
+  assert.equal(classifyFiles(["templates/analytics/src/App.vue"]), "template");
   assert.equal(classifyFiles(["templates/starter/moon.yml"]), "template");
   assert.equal(classifyFiles([]), "noop");
 
@@ -773,7 +773,7 @@ export function runSelfCheck(): void {
 
   // 6. A template change runs the template harness at `standard` — one leg per
   // standard-profile browser.
-  const templatePlan = plan("template", [], ["templates/saas-shell/src/App.vue"]);
+  const templatePlan = plan("template", [], ["templates/analytics/src/App.vue"]);
   assert.ok(
     templatePlan.every((r) => r.config === CONFIG_PATHS.template && r.profile === "standard"),
     "template change -> one standard leg per standard-profile browser",

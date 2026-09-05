@@ -23,12 +23,13 @@ any one file will not tell you.
 | `packages/layout-engine/`   | The platform-independent layout core — pure geometry, imports nothing; the oracle the conformance route holds equal to the browser. Adapters live in each composition's `src/layout.ts` |
 | `packages/theme-core/`      | `theme.css` — **the token source of truth** — plus `global.css` and `fonts.css`                                                                                                         |
 | `packages/loom/src/a11y.ts` | `WCAG_TAGS`, the tag set the library holds itself to                                                                                                                                    |
-| `docs/`                     | The VitePress site, which imports the library rather than describing it                                                                                                                 |
+| `templates/`                | Official Templates — copyable prebuilt **pages** consumers take into their application; the contract is `docs/templates/contract.md`                                                    |
+| `docs/`                     | The VitePress site, which imports the tree rather than describing it. Showcase and Templates have landing pages defining what each artifact kind is                                     |
 | `e2e/`                      | Playwright, driving the _built_ site                                                                                                                                                    |
 | `tools/`                    | Repository scripts, run from `package.json` and from CI                                                                                                                                 |
 | `.github/semgrep/`          | This repository's own analysis rules, with their fixtures beside them                                                                                                                   |
 | `playwright/`               | The component E2E harness — mounts one demo via Vite, no VitePress build                                                                                                                |
-| `playwright/profiles.ts`    | The browser profiles, single-sourced to the two Playwright configs                                                                                                                      |
+| `playwright/profiles.ts`    | The browser profiles, single-sourced to the three Playwright configs                                                                                                                    |
 
 `packages/loom/src/index.ts` is the complete public surface and says so in its own docblock,
 including the two things that deliberately are not in it.
@@ -67,10 +68,10 @@ demonstration of it. Two consequences that catch people out:
 `pnpm docs:dev` is a long-running server. Start it only when a task needs runtime
 evidence, and stop it afterwards.
 
-## Two browser suites, one matrix
+## Three browser suites, one matrix
 
-Component evidence and the site-wide quality sweeps run through two different
-Playwright configs that share `playwright/profiles.ts`:
+Component evidence and the site-wide quality sweeps run through three
+different Playwright configs that share `playwright/profiles.ts`:
 
 - **Root** (`playwright.config.ts`) — the cross-cutting suite (`e2e/`: axe,
   contrast, target-size, keyboard, focus-not-obscured, responsive) against the
@@ -78,6 +79,11 @@ Playwright configs that share `playwright/profiles.ts`:
 - **Harness** (`playwright/harness/`) — mounts `docs/demos/<X>Demo.vue` via a
   Vite dev server in seconds. A component's `e2e/*.e2e.ts` runs here, so its
   browser evidence never pays for VitePress.
+- **Template** (`playwright/template/`) — serves every directory under
+  `templates/` from its own dev server and holds each to smoke, axe in light
+  and dark (zero excludes), keyboard and responsive gates. A `templates/**`
+  change runs this suite; the artifact kind's browser bar is stated in
+  `docs/templates/contract.md`.
 
 Which legs run on a pull request is decided by `tools/e2e-plan.ts` (a pure
 function of the changed file set plus moon's affected answer), consumed by the
@@ -88,7 +94,9 @@ affected components' own specs at `smoke`. A component without own specs runs
 no browser legs at PR level: semantic evidence comes from the browserless tier
 (docs/demos-a11y.test.ts via moon's affected closure), contrast pairs are pinned
 browserlessly by theme-core tests, and the rendering-dependent demo sweep is kept
-as a push-to-main backstop. A docs, theme or dependency-bump change runs the
+as a push-to-main backstop. A `templates/**` change runs the template suite at
+the `standard` profile — nothing else. A docs, theme or dependency-bump change
+runs the
 root sweep (built once, shared to every leg through the actions cache), an infra
 change runs everything, and nothing relevant runs nothing. Harness legs group
 every affected component into one Playwright run per browser, sharding only past
@@ -98,9 +106,9 @@ its shard count is derived from the number of documentation pages the suite
 iterates, so a leg carries roughly one fixed workload as the site grows rather
 than lengthening until it hits the job timeout — bounded by a cap, with the
 sizing evidence in the tool. The full matrix (`PW_PROFILE=full`, all five browser
-projects) stays available for a change that edits `playwright/` itself, the
-harness, or the root config — and is what `pnpm e2e:full` runs. The browser
-profiles themselves have one home, `playwright/profiles.ts`, read by both
+projects) stays available for a change that edits `playwright/` itself, a
+suite's config, or the harness — and is what `pnpm e2e:full` runs. The browser
+profiles themselves have one home, `playwright/profiles.ts`, read by all three
 Playwright configs and by the plan.
 
 The unit-test side gets the same boundary from moon itself: `moon ci` runs the

@@ -5,8 +5,9 @@ import { templateTargets } from "./template-targets.ts";
 /**
  * Template E2E harness Playwright config.
  *
- * Each template is a standalone Vite application under `templates/` — not a
- * VitePress page — so each one runs its own Vite dev server on a unique port.
+ * Each template is a consumer-shaped Vite app under `templates/` — the vessel
+ * for a copyable page, not a VitePress page — so each one runs its own Vite
+ * dev server on a unique port.
  * Playwright's `webServer` array supports multiple entries: every entry is
  * polled before the first test starts, and every entry is killed after.
  *

@@ -16,6 +16,9 @@ hero:
       text: Patterns
       link: /patterns/forms
     - theme: alt
+      text: Showcase
+      link: /showcase/
+    - theme: alt
       text: Templates
       link: /templates/
     - theme: alt

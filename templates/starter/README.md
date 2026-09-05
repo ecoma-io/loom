@@ -1,9 +1,9 @@
 # Loom starter
 
-The minimal Official Template: a runnable Vue 3 + Vite + Tailwind v4
-application that consumes the published `@ecoma-io/loom` package exactly as an
-external consumer would. It exists to prove the Template Contract is buildable
-— it is not the first production template, and it is deliberately small.
+The minimal Official Template: a copyable Vue 3 + Vite + Tailwind v4 page that
+consumes the published `@ecoma-io/loom` package exactly as an external
+consumer would. It exists to prove the Template Contract is buildable — it is
+not the first production template, and it is deliberately small.
 
 ## Run it
 
@@ -23,8 +23,8 @@ pnpm dev
 
 ## What to change first
 
-A copied template is a standalone project, and three pieces of this one exist
-only to keep it running inside this repository:
+A copied template lives inside the consumer's project, and three pieces of
+this one exist only to keep it running inside this repository:
 
 1. **The dependency.** `package.json` carries
    `"@ecoma-io/loom": "workspace:*"`. Replace it with the released range

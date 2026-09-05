@@ -17,10 +17,10 @@ projects:
   - "packages/layouts/*"
   # The public facade.
   - "packages/loom"
-  # Official Templates — runnable consumer applications of the published
-  # package, one Moon project per template. Registered so the boundary table
-  # judges them (each carries `layer-templates`) and so their build, lint and
-  # test tasks exist; the contract they satisfy is docs/templates/contract.md.
+  # Official Templates — copyable prebuilt pages in consumer-shaped vessels,
+  # one Moon project per template. Registered so the boundary table judges
+  # them (each carries `layer-templates`) and so their build, lint and test
+  # tasks exist; the contract they satisfy is docs/templates/contract.md.
   - "templates/*"
   # The documentation site.
   - "docs"

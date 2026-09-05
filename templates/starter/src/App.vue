@@ -32,10 +32,10 @@ const { resolvedTheme, toggleTheme } = useTheme();
     </template>
     <main id="welcome" class="py-8">
       <Stack gap="lg" class="max-w-2xl">
-        <h1 class="text-2xl font-semibold">Welcome to your Loom app</h1>
+        <h1 class="text-2xl font-semibold">Welcome to your Loom page</h1>
         <p class="text-muted-foreground">
-          This page is itself the demo: a runnable consumer of the published package, held to the
-          Template Contract. Replace it with your application.
+          This page is itself the demo: a consumer of the published package, held to the Template
+          Contract. Replace it with the page your application needs.
         </p>
         <Card id="next" title="What to change first">
           <p class="text-muted-foreground">

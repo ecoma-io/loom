@@ -5,12 +5,12 @@ import { fileURLToPath } from "node:url";
 /**
  * Metadata for one discovered template.
  *
- * Each template is a standalone Vite application under `templates/` with its own
+ * Each template is a consumer-shaped Vite app under `templates/` with its own
  * `vite.config.ts`, `index.html` and `src/main.ts`. The harness assigns each a
  * unique port so all templates can serve concurrently during a browser test run.
  */
 export interface TemplateTarget {
-  /** The template's directory name, e.g. `"saas-shell"` or `"starter"`. */
+  /** The template's directory name, e.g. `"analytics"` or `"starter"`. */
   id: string;
   /** Absolute filesystem path to the template directory. */
   path: string;

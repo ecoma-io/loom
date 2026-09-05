@@ -1,7 +1,7 @@
 tags: ["layer-templates"]
 project:
-  name: "saas-shell"
-  description: "The production SaaS app shell — a copy-to-start application on the published package"
+  name: "analytics"
+  description: "The Analytics page template — metric cards and a sortable, filterable data grid"
 
 # The consumer dependency on the published package is real, but this project
 # sits outside `packages/`, the only tree tools/sync-moon-deps.ts derives edges

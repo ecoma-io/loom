@@ -10,12 +10,11 @@ import { templateTargets } from "./template-targets.ts";
  *
  * The component harness (`playwright/harness/accessibility.e2e.ts`) holds each
  * demo to the rendering-dependent half of `WCAG_TAGS`; the root suite sweeps
- * every docs page. Neither ever loads a template — templates are standalone
- * Vite apps outside both the demo list and `documentationPages()` — so without
- * this spec a template could ship an accessibility defect that the same defect
- * in a demo would fail CI over. Templates are the most complete artifacts the
- * documentation site publishes, which makes them the wrong place for the bar
- * to go quiet.
+ * every docs page. Neither ever loads a template — templates are consumer-
+ * shaped Vite apps outside both the demo list and `documentationPages()` — so
+ * without this spec a template could ship an accessibility defect that the
+ * same defect in a demo would fail CI over. A template is copied into real
+ * products, which makes it the wrong place for the bar to go quiet.
  *
  * `BROWSER_REQUIRED_RULES` is imported rather than restated, so this gate, the
  * harness gate, the browserless gate and the root gate cannot drift apart —
@@ -51,7 +50,7 @@ if (targets.length === 0) {
     // The app must actually mount — and stop changing — before axe reads it.
     // Wait for a real element rather than a frame, because Firefox is the
     // engine where a timing race reads as "clean"; the settle wait then
-    // covers the loading-skeleton swap, so the scan sees the dashboard and
+    // covers the loading-skeleton swap, so the scan sees the grid and
     // not the skeleton. A template without a loading state settles on the
     // first equal sample, costing one tick.
     await page.locator("#app > *").first().waitFor();

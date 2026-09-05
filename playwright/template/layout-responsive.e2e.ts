@@ -41,8 +41,8 @@ if (targets.length === 0) {
           await page.setViewportSize(viewport);
           await page.goto(url);
           await page.locator("#app > *").first().waitFor();
-          // Measure the settled markup: the dashboard mounts after saas-shell's
-          // loading skeleton swaps out, and the grid is exactly the element
+          // Measure the settled markup: the grid mounts after the loading
+          // skeleton swaps out, and the grid is exactly the element
           // whose width the invariant is about.
           await waitForAppSettled(page);
           const overflow = await page.evaluate(() => {
