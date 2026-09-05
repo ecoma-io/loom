@@ -58,8 +58,8 @@ const LAYOUTS = pagesIn("layouts", [
   "centered",
   "dashboard",
   "settings",
-  "split",
-  "form",
+  "split-layout",
+  "form-layout",
   "reading",
 ]);
 

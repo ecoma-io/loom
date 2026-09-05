@@ -14,9 +14,9 @@
  * the full claim requires both tiers, and the browser gates still carry
  * color-contrast.
  *
- * Measured runtime: ~52s for all 94 demos × light+dark at maxWorkers 1 (jsdom is
+ * Measured runtime: ~52s for all demos × light+dark at maxWorkers 1 (jsdom is
  * slower than Chromium per-scan but avoids browser bootstrap; 6.6× faster than
- * the browser harness for the same 188 demo scans: 51.9s vs 341s).
+ * the browser harness for the same scans: 51.9s vs 341s).
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { mount } from "@vue/test-utils";
@@ -25,7 +25,7 @@ import axe from "axe-core";
 import { BROWSERLESS_RULES } from "@ecoma-io/loom/a11y";
 
 // Stub browser APIs jsdom lacks — inert, never functional fakes.
-// Measured: with these present, all 94 demos mount with zero errors.
+// Measured: with these present, all demos mount with zero errors.
 beforeAll(() => {
   // ResizeObserver and IntersectionObserver: layout observers used by some components
   // Empty methods are intentional — these are inert stubs, not functional mocks.
@@ -102,7 +102,7 @@ describe("browserless accessibility sweep — semantic WCAG rules (jsdom tier)",
           });
 
           // Wait for the component to settle (microtasks, async setup)
-          // Measured: 30ms is sufficient for all 94 demos; shorter delays cause intermittent failures.
+          // Measured: 30ms is sufficient for all demos; shorter delays cause intermittent failures.
           await new Promise((resolve) => setTimeout(resolve, 30));
 
           // Run axe against the full document with the browserless allowlist
