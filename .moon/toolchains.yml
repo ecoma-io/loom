@@ -15,10 +15,10 @@
 # this to determine which Node version to use for running tasks and to verify
 # the environment. The version matches .node-version at the repository root.
 node:
-  version: "24.19.0"
+  version: "24.20.0"
 
 pnpm:
-  version: "11.20.0"
+  version: "11.25.0"
 
 javascript:
   packageManager: pnpm
