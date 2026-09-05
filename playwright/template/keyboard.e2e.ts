@@ -85,36 +85,84 @@ if (targets.length === 0) {
           (document.activeElement as HTMLElement | null)?.blur();
         });
         // The click can restart the page's own async churn — analytics'
-        // Reload re-runs `load()` and its skeleton swap, which the pre-click
-        // settle already passed — and the census must census the settled
-        // post-click page, not the swap. One more settle wait sits between
-        // the click and the census for exactly that.
+        // Reload re-runs `load()` and its skeleton swap — and the walk must
+        // follow the page as it settles rather than race it: the walk ends
+        // on what it observes, not on a count sampled once.
         await waitForAppSettled(page);
 
-        const stopCount = await page.evaluate((): number => {
-          return Array.from(
-            document.querySelectorAll<HTMLElement>(
-              "#app a[href], #app button, #app input, #app select, #app textarea, #app [tabindex]:not([tabindex='-1'])",
-            ),
-          ).filter((el) => !el.hasAttribute("disabled") && el.getClientRects().length > 0).length;
-        });
-        // A template with zero tab stops would make the walk vacuous, and
-        // the census returning zero means the page above mounted nothing
-        // interactive — loud failure, not a quiet pass.
-        expect(stopCount, "the template's chrome must expose tab stops").toBeGreaterThan(0);
-
-        for (let stop = 1; stop <= stopCount; stop++) {
+        // One Tab press, then read the state that key press produced. The
+        // ring probe mirrors how loom actually renders the ring: the brand
+        // ring is the `global.css` `:focus-visible` outline, but composite
+        // controls hang the visible ring on a wrapper — TextField is the
+        // measured case (its `<input>` carries `outline-none`; the wrapper
+        // carries `focus-within:outline-2`), so reading `activeElement`'s
+        // own outline reports `none` while a real ring is on screen. The
+        // probe walks up from the focused element, and the first ancestor
+        // showing an outline is the ring the user sees. The visited mark is
+        // a data attribute stamped on the element itself, so the wrap guard
+        // is exact per element — two identical TextFields must not read as
+        // "no progress" the way descriptor strings would.
+        const tabToNextStop = async (): Promise<{
+          at: string;
+          visited: boolean;
+          ring: string;
+        } | null> => {
           await page.keyboard.press("Tab");
-          const ring = await page.evaluate(() => {
+          return page.evaluate(() => {
             const el = document.activeElement;
             if (!el || el === document.body) return null;
-            return getComputedStyle(el).outlineStyle;
+            let ring = "none";
+            for (
+              let node: Element | null = el;
+              node && node !== document.body;
+              node = node.parentElement
+            ) {
+              const style = getComputedStyle(node).outlineStyle;
+              if (style !== "none") {
+                ring = style;
+                break;
+              }
+            }
+            const visited = el.hasAttribute("data-keyboard-gate-visited");
+            el.setAttribute("data-keyboard-gate-visited", "");
+            return {
+              at:
+                el.tagName.toLowerCase() +
+                (el.id ? `#${el.id}` : "") +
+                Array.from(el.classList)
+                  .slice(0, 2)
+                  .map((c) => `.${c}`)
+                  .join(""),
+              visited,
+              ring,
+            };
           });
+        };
+
+        // Walk the template's tab order from the top. Three exits keep this
+        // terminating on every engine: focus leaving the document (Chromium
+        // past the last stop — `activeElement` becomes `body`), any revisit
+        // of a marked stop (engines that wrap instead of exiting), and —
+        // since the first stop is asserted ringed below — the marked stop
+        // condition also covers an engine that refuses to move focus.
+        const firstStop = await tabToNextStop();
+        if (firstStop === null) {
+          throw new Error("the template's chrome must expose at least one tab stop");
+        }
+        expect(
+          firstStop.ring,
+          `tab stop 1 (${firstStop.at}) must show a visible focus ring`,
+        ).not.toBe("none");
+        let stop = 1;
+        for (;;) {
+          const state = await tabToNextStop();
+          if (state === null) break;
+          if (state.visited) break;
+          stop++;
           expect(
-            ring,
-            `tab stop ${String(stop)}/${String(stopCount)} must stay inside the document`,
-          ).not.toBeNull();
-          expect(ring).not.toBe("none");
+            state.ring,
+            `tab stop ${String(stop)} (${state.at}) must show a visible focus ring`,
+          ).not.toBe("none");
         }
       });
 
