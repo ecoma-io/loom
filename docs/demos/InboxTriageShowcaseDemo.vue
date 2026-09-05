@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Archive, Inbox, MoreHorizontal, Search, Star, Trash2 } from "@lucide/vue";
 import {
   AlertDialog,
@@ -172,8 +172,27 @@ function focusFirstVisible() {
   detailTab.value = "conversation";
 }
 
+// The surface root, for re-seating focus after a removal took the focused
+// element with it.
+const demoRoot = ref<HTMLElement | null>(null);
+
 function afterRemoval(id: number) {
   if (currentId.value === id) focusFirstVisible();
+  // Re-seat DOM focus after the flush: the row's menu trigger (or the
+  // toolbar verb) that held focus is gone with the row, and a restore to a
+  // detached node lands on <body>, sending the next Tab to the page top.
+  void nextTick(() => {
+    const root = demoRoot.value;
+    const active = document.activeElement;
+    if (!root) return;
+    if (active instanceof HTMLElement && root.contains(active)) return;
+    const next = visible.value.find((c) => c.id === currentId.value);
+    const target =
+      (next && root.querySelector<HTMLElement>(`[data-open-thread="${next.id}"]`)) ||
+      root.querySelector<HTMLElement>("[data-inbox-empty-action]") ||
+      root.querySelector<HTMLElement>("[data-inbox-commands]");
+    target?.focus();
+  });
 }
 
 function toggleFlag(thread: Thread) {
@@ -277,6 +296,11 @@ const commandOpen = ref(false);
 
 function onGlobalKeydown(event: KeyboardEvent) {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+    // One overlay at a time: a palette stacked over the reply drawer or
+    // the delete confirmation lets a command remove the conversation the
+    // confirmation still holds — and confirming then reports a deletion
+    // that already happened. ⌘K is ignored while either is open.
+    if (replyOpen.value || deleteOpen.value) return;
     event.preventDefault();
     commandOpen.value = !commandOpen.value;
   }
@@ -363,6 +387,19 @@ function runRowCommand(value: string, thread: Thread) {
   else if (value === "delete") requestDelete(thread);
 }
 
+// The filter announces what it produced: the count paragraph is not in a
+// live region, so without this a screen reader hears the radio check but
+// not that the list shrank from five to two (or to the empty state).
+watch(filter, (value) => {
+  const label = filterOptions.find((option) => option.value === value)?.label ?? value;
+  const count = visible.value.length;
+  announce(
+    count === 0
+      ? `No conversations under ${label}`
+      : `${String(count)} ${count === 1 ? "conversation" : "conversations"} under ${label}`,
+  );
+});
+
 const detailTab = ref("conversation");
 const detailTabs = [
   { value: "conversation", label: "Conversation" },
@@ -371,7 +408,7 @@ const detailTabs = [
 </script>
 
 <template>
-  <div class="flex w-full flex-col gap-4">
+  <div ref="demoRoot" class="flex w-full flex-col gap-4">
     <LiveRegion politeness="polite" />
 
     <div class="overflow-hidden rounded-lg border border-border bg-card">
@@ -382,7 +419,7 @@ const detailTabs = [
         class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3"
       >
         <h3 id="showcase-inbox-title" class="text-title">Support inbox</h3>
-        <Button variant="outline" size="sm" @click="commandOpen = true">
+        <Button variant="outline" size="sm" data-inbox-commands @click="commandOpen = true">
           <Search class="mr-1.5 size-4" />
           Commands
           <span role="img" aria-label="Command K" class="ml-1.5 flex items-center gap-0.5">
@@ -407,16 +444,24 @@ const detailTabs = [
                 <p class="text-xs text-muted-foreground">{{ visible.length }} shown</p>
               </div>
               <div class="min-h-0 flex-1 overflow-y-auto">
-                <!-- A filter that matches nothing is the honest empty: the
-                     block explains it and offers exactly one next step. -->
+                <!-- Two honest empties, kept distinct: an inbox with
+                     nothing left to show is triage finished — not a filter
+                     that matched nothing, which has a next step to offer. -->
                 <EmptyState
-                  v-if="visible.length === 0"
+                  v-if="conversations.length === 0"
+                  title="The inbox is empty"
+                  description="Every conversation has been archived or deleted. Triage finished."
+                >
+                  <template #icon><Inbox /></template>
+                </EmptyState>
+                <EmptyState
+                  v-else-if="visible.length === 0"
                   title="Nothing matches this filter"
                   description="Every conversation is either archived or sits outside the filter you picked."
                 >
                   <template #icon><Inbox /></template>
                   <template #action>
-                    <Button variant="primary" @click="filter = 'all'">
+                    <Button variant="primary" data-inbox-empty-action @click="filter = 'all'">
                       Show every conversation
                     </Button>
                   </template>
@@ -441,6 +486,7 @@ const detailTabs = [
                     <button
                       type="button"
                       class="min-w-0 flex-1 py-1 text-left"
+                      :data-open-thread="thread.id"
                       @click="select(thread)"
                     >
                       <span class="block truncate text-body font-medium text-foreground">
@@ -577,7 +623,13 @@ const detailTabs = [
       <VisuallyHidden>
         <h2 id="showcase-inbox-palette-label">Command palette</h2>
       </VisuallyHidden>
+      <!-- Command in controlled mode: uncontrolled, its own Escape handling
+           clears the query first and then collapses the listbox while the
+           dialog swallows the key — Escape never closes the palette. Bound
+           to the same ref the dialog opens on, the second Escape lands here
+           as an update and closes the surface the reader meant to leave. -->
       <Command
+        v-model:open="commandOpen"
         aria-labelledby="showcase-inbox-palette-label"
         :items="commandItems"
         :groups="commandGroups"

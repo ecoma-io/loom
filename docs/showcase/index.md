@@ -47,6 +47,6 @@ than a demonstration, that is what [Templates](/templates/) are for.
   the reader works it — a filter that ends in an honest empty state, a
   reply drawer over a validated field, archive and delete behind row menus
   and a destructive confirmation, a live region and a toast answering every
-  state change, and a host-assembled ⌘K palette over the inline command
+  triage action, and a host-assembled ⌘K palette over the inline command
   listbox. Source:
   [InboxTriageShowcaseDemo.vue](https://github.com/ecoma-io/loom/blob/main/docs/demos/InboxTriageShowcaseDemo.vue).

@@ -19,8 +19,10 @@ filter down to an honest empty state, reply from the drawer (submit it
 empty to see the field report what is missing), archive or delete through
 the row menu or the detail toolbar — deleting asks before it destroys — and
 open the command palette with the **Commands** button or `⌘K` / `Ctrl+K`.
-Every state change answers twice: a live region for speech, a toast on
-screen.
+Every triage action is answered: the live region speaks it, and the
+actions that change the list also leave a toast on screen. The filter
+announces the count it produced, and the flag is spoken and logged without
+a toast — it has not changed the list.
 
 <Demo title="The inbox triage surface" :source="inboxTriageShowcaseSource">
   <InboxTriageShowcaseDemo />
