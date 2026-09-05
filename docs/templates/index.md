@@ -53,9 +53,22 @@ matches nothing. The page a data-heavy product builds first.
 
 [README](https://github.com/ecoma-io/loom/blob/main/templates/analytics/README.md)
 
+### Workspace settings
+
+A workspace settings page: a native `<form>` wrapping a `FormLayout`, two
+`FormSection` fieldsets — labelled text fields and a `Select`, a `Switch` row
+named through `aria-labelledby` — and `FormActions` pairing a real reset with
+a submit whose handler is the marked swap point for the consumer's API call.
+The form-surface counterpart to Analytics' data surface: the page every
+product reaches for when it needs preferences, not numbers.
+
+[README](https://github.com/ecoma-io/loom/blob/main/templates/workspace-settings/README.md)
+
 ## Status
 
 The [template contract](/templates/contract) is defined. The starter proves it
-buildable, and Analytics is the first production page template — the contract's
+buildable, Analytics is the first production page template — the contract's
 file set, boundary, build and browser gates, plus the page-scale composition
-the starter deliberately omits. This page lists each template as it lands.
+the starter deliberately omits — and Workspace settings is the second, the
+form-surface counterpart to Analytics' data surface. This page lists each
+template as it lands.
