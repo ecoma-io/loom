@@ -1,5 +1,85 @@
 # Changelog
 
+## [0.5.0](https://github.com/ecoma-io/loom/compare/v0.4.0...v0.5.0) (2026-09-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **composition:** Split and SplitLayout no longer accept collapseAt and the SplitLayoutCollapseAt type is no longer exported. Rendering is unchanged — delete the attribute from call sites.
+
+### Features
+
+* **a11y:** adopt five disabled WCAG rules into the runtime tiers ([#128](https://github.com/ecoma-io/loom/issues/128)) ([e89265f](https://github.com/ecoma-io/loom/commit/e89265fcae1e7037fb8444b6c07a587b5b6df44f))
+* **a11y:** announce destructive toasts through an assertive region ([#109](https://github.com/ecoma-io/loom/issues/109)) ([d69f103](https://github.com/ecoma-io/loom/commit/d69f1032cb2d836c92c6f7deca325638cb8e436b)), closes [#91](https://github.com/ecoma-io/loom/issues/91)
+* **a11y:** split the WCAG gate into a browserless semantic tier and a browser residual ([#122](https://github.com/ecoma-io/loom/issues/122)) ([7884045](https://github.com/ecoma-io/loom/commit/78840450b824150a0646546262fe79d95fd8a9fb))
+* add Showcase [#1](https://github.com/ecoma-io/loom/issues/1) — the invite-teammates flow ([#224](https://github.com/ecoma-io/loom/issues/224)) ([a581c5e](https://github.com/ecoma-io/loom/commit/a581c5eb89a77dfb1b45fd7816a438f37d62ca7a)), closes [#220](https://github.com/ecoma-io/loom/issues/220)
+* add Showcase [#2](https://github.com/ecoma-io/loom/issues/2) — the inbox triage composition ([#229](https://github.com/ecoma-io/loom/issues/229)) ([1478b3a](https://github.com/ecoma-io/loom/commit/1478b3ae0975d7d57402897bccc0da7caa6863c5))
+* add the Workspace settings page template ([#223](https://github.com/ecoma-io/loom/issues/223)) ([b79c61b](https://github.com/ecoma-io/loom/commit/b79c61b1b1cc9b957ebf45f1a36d0d2b82736418))
+* **blocks:** add ErrorSummary — focusable form error summary (GOV.UK pattern) ([#156](https://github.com/ecoma-io/loom/issues/156)) ([7399db1](https://github.com/ecoma-io/loom/commit/7399db10c41178f67550f8264b734992d481c56e)), closes [#155](https://github.com/ecoma-io/loom/issues/155)
+* browser quality gates for templates — axe, keyboard, responsive ([#214](https://github.com/ecoma-io/loom/issues/214)) ([754a8a0](https://github.com/ecoma-io/loom/commit/754a8a05b46f7bc23afe4bb19d9af05d44e6e383))
+* **e2e:** drop the browser leg for spec-less component changes at PR level ([#123](https://github.com/ecoma-io/loom/issues/123)) ([e907b94](https://github.com/ecoma-io/loom/commit/e907b94b8962f90709e03e24e5a2abac5d723f72))
+* **e2e:** rebalance root shards from the post-split page cost ([#125](https://github.com/ecoma-io/loom/issues/125)) ([5e18ecb](https://github.com/ecoma-io/loom/commit/5e18ecbe09aa78f7d4d064bbf0f99e38c960da00))
+* **primitives:** add Calendar primitive — browsable temporal surface ([e037f80](https://github.com/ecoma-io/loom/commit/e037f8055fdc62f380992b9008ed20a44133bae0))
+* **primitives:** add Calendar primitive ([#132](https://github.com/ecoma-io/loom/issues/132)) ([e037f80](https://github.com/ecoma-io/loom/commit/e037f8055fdc62f380992b9008ed20a44133bae0))
+* **primitives:** add Command — keyboard-driven command search with grouped results ([#134](https://github.com/ecoma-io/loom/issues/134)) ([7752991](https://github.com/ecoma-io/loom/commit/77529916453932fdcf32dbf528ae2a73b10d8691))
+* **primitives:** add CopyButton — clipboard copy with announced feedback ([#152](https://github.com/ecoma-io/loom/issues/152)) ([b7ca018](https://github.com/ecoma-io/loom/commit/b7ca0186c335c25369f17679c7a72035d56751ce))
+* **primitives:** add DataGrid — interactive grid with row selection and sortable columns ([#142](https://github.com/ecoma-io/loom/issues/142)) ([a821fd1](https://github.com/ecoma-io/loom/commit/a821fd1c8337a2763983014b984a6627d7aa0b9b))
+* **primitives:** add LiveRegion — shared announce seam for assistive tech ([#148](https://github.com/ecoma-io/loom/issues/148)) ([638f4dc](https://github.com/ecoma-io/loom/commit/638f4dc8efc70d9a536177b603aae22e75f45244))
+* **primitives:** add Meter — scalar capacity gauge (role meter) ([#154](https://github.com/ecoma-io/loom/issues/154)) ([6f8c197](https://github.com/ecoma-io/loom/commit/6f8c197b99f8793aadf961cdcf88c36c341d35f1))
+* **primitives:** add NavigationMenu — WAI-ARIA navigation menu with dropdown panels ([#133](https://github.com/ecoma-io/loom/issues/133)) ([91a9a1b](https://github.com/ecoma-io/loom/commit/91a9a1b087da62971a224814d1eba162bd75b098))
+* **primitives:** add SkipLink — bypass-blocks navigation (WCAG 2.4.1) ([#137](https://github.com/ecoma-io/loom/issues/137)) ([1e85ad1](https://github.com/ecoma-io/loom/commit/1e85ad11337615dfee21e7de6b81350e08973a53)), closes [#136](https://github.com/ecoma-io/loom/issues/136)
+* **primitives:** add ToggleGroup — pressed-state buttons, single or multiple ([#150](https://github.com/ecoma-io/loom/issues/150)) ([c2c9d79](https://github.com/ecoma-io/loom/commit/c2c9d790f8a8ab8bf872e2e5e6e95d385e8e97e3))
+* **primitives:** add Toolbar — grouped controls with roving tabindex ([#147](https://github.com/ecoma-io/loom/issues/147)) ([786ff31](https://github.com/ecoma-io/loom/commit/786ff317d2291813e4a5f5cb89ac82e220a66b72)), closes [#145](https://github.com/ecoma-io/loom/issues/145)
+* **primitives:** add TreeView — hierarchical tree with keyboard navigation ([#138](https://github.com/ecoma-io/loom/issues/138)) ([270e52b](https://github.com/ecoma-io/loom/commit/270e52b5d821a0e3709ae687bed1d99a0600e433)), closes [#135](https://github.com/ecoma-io/loom/issues/135)
+* **primitives:** add VisuallyHidden — screen-reader-only content primitive ([#144](https://github.com/ecoma-io/loom/issues/144)) ([f5a00c6](https://github.com/ecoma-io/loom/commit/f5a00c6fbd7aa4c41a46cf3179f9a1ec1d357823)), closes [#143](https://github.com/ecoma-io/loom/issues/143)
+* **primitives:** unify Dialog and Drawer size scales ([#110](https://github.com/ecoma-io/loom/issues/110)) ([97087ae](https://github.com/ecoma-io/loom/commit/97087ae01ab592089a2b05ed4e1fcd413cae4e1a)), closes [#92](https://github.com/ecoma-io/loom/issues/92)
+* template browser harness with smoke tests and e2e-plan template scenario ([#212](https://github.com/ecoma-io/loom/issues/212)) ([36b84df](https://github.com/ecoma-io/loom/commit/36b84dfa586f378b202359b3e293a853a9ae4c34))
+
+
+### Bug Fixes
+
+* **a11y:** document and enforce the HoverCard non-interactive content contract ([#108](https://github.com/ecoma-io/loom/issues/108)) ([1b4e213](https://github.com/ecoma-io/loom/commit/1b4e213ced8a90a7f3dcca0c814577df98541bb5))
+* **a11y:** make the partition self-audit real and true up its docblocks ([#124](https://github.com/ecoma-io/loom/issues/124)) ([7fd04d1](https://github.com/ecoma-io/loom/commit/7fd04d16458108d8551b4089be5733109dd9bcd7))
+* **a11y:** mirror Switch in RTL, floor SegmentedControl targets, assert reduce-motion exits ([#114](https://github.com/ecoma-io/loom/issues/114)) ([1067f0b](https://github.com/ecoma-io/loom/commit/1067f0bc4c866700265418a3636b49cf6f8326e2)), closes [#94](https://github.com/ecoma-io/loom/issues/94)
+* **composition:** order right-side panels so the wrapped stack matches the docs ([#171](https://github.com/ecoma-io/loom/issues/171)) ([c462bfc](https://github.com/ecoma-io/loom/commit/c462bfc87af82d9a19823b481ec08d4186cb8a3a))
+* **composition:** remove the never-read collapseAt prop from Split and SplitLayout ([#130](https://github.com/ecoma-io/loom/issues/130)) ([c2f39c1](https://github.com/ecoma-io/loom/commit/c2f39c19e781847ac8a8c411ca5456586773008f)), closes [#119](https://github.com/ecoma-io/loom/issues/119)
+* **composition:** step aside for caret keys aimed at a nested editable ([#193](https://github.com/ecoma-io/loom/issues/193)) ([b3fb794](https://github.com/ecoma-io/loom/commit/b3fb7943b64ea0b21650b6dada7a8f14f3307040))
+* **docs:** drop the phantom #header slot and correct the sort cycle prose ([#172](https://github.com/ecoma-io/loom/issues/172)) ([346a915](https://github.com/ecoma-io/loom/commit/346a91598f92c46f1d0a04107b27ded6e65214ee))
+* **docs:** metric-card trend tokens point at the -text rung ([#175](https://github.com/ecoma-io/loom/issues/175)) ([26f3ef2](https://github.com/ecoma-io/loom/commit/26f3ef257e0b2129bdc4acb6903438ab2b7b5f3a))
+* name the slugs the sidebar reading order ranks, and un-drift two comments ([#222](https://github.com/ecoma-io/loom/issues/222)) ([d7f61c8](https://github.com/ecoma-io/loom/commit/d7f61c8bd5759597ba8993d8e8b556d3106ec328))
+* **primitives:** add Menubar typeahead ([#195](https://github.com/ecoma-io/loom/issues/195)) ([8b890c6](https://github.com/ecoma-io/loom/commit/8b890c6abe1b6183ba430a80a33b978087e0dd19))
+* **primitives:** cycle TreeView typeahead on a repeated character ([#169](https://github.com/ecoma-io/loom/issues/169)) ([9161af2](https://github.com/ecoma-io/loom/commit/9161af256fef3fad7973fb9ca0320435dab68f48))
+* **primitives:** cycle typeahead on a repeated character without extending the prefix ([9161af2](https://github.com/ecoma-io/loom/commit/9161af256fef3fad7973fb9ca0320435dab68f48))
+* **primitives:** default Avatar accentLabel to 'Accent' ([#189](https://github.com/ecoma-io/loom/issues/189)) ([1d1d7f6](https://github.com/ecoma-io/loom/commit/1d1d7f65175fd58c6515ef734b360bc1956d7cd9))
+* **primitives:** keep Calendar's status region silent until the first user selection ([#180](https://github.com/ecoma-io/loom/issues/180)) ([e66bcee](https://github.com/ecoma-io/loom/commit/e66bcee6e939ede499efda1ead4aaa9faaddd3b5))
+* **primitives:** keep DataGrid's single Tab stop at every row count ([#190](https://github.com/ecoma-io/loom/issues/190)) ([7d5c1fd](https://github.com/ecoma-io/loom/commit/7d5c1fdb0874270fc317c82a68747f16254b6ca3))
+* **primitives:** keep DateRangePicker's status region silent until the user picks ([#192](https://github.com/ecoma-io/loom/issues/192)) ([776fbb6](https://github.com/ecoma-io/loom/commit/776fbb6376d7cb322568bdaeb3e8b1194c15769a))
+* **primitives:** keep the DataGrid's active cell and focus inside the matrix when rows shrink ([#174](https://github.com/ecoma-io/loom/issues/174)) ([84ccfd1](https://github.com/ecoma-io/loom/commit/84ccfd1c3d8bc0400434e9deace3fd1fde4e9f89))
+* **primitives:** let a caller's aria-labelledby name the date pickers' segment group ([#129](https://github.com/ecoma-io/loom/issues/129)) ([3443540](https://github.com/ecoma-io/loom/commit/34435409ae708f82d408010008b42332e91822f4)), closes [#116](https://github.com/ecoma-io/loom/issues/116)
+* **primitives:** match Alert's live region to its tone ([#179](https://github.com/ecoma-io/loom/issues/179)) ([d6e5d8d](https://github.com/ecoma-io/loom/commit/d6e5d8d1bd1d7b2dc5e308ab7fdadb7e782d9725))
+* **primitives:** never let a disabled TreeView row hold the entry stop ([#191](https://github.com/ecoma-io/loom/issues/191)) ([a376d14](https://github.com/ecoma-io/loom/commit/a376d14618d7843936db3d602865ecafb09b8050))
+* **primitives:** reset Command highlight when the controlled query changes ([#170](https://github.com/ecoma-io/loom/issues/170)) ([95cbb51](https://github.com/ecoma-io/loom/commit/95cbb512940bd93e9a4b9be0f35a43b5ae382464))
+* **primitives:** route Command through the labels seam and make Escape reversible ([#173](https://github.com/ecoma-io/loom/issues/173)) ([c019971](https://github.com/ecoma-io/loom/commit/c0199716b4a26562aa49e72ca85daadf35b3ac88))
+* re-pin moon's toolchain to .node-version and packageManager after [#215](https://github.com/ecoma-io/loom/issues/215) ([#231](https://github.com/ecoma-io/loom/issues/231)) ([17e8108](https://github.com/ecoma-io/loom/commit/17e81080d1789dd4a4ba9eef6dbe393c42dead40)), closes [#230](https://github.com/ecoma-io/loom/issues/230)
+* untrack 23 session task-output files committed under home/ ([#221](https://github.com/ecoma-io/loom/issues/221)) ([c9877d8](https://github.com/ecoma-io/loom/commit/c9877d8c6addc7842e4b4fc4556ae4d763cccbae)), closes [#217](https://github.com/ecoma-io/loom/issues/217)
+
+
+### Documentation
+
+* add the SaaS shell production template ([#208](https://github.com/ecoma-io/loom/issues/208)) ([fb7e19a](https://github.com/ecoma-io/loom/commit/fb7e19afba35e8cb20f4f36d06b1b992f53629da))
+* define the Template Contract and add the starter template ([#205](https://github.com/ecoma-io/loom/issues/205)) ([0dbf085](https://github.com/ecoma-io/loom/commit/0dbf085b17e7961b1de2260399e2bf667f7ae6e6))
+* drop no-op attrs from Command usage example ([#181](https://github.com/ecoma-io/loom/issues/181)) ([d895ba6](https://github.com/ecoma-io/loom/commit/d895ba6e8c3d95cdea4ead4ae66cdab1efda4ace))
+* keep a11y claims to what the code actually does ([#194](https://github.com/ecoma-io/loom/issues/194)) ([2373f4b](https://github.com/ecoma-io/loom/commit/2373f4be6f2897b19335cfebb782fbeaebcb1e95))
+* **layouts:** state the collapsed story the CSS actually delivers ([#131](https://github.com/ecoma-io/loom/issues/131)) ([15ba005](https://github.com/ecoma-io/loom/commit/15ba005ba9bb4ca97a9ddd76fe825dfdf31a507c))
+* scaffold the Templates and Showcase layers of the documentation journey ([#203](https://github.com/ecoma-io/loom/issues/203)) ([fb9757c](https://github.com/ecoma-io/loom/commit/fb9757c35373f393966e7e87b16f78de643ce014))
+* state the tree-view empty-children convention explicitly ([#141](https://github.com/ecoma-io/loom/issues/141)) ([5f04a45](https://github.com/ecoma-io/loom/commit/5f04a4538764f33fe4ff34745ba50fb041ba4bd7))
+
+
+### Refactoring
+
+* **primitives:** extract shared date segment aria-label helpers ([#107](https://github.com/ecoma-io/loom/issues/107)) ([9a3420c](https://github.com/ecoma-io/loom/commit/9a3420c9e1e30e1202d8d484f8ede7a7a854c5ae)), closes [#89](https://github.com/ecoma-io/loom/issues/89)
+* realign Component/Pattern/Showcase/Template/Application semantics ([#218](https://github.com/ecoma-io/loom/issues/218)) ([d2dbbd2](https://github.com/ecoma-io/loom/commit/d2dbbd2b119f387513973ef53d4bc2bc5ccebe2d))
+
 ## [0.4.0](https://github.com/ecoma-io/loom/compare/v0.3.0...v0.4.0) (2026-08-23)
 
 
