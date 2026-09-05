@@ -41,3 +41,12 @@ than a demonstration, that is what [Templates](/templates/) are for.
   validated form, a live region and a toast confirming the send, and the
   list growing — real interaction and state the reader drives. Source:
   [InviteTeammatesShowcaseDemo.vue](https://github.com/ecoma-io/loom/blob/main/docs/demos/InviteTeammatesShowcaseDemo.vue).
+
+- **[Triage the inbox](/showcase/inbox-triage)** — the second canonical
+  demonstration: a two-pane support inbox that starts loaded and shrinks as
+  the reader works it — a filter that ends in an honest empty state, a
+  reply drawer over a validated field, archive and delete behind row menus
+  and a destructive confirmation, a live region and a toast answering every
+  state change, and a host-assembled ⌘K palette over the inline command
+  listbox. Source:
+  [InboxTriageShowcaseDemo.vue](https://github.com/ecoma-io/loom/blob/main/docs/demos/InboxTriageShowcaseDemo.vue).
