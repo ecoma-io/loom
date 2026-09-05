@@ -14,9 +14,9 @@
  * the full claim requires both tiers, and the browser gates still carry
  * color-contrast.
  *
- * Measured runtime: ~52s for all 94 demos × light+dark at maxWorkers 1 (jsdom is
+ * Measured runtime: ~52s for all demos × light+dark at maxWorkers 1 (jsdom is
  * slower than Chromium per-scan but avoids browser bootstrap; 6.6× faster than
- * the browser harness for the same 188 demo scans: 51.9s vs 341s).
+ * the browser harness for the same scans: 51.9s vs 341s).
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { mount } from "@vue/test-utils";

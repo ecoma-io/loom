@@ -206,8 +206,6 @@ export type {
   EditableLabels,
   EditableSubmitMode,
 } from "@ecoma-io/loom-editable";
-export { default as ErrorSummary, ERROR_SUMMARY_LABELS } from "@ecoma-io/loom-error-summary";
-export type { ErrorSummaryEntry, ErrorSummaryLabels } from "@ecoma-io/loom-error-summary";
 export { default as Field } from "@ecoma-io/loom-field";
 export { default as Fieldset } from "@ecoma-io/loom-fieldset";
 export { default as FileUpload, FILE_UPLOAD_LABELS } from "@ecoma-io/loom-file-upload";
@@ -319,6 +317,8 @@ export { default as DashboardGrid } from "@ecoma-io/loom-dashboard-grid";
 export { default as DesktopAppShell } from "@ecoma-io/loom-desktop-app-shell";
 export { default as EmptyState } from "@ecoma-io/loom-empty-state";
 export { default as ErrorState } from "@ecoma-io/loom-error-state";
+export { default as ErrorSummary, ERROR_SUMMARY_LABELS } from "@ecoma-io/loom-error-summary";
+export type { ErrorSummaryEntry, ErrorSummaryLabels } from "@ecoma-io/loom-error-summary";
 export { default as FormActions } from "@ecoma-io/loom-form-actions";
 export type { FormActionsAlign } from "@ecoma-io/loom-form-actions";
 export { default as FormSection } from "@ecoma-io/loom-form-section";
