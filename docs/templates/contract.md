@@ -1,11 +1,14 @@
 # Template contract
 
-An Official Template is a runnable application consuming the public
-`@ecoma-io/loom` package exactly as an external consumer would. The [landing
-page](/templates/) states the quality bar in prose; this page states it as
-law — the file set, the commands and the boundaries a template pull request is
-held to, asserted by the repository's gates rather than by a reviewer's
-memory.
+An Official Template is a copyable, prebuilt page UI consuming the public
+`@ecoma-io/loom` package exactly as an external consumer would. It lives in
+this repository as a minimal consumer-shaped Vite app — the vessel that proves
+the page builds against the published package; the page is the artifact, and
+the app scaffolding around it is what a consumer replaces with their own
+application. The [landing page](/templates/) states the quality bar in prose;
+this page states it as law — the file set, the commands and the boundaries a
+template pull request is held to, asserted by the repository's gates rather
+than by a reviewer's memory.
 
 ## Why a contract
 
@@ -44,6 +47,18 @@ The gate also asserts the manifest shape — `private`, the
 published package — because those are the facts "consumer, not fork" rests on,
 and no other gate reads a template's manifest.
 
+## What a template is not
+
+The template stops where an application begins, and the line is the definition,
+not a judgement call. A template owns one page. It carries no router and no
+navigation between pages, no authentication, no backend, no database and no
+business logic — fixture data with the swap points marked is as far as it goes.
+Application chrome the consumer's own shell provides (skip links, brand bars,
+breadcrumbs, a theme toggle, nav across pages) stays out unless it is the page's
+own content. Nothing here ships an application: the consumer's application owns
+routing, auth, data and deployment, and the template is the page they start it
+from.
+
 ## Public package consumption
 
 A template imports the published specifiers and nothing else:
@@ -71,24 +86,31 @@ installed package.
 
 | Command                    | What it proves                                                                                                  |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `moon run starter:build`   | The template builds as an application (Vite build).                                                             |
+| `moon run starter:build`   | The page builds against the published package (Vite build).                                                     |
 | `moon run <template>:lint` | The template's sources pass ESLint.                                                                             |
 | `pnpm typecheck`           | `templates/**/*` is in the root `tsconfig.json` include, so the root program type-checks every template source. |
 | `moon run <template>:test` | Reserved: the shared test task runs with `--passWithNoTests` until the E2E leg lands (see below).               |
 
 ## Theme, responsive, accessibility
 
-- **Both themes** work: the starter toggles with `useTheme`, which manages
-  the `data-theme` attribute the tokens read.
-- **Responsive** is composed, not written: the `AppShell` layout collapses
+- **Both themes** work: a template's styles are token references, so the page
+  follows whatever `data-theme` the host application sets. The starter shows
+  the `useTheme` composable managing that attribute.
+- **Responsive** is composed, not written: Loom's layout components collapse
   intrinsically when the content cannot hold its half of the container — no
   media query in the template's own CSS.
 - **The accessibility bar is the library's bar.** Every interactive element
   has an accessible name, the page is operable by keyboard alone with focus
   visible, and no state is conveyed by colour alone.
-- Browser-level evidence (axe over the rendered app, keyboard walk, responsive
-  sweep) arrives with the template quality-gate PR; the contract states the
-  bar now, the gate enforces it then.
+- **Browser-level evidence enforces the bar today**, through the template
+  browser harness (`playwright/template/`): every template is served by its
+  own dev server and held to a smoke check (loads, mounts, renders without JS
+  errors), an axe gate over `BROWSER_REQUIRED_RULES` in light and dark with
+  zero excludes, a keyboard gate (focus ring restores on Tab, horizontally
+  scrollable regions are keyboard-focusable at 375px — the check WebKit
+  witnesses), and a responsive gate (no horizontal document overflow at 320px
+  and 768px). CI runs the suite at the `standard` profile on every
+  `templates/**` change.
 
 ## Adding a template
 
@@ -100,7 +122,7 @@ installed package.
    installs with `--frozen-lockfile`.
 4. Run `pnpm lint` — the artifact gate names anything missing, and archkeep
    judges every import.
-5. Run `moon run <name>:build` — the template must build as an application.
+5. Run `moon run <name>:build` — the page must build against the published package.
 6. Open the PR against the issue naming the template; the contract page is
    the review bar.
 
@@ -109,9 +131,6 @@ installed package.
 Enforced today: the file set, manifest shape and Moon edge (the artifact
 gate), the import boundary (the `layer-templates` row, with a mutation row
 proving the verdict fires), the build (the Moon `build` task, `runInCI:
-affected`), and type-checking (the root `tsconfig.json` include).
-
-Coming with the quality-gate PR: browser-level evidence — axe over the
-rendered app, a keyboard walk and a responsive sweep, the same bar the
-library's own components are held to. The contract states the bar now so the
-gate lands into an existing promise rather than inventing one.
+affected`), type-checking (the root `tsconfig.json` include), and the
+browser-level bar — smoke, axe in light and dark, keyboard and responsive —
+through the template browser harness on every `templates/**` change.

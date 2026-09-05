@@ -166,9 +166,9 @@ const DOCS_ONLY_PATTERNS = [/^docs\/(?!demos\/)/];
 // itself, plus the demos the docs mounts as harness fixtures.
 const COMPONENT_PATTERNS = [/^packages\/(?!theme-core\/)/, /^docs\/demos\//];
 
-// A template change is anything under templates/. Templates are standalone
-// Vite apps — not VitePress pages — so a template edit needs the template
-// browser harness, not the root docs suite or the component harness.
+// A template change is anything under templates/. Templates are consumer-
+// shaped Vite apps — not VitePress pages — so a template edit needs the
+// template browser harness, not the root docs suite or the component harness.
 const TEMPLATE_PATTERNS = [/^templates\//];
 
 type Scenario = "pw-infra" | "theme" | "deps" | "docs" | "component" | "template" | "noop";
@@ -516,8 +516,8 @@ export function plan(
       // check speaks for WebKit — Chromium auto-focuses scroll containers, so
       // a chromium-only leg would pass with the defect fully present.
       //
-      // Templates are standalone Vite apps — not VitePress pages — so there is
-      // no root sweep. They do not need the component harness either.
+      // Templates are consumer-shaped Vite apps — not VitePress pages — so
+      // there is no root sweep. They do not need the component harness either.
       return PROFILE_PROJECTS.standard.flatMap((browser) =>
         Array.from({ length: 1 }, (_, i) => row("standard", "template", [], [], browser, 1, i + 1)),
       );

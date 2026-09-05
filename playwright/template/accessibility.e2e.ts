@@ -10,12 +10,11 @@ import { templateTargets } from "./template-targets.ts";
  *
  * The component harness (`playwright/harness/accessibility.e2e.ts`) holds each
  * demo to the rendering-dependent half of `WCAG_TAGS`; the root suite sweeps
- * every docs page. Neither ever loads a template — templates are standalone
- * Vite apps outside both the demo list and `documentationPages()` — so without
- * this spec a template could ship an accessibility defect that the same defect
- * in a demo would fail CI over. Templates are the most complete artifacts the
- * documentation site publishes, which makes them the wrong place for the bar
- * to go quiet.
+ * every docs page. Neither ever loads a template — templates are consumer-
+ * shaped Vite apps outside both the demo list and `documentationPages()` — so
+ * without this spec a template could ship an accessibility defect that the
+ * same defect in a demo would fail CI over. A template is copied into real
+ * products, which makes it the wrong place for the bar to go quiet.
  *
  * `BROWSER_REQUIRED_RULES` is imported rather than restated, so this gate, the
  * harness gate, the browserless gate and the root gate cannot drift apart —

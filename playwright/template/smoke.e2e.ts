@@ -11,7 +11,7 @@ import { templateTargets } from "./template-targets.ts";
  *
  * These are deliberately minimal — the component harness and the root suite's
  * axe gate provide accessibility and interaction coverage. Here we establish
- * only that the template is a working application, not a broken build.
+ * only that the template's page mounts, not a broken build.
  */
 
 const targets = templateTargets();

@@ -73,16 +73,16 @@ prevention for server-rendered pages.
 The documentation walks a journey, and each stage answers a different
 question:
 
-| Stage       | Section                                                             | Answers                                           |
-| ----------- | ------------------------------------------------------------------- | ------------------------------------------------- |
-| Foundations | [Foundations](/foundations/colour)                                  | The tokens every component reads                  |
-| Parts       | [Primitives](/components/button), [Composition](/composition/stack) | The controls, and the geometry that arranges them |
-| Regions     | [Blocks](/blocks/app-header), [Layouts](/layouts/app-shell)         | Named regions, and ready-made page shells         |
-| Patterns    | [Patterns](/patterns/forms)                                         | Worked examples that cross component boundaries   |
-| Start from  | [Templates](/templates/)                                            | Runnable applications to begin a project from     |
-| Study       | [Showcase](/showcase/)                                              | Complete compositions, built to be read           |
+| Stage           | Section                                                             | Answers                                           |
+| --------------- | ------------------------------------------------------------------- | ------------------------------------------------- |
+| Foundations     | [Foundations](/foundations/colour)                                  | The tokens every component reads                  |
+| Parts           | [Primitives](/components/button), [Composition](/composition/stack) | The controls, and the geometry that arranges them |
+| Regions         | [Blocks](/blocks/app-header), [Layouts](/layouts/app-shell)         | Named regions, and ready-made page shells         |
+| Patterns        | [Patterns](/patterns/forms)                                         | Worked examples that cross component boundaries   |
+| See it together | [Showcase](/showcase/)                                              | What Loom's parts produce when they compose       |
+| Start from      | [Templates](/templates/)                                            | Copyable pages to begin a real page from          |
 
 Templates is the newest section with content in it: the
-[contract](/templates/contract) is defined and the starter is runnable.
-Showcase is still its landing page today, and its first composition is being
-built.
+[contract](/templates/contract) is defined, the starter is runnable, and
+Dashboard is the first production page template. Showcase is still its landing
+page today, and its first demonstration is on the roadmap.

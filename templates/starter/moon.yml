@@ -1,7 +1,7 @@
 tags: ["layer-templates"]
 project:
   name: "starter"
-  description: "The minimal Official Template — a runnable consumer of the published package"
+  description: "The minimal Official Template — a copyable page consuming the published package"
 
 # The consumer dependency on the published package is real, but this project
 # sits outside `packages/`, the only tree tools/sync-moon-deps.ts derives edges

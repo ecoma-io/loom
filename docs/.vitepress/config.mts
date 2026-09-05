@@ -136,11 +136,13 @@ export default defineConfig({
   themeConfig: {
     nav: [
       // The journey, left to right: pick a control, see how controls combine,
-      // then start from something runnable or study something finished.
+      // see what they produce together, then start from a page you can copy.
+      // Showcase precedes Templates because that ordering is the principle
+      // itself — look before you take.
       { text: "Components", link: COMPONENTS[0]?.link ?? "/" },
       { text: "Patterns", link: PATTERNS[0]?.link ?? "/" },
-      { text: "Templates", link: "/templates/" },
       { text: "Showcase", link: "/showcase/" },
+      { text: "Templates", link: "/templates/" },
       { text: "GitHub", link: "https://github.com/ecoma-io/loom" },
     ],
     sidebar: [
@@ -158,14 +160,14 @@ export default defineConfig({
       // would render a focusable but inert wrapper — a dead keyboard tab
       // stop in the sidebar of every page.
       {
-        text: "Templates",
-        link: "/templates/",
-        ...(TEMPLATES.length ? { items: TEMPLATES } : {}),
-      },
-      {
         text: "Showcase",
         link: "/showcase/",
         ...(SHOWCASE.length ? { items: SHOWCASE } : {}),
+      },
+      {
+        text: "Templates",
+        link: "/templates/",
+        ...(TEMPLATES.length ? { items: TEMPLATES } : {}),
       },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],

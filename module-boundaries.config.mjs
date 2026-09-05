@@ -188,17 +188,17 @@ export const depConstraints = [
       "Import from the facade rather than from a component package — a page that reaches past the public surface is documenting something a consumer cannot use.",
   },
 
-  // The Official Templates. A template is an external-consumer-shaped
-  // application: it imports the published specifiers and nothing internal,
-  // which is the same reach the docs row licenses — the facade's entry points
-  // and the theme stylesheets. Whatever a template cannot express through
-  // that surface is a gap to file against the library, never a boundary to
-  // cross from inside the template.
+  // The Official Templates. A template is a copyable prebuilt page in a
+  // consumer-shaped vessel: it imports the published specifiers and nothing
+  // internal, which is the same reach the docs row licenses — the facade's
+  // entry points and the theme stylesheets. Whatever a template cannot express
+  // through that surface is a gap to file against the library, never a
+  // boundary to cross from inside the template.
   {
     sourceTag: "layer-templates",
     onlyDependOnLibsWithTags: ["layer-facade", "layer-theme-core"],
     description:
-      "A template consumes the published package exactly as an external consumer would — the facade's entry points and the theme stylesheets, and nothing internal.",
+      "A template consumes the published package exactly as an external consumer would — the facade's entry points and the theme stylesheets, and nothing internal. The page is the artifact; the app scaffolding is the vessel a consumer replaces.",
     remediation:
       "Import from the published `@ecoma-io/loom` specifiers instead. If the surface cannot express what the template needs, file the gap against the library rather than reaching past it.",
   },

@@ -74,6 +74,14 @@ affected-selection honest — a block importing a primitive is the direction
 the graph already flows, a primitive importing a block would be reaching up
 for something that should have been composed beneath it.
 
+Beside the stack, not inside it, sit the consumer-shaped projects — the
+documentation site (`layer-docs`), the E2E suites (`layer-e2e`) and the
+Official Templates (`layer-templates`). Each reaches only the facade and the
+stylesheets, exactly as an external consumer would, and nothing in the stack
+depends back on them. That direction is what makes a template a real
+consumer test: if a template cannot build against the published surface, the
+defect is in the published surface, and it is filed there.
+
 Rules:
 
 1. **Downward and same-layer edges are allowed.** A primitive may import
@@ -281,6 +289,22 @@ test is "what kind of thing is this":
   **composition**.
 - A responsive application shell → **layout**.
 - A composition of Loom parts into a recognisable UI arrangement → **block**.
+
+Not everything here is a component, and the package tiers above decide only
+which tier a _component_ lands in. The artifact kinds the repository talks
+about, what each is, and where each lives:
+
+| Artifact    | What it is                                                                                                      | Where it lives                                                                                                |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Component   | A generic control or container shipped in the public surface                                                    | `packages/<tier>/<name>/` + demo + docs page                                                                  |
+| Pattern     | A worked example crossing component boundaries, explained in prose                                              | `docs/patterns/`                                                                                              |
+| Showcase    | A demonstration of what the parts produce when they compose — read in the site, never copied                    | `docs/showcase/`, rendered by the site itself                                                                 |
+| Template    | A copyable prebuilt page a consumer takes into their application — one page; routing, auth and backend stay out | `templates/` as a consumer-shaped Vite vessel; the bar is [`docs/templates/contract.md`](/templates/contract) |
+| Application | Everything a consumer builds around those pages — routing, auth, data, deployment                               | Outside this repository — Loom owns no applications                                                           |
+
+One sentence keeps the last three apart: **Showcase = look what Loom
+components can do together; Template = take this page and build on it.** A
+showcase is read; a template is copied; an application is the consumer's.
 
 Shared non-visual logic that no component owns (utilities, the label seam,
 the WCAG tag set, theme, layout semantics as data) lives in the foundation
