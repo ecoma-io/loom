@@ -34,7 +34,10 @@ than a demonstration, that is what [Templates](/templates/) are for.
 - An application. No routing, no auth, no backend, no deployment — a showcase
   runs where it is written, in this site.
 
-## Status
+## Showcases
 
-No showcases yet. The first canonical demonstration lands with the Showcase
-roadmap, and this page will list each one with a link to its source.
+- **[Invite your team](/showcase/invite-teammates)** — the first canonical
+  demonstration: a member list that starts empty, an invite dialog over a
+  validated form, a live region and a toast confirming the send, and the
+  list growing — real interaction and state the reader drives. Source:
+  [InviteTeammatesShowcaseDemo.vue](https://github.com/ecoma-io/loom/blob/main/docs/demos/InviteTeammatesShowcaseDemo.vue).
