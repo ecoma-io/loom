@@ -81,6 +81,16 @@ if (targets.length === 0) {
         // is walked as a stop, the trigger is tabbed into, and neither the
         // click target nor the page shape can weaken what is asserted.
         await page.keyboard.press("Escape");
+        // reka-ui holds the closing panel mounted through its exit
+        // animation (`Select.vue`'s `data-[state=closed]:animate-fade-fall`)
+        // and restores trigger focus only at animationend — a blur issued
+        // before that restore lands gets undone, and the walk then tabs
+        // from the trigger and reads a transient focus inside the
+        // tearing-down panel. Waiting for the trigger to hold focus again
+        // pins the dismissal to completion; on templates whose click opened
+        // no popover, the click already left the button focused, so this
+        // passes in one tick.
+        await expect(first).toBeFocused();
         await page.evaluate(() => {
           (document.activeElement as HTMLElement | null)?.blur();
         });
