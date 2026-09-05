@@ -292,7 +292,11 @@ jobs:
     needs: [release-please, publish]
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Fifteen, not the ten it carried when the install retry below was 150s:
+    # the retry's worst case is now ~9 minutes of sleeps plus twenty install
+    # attempts, and a timeout would kill the job mid-wait — reporting the
+    # same broken release the wait exists to prevent.
+    timeout-minutes: 15
     steps:
       # `.node-version` and nothing else. This job deliberately holds no working
       # copy — it is meant to see only what a consumer sees — and it failed
@@ -357,19 +361,30 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/verify && cd /tmp/verify
           npm init --yes > /dev/null
-          # Ten tries at fifteen seconds: propagation is usually seconds and has
-          # been minutes, and two and a half minutes is short enough that a real
-          # failure to publish is still reported rather than waited out.
-          for attempt in $(seq 1 10); do
+          # Twenty tries stepping 15s to 30s: propagation is usually seconds,
+          # but at 0.5.0 (run 33992276871) a publish that had already reported
+          # success sat through all of this loop's then-150s flat window
+          # without the packument serving, the job failed as a broken release,
+          # and the documentation deploy behind it skipped. The old comment
+          # called that trade-off deliberate — "short enough that a real
+          # failure to publish is still reported rather than waited out" — and
+          # the run falsified it: the window was shorter than a real
+          # propagation, not longer than a real failure. Nine minutes of
+          # waiting reports a genuine publish failure one release review later;
+          # the shorter window reported a real release as broken.
+          for attempt in $(seq 1 20); do
             if npm install "${PACKAGE}@${VERSION}"; then
               installed=yes
               break
             fi
-            echo "Attempt ${attempt}: the registry has not served ${PACKAGE}@${VERSION} yet; retrying in 15s." >&2
-            sleep 15
+            # Fifteen seconds while propagation is still in its usual
+            # seconds-scale phase, thirty for the tail the 0.5.0 run measured.
+            delay=$(( attempt <= 4 ? 15 : 30 ))
+            echo "Attempt ${attempt}: the registry has not served ${PACKAGE}@${VERSION} yet; retrying in ${delay}s." >&2
+            sleep "$delay"
           done
           if [ "${installed:-no}" != yes ]; then
-            echo "${PACKAGE}@${VERSION} was not installable after ten attempts." >&2
+            echo "${PACKAGE}@${VERSION} was not installable after twenty attempts." >&2
             exit 1
           fi
           npm audit signatures
