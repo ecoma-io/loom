@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/ecoma-io/loom/compare/v0.5.0...v0.5.1) (2026-09-05)
+
+
+### Bug Fixes
+
+* out-wait npm packument propagation in verify-artifact ([#233](https://github.com/ecoma-io/loom/issues/233)) ([c357a87](https://github.com/ecoma-io/loom/commit/c357a8723927df9dbc286c2f9fff022730fbcd83)), closes [#232](https://github.com/ecoma-io/loom/issues/232)
+
 ## [0.5.0](https://github.com/ecoma-io/loom/compare/v0.4.0...v0.5.0) (2026-09-05)
 
 
