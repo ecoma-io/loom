@@ -9,11 +9,16 @@ import { templateTargets } from "./template-targets.ts";
  * markup is its own — the root suite keys on `.vp-doc table`, which no
  * template contains:
  *
- * 1. **Focus ring on Tab.** A real mouse click must clear the ring and a Tab
- *    must restore it — the focus-visible contract every loom control carries.
- *    The root suite verifies this per component demo; the template gate
- *    verifies it on the template's own chrome, where template-authored layout
- *    could suppress the ring without any single component being wrong.
+ * 1. **Focus ring on click and Tab.** A real mouse click must clear the
+ *    ring — the focus-visible contract every loom control carries — and the
+ *    ring must then hold at **every** tab stop of the template's own chrome,
+ *    walked from the top. The root suite verifies this per component demo;
+ *    the template gate verifies it page-wide, where template-authored layout
+ *    could suppress the ring without any single component being wrong. The
+ *    walk form (rather than one Tab from the click target) is what makes the
+ *    gate answerable on every template shape — #226 records the two shapes
+ *    where a single Tab read `null` (last tab stop) or `"none"` (a popover
+ *    dismissing focus back to its trigger).
  *
  * 2. **Scrollable regions are focusable at 375px.** Any element that actually
  *    scrolls horizontally at 375px must be reachable by keyboard focus —
@@ -41,40 +46,134 @@ if (targets.length === 0) {
     const url = `http://localhost:${String(target.port)}${target.route}`;
 
     test.describe(target.id, () => {
-      test("focus ring clears on mouse click and restores on Tab", async ({ page }) => {
+      test("focus ring clears on mouse click and holds at every tab stop", async ({ page }) => {
         await page.goto(url);
         await page.locator("#app > *").first().waitFor();
         await waitForAppSettled(page);
 
-        // A real mouse click, so the engine's :focus-visible heuristics run
-        // for real rather than under a synthetic focus() that always matches.
-        // The target is a button, not whichever element happens to be first
-        // in the tab order: templates open on different first stops — the
-        // analytics page's Reload button, the starter's in-page nav anchors —
-        // and
-        // a page-level skip link keys its reveal and outline to plain
+        // Half one: a real mouse click clears the ring — the engine's
+        // :focus-visible heuristics run for real rather than under a
+        // synthetic focus() that always matches. The target is the first
+        // button, not whichever element happens to be first in the tab
+        // order: templates open on different first stops — the analytics
+        // page's Reload button, the starter's in-page nav anchors — and a
+        // page-level skip link keys its reveal and outline to plain
         // `:focus`, not `:focus-visible`, because focus arriving from
         // programmatic handoff is real focus. The button's ring is the
         // :focus-visible contract under test.
         const first = page.locator("#app button").first();
         await expect(first).toBeVisible();
-
-        // A real mouse click, so the engine's :focus-visible heuristics run
-        // for real rather than under a synthetic focus() that always matches.
         await first.click();
         expect(await first.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("none");
 
-        // Tab moves focus to the next tabbable element, which must now show
-        // the ring. Checked on whatever received focus — after a click that
-        // opens a menu or popover that is legitimately a control inside it.
-        await page.keyboard.press("Tab");
-        const ring = await page.evaluate(() => {
-          const el = document.activeElement;
-          if (!el || el === document.body) return null;
-          return getComputedStyle(el).outlineStyle;
+        // Half two: the ring holds at EVERY tab stop of the template's own
+        // chrome, walked from the top. The single-Tab form this replaces was
+        // unanswerable on two real shapes (#226): a first button that is the
+        // page's last tab stop — the starter's theme toggle, with AppShell's
+        // `<aside>` before its `<header>` and nothing focusable in `main` —
+        // sends the Tab out of the document and reads `null`; and a first
+        // button that opens a popover — workspace-settings' `Select` trigger
+        // — gets focus restored programmatically on dismissal, which does
+        // not re-enter `:focus-visible` and reads `"none"`. Walking from a
+        // blurred start reaches every control by keyboard, the path where
+        // the brand ring (`global.css`'s `:focus-visible` outline) is meant
+        // to appear, and answers both shapes deterministically — the toggle
+        // is walked as a stop, the trigger is tabbed into, and neither the
+        // click target nor the page shape can weaken what is asserted.
+        await page.keyboard.press("Escape");
+        // reka-ui holds the closing panel mounted through its exit
+        // animation (`Select.vue`'s `data-[state=closed]:animate-fade-fall`)
+        // and restores trigger focus only at animationend — a blur issued
+        // before that restore lands gets undone, and the walk then tabs
+        // from the trigger and reads a transient focus inside the
+        // tearing-down panel. Waiting for the trigger to hold focus again
+        // pins the dismissal to completion; on templates whose click opened
+        // no popover, the click already left the button focused, so this
+        // passes in one tick.
+        await expect(first).toBeFocused();
+        await page.evaluate(() => {
+          (document.activeElement as HTMLElement | null)?.blur();
         });
-        expect(ring, "Tab after a mouse click must move focus to a visible ring").not.toBeNull();
-        expect(ring).not.toBe("none");
+        // The click can restart the page's own async churn — analytics'
+        // Reload re-runs `load()` and its skeleton swap — and the walk must
+        // follow the page as it settles rather than race it: the walk ends
+        // on what it observes, not on a count sampled once.
+        await waitForAppSettled(page);
+
+        // One Tab press, then read the state that key press produced. The
+        // ring probe mirrors how loom actually renders the ring: the brand
+        // ring is the `global.css` `:focus-visible` outline, but composite
+        // controls hang the visible ring on a wrapper — TextField is the
+        // measured case (its `<input>` carries `outline-none`; the wrapper
+        // carries `focus-within:outline-2`), so reading `activeElement`'s
+        // own outline reports `none` while a real ring is on screen. The
+        // probe walks up from the focused element, and the first ancestor
+        // showing an outline is the ring the user sees. The visited mark is
+        // a data attribute stamped on the element itself, so the wrap guard
+        // is exact per element — two identical TextFields must not read as
+        // "no progress" the way descriptor strings would.
+        const tabToNextStop = async (): Promise<{
+          at: string;
+          visited: boolean;
+          ring: string;
+        } | null> => {
+          await page.keyboard.press("Tab");
+          return page.evaluate(() => {
+            const el = document.activeElement;
+            if (!el || el === document.body) return null;
+            let ring = "none";
+            for (
+              let node: Element | null = el;
+              node && node !== document.body;
+              node = node.parentElement
+            ) {
+              const style = getComputedStyle(node).outlineStyle;
+              if (style !== "none") {
+                ring = style;
+                break;
+              }
+            }
+            const visited = el.hasAttribute("data-keyboard-gate-visited");
+            el.setAttribute("data-keyboard-gate-visited", "");
+            return {
+              at:
+                el.tagName.toLowerCase() +
+                (el.id ? `#${el.id}` : "") +
+                Array.from(el.classList)
+                  .slice(0, 2)
+                  .map((c) => `.${c}`)
+                  .join(""),
+              visited,
+              ring,
+            };
+          });
+        };
+
+        // Walk the template's tab order from the top. Three exits keep this
+        // terminating on every engine: focus leaving the document (Chromium
+        // past the last stop — `activeElement` becomes `body`), any revisit
+        // of a marked stop (engines that wrap instead of exiting), and —
+        // since the first stop is asserted ringed below — the marked stop
+        // condition also covers an engine that refuses to move focus.
+        const firstStop = await tabToNextStop();
+        if (firstStop === null) {
+          throw new Error("the template's chrome must expose at least one tab stop");
+        }
+        expect(
+          firstStop.ring,
+          `tab stop 1 (${firstStop.at}) must show a visible focus ring`,
+        ).not.toBe("none");
+        let stop = 1;
+        for (;;) {
+          const state = await tabToNextStop();
+          if (state === null) break;
+          if (state.visited) break;
+          stop++;
+          expect(
+            state.ring,
+            `tab stop ${String(stop)} (${state.at}) must show a visible focus ring`,
+          ).not.toBe("none");
+        }
       });
 
       test("horizontally scrollable regions are keyboard-focusable at 375px", async ({ page }) => {

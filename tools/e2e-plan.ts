@@ -31,14 +31,21 @@
  *               backstop.
  *   template    templates/** — a template source change (App.vue, vite.config,
  *               moon.yml, etc.) → the template browser harness at `standard`
- *               (chromium, firefox, webkit). Every template is tested, not only
- *               the one that changed: a single template edit is fast enough
- *               (seconds per template) that narrowing the set adds complexity
- *               with no meaningful CI cost. The template suites carry the axe
- *               gate and the 375px scroll-container focusability check, and
- *               WebKit is the engine that witnesses the latter — Chromium
- *               auto-focuses scroll containers, so a smoke-only (chromium) leg
- *               would pass with the defect fully present.
+ *               (chromium, firefox, webkit). Classified BEFORE deps: every
+ *               template PR edits the lockfile (the committed importer), so a
+ *               deps-first order would swallow every template PR (#225) —
+ *               measured on the PR that added templates/workspace-settings,
+ *               which ran 15 deps-root legs and zero template legs. And a
+ *               pw-infra diff that carries templates/** gets the template
+ *               legs appended in `plan()` for the same reason. Every template
+ *               is tested, not only the one that changed: a single template
+ *               edit is fast enough (seconds per template) that narrowing the
+ *               set adds complexity with no meaningful CI cost. The template
+ *               suites carry the axe gate and the 375px scroll-container
+ *               focusability check, and WebKit is the engine that witnesses
+ *               the latter — Chromium auto-focuses scroll containers, so a
+ *               smoke-only (chromium) leg would pass with the defect fully
+ *               present.
  *   noop        none of the above — the matrix is empty and `e2e-run` expands
  *               to zero legs.
  *
@@ -180,10 +187,17 @@ export function classifyFiles(files: string[]): Scenario {
 
   if (matches(PW_INFRA_PATTERNS)) return "pw-infra";
   if (matches(THEME_PATTERNS)) return "theme";
-  if (matches(DEPS_PATTERNS)) return "deps";
-  // A template change takes precedence over docs and component — templates
-  // have their own harness and do not need the docs site or component harness.
+  // A template change must be classified before deps, docs and component.
+  // Before deps above all: every template PR edits pnpm-lock.yaml, because
+  // the template contract requires committing the importer CI installs from
+  // with --frozen-lockfile, so a deps-first order sends every template PR
+  // down the deps scenario and the template gates never run — measured on
+  // #223, whose run produced 15 deps-root legs and zero template legs for a
+  // PR that added templates/workspace-settings. The docs/component precedence
+  // holds because templates have their own harness and do not need the docs
+  // site or component harness.
   if (matches(TEMPLATE_PATTERNS)) return "template";
+  if (matches(DEPS_PATTERNS)) return "deps";
   // docs/ prose changed, and nothing else that an earlier scenario owns. The
   // negative check is scoped to the *component* boundary — a demo edit must
   // not ride along as prose — so a routine prose change that also touches
@@ -444,8 +458,17 @@ export function plan(
     );
   };
 
+  // The template suite runs whole (every template, axe + keyboard +
+  // responsive), so a leg is one browser and one shard — `standard`, because
+  // the focusability check speaks for WebKit. Both the `template` scenario
+  // and the pw-infra append below emit exactly this.
+  const templateLegs = (): MatrixRow[] =>
+    PROFILE_PROJECTS.standard.flatMap((browser) =>
+      Array.from({ length: 1 }, (_, i) => row("standard", "template", [], [], browser, 1, i + 1)),
+    );
+
   switch (scenario) {
-    case "pw-infra":
+    case "pw-infra": {
       // The browsers and the harness are the thing being changed. Every
       // engine on the root suite, every component spec too. If the change
       // touches no component (an edit to the harness gate itself), the root
@@ -453,7 +476,18 @@ export function plan(
       // rebuilt, so a representative demo keeps the harness legs alive even
       // with an empty affected set.
       if (!affectedDemos.length) affectedDemos.push("button");
-      return [...rootLegs("full"), ...harnessLegs("standard")];
+      const rows = [...rootLegs("full"), ...harnessLegs("standard")];
+      // An infra PR can carry template content: #218 rewrote
+      // templates/analytics in the same commit range that touched this tool,
+      // and classified pw-infra both times it ran — so the template gates
+      // never executed against that rewrite. Whatever else an infra diff
+      // needs, a diff that touches templates/ still owes the template suite
+      // its own evidence; three cheap legs close that hole.
+      if (TEMPLATE_PATTERNS.some((p) => files.some((f) => p.test(f)))) {
+        rows.push(...templateLegs());
+      }
+      return rows;
+    }
     case "theme":
       // Tokens changed: the root sweep at the default three engines, plus the
       // theme-sensitive components the graph marks affected.
@@ -518,9 +552,7 @@ export function plan(
       //
       // Templates are consumer-shaped Vite apps — not VitePress pages — so
       // there is no root sweep. They do not need the component harness either.
-      return PROFILE_PROJECTS.standard.flatMap((browser) =>
-        Array.from({ length: 1 }, (_, i) => row("standard", "template", [], [], browser, 1, i + 1)),
-      );
+      return templateLegs();
     }
     default:
       return [];
@@ -601,6 +633,14 @@ export function runSelfCheck(): void {
   assert.equal(classifyFiles(["pnpm-lock.yaml"]), "deps"); // a dependency bump
   assert.equal(classifyFiles(["templates/analytics/src/App.vue"]), "template");
   assert.equal(classifyFiles(["templates/starter/moon.yml"]), "template");
+  // The template + lockfile shape is not a curiosity — it is what every
+  // template PR looks like (the importer is committed), and the deps-first
+  // order used to swallow it (#225: 15 deps-root legs, zero template legs on
+  // the PR adding a template). This is the row that keeps the order honest.
+  assert.equal(
+    classifyFiles(["templates/workspace-settings/src/App.vue", "pnpm-lock.yaml"]),
+    "template",
+  );
   assert.equal(classifyFiles([]), "noop");
 
   // plan — the affected-set decisions, against real demo files on disk.
@@ -793,6 +833,24 @@ export function runSelfCheck(): void {
   assert.ok(
     templatePlan.some((r) => r.browser === "webkit"),
     "template plan must include a webkit leg",
+  );
+
+  // 7. An infra diff that also carries template content still owes the
+  // template suite its legs: #218-classified changes (this tool, the
+  // configs, the harness) once rewrote templates/analytics with zero
+  // template legs in the plan (#225).
+  const infraWithTemplate = plan(
+    "pw-infra",
+    [],
+    ["tools/e2e-plan.ts", "templates/analytics/src/App.vue"],
+  );
+  assert.ok(
+    infraWithTemplate.some((r) => r.config === CONFIG_PATHS.template),
+    "pw-infra diff touching templates/ must append template legs",
+  );
+  assert.ok(
+    infraWithTemplate.some((r) => r.config === CONFIG_PATHS.root),
+    "pw-infra diff touching templates/ keeps the root sweep",
   );
 }
 
