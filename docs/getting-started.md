@@ -84,5 +84,5 @@ question:
 
 Templates is the newest section with content in it: the
 [contract](/templates/contract) is defined, the starter is runnable, and
-Dashboard is the first production page template. Showcase is still its landing
+Analytics is the first production page template. Showcase is still its landing
 page today, and its first demonstration is on the roadmap.

@@ -50,7 +50,7 @@ if (targets.length === 0) {
     // The app must actually mount — and stop changing — before axe reads it.
     // Wait for a real element rather than a frame, because Firefox is the
     // engine where a timing race reads as "clean"; the settle wait then
-    // covers the loading-skeleton swap, so the scan sees the dashboard and
+    // covers the loading-skeleton swap, so the scan sees the grid and
     // not the skeleton. A template without a loading state settles on the
     // first equal sample, costing one tick.
     await page.locator("#app > *").first().waitFor();

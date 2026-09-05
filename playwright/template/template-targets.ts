@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
  * unique port so all templates can serve concurrently during a browser test run.
  */
 export interface TemplateTarget {
-  /** The template's directory name, e.g. `"saas-shell"` or `"starter"`. */
+  /** The template's directory name, e.g. `"analytics"` or `"starter"`. */
   id: string;
   /** Absolute filesystem path to the template directory. */
   path: string;

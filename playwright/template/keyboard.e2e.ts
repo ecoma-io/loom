@@ -48,12 +48,14 @@ if (targets.length === 0) {
 
         // A real mouse click, so the engine's :focus-visible heuristics run
         // for real rather than under a synthetic focus() that always matches.
-        // The target is a button and deliberately not the first tabbable
-        // element: in saas-shell that is the SkipLink anchor, whose contract
-        // keys its reveal and outline to plain `:focus` — not `:focus-visible`
-        // — because focus arriving from programmatic handoff is real focus,
-        // so a mouse click legitimately leaves its ring on. Loom buttons key
-        // the ring to :focus-visible, which is the contract under test.
+        // The target is a button, not whichever element happens to be first
+        // in the tab order: templates open on different first stops — the
+        // analytics page's Reload button, the starter's in-page nav anchors —
+        // and
+        // a page-level skip link keys its reveal and outline to plain
+        // `:focus`, not `:focus-visible`, because focus arriving from
+        // programmatic handoff is real focus. The button's ring is the
+        // :focus-visible contract under test.
         const first = page.locator("#app button").first();
         await expect(first).toBeVisible();
 

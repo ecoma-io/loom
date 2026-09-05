@@ -3,8 +3,8 @@ import type { Page } from "@playwright/test";
 /**
  * Wait until the mounted app has stopped changing.
  *
- * A template may render a loading state first — saas-shell holds its skeleton
- * until a timer swaps in the dashboard — and loom's DataGrid assigns the
+ * A template may render a loading state first — the analytics template holds
+ * its skeleton until a timer swaps in the grid — and loom's DataGrid assigns the
  * scroll region's `tabindex` from a ResizeObserver callback after mount. A
  * gate that ran against the pre-swap markup would either pass while never
  * seeing the real content (axe scanning the skeleton) or fail while the page

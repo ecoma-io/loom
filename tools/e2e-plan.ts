@@ -599,7 +599,7 @@ export function runSelfCheck(): void {
   assert.equal(classifyFiles(["packages/theme-core/src/theme.css"]), "theme");
   assert.equal(classifyFiles(["playwright.config.ts"]), "pw-infra");
   assert.equal(classifyFiles(["pnpm-lock.yaml"]), "deps"); // a dependency bump
-  assert.equal(classifyFiles(["templates/saas-shell/src/App.vue"]), "template");
+  assert.equal(classifyFiles(["templates/analytics/src/App.vue"]), "template");
   assert.equal(classifyFiles(["templates/starter/moon.yml"]), "template");
   assert.equal(classifyFiles([]), "noop");
 
@@ -773,7 +773,7 @@ export function runSelfCheck(): void {
 
   // 6. A template change runs the template harness at `standard` — one leg per
   // standard-profile browser.
-  const templatePlan = plan("template", [], ["templates/saas-shell/src/App.vue"]);
+  const templatePlan = plan("template", [], ["templates/analytics/src/App.vue"]);
   assert.ok(
     templatePlan.every((r) => r.config === CONFIG_PATHS.template && r.profile === "standard"),
     "template change -> one standard leg per standard-profile browser",

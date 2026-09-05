@@ -43,19 +43,19 @@ surface, that is a defect in the surface, and it is filed as one.
 
 ## The templates
 
-### Dashboard
+### Analytics
 
-A dashboard page: `PageHeader`, four `MetricCard`s derived from the same rows
+An analytics page: `PageHeader`, four `MetricCard`s derived from the same rows
 the `DataGrid` shows (one loading flag drives the card skeletons and the row
 skeleton together), a sortable and filterable grid whose ordering the host
 computes, and the `LoadingState` / `EmptyState` pairing around a filter that
 matches nothing. The page a data-heavy product builds first.
 
-[README](https://github.com/ecoma-io/loom/blob/main/templates/dashboard/README.md)
+[README](https://github.com/ecoma-io/loom/blob/main/templates/analytics/README.md)
 
 ## Status
 
 The [template contract](/templates/contract) is defined. The starter proves it
-buildable, and Dashboard is the first production page template — the contract's
+buildable, and Analytics is the first production page template — the contract's
 file set, boundary, build and browser gates, plus the page-scale composition
 the starter deliberately omits. This page lists each template as it lands.

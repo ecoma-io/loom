@@ -1950,7 +1950,7 @@ importers:
 
   packages/theme-core: {}
 
-  templates/saas-shell:
+  templates/analytics:
     dependencies:
       '@ecoma-io/loom':
         specifier: workspace:*
