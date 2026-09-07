@@ -35,7 +35,8 @@ Enforced today; full mechanics in [the contract](./contract.md#the-checks-and-wh
 - The facade is a sink — nothing below `packages/loom` imports `@ecoma-io/loom` or its subpaths, not even `import type`.
 - One public npm package — `@ecoma-io/loom`; internal packages are private, declare no consumer exports.
 - The consumer boundary — templates and the docs site reach only the facade and the stylesheets; the E2E suites additionally reach the compositions through the disclosed conformance route (the `layer-e2e` row).
-- The five-artifact pairing — a component ships with its source, test, demo, docs page and facade export, or a gate names the missing file: `pnpm lint` for all but the demo, the docs build for the demo each page's own import performs.
+- The five-artifact pairing — a component ships with its source, test, demo, docs page and facade export, or a gate names the missing file: the artifact gate for source, test, docs page and export; the docs build for the demo each page's own import performs.
+- No import-time browser code — partially gated: semgrep's leak rules catch some module side effects; the import-time surface itself is review-held.
 - Theme-core is not a JS dependency — its CSS ships by copy, never by import.
 
 ## Accessibility
@@ -159,12 +160,12 @@ analysis carries the follow-ups.
 | Facade sink               | Invariant | ENFORCED           | `check-architecture.ts` check 2; subpath blind spot pinned by mutation rows     |
 | One public package        | Invariant | ENFORCED           | Private internal manifests; artifact + template gates                           |
 | Consumer boundary         | Invariant | ENFORCED           | Rows `layer-docs`/`layer-templates`; `layer-e2e` licenses the conformance route |
-| Five-artifact pairing     | Invariant | ENFORCED           | `tools/check-component-artifacts.ts` in `pnpm lint`                             |
-| No JS side effects        | Invariant | DOCUMENTED_ONLY    | `sideEffects` declared; review-held; no gate exists                             |
+| Five-artifact pairing     | Invariant | ENFORCED           | `tools/check-component-artifacts.ts` in `pnpm lint` and its Verify step         |
+| No JS side effects        | Invariant | PARTIALLY_ENFORCED | `sideEffects` declared; semgrep leak rules; import-time code review-held        |
 | Theme-core not a JS dep   | Invariant | ENFORCED           | `check-architecture.ts` check 5                                                 |
 | Accessibility             | Quality   | PARTIALLY_ENFORCED | Zero-exclude sweeps + pinned contrast; per-component depth uneven               |
 | Responsive                | Quality   | PARTIALLY_ENFORCED | Site + template gates; engine conformance route                                 |
-| Composition               | Quality   | DOCUMENTED_ONLY    | Review-held; no gate                                                            |
+| Composition               | Quality   | PARTIALLY_ENFORCED | Conformance route holds the four adapter-bearing compositions; rest is review   |
 | Theming                   | Quality   | PARTIALLY_ENFORCED | Contrast pins + dark gates; token-usage itself unlinted                         |
 | Semantic interaction      | Quality   | PARTIALLY_ENFORCED | Suites + per-component specs; coverage varies                                   |
 | Public API deliberateness | Quality   | PARTIALLY_ENFORCED | Pairing gate enforces the artifacts; deliberateness is review                   |
