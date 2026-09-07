@@ -83,7 +83,9 @@ for something that should have been composed beneath it.
 Beside the stack, not inside it, sit the consumer-shaped projects — the
 documentation site (`layer-docs`), the E2E suites (`layer-e2e`) and the
 Official Templates (`layer-templates`). Each reaches only the facade and the
-stylesheets, exactly as an external consumer would, and nothing in the stack
+stylesheets, exactly as an external consumer would — the one disclosed
+exception being the E2E suites' conformance route into the compositions,
+licensed by the `layer-e2e` row below — and nothing in the stack
 depends back on them. That direction is what makes a template a real
 consumer test: if a template cannot build against the published surface, the
 defect is in the published surface, and it is filed there.
@@ -94,7 +96,7 @@ Rules:
    another primitive (`combobox → chip`), a block may import a primitive
    (`form-section → fieldset`), a primitive may import `labels` and `core`.
 2. **Upward edges are forbidden.** A primitive may not import a block; a
-   layout may not import a composition; a component may not import the
+   composition may not import a layout; a component may not import the
    facade.
 3. **The facade is a sink, not a source.** Nothing below `packages/loom` may
    import `@ecoma-io/loom` — not even `import type`. The facade exists at

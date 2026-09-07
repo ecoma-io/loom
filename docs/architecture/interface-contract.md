@@ -34,9 +34,8 @@ Enforced today; full mechanics in [the contract](./contract.md#the-checks-and-wh
 - Dependency direction — downward and same-layer edges only; no upward imports; the edge set is a DAG.
 - The facade is a sink — nothing below `packages/loom` imports `@ecoma-io/loom` or its subpaths, not even `import type`.
 - One public npm package — `@ecoma-io/loom`; internal packages are private, declare no consumer exports.
-- The consumer boundary — templates, the docs site and the E2E suites reach only the facade and the stylesheets.
-- The five-artifact pairing — a component ships with its source, test, demo, docs page and facade export, or `pnpm lint` names the missing file.
-- No JavaScript module side effects — CSS is the only declared side effect; importing a module must not run browser code.
+- The consumer boundary — templates and the docs site reach only the facade and the stylesheets; the E2E suites additionally reach the compositions through the disclosed conformance route (the `layer-e2e` row).
+- The five-artifact pairing — a component ships with its source, test, demo, docs page and facade export, or a gate names the missing file: `pnpm lint` for all but the demo, the docs build for the demo each page's own import performs.
 - Theme-core is not a JS dependency — its CSS ships by copy, never by import.
 
 ## Accessibility
@@ -45,9 +44,12 @@ Enforced today; full mechanics in [the contract](./contract.md#the-checks-and-wh
 behaviour appropriate to their role: accessible names, keyboard operability,
 visible focus, focus restoration, state not conveyed by colour alone,
 `prefers-reduced-motion` honoured. The library holds itself to `WCAG_TAGS`
-([`packages/loom/src/a11y.ts`](https://github.com/ecoma-io/loom/blob/main/packages/loom/src/a11y.ts)) — the same
-array the axe gate and the site's accessibility page import, so the gate and
-the published claim cannot drift apart.
+([`packages/loom/src/a11y.ts`](https://github.com/ecoma-io/loom/blob/main/packages/loom/src/a11y.ts)):
+the axe gates import their rule partitions from that same module, and a
+browserless test pins the partition to equal exactly the rules `WCAG_TAGS`
+select — the gate and the published claim cannot drift apart. The site's
+accessibility page quotes the array; the quote is transcribed today, which
+the gap analysis records.
 
 Evidence today: the root sweep's axe gate runs with **no excludes** over the
 built site; keyboard, focus-not-obscured, target-size, contrast and
@@ -133,8 +135,9 @@ documents, a documented export nothing ships, or an internal package with
 consumer-facing exports all fail the contract.
 
 Evidence today: `packages/loom/src/index.ts` is the single source of truth
-for the published surface; the five-artifact gate pairs export with docs and
-demo; the exports map and the build must agree for every subpath
+for the published surface; the five-artifact gate pairs export with docs
+page and test (the demo through the docs build each page's own import
+performs); the exports map and the build must agree for every subpath
 ([contract](./contract.md#the-public-api)).
 
 **New artifact duties:** the facade export, the docs page with its
@@ -150,18 +153,18 @@ Preliminary statuses from the enforcement surfaces this repository already
 runs; the audit (Phase 1) is the evidence-backed version and the gap
 analysis carries the follow-ups.
 
-| Contract                  | Category  | Status             | Primary evidence                                                            |
-| ------------------------- | --------- | ------------------ | --------------------------------------------------------------------------- |
-| Dependency direction      | Invariant | ENFORCED           | Two readers + mutation suite ([contract](./contract.md))                    |
-| Facade sink               | Invariant | ENFORCED           | `check-architecture.ts` check 2; subpath blind spot pinned by mutation rows |
-| One public package        | Invariant | ENFORCED           | Private internal manifests; artifact + template gates                       |
-| Consumer boundary         | Invariant | ENFORCED           | Boundary rows for `layer-docs` / `layer-e2e` / `layer-templates`            |
-| Five-artifact pairing     | Invariant | ENFORCED           | `tools/check-component-artifacts.ts` in `pnpm lint`                         |
-| No JS side effects        | Invariant | ENFORCED           | Declared `sideEffects`; review + lint                                       |
-| Theme-core not a JS dep   | Invariant | ENFORCED           | `check-architecture.ts` check 5                                             |
-| Accessibility             | Quality   | PARTIALLY_ENFORCED | Zero-exclude sweeps + pinned contrast; per-component depth uneven           |
-| Responsive                | Quality   | PARTIALLY_ENFORCED | Site + template gates; engine conformance route                             |
-| Composition               | Quality   | DOCUMENTED_ONLY    | Review-held; no gate                                                        |
-| Theming                   | Quality   | PARTIALLY_ENFORCED | Contrast pins + dark gates; token-usage itself unlinted                     |
-| Semantic interaction      | Quality   | PARTIALLY_ENFORCED | Suites + per-component specs; coverage varies                               |
-| Public API deliberateness | Quality   | PARTIALLY_ENFORCED | Pairing gate enforces the artifacts; deliberateness is review               |
+| Contract                  | Category  | Status             | Primary evidence                                                                |
+| ------------------------- | --------- | ------------------ | ------------------------------------------------------------------------------- |
+| Dependency direction      | Invariant | ENFORCED           | Two readers + mutation suite ([contract](./contract.md))                        |
+| Facade sink               | Invariant | ENFORCED           | `check-architecture.ts` check 2; subpath blind spot pinned by mutation rows     |
+| One public package        | Invariant | ENFORCED           | Private internal manifests; artifact + template gates                           |
+| Consumer boundary         | Invariant | ENFORCED           | Rows `layer-docs`/`layer-templates`; `layer-e2e` licenses the conformance route |
+| Five-artifact pairing     | Invariant | ENFORCED           | `tools/check-component-artifacts.ts` in `pnpm lint`                             |
+| No JS side effects        | Invariant | DOCUMENTED_ONLY    | `sideEffects` declared; review-held; no gate exists                             |
+| Theme-core not a JS dep   | Invariant | ENFORCED           | `check-architecture.ts` check 5                                                 |
+| Accessibility             | Quality   | PARTIALLY_ENFORCED | Zero-exclude sweeps + pinned contrast; per-component depth uneven               |
+| Responsive                | Quality   | PARTIALLY_ENFORCED | Site + template gates; engine conformance route                                 |
+| Composition               | Quality   | DOCUMENTED_ONLY    | Review-held; no gate                                                            |
+| Theming                   | Quality   | PARTIALLY_ENFORCED | Contrast pins + dark gates; token-usage itself unlinted                         |
+| Semantic interaction      | Quality   | PARTIALLY_ENFORCED | Suites + per-component specs; coverage varies                                   |
+| Public API deliberateness | Quality   | PARTIALLY_ENFORCED | Pairing gate enforces the artifacts; deliberateness is review                   |

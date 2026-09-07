@@ -31,9 +31,13 @@ Loom standardises reusable decisions about:
 
 "Cross-platform" is a design constraint, not the product category. Loom's
 interface decisions are made so they can survive a change of rendering target
-— the [layout engine](./artifact-model.md#layout-engine) exists because of
+— the [layout engine](./artifact-model.md#the-layout-engine) exists because of
 this — but Loom today is a Vue-facing interface system. It is not a
-cross-platform framework and is not described as one.
+cross-platform framework. Surfaces that still name the category
+cross-platform — the npm description, the README, the docs landing and its
+cross-platform foundations page — are a recorded conflict for the gap
+analysis to carry and their own changes to resolve, not a claim this
+document makes.
 
 ## 2. Mission
 
@@ -67,12 +71,18 @@ application layout, interface templates.
 
 **The consumer application owns**: business logic; domain models; API and data
 access; application state; authentication and authorization; routing;
-persistence; application lifecycle; business-specific workflows.
+domain data persistence; application lifecycle; business-specific workflows.
 
 The decision test: _if removing Loom would leave the decision unmade, it was
 an interface decision; if making it requires knowing what the product is, it
 belongs to the application._ A `Button` needs no knowledge of what is being
 bought or submitted; a "CheckoutButton" is not a Loom artifact.
+The first half of the test is necessary, not sufficient: the one rule's
+"more than one product would reach for it the same way" remains the intake
+bar — a generic affordance only one product reaches for today still belongs
+to that product. And the split's two halves are not symmetrical about
+_storage_: interface preferences Loom itself keeps (the theme preference
+`useTheme` persists) are interface state; product data persistence never is.
 
 **Business boundary law.** No Loom artifact acquires application or domain
 ownership merely because doing so makes an example, a demo or a component
@@ -127,7 +137,7 @@ Implementation dependencies flow toward foundations. Stated as laws:
 - **L1 — Downward only.** An artifact may depend on artifacts of a lower kind (and the same kind); implementation dependencies must never point upward.
 - **L2 — No upward imports.** A lower layer must not import a higher one, for any reason, including types.
 - **L3 — The facade is a dependency sink.** `@ecoma-io/loom` sits at the edge of the graph; nothing below the facade imports it — not even `import type`.
-- **L4 — Consumer-shaped artifacts reach the facade only.** Templates, the documentation site and the E2E suites consume Loom exactly as an external consumer would — through the public API and the stylesheets. Nothing in the library depends on them; they are the boundary's proof, not part of its graph.
+- **L4 — Consumer-shaped artifacts reach the facade only.** Templates, the documentation site and the E2E suites consume Loom exactly as an external consumer would — through the public API and the stylesheets. One disclosed exception: the E2E suites additionally reach the compositions through the conformance route, as licensed by the `layer-e2e` boundary row. Nothing in the library depends on them; they are the boundary's proof, not part of its graph.
 
 Cycles are forbidden: the edge set is a DAG. The enforcement mechanics — two
 readers (specifier text and resolved imports), the constraint table, and the
