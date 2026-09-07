@@ -5,6 +5,12 @@ structured, and how the checks keep it that way. It is the document a
 contributor or coding agent reads before deciding where code belongs. The
 pre-migration state of the repository is preserved separately in
 [`baseline.md`](./baseline.md), which is history, not guidance.
+The decision layer above this one — what Loom is, what it will never become,
+and the canonical artifact kinds — lives in the
+[constitution](./constitution.md), the [artifact model](./artifact-model.md)
+and the [interface contract](./interface-contract.md). Where the two layers
+disagree, the disagreement is documented, never silently resolved by changing
+implementation.
 
 ## One public package, many internal ones
 
