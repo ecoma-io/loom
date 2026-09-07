@@ -91,6 +91,18 @@ const PATTERNS = pagesIn("patterns", ["forms"]);
 const TEMPLATES = pagesIn("templates");
 const SHOWCASE = pagesIn("showcase");
 
+// The architecture pages have a genuine reading order: the constitution
+// decides, the artifact model and interface contract elaborate the decision,
+// the contract records the enforcement state it landed as, and baseline is
+// history. Alphabetical would open on "Artifact model" with no "why".
+const ARCHITECTURE = pagesIn("architecture", [
+  "constitution",
+  "artifact-model",
+  "interface-contract",
+  "contract",
+  "baseline",
+]);
+
 export default defineConfig({
   title: "Loom",
   description:
@@ -169,6 +181,7 @@ export default defineConfig({
         link: "/templates/",
         ...(TEMPLATES.length ? { items: TEMPLATES } : {}),
       },
+      { text: "Architecture", items: ARCHITECTURE },
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/ecoma-io/loom" }],
     editLink: {
