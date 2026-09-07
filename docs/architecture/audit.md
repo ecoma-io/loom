@@ -1,5 +1,7 @@
 # Repository Audit (Phase 1)
 
+_Empirical record — the [documentation model](./README.md) maps every document's role._
+
 Evidence-backed companion to [the interface contract](./interface-contract.md). Where the
 contract's status table is preliminary, this audit is the version grounded in a
 six-area repository audit (package architecture, artifact taxonomy, public API,

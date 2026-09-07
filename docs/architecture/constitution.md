@@ -1,5 +1,7 @@
 # Loom Constitution
 
+_Normative law — the [documentation model](./README.md) maps every document's role._
+
 This is the decision layer of Loom's architecture documentation: what Loom is,
 what it is for, what it will not become, and the laws its artifacts obey. The
 [current-state contract](./contract.md) is its enforcement counterpart — how

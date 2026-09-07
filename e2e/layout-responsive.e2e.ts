@@ -1,14 +1,14 @@
 import { test, expect } from "@playwright/test";
 
 // Layout components have intrinsic responsive behaviour driven by flex-wrap
-// and min-width constraints rather than viewport media queries. These tests
-// verify the three key behaviours:
+// and min-width constraints rather than viewport media queries. The suite
+// drives five layouts and pins two behaviours:
 //
-// 1. **Stack**: below the collapse width, side-by-side panels wrap to
-//    full-width and stack vertically.
-// 2. **Split**: above the collapse width, panels sit side by side.
-// 3. **Bound**: on ultrawide viewports, content gutters widen and content
-//    never stretches to the full viewport width.
+// 1. **Stack/split**: AppShell, MasterDetail and SplitLayout wrap their
+//    panels to full width below the collapse width and sit side by side
+//    above it.
+// 2. **Bound**: Centered and Reading cap content at a readable max-width on
+//    ultrawide viewports instead of stretching to the full viewport width.
 //
 // Each test drives the layout's documentation demo. The selectors target
 // elements the demo is known to contain, so conditional guards are not needed.

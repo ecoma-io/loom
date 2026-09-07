@@ -1,5 +1,7 @@
 # Loom Architecture Contract
 
+_Current-state contract — the [documentation model](./README.md) maps every document's role._
+
 This is the current-state contract: how the repository is allowed to be
 structured, and how the checks keep it that way. It is the document a
 contributor or coding agent reads before deciding where code belongs. The
@@ -289,8 +291,10 @@ chain).
 
 ## Deciding where new code belongs
 
-A component is either a primitive, a composition, a layout, or a block. The
-test is "what kind of thing is this":
+A component is either a primitive, a composition, a layout, or a block (the
+legacy directory name of the Pattern kind — the terminology status table in
+the [artifact model](./artifact-model.md#terminology-status) carries the
+status of every contested name). The test is "what kind of thing is this":
 
 - A single generic control a product would reach for as-is → **primitive**.
 - A layout-intent container (arranges children, has no domain meaning) →
@@ -300,7 +304,9 @@ test is "what kind of thing is this":
 
 Not everything here is a component, and the package tiers above decide only
 which tier a _component_ lands in. The artifact kinds the repository talks
-about, what each is, and where each lives:
+about, what each is, and where each lives — the consumer-facing vocabulary,
+whose per-name status the [terminology status
+table](./artifact-model.md#terminology-status) holds:
 
 | Artifact    | What it is                                                                                                      | Where it lives                                                                                                |
 | ----------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |

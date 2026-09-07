@@ -1,5 +1,7 @@
 # Interface Contract
 
+_Normative quality contracts — the [documentation model](./README.md) maps every document's role._
+
 The contracts Loom-wide: what every artifact is held to, regardless of kind.
 The [constitution](./constitution.md) decides what Loom is; the
 [artifact model](./artifact-model.md) decides what a thing is; this document
@@ -33,7 +35,7 @@ Enforced today; full mechanics in [the contract](./contract.md#the-checks-and-wh
 
 - Dependency direction — downward and same-layer edges only; no upward imports; the edge set is a DAG.
 - The facade is a sink — nothing below `packages/loom` imports `@ecoma-io/loom` or its subpaths, not even `import type`.
-- One public npm package — `@ecoma-io/loom`; internal packages are private, declare no consumer exports.
+- One public npm package — `@ecoma-io/loom`; internal packages are private, declare no consumer exports — partially enforced: one manifest misses `private` (#238) and no gate checks component manifests yet, which the status table below carries.
 - The consumer boundary — templates and the docs site reach only the facade and the stylesheets; the E2E suites additionally reach the compositions through the disclosed conformance route (the `layer-e2e` row).
 - The five-artifact pairing — a component ships with its source, test, demo, docs page and facade export, or a gate names the missing file: the artifact gate for source, test, docs page and export; the docs build for the demo, which each docs page checks by importing its own component.
 - No import-time browser code — partially gated: semgrep's leak rules catch some module side effects; the import-time surface itself is review-held.
@@ -152,20 +154,27 @@ deliberateness.
 
 Preliminary statuses from the enforcement surfaces this repository already
 runs; the audit (Phase 1) is the evidence-backed version and the gap
-analysis carries the follow-ups.
+analysis carries the follow-ups. Where this table and the audit disagree,
+the audit row governs as of its audit date — statuses are synchronised by
+Phase 0.5 and kept synchronised: a status here that the audit's evidence
+does not back is a defect in this table, fixed by updating this table,
+never by softening the audit. The one way a row moves past the audit is a
+merged PR that changes enforcement: the audit's text stays frozen at its
+date, the PR's ledger row records the supersession, and this table updates
+in that same PR.
 
-| Contract                  | Category  | Status             | Primary evidence                                                                |
-| ------------------------- | --------- | ------------------ | ------------------------------------------------------------------------------- |
-| Dependency direction      | Invariant | ENFORCED           | Two readers + mutation suite ([contract](./contract.md))                        |
-| Facade sink               | Invariant | ENFORCED           | `check-architecture.ts` check 2; subpath blind spot pinned by mutation rows     |
-| One public package        | Invariant | ENFORCED           | Private internal manifests; artifact + template gates                           |
-| Consumer boundary         | Invariant | ENFORCED           | Rows `layer-docs`/`layer-templates`; `layer-e2e` licenses the conformance route |
-| Five-artifact pairing     | Invariant | ENFORCED           | `tools/check-component-artifacts.ts` in `pnpm lint` and its Verify step         |
-| No JS side effects        | Invariant | PARTIALLY_ENFORCED | `sideEffects` declared; semgrep leak rules; import-time code review-held        |
-| Theme-core not a JS dep   | Invariant | ENFORCED           | `check-architecture.ts` check 5                                                 |
-| Accessibility             | Quality   | PARTIALLY_ENFORCED | Zero-exclude sweeps + pinned contrast; per-component depth uneven               |
-| Responsive                | Quality   | PARTIALLY_ENFORCED | Site + template gates; engine conformance route                                 |
-| Composition               | Quality   | PARTIALLY_ENFORCED | Conformance route holds the four adapter-bearing compositions; rest is review   |
-| Theming                   | Quality   | PARTIALLY_ENFORCED | Contrast pins + dark gates; token-usage itself unlinted                         |
-| Semantic interaction      | Quality   | PARTIALLY_ENFORCED | Suites + per-component specs; coverage varies                                   |
-| Public API deliberateness | Quality   | PARTIALLY_ENFORCED | Pairing gate enforces the artifacts; deliberateness is review                   |
+| Contract                  | Category  | Status             | Primary evidence                                                                                               |
+| ------------------------- | --------- | ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Dependency direction      | Invariant | ENFORCED           | Two readers + mutation suite ([contract](./contract.md))                                                       |
+| Facade sink               | Invariant | ENFORCED           | `check-architecture.ts` check 2; subpath blind spot pinned by mutation rows                                    |
+| One public package        | Invariant | PARTIALLY_ENFORCED | `tree-view` is publishable-shaped (#238); component-manifest privacy is ungated (gap A2) — Phase 2 closes both |
+| Consumer boundary         | Invariant | ENFORCED           | Rows `layer-docs`/`layer-templates`; `layer-e2e` licenses the conformance route                                |
+| Five-artifact pairing     | Invariant | ENFORCED           | `tools/check-component-artifacts.ts` in `pnpm lint` and its Verify step                                        |
+| No JS side effects        | Invariant | PARTIALLY_ENFORCED | `sideEffects` declared; semgrep leak rules; import-time code review-held                                       |
+| Theme-core not a JS dep   | Invariant | ENFORCED           | `check-architecture.ts` check 5                                                                                |
+| Accessibility             | Quality   | PARTIALLY_ENFORCED | Zero-exclude sweeps + pinned contrast; per-component depth uneven                                              |
+| Responsive                | Quality   | PARTIALLY_ENFORCED | Site + template gates; engine conformance route                                                                |
+| Composition               | Quality   | PARTIALLY_ENFORCED | Conformance route holds the four adapter-bearing compositions; rest is review                                  |
+| Theming                   | Quality   | PARTIALLY_ENFORCED | Contrast pins + dark gates; token-usage itself unlinted                                                        |
+| Semantic interaction      | Quality   | PARTIALLY_ENFORCED | Suites + per-component specs; coverage varies                                                                  |
+| Public API deliberateness | Quality   | PARTIALLY_ENFORCED | Pairing gate enforces the artifacts; deliberateness is review                                                  |

@@ -1,11 +1,28 @@
 # Artifact Matrix (Phase 1)
 
+_Empirical record — the [documentation model](./README.md) maps every document's role._
+
 Every shipped artifact classified against the seven-kind model in
 [artifact-model](./artifact-model.md). Columns follow the audit plan: current Moon
 layer tag, intended type under the model, whether the facade exports it, evidence,
 gap, and the recorded action. "Unknown" appears where the classification needs a
 decision the audit deliberately does not take. Counts were generated, not recalled:
 76 primitives, 8 compositions, 15 blocks, 8 layouts, 3 templates.
+
+This document is the **classification ledger of record**: migrations that
+reclassify artifacts update it in the same PR, and the [terminology status
+table](./artifact-model.md#terminology-status) plus the [mapping](./artifact-model.md#mapping-what-exists-today-to-the-canonical-kinds)
+carry the vocabulary its rows assume. A ledger, not a snapshot — when a row
+goes stale, the change that made it stale updates it here. The counts are
+enumerable from the filesystem, not recalled:
+
+```bash
+ls -d packages/primitives/*/ | wc -l    # 76 primitives
+ls -d packages/composition/*/ | wc -l   # 8 compositions
+ls -d packages/blocks/*/ | wc -l        # 15 blocks (the Pattern kind, pre-migration name)
+ls -d packages/layouts/*/ | wc -l       # 8 layouts
+ls -d templates/*/ | wc -l              # 3 templates
+```
 
 ## Foundations
 

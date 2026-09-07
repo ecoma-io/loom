@@ -47,9 +47,11 @@ export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"
  * computed colors, canvas, or media state).
  *
  * These 51 rules are verified to produce identical verdicts in jsdom 30 and
- * Chromium on violation fixtures, and to agree on all 94 demos. Each entry
- * was classified by scanning its check helpers for browser-API dependencies;
- * the partition is pinned by packages/core/tests/a11y-scope.test.ts.
+ * Chromium on violation fixtures, and to agree on every demo the sweep
+ * covers (it globs the demos directory, so the comment names no count).
+ * Each entry was classified by scanning its check helpers for browser-API
+ * dependencies; the partition is pinned by
+ * packages/core/tests/a11y-scope.test.ts.
  */
 export const BROWSERLESS_RULES = [
   "area-alt",
@@ -73,8 +75,9 @@ export const BROWSERLESS_RULES = [
   // The check reads only the element's role (axe commons getRole), no
   // browser API: identical verdicts measured jsdom vs Chromium on five
   // fixtures including two violations (aria-roledescription on a roleless
-  // div, and on role="presentation"), and clean on all 94 demos in both
-  // engines. Loom ships this attribute through Reka (NumberField's
+  // div, and on role="presentation"), and clean on every demo the sweep
+  // covers, in both engines. Loom ships this attribute through Reka
+  // (NumberField's
   // spinbutton, ColorPicker's slider surfaces) — all on roled elements,
   // which the rule passes.
   "aria-roledescription",
@@ -201,8 +204,8 @@ export const TAGGED_BUT_DISABLED_RULES = [
   // extents, or the Screen Orientation API — and loom ships neither in any
   // component, demo, docs page or the harness's own stylesheet (zero grep
   // hits; theme.css is orientation-agnostic by design, tokens not layout).
-  // Locking orientation is the host application's decision; measured 2026-08-26
-  // the rule passes every one of the 94 demos in Chromium, where it reads the
-  // preloaded CSSOM jsdom does not provide.
+  // Locking orientation is the host application's decision; measured
+  // 2026-08-26 the rule passes every demo the sweep covers in Chromium,
+  // where it reads the preloaded CSSOM jsdom does not provide.
   "css-orientation-lock",
 ] as const;

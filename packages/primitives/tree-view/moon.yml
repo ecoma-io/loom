@@ -1,6 +1,7 @@
 # The Moon project graph does not read package.json dependencies for tasks —
-# it reads this. `tools/sync-moon-deps.ts` keeps the two in step for edges
-# package.json can express; the `# preserved` form covers the ones it cannot.
+# it reads this. `tools/sync-moon-deps.ts` keeps the two in step; an edge
+# package.json cannot express is hand-declared here with a `# preserved`
+# marker (this file carries none — both edges are expressible).
 deps:
   - core
   - labels

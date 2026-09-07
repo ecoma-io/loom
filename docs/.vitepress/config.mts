@@ -91,19 +91,25 @@ const PATTERNS = pagesIn("patterns", ["forms"]);
 const TEMPLATES = pagesIn("templates");
 const SHOWCASE = pagesIn("showcase");
 
-// The architecture pages have a genuine reading order: the constitution
-// decides, the artifact model and interface contract elaborate the decision,
-// the contract records the enforcement state it landed as, and baseline is
-// history. Alphabetical would open on "Artifact model" with no "why".
+// The architecture pages have a genuine reading order: the documentation
+// model maps the set first, the constitution decides, the artifact model and
+// interface contract elaborate the decision, the contract records the
+// enforcement state it landed as, the audit and gap analysis measure it, the
+// matrix classifies each artifact, and baseline is history. Alphabetical
+// would open on "Artifact model" with no "why" — and would bury the one page
+// that says what to read first.
 const ARCHITECTURE = pagesIn("architecture", [
+  "README",
   "constitution",
   "artifact-model",
   "interface-contract",
   "contract",
   "audit",
-  "artifact-matrix",
   "gap-analysis",
+  "artifact-matrix",
   "baseline",
+  "evolution-plan",
+  "evolution-ledger",
 ]);
 
 export default defineConfig({
