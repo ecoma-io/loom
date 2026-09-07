@@ -100,6 +100,9 @@ const ARCHITECTURE = pagesIn("architecture", [
   "artifact-model",
   "interface-contract",
   "contract",
+  "audit",
+  "artifact-matrix",
+  "gap-analysis",
   "baseline",
 ]);
 
