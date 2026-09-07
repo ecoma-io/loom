@@ -52,16 +52,16 @@ everything that requires knowing what the product _is_ belongs to the product.
 
 Loom is not, and must not drift toward becoming:
 
-| Non-goal                                     | Why                                                                                                                                                                                  |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| A business application framework             | Application decisions belong to the application (§4).                                                                                                                                |
-| A router                                     | Routing is application state, not interface semantics.                                                                                                                               |
-| A state-management framework                 | Application state is the consumer's; Loom owns only _interface_ state (open/closed, focus, selection-in-view).                                                                       |
-| A data layer or API client                   | Data access is domain ownership by definition.                                                                                                                                       |
-| An authentication or authorization framework | Identity and permission are product decisions Loom must never make.                                                                                                                  |
-| A backend framework                          | Out of the interface layer entirely.                                                                                                                                                 |
-| A complete application starter               | Templates are pages, not projects — routing, auth, backend and deployment stay with the consumer ([Template contract](../templates/contract.md)).                                    |
-| Merely a large generic component catalog     | The catalog exists to carry _decided relationships_ — tokens, semantics, composition — not to maximise component count. A control with undecided semantics does not belong here yet. |
+| Non-goal                                     | Why                                                                                                                                                                                    |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A business application framework             | Application decisions belong to the application (§4).                                                                                                                                  |
+| A router                                     | Routing is application state, not interface semantics.                                                                                                                                 |
+| A state-management framework                 | Application state is the consumer's; Loom owns only _interface_ state (open/closed, focus, selection-in-view).                                                                         |
+| A data layer or API client                   | Data access is domain ownership by definition.                                                                                                                                         |
+| An authentication or authorisation framework | Identity and permission are product decisions Loom must never make.                                                                                                                    |
+| A backend framework                          | Out of the interface layer entirely.                                                                                                                                                   |
+| A complete application starter               | Templates are pages, not projects — routing, auth, backend and deployment stay with the consumer ([Template contract](../templates/contract.md)).                                      |
+| Merely a large generic component catalogue   | The catalogue exists to carry _decided relationships_ — tokens, semantics, composition — not to maximise component count. A control with undecided semantics does not belong here yet. |
 
 ## 4. The interface–application boundary
 
@@ -70,7 +70,7 @@ interaction semantics, responsive behaviour, composition, interface patterns,
 application layout, interface templates.
 
 **The consumer application owns**: business logic; domain models; API and data
-access; application state; authentication and authorization; routing;
+access; application state; authentication and authorisation; routing;
 domain data persistence; application lifecycle; business-specific workflows.
 
 The decision test: _if removing Loom would leave the decision unmade, it was

@@ -35,7 +35,7 @@ Enforced today; full mechanics in [the contract](./contract.md#the-checks-and-wh
 - The facade is a sink — nothing below `packages/loom` imports `@ecoma-io/loom` or its subpaths, not even `import type`.
 - One public npm package — `@ecoma-io/loom`; internal packages are private, declare no consumer exports.
 - The consumer boundary — templates and the docs site reach only the facade and the stylesheets; the E2E suites additionally reach the compositions through the disclosed conformance route (the `layer-e2e` row).
-- The five-artifact pairing — a component ships with its source, test, demo, docs page and facade export, or a gate names the missing file: the artifact gate for source, test, docs page and export; the docs build for the demo each page's own import performs.
+- The five-artifact pairing — a component ships with its source, test, demo, docs page and facade export, or a gate names the missing file: the artifact gate for source, test, docs page and export; the docs build for the demo, which each docs page checks by importing its own component.
 - No import-time browser code — partially gated: semgrep's leak rules catch some module side effects; the import-time surface itself is review-held.
 - Theme-core is not a JS dependency — its CSS ships by copy, never by import.
 
@@ -98,7 +98,7 @@ way?"; if the answer needs a domain noun, the design is wrong.
 ## Theming
 
 **Quality contract.** Visual decisions flow through Loom's token and theme
-mechanisms: colors, spacing, radii, type and elevation come from
+mechanisms: colours, spacing, radii, type and elevation come from
 `theme-core`'s tokens; dark mode parity is part of the artifact, not a
 follow-up; consumer-facing stylesheets ship as authored
 (`sideEffects: ["**/*.css"]` is deliberate).

@@ -116,7 +116,7 @@ Reusable application-level interface structure.
 - **Purpose.** Own application interface geometry and responsive structure at the scale of a screen: the shells products start from.
 - **May own.** Application-scale arrangement (shell regions, master/detail split, dashboard geometry, settings structure); responsive structure across viewports; composition of Patterns, Compositions and Primitives into that geometry.
 - **Must not own.** Routing; authentication; data access; persistence; application lifecycle; business logic. A Layout arranges regions; it has no opinion about what a region contains.
-- **Expected dependencies.** Pattern, Composition, Primitive, Foundation — everything below, nothing above (except the facade-facing consumer).
+- **Expected dependencies.** Pattern, Composition, Primitive, Foundation — everything below, nothing above: templates and consumers reach this tier through the facade, never the reverse.
 - **Examples.** AppShell, Dashboard, MasterDetail, Settings, Reading, Centered, FormLayout, SplitLayout.
 - **Testing expectations.** Responsive gates; the conformance route for its layout semantics; browser evidence for shell behaviour (region collapse, keyboard traversal).
 
