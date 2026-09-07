@@ -1,5 +1,7 @@
 # Artifact Model
 
+_Normative classification — the [documentation model](./README.md) maps every document's role._
+
 The canonical kinds of artifact Loom recognises, what each may own, what it
 must never own, what it may depend on, and how it is tested. The
 [constitution](./constitution.md) §5 holds the hierarchy; this document holds
@@ -47,6 +49,15 @@ low-level shared mechanisms.
 - **Expected dependencies.** None, or downward within the kind (the label seam may build on core helpers; nothing may reach Primitives or above). The layout engine imports nothing.
 - **Examples.** `packages/theme-core` (tokens — the source of truth), `packages/core` (helpers, `WCAG_TAGS`, theme), `packages/labels` (localisation and field context), `packages/layout-engine` (see [The layout engine](#the-layout-engine)).
 - **Testing expectations.** Unit tests for every helper; pinned invariants where a regression would be invisible per-component — the contrast pairs are pinned browserlessly by theme-core tests, and the layout engine is held equal to its rendered output by the conformance harness.
+
+**Foundation is an ownership rank, not an import obligation.** Nothing above
+the rank is required to import every Foundation package — an artifact
+depends on Foundation where the semantics it owns need it, and no further.
+The clearest case is the layout engine: Foundation by kind and by ownership
+(layout semantics as data), yet deliberately dependency-pure and unreached
+by any component render path. Being foundational does not mean being
+depended on; the rank decides who _may_ depend on whom, it never obliges
+anyone to.
 
 ### The layout engine
 
@@ -163,6 +174,24 @@ teach and demonstrate; they carry no runtime semantics and impose no
 dependency edges beyond the site's own consumer boundary. The word "Pattern"
 in that directory's name is the recorded collision with the shipped Pattern
 kind above.
+
+## Terminology status
+
+Every contested name carries exactly one status here, so no reader has to
+guess whether a term is law, legacy, or documentation naming. Renames are
+decided migrations ([constitution](./constitution.md) §10), not editorial
+acts — `blocks` rides the Phase 2 migration, nothing renames quietly.
+
+| Term                                                                                | Status                                                                                                                                   | Where it appears                                                                                                                                         | Reading                                                                                                                                   |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Foundation, Primitive, Composition, Pattern, Layout, Template, Consumer Application | **Normative** — the seven canonical kinds (this document)                                                                                | The seven-kind model and every surface it governs                                                                                                        | The vocabulary classification is judged against.                                                                                          |
+| `blocks`                                                                            | **Legacy, migration pending** — directory, Moon tag `layer-blocks`, commitlint scope, gate tier noun, docs section, component docstrings | `packages/blocks/`, `docs/blocks/`, `module-boundaries.config.mjs`, `tools/check-component-artifacts.ts`, commitlint config, the tier's `.vue` docblocks | Legacy name of the Pattern kind, recorded as a structural mismatch; the `patterns` rename is decided in direction, sequenced as Phase 2C. |
+| Pattern (worked-example pages)                                                      | **Documentation naming** — `docs/patterns/`                                                                                              | `docs/patterns/` and its sidebar entry                                                                                                                   | Documentation, not a shipped kind; collides with the shipped Pattern kind. The directory is not part of the taxonomy.                     |
+| Component                                                                           | **Consumer vocabulary** — the #216/#218 umbrella for Primitive + Composition                                                             | `docs/` section names, the facade docblock, consumer-facing prose                                                                                        | A useful umbrella, not a kind — the kinds it collapses are what dependency ceilings are judged against.                                   |
+| Component (docs section)                                                            | **Documentation naming** — the docs section for the Primitive tier                                                                       | `docs/components/`                                                                                                                                       | A docs organisation choice, not a kind claim; keyed to the Primitive tier.                                                                |
+| Compositions/Blocks/Layouts (docs sections)                                         | **Documentation naming** — docs sections keyed to tiers                                                                                  | `docs/composition/`, `docs/blocks/`, `docs/layouts/`                                                                                                     | Keyed 1:1 to tiers; the `blocks` entry rides the same migration as the package tier.                                                      |
+| `layer-*` tags                                                                      | **Machine vocabulary** — Moon layer tags                                                                                                 | every `moon.yml`, `module-boundaries.config.mjs`                                                                                                         | Machine-only vocabulary; after Phase 2 the tags map onto the semantic kinds one to one.                                                   |
+| Showcase, Application                                                               | **Consumer vocabulary** — from #216/#218, naming the Consumer Application kind                                                           | docs landing, contract.md's artifact table                                                                                                               | Prose names for the seventh kind, not kinds of their own; consumer prose keeps them where unambiguous (per the usage rule).               |
 
 ---
 

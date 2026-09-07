@@ -1,5 +1,7 @@
 # Loom Architecture Baseline
 
+_History, not guidance — the [documentation model](./README.md) maps every document's role._
+
 This document records the repository state before the Moonrepo monorepo migration,
 establishing the ground truth the migration must preserve.
 
