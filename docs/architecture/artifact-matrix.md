@@ -74,9 +74,9 @@ All `layer-layouts`, all facade-exported, all shell-geometry by exports.
 
 ## Templates (3)
 
-| Artifact                              | Current layer     | Intended type              | Public?                  | Evidence                                                                                                         | Gap                                                                 | Action                     |
-| ------------------------------------- | ----------------- | -------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------- |
-| Starter, Analytics, WorkspaceSettings | `layer-templates` | Template (consumer-shaped) | No — consumers copy them | imports exactly `{@ecoma-io/loom, vue}`; vite aliases only published specifiers; build fails on internal imports | Artifact gate is lint-only, unwired in CI (#verified; gap analysis) | Phase 2: dedicated CI step |
+| Artifact                              | Current layer     | Intended type              | Public?                  | Evidence                                                                                                         | Gap                                                                        | Action                     |
+| ------------------------------------- | ----------------- | -------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------- |
+| Starter, Analytics, WorkspaceSettings | `layer-templates` | Template (consumer-shaped) | No — consumers copy them | imports exactly `{@ecoma-io/loom, vue}`; vite aliases only published specifiers; build fails on internal imports | Artifact gate is lint-only, unwired in CI (verified; see the gap analysis) | Phase 2: dedicated CI step |
 
 ## Documentation and consumer-shaped proxies
 
