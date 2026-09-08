@@ -1,0 +1,4 @@
+tags: ["layer-patterns"]
+project:
+  name: "page-header"
+  description: "Migrated block component"

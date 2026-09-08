@@ -119,7 +119,7 @@ const demoExists = (id: string): boolean =>
 // Pascal→kebab inversion come from the package trees, not the demo filenames —
 // `ToastStackDemo.vue`'s separator is unrecoverable from the name alone, but
 // `kebabToPascal("toast-stack")` recovers it exactly.
-const PACKAGE_TIERS = ["primitives", "composition", "blocks", "layouts"];
+const PACKAGE_TIERS = ["primitives", "composition", "patterns", "layouts"];
 
 const packageProjectIds = (): string[] =>
   PACKAGE_TIERS.flatMap((tier) =>

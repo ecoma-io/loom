@@ -13,7 +13,7 @@ projects:
   # Component packages (one Moon project per component).
   - "packages/primitives/*"
   - "packages/composition/*"
-  - "packages/blocks/*"
+  - "packages/patterns/*"
   - "packages/layouts/*"
   # The public facade.
   - "packages/loom"

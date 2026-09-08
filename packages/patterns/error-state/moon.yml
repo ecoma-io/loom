@@ -1,0 +1,4 @@
+tags: ["layer-patterns"]
+project:
+  name: "error-state"
+  description: "Migrated block component"

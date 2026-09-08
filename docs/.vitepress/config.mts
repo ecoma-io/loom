@@ -24,7 +24,7 @@ type VitePlugins = NonNullable<NonNullable<UserConfig["vite"]>["plugins"]>;
 // arbitrary in a way that costs nothing.
 const COMPONENTS = pagesIn("components");
 
-// Composition primitives are a separate tier between primitives and blocks.
+// Composition primitives are a separate tier between primitives and patterns.
 // They answer "how are things arranged?" — layout intent, not content or
 // control configuration. A curated order puts the most fundamental patterns
 // first: vertical flow, horizontal flow, grid, then the special-purpose
@@ -40,13 +40,14 @@ const COMPOSITION = pagesIn("composition", [
   "scroll-reel",
 ]);
 
-// Blocks are a separate directory and a separate sidebar group because they
-// answer a different question. A reader looking for a primitive knows the name
-// of the control they want; a reader looking for a block knows the shape of the
-// screen they are building and not what it is called here. Folding the two into
-// one alphabetical list would bury the second reader's eight pages among the
-// first reader's twenty-seven.
-const BLOCKS = pagesIn("blocks");
+// The Pattern tier's reference pages and the worked examples share the
+// `docs/patterns/` directory — the recorded naming collision between the
+// shipped Pattern kind and the #216/#218 consumer vocabulary (artifact-model
+// §Relationship). A reader looking for a pattern knows the shape of the
+// screen they are building, not what it is called here; the worked examples
+// (Forms, Menus) are ranked first, and the reference pages follow
+// alphabetically.
+const PATTERNS = pagesIn("patterns", ["forms", "menus"]);
 
 // Layouts compose composition primitives into ready-made responsive
 // application shells — the "flagship" tier. A curated order puts the
@@ -79,10 +80,6 @@ const FOUNDATIONS = pagesIn("foundations", [
   "cross-platform",
   "theming",
 ]);
-
-// Patterns are worked examples that cross component boundaries — compositions
-// a reader is more likely to reach for by shape ("a form") than by name.
-const PATTERNS = pagesIn("patterns", ["forms"]);
 
 // As above for Templates and Showcase — a directory whose only page is its
 // landing reads better as one link than as a group whose header and sole item
@@ -172,9 +169,8 @@ export default defineConfig({
       { text: "Foundations", items: FOUNDATIONS },
       { text: "Primitives", items: COMPONENTS },
       { text: "Composition", items: COMPOSITION },
-      { text: "Blocks", items: BLOCKS },
-      { text: "Layouts", items: LAYOUTS },
       { text: "Patterns", items: PATTERNS },
+      { text: "Layouts", items: LAYOUTS },
       // Spread `items` only when the directory carries pages beyond its
       // landing: VitePress keys the group wrapper's `tabindex` and handlers
       // off `items` being present, so an entry with an empty items array
@@ -424,7 +420,7 @@ export default defineConfig({
           new URL("../../packages/primitives/editable/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-error-summary": fileURLToPath(
-          new URL("../../packages/blocks/error-summary/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/error-summary/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-file-upload": fileURLToPath(
           new URL("../../packages/primitives/file-upload/src/index.ts", import.meta.url),
@@ -503,48 +499,48 @@ export default defineConfig({
         "@ecoma-io/loom-split-layout": fileURLToPath(
           new URL("../../packages/layouts/split-layout/src/index.ts", import.meta.url),
         ),
-        // Blocks.
+        // Patterns.
         "@ecoma-io/loom-app-header": fileURLToPath(
-          new URL("../../packages/blocks/app-header/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/app-header/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-dashboard-grid": fileURLToPath(
-          new URL("../../packages/blocks/dashboard-grid/src/index.ts", import.meta.url),
+          new URL("../../packages/composition/dashboard-grid/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-desktop-app-shell": fileURLToPath(
-          new URL("../../packages/blocks/desktop-app-shell/src/index.ts", import.meta.url),
+          new URL("../../packages/layouts/desktop-app-shell/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-empty-state": fileURLToPath(
-          new URL("../../packages/blocks/empty-state/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/empty-state/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-error-state": fileURLToPath(
-          new URL("../../packages/blocks/error-state/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/error-state/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-form-actions": fileURLToPath(
-          new URL("../../packages/blocks/form-actions/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/form-actions/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-form-section": fileURLToPath(
-          new URL("../../packages/blocks/form-section/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/form-section/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-loading-state": fileURLToPath(
-          new URL("../../packages/blocks/loading-state/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/loading-state/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-metric-card": fileURLToPath(
-          new URL("../../packages/blocks/metric-card/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/metric-card/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-page-header": fileURLToPath(
-          new URL("../../packages/blocks/page-header/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/page-header/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-row-actions": fileURLToPath(
-          new URL("../../packages/blocks/row-actions/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/row-actions/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-sidebar-nav": fileURLToPath(
-          new URL("../../packages/blocks/sidebar-nav/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/sidebar-nav/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-title-bar": fileURLToPath(
-          new URL("../../packages/blocks/title-bar/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/title-bar/src/index.ts", import.meta.url),
         ),
         "@ecoma-io/loom-toast-stack": fileURLToPath(
-          new URL("../../packages/blocks/toast-stack/src/index.ts", import.meta.url),
+          new URL("../../packages/patterns/toast-stack/src/index.ts", import.meta.url),
         ),
       },
     },

@@ -1,0 +1,4 @@
+tags: ["layer-composition"]
+project:
+  name: "dashboard-grid"
+  description: "Migrated block component"

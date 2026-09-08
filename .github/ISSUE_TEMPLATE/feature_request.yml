@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a component, block, token, or capability.
+description: Propose a component, pattern, token, or capability.
 title: "feat: "
 labels: ["enhancement", "needs triage"]
 body:
@@ -59,7 +59,7 @@ body:
       label: What kind of addition is this?
       options:
         - Primitive (a single generic control)
-        - Block (a composition of primitives)
+        - Pattern (a composition of primitives)
         - Design token or theme
         - Accessibility capability
         - Tooling or build

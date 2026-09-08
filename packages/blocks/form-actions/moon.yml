@@ -1,6 +1,0 @@
-deps:
-  - "core"
-tags: ["layer-blocks"]
-project:
-  name: "form-actions"
-  description: "Migrated block component"

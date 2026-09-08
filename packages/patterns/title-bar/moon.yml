@@ -1,0 +1,8 @@
+deps:
+  - "core"
+  - "menubar"
+  - "window-controls"
+tags: ["layer-patterns"]
+project:
+  name: "title-bar"
+  description: "Migrated block component"

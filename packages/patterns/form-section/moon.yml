@@ -1,0 +1,7 @@
+deps:
+  - "core"
+  - "fieldset"
+tags: ["layer-patterns"]
+project:
+  name: "form-section"
+  description: "Migrated block component"

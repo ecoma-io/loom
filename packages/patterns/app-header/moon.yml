@@ -1,0 +1,4 @@
+tags: ["layer-patterns"]
+project:
+  name: "app-header"
+  description: "Migrated block component"

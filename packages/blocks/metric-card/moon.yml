@@ -1,7 +1,0 @@
-deps:
-  - "core"
-  - "skeleton"
-tags: ["layer-blocks"]
-project:
-  name: "metric-card"
-  description: "Migrated block component"

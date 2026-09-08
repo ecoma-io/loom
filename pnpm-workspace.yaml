@@ -7,7 +7,7 @@ packages:
   - "packages/*"
   - "packages/primitives/*"
   - "packages/composition/*"
-  - "packages/blocks/*"
+  - "packages/patterns/*"
   - "packages/layouts/*"
   # Official Templates are consumer-shaped vessels for copyable pages, owned
   # by their own Moon project (see .moon/workspace.yml); pnpm must see them or

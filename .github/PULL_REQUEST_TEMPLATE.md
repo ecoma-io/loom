@@ -7,7 +7,7 @@ Closes #
 ## Type of change
 
 - [ ] Bug fix (non-breaking change fixing an issue)
-- [ ] New component / block
+- [ ] New component / pattern
 - [ ] Design token or theme change
 - [ ] Accessibility fix
 - [ ] Breaking change (a consumer must edit code to upgrade)

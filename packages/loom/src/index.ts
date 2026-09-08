@@ -311,7 +311,7 @@ export type { SettingsNavWidth } from "@ecoma-io/loom-settings";
 export { default as SplitLayout } from "@ecoma-io/loom-split-layout";
 export type { SplitLayoutGap } from "@ecoma-io/loom-split-layout";
 
-// Blocks — alphabetical.
+// Patterns — alphabetical.
 export { default as AppHeader } from "@ecoma-io/loom-app-header";
 export { default as DashboardGrid } from "@ecoma-io/loom-dashboard-grid";
 export { default as DesktopAppShell } from "@ecoma-io/loom-desktop-app-shell";

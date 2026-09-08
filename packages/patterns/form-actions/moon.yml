@@ -1,0 +1,6 @@
+deps:
+  - "core"
+tags: ["layer-patterns"]
+project:
+  name: "form-actions"
+  description: "Migrated block component"

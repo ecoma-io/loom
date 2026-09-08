@@ -1,0 +1,4 @@
+tags: ["layer-patterns"]
+project:
+  name: "empty-state"
+  description: "Migrated block component"

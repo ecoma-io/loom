@@ -1,0 +1,7 @@
+deps:
+  - "skeleton"
+  - "spinner"
+tags: ["layer-patterns"]
+project:
+  name: "loading-state"
+  description: "Migrated block component"

@@ -19,7 +19,7 @@ than a demonstration, that is what [Templates](/templates/) are for.
 - Meaningful interaction and state: a dialog that opens, a form that
   validates, a list that empties. Not a static picture.
 - Source that reads as the lesson: a developer building the same thing can
-  trace every region back to the component, block or layout providing it, and
+  trace every region back to the component, pattern or layout providing it, and
   follow a link to each one.
 
 ## What does not
@@ -29,7 +29,7 @@ than a demonstration, that is what [Templates](/templates/) are for.
 - A starting point to copy into a product. A showcase is read, not taken —
   that is a [template](/templates/)'s job.
 - An implementation duplicated out of the library. A region worth
-  standardising belongs in [Blocks](/blocks/app-header), and the showcase
+  standardising belongs in [Patterns](/patterns/app-header), and the showcase
   consumes it.
 - An application. No routing, no auth, no backend, no deployment — a showcase
   runs where it is written, in this site.

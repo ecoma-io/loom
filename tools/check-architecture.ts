@@ -31,7 +31,7 @@
  *
  * 5. Layer direction: an internal package may import only packages at or
  *    below its own layer — layout-engine/core → labels → primitives →
- *    composition → blocks → layouts → facade. An upward edge is the general form of the
+ *    composition → patterns → layouts → facade. An upward edge is the general form of the
  *    check-2 facade ban, which is its topmost case.
  *
  * 6. The internal src edge set contains no cycles, reported as paths. A cycle
@@ -177,12 +177,12 @@ export function runChecks(root: string): string[] {
     "layout-engine": 0,
     primitives: 2,
     composition: 3,
-    blocks: 4,
+    patterns: 4,
     layouts: 5,
     loom: 6,
   } satisfies Record<Exclude<Layer, "theme-core">, number>;
   const DIRECTION =
-    "layout-engine/core → labels → primitives → composition → blocks → layouts → facade";
+    "layout-engine/core → labels → primitives → composition → patterns → layouts → facade";
 
   // The specifier side of `from "…"`, `export … from "…"`, and `import("…")` —
   // quoted string or backtick template literal. A facade subpath

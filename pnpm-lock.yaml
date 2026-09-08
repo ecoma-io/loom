@@ -143,171 +143,6 @@ importers:
         specifier: ^4.129.0
         version: 4.129.0
 
-  packages/blocks/app-header:
-    dependencies:
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/dashboard-grid:
-    dependencies:
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/desktop-app-shell:
-    dependencies:
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      '@ecoma-io/loom-menubar':
-        specifier: workspace:*
-        version: link:../../primitives/menubar
-      '@ecoma-io/loom-title-bar':
-        specifier: workspace:*
-        version: link:../title-bar
-      '@ecoma-io/loom-window-controls':
-        specifier: workspace:*
-        version: link:../../primitives/window-controls
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/empty-state:
-    dependencies:
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/error-state:
-    dependencies:
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/error-summary:
-    dependencies:
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      '@ecoma-io/loom-labels':
-        specifier: workspace:*
-        version: link:../../labels
-      '@lucide/vue':
-        specifier: ^1.28.0
-        version: 1.40.0(vue@3.5.42(typescript@5.9.3))
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/form-actions:
-    dependencies:
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/form-section:
-    dependencies:
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      '@ecoma-io/loom-fieldset':
-        specifier: workspace:*
-        version: link:../../primitives/fieldset
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/loading-state:
-    dependencies:
-      '@ecoma-io/loom-skeleton':
-        specifier: workspace:*
-        version: link:../../primitives/skeleton
-      '@ecoma-io/loom-spinner':
-        specifier: workspace:*
-        version: link:../../primitives/spinner
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/metric-card:
-    dependencies:
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      '@ecoma-io/loom-skeleton':
-        specifier: workspace:*
-        version: link:../../primitives/skeleton
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/page-header:
-    dependencies:
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/row-actions:
-    dependencies:
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/sidebar-nav:
-    dependencies:
-      '@ecoma-io/loom-badge':
-        specifier: workspace:*
-        version: link:../../primitives/badge
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      '@ecoma-io/loom-separator':
-        specifier: workspace:*
-        version: link:../../primitives/separator
-      '@ecoma-io/loom-tooltip':
-        specifier: workspace:*
-        version: link:../../primitives/tooltip
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/title-bar:
-    dependencies:
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      '@ecoma-io/loom-menubar':
-        specifier: workspace:*
-        version: link:../../primitives/menubar
-      '@ecoma-io/loom-window-controls':
-        specifier: workspace:*
-        version: link:../../primitives/window-controls
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
-  packages/blocks/toast-stack:
-    dependencies:
-      '@ecoma-io/loom-core':
-        specifier: workspace:*
-        version: link:../../core
-      '@ecoma-io/loom-labels':
-        specifier: workspace:*
-        version: link:../../labels
-      '@ecoma-io/loom-toast':
-        specifier: workspace:*
-        version: link:../../primitives/toast
-      reka-ui:
-        specifier: ^2.10.0
-        version: 2.10.4(vue@3.5.42(typescript@5.9.3))
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.42(typescript@5.9.3)
-
   packages/composition/center:
     dependencies:
       '@ecoma-io/loom-core':
@@ -316,6 +151,12 @@ importers:
       '@ecoma-io/loom-layout-engine':
         specifier: workspace:*
         version: link:../../layout-engine
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/composition/dashboard-grid:
+    dependencies:
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -435,6 +276,24 @@ importers:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
 
+  packages/layouts/desktop-app-shell:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-menubar':
+        specifier: workspace:*
+        version: link:../../primitives/menubar
+      '@ecoma-io/loom-title-bar':
+        specifier: workspace:*
+        version: link:../../patterns/title-bar
+      '@ecoma-io/loom-window-controls':
+        specifier: workspace:*
+        version: link:../../primitives/window-controls
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
   packages/layouts/form-layout:
     dependencies:
       '@ecoma-io/loom-core':
@@ -493,7 +352,7 @@ importers:
         version: link:../primitives/alert-dialog
       '@ecoma-io/loom-app-header':
         specifier: workspace:*
-        version: link:../blocks/app-header
+        version: link:../patterns/app-header
       '@ecoma-io/loom-app-shell':
         specifier: workspace:*
         version: link:../layouts/app-shell
@@ -559,7 +418,7 @@ importers:
         version: link:../layouts/dashboard
       '@ecoma-io/loom-dashboard-grid':
         specifier: workspace:*
-        version: link:../blocks/dashboard-grid
+        version: link:../composition/dashboard-grid
       '@ecoma-io/loom-data-grid':
         specifier: workspace:*
         version: link:../primitives/data-grid
@@ -577,7 +436,7 @@ importers:
         version: link:../primitives/date-time-range-picker
       '@ecoma-io/loom-desktop-app-shell':
         specifier: workspace:*
-        version: link:../blocks/desktop-app-shell
+        version: link:../layouts/desktop-app-shell
       '@ecoma-io/loom-dialog':
         specifier: workspace:*
         version: link:../primitives/dialog
@@ -592,13 +451,13 @@ importers:
         version: link:../primitives/editable
       '@ecoma-io/loom-empty-state':
         specifier: workspace:*
-        version: link:../blocks/empty-state
+        version: link:../patterns/empty-state
       '@ecoma-io/loom-error-state':
         specifier: workspace:*
-        version: link:../blocks/error-state
+        version: link:../patterns/error-state
       '@ecoma-io/loom-error-summary':
         specifier: workspace:*
-        version: link:../blocks/error-summary
+        version: link:../patterns/error-summary
       '@ecoma-io/loom-field':
         specifier: workspace:*
         version: link:../primitives/field
@@ -610,13 +469,13 @@ importers:
         version: link:../primitives/file-upload
       '@ecoma-io/loom-form-actions':
         specifier: workspace:*
-        version: link:../blocks/form-actions
+        version: link:../patterns/form-actions
       '@ecoma-io/loom-form-layout':
         specifier: workspace:*
         version: link:../layouts/form-layout
       '@ecoma-io/loom-form-section':
         specifier: workspace:*
-        version: link:../blocks/form-section
+        version: link:../patterns/form-section
       '@ecoma-io/loom-frame':
         specifier: workspace:*
         version: link:../composition/frame
@@ -655,7 +514,7 @@ importers:
         version: link:../primitives/live-region
       '@ecoma-io/loom-loading-state':
         specifier: workspace:*
-        version: link:../blocks/loading-state
+        version: link:../patterns/loading-state
       '@ecoma-io/loom-master-detail':
         specifier: workspace:*
         version: link:../layouts/master-detail
@@ -667,7 +526,7 @@ importers:
         version: link:../primitives/meter
       '@ecoma-io/loom-metric-card':
         specifier: workspace:*
-        version: link:../blocks/metric-card
+        version: link:../patterns/metric-card
       '@ecoma-io/loom-navigation-menu':
         specifier: workspace:*
         version: link:../primitives/navigation-menu
@@ -679,7 +538,7 @@ importers:
         version: link:../primitives/otp-input
       '@ecoma-io/loom-page-header':
         specifier: workspace:*
-        version: link:../blocks/page-header
+        version: link:../patterns/page-header
       '@ecoma-io/loom-pagination':
         specifier: workspace:*
         version: link:../primitives/pagination
@@ -703,7 +562,7 @@ importers:
         version: link:../layouts/reading
       '@ecoma-io/loom-row-actions':
         specifier: workspace:*
-        version: link:../blocks/row-actions
+        version: link:../patterns/row-actions
       '@ecoma-io/loom-scroll-area':
         specifier: workspace:*
         version: link:../primitives/scroll-area
@@ -727,7 +586,7 @@ importers:
         version: link:../composition/sidebar
       '@ecoma-io/loom-sidebar-nav':
         specifier: workspace:*
-        version: link:../blocks/sidebar-nav
+        version: link:../patterns/sidebar-nav
       '@ecoma-io/loom-skeleton':
         specifier: workspace:*
         version: link:../primitives/skeleton
@@ -784,13 +643,13 @@ importers:
         version: link:../primitives/timeline
       '@ecoma-io/loom-title-bar':
         specifier: workspace:*
-        version: link:../blocks/title-bar
+        version: link:../patterns/title-bar
       '@ecoma-io/loom-toast':
         specifier: workspace:*
         version: link:../primitives/toast
       '@ecoma-io/loom-toast-stack':
         specifier: workspace:*
-        version: link:../blocks/toast-stack
+        version: link:../patterns/toast-stack
       '@ecoma-io/loom-toggle-group':
         specifier: workspace:*
         version: link:../primitives/toggle-group
@@ -809,6 +668,147 @@ importers:
       '@ecoma-io/loom-window-controls':
         specifier: workspace:*
         version: link:../primitives/window-controls
+
+  packages/patterns/app-header:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/empty-state:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/error-state:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/error-summary:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@lucide/vue':
+        specifier: ^1.28.0
+        version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/form-actions:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/form-section:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-fieldset':
+        specifier: workspace:*
+        version: link:../../primitives/fieldset
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/loading-state:
+    dependencies:
+      '@ecoma-io/loom-skeleton':
+        specifier: workspace:*
+        version: link:../../primitives/skeleton
+      '@ecoma-io/loom-spinner':
+        specifier: workspace:*
+        version: link:../../primitives/spinner
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/metric-card:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-skeleton':
+        specifier: workspace:*
+        version: link:../../primitives/skeleton
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/page-header:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/row-actions:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/sidebar-nav:
+    dependencies:
+      '@ecoma-io/loom-badge':
+        specifier: workspace:*
+        version: link:../../primitives/badge
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-separator':
+        specifier: workspace:*
+        version: link:../../primitives/separator
+      '@ecoma-io/loom-tooltip':
+        specifier: workspace:*
+        version: link:../../primitives/tooltip
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/title-bar:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-menubar':
+        specifier: workspace:*
+        version: link:../../primitives/menubar
+      '@ecoma-io/loom-window-controls':
+        specifier: workspace:*
+        version: link:../../primitives/window-controls
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/toast-stack:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-labels':
+        specifier: workspace:*
+        version: link:../../labels
+      '@ecoma-io/loom-toast':
+        specifier: workspace:*
+        version: link:../../primitives/toast
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.4(vue@3.5.42(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
 
   packages/primitives/accordion:
     dependencies:

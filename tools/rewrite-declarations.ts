@@ -32,7 +32,7 @@ import { join, relative, sep } from "node:path";
 // happened to run from.
 const ROOT = join(import.meta.dirname, "..");
 const DIST = join(ROOT, "dist");
-const TIERS = ["primitives", "composition", "layouts", "blocks"] as const;
+const TIERS = ["primitives", "composition", "layouts", "patterns"] as const;
 const FIXED: readonly [string, string][] = [
   // The regex extracts the suffix after `@ecoma-io/loom-`, so the key is the
   // bare name (`core`, `labels`), not the full specifier.
