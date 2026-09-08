@@ -16,6 +16,9 @@ import sidebarNavDemoSource from "../demos/SidebarNavDemo.vue?raw";
 
 ## Usage
 
+The item icons come from `@lucide/vue` — declare it in your own project
+when copying a snippet; see [Iconography](../foundations/iconography.md).
+
 ```vue
 <script setup lang="ts">
 import { SidebarNav, type SidebarNavSection } from "@ecoma-io/loom";

@@ -16,6 +16,9 @@ import emptyStateDemoSource from "../demos/EmptyStateDemo.vue?raw";
 
 ## Usage
 
+The icon in this snippet comes from `@lucide/vue` — declare it in your own
+project when copying one; see [Iconography](../foundations/iconography.md).
+
 ```vue
 <script setup lang="ts">
 import { EmptyState, Button } from "@ecoma-io/loom";
