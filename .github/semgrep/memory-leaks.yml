@@ -119,11 +119,23 @@ rules:
       # range test includes the node itself, so exempting the call would
       # silence the member inside it as well.
       #
-      # The two branches below split on where the read lives, and both carry
+      # The constructor and bare-call shapes are import-time execution too:
+      # `new ResizeObserver(...)` constructs a browser object while the module
+      # evaluates, and `requestAnimationFrame(...)` schedules against a
+      # browser frame. The constructor families are exactly the ones the leak
+      # rules beside this rule name — the observer four and the connection
+      # five — because their *assigned* module-scope form is invisible to
+      # those rules (assignment is their exemption) while still constructing
+      # the object at import. An unassigned module-scope constructor is
+      # reported by both rules, and that is right: it is genuinely both a
+      # discarded handle and an import-time side effect.
+      #
+      # The branches below split on where the read lives, and each carries
       # the same read set (the YAML anchor), because a read is either at
-      # module scope (branch A) or inside a body that runs at import anyway
-      # (branch B) — exactly one of the two can match a given read, so one
-      # defect is one finding.
+      # module scope (branch A), inside a body that runs at import anyway
+      # (branch B), or inside a static member initializer, which runs at
+      # class definition (branch C) — exactly one of these can match a given
+      # read, so one defect is one finding.
       - pattern-either:
           # Branch A — reads outside anything that defers evaluation to a
           # later call.
@@ -134,6 +146,16 @@ rules:
                   - pattern: navigator.$MEMBER
                   - pattern: localStorage.$MEMBER
                   - pattern: matchMedia(...)
+                  - pattern: requestAnimationFrame(...)
+                  - pattern: new ResizeObserver(...)
+                  - pattern: new MutationObserver(...)
+                  - pattern: new IntersectionObserver(...)
+                  - pattern: new PerformanceObserver(...)
+                  - pattern: new WebSocket(...)
+                  - pattern: new EventSource(...)
+                  - pattern: new Worker(...)
+                  - pattern: new SharedWorker(...)
+                  - pattern: new BroadcastChannel(...)
               # A read inside a deferring body runs when that body runs, not
               # at import — the component lifecycle and composable setup the
               # message points at.
@@ -168,6 +190,213 @@ rules:
               # and its invoking call as one expression
               # (`(() => document.title)("x")` went unseen without it).
               - pattern-inside: (() => $EXPR)(...)
+          # Branch C — a static member's initializer runs when the class
+          # definition is evaluated, which for a module-level class is import
+          # time. Branch A's class-body exemption is what would hide it, and
+          # that exemption must keep holding for instance members: a method
+          # body or instance field initializer runs at call or construction
+          # time, which is why this branch re-points the read set at class
+          # bodies through the `static` shape instead of loosening branch A's
+          # row.
+          #
+          # The deferring-body rows are restated here rather than inherited
+          # from branch A, and the class pattern names its field `$FIELD`
+          # rather than `$F`, for the same non-obvious reason: a branch's
+          # metavariable names are shared across its rows, so a field bound
+          # as `$F` makes the `function $F(...)` row demand a function of the
+          # field's name — probed on semgrep 1.172.0, with that collision a
+          # class nested in a function was reported even though the row
+          # exempting it was present. With distinct names the rows do their
+          # work: a class declared inside a function, arrow or method body
+          # evaluates when the enclosing body runs, and is exempt.
+          #
+          # A `static { ... }` initialization block has the same import-time
+          # semantics and no coverage: semgrep's JavaScript grammar cannot
+          # parse the block form, so the rule cannot claim it — it stays on
+          # review, like the `.vue` script blocks the interface contract
+          # already names.
+          #
+          # The guard rows are also restated, in their class-wrapped shape:
+          # the top-level `typeof` rows cannot see inside the class this
+          # branch binds, and inside an initializer the guard can only be a
+          # conditional expression — the four polarities of that shape, with
+          # a plain test or a compound one in either order of the `&&`, are
+          # what a static member can carry.
+          - patterns:
+              - pattern-either: *module_scope_reads
+              - pattern-not-inside: function $F(...) { ... }
+              - pattern-not-inside: (...) => { ... }
+              - pattern-not-inside: (...) => $EXPR
+              - pattern-not-inside: function (...) { ... }
+              - pattern-not-inside: $M(...) { ... }
+              - pattern-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $VALUE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL !== $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL === $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL != $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL != $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL != $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL == $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+          # The same branch for the class-expression spelling: an unnamed
+          # class pattern matches the expressions (`const X = class { ... }`,
+          # `export default class { ... }`) that the named pattern does not —
+          # and a class expression assigned at module scope evaluates at
+          # import exactly as a declaration does.
+          - patterns:
+              - pattern-either: *module_scope_reads
+              - pattern-not-inside: function $F(...) { ... }
+              - pattern-not-inside: (...) => { ... }
+              - pattern-not-inside: (...) => $EXPR
+              - pattern-not-inside: function (...) { ... }
+              - pattern-not-inside: $M(...) { ... }
+              - pattern-inside: |
+                  class {
+                    ...
+                    static $FIELD = $VALUE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL !== $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL === $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL != $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL != $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL != $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL == $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
       # Listener registration is the rule above's finding, and one defect shape
       # has one rule: without these exemptions the same module-scope
       # `window.addEventListener(...)` line draws two reports. The call form
@@ -184,7 +413,13 @@ rules:
       # `typeof` cover every position it can sit in (probed: first, last and
       # middle; the plain guard is deliberately not covered by that row, so
       # it keeps its own) — and the conditional-expression form, each shape
-      # in all four comparison polarities.
+      # in all four comparison polarities, with a plain test or a compound
+      # one. The compound conditional is two rows per polarity because the
+      # parenthesised ellipsis spelling that covers both `if` orders does not
+      # parse in a conditional test (probed on semgrep 1.172.0), so each
+      # order of the `&&` is spelled out; a compound test with no `typeof`
+      # conjunct still fires — a conjunct that is not the environment check
+      # guards nothing.
       - pattern-not-inside: if (typeof $GLOBAL !== $UNDEF) { ... }
       - pattern-not-inside: if (... && typeof $GLOBAL !== $UNDEF && ...) { ... }
       - pattern-not-inside: if (typeof $GLOBAL === $UNDEF) { ... }
@@ -194,9 +429,17 @@ rules:
       - pattern-not-inside: if (typeof $GLOBAL == $UNDEF) { ... }
       - pattern-not-inside: if (... && typeof $GLOBAL == $UNDEF && ...) { ... }
       - pattern-not-inside: "typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL !== $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE"
       - pattern-not-inside: "typeof $GLOBAL === $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL === $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL === $UNDEF ? $THEN : $ELSE"
       - pattern-not-inside: "typeof $GLOBAL != $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL != $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL != $UNDEF ? $THEN : $ELSE"
       - pattern-not-inside: "typeof $GLOBAL == $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL == $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL == $UNDEF ? $THEN : $ELSE"
 
   - id: loom-discarded-timer-handle
     languages: [javascript, typescript]

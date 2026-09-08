@@ -6,12 +6,13 @@
 // directories needs a git repository — the fixtures prove the gate's
 // arithmetic and its failure messages, and the real tree is what `pnpm lint`
 // runs against.
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { checkDocClaims } from "./check-doc-claims.ts";
+import { checkDocClaims, hasUncommittedChanges } from "./check-doc-claims.ts";
 
 /** The sentence as 2C left the tree: 9 compositions, 13 patterns, 9 layouts. */
 const CORRECT =
@@ -64,7 +65,11 @@ describe("checkDocClaims", () => {
   it("fails the audit-era sentence, naming each drift and the retired kind", () => {
     const root = makeRoot(ROTTED);
     try {
-      const failures = checkDocClaims(root, countFixed);
+      // The dirty predicate is beside the point of this test, and the default
+      // one shells out to git — it belongs to the real tree, not to a tmpdir
+      // with no repository, where git dies loudly. Declared false here; the
+      // default predicate's own contract is pinned in the dedicated test.
+      const failures = checkDocClaims(root, countFixed, () => false);
       // 2C moved DashboardGrid and DesktopAppShell and renamed the Blocks
       // family; the rotted sentence drifts on two kinds, names a third this
       // gate maps no directory to, and silently drops the fourth.
@@ -85,6 +90,100 @@ describe("checkDocClaims", () => {
       expect(failures.some((f) => f.includes("omits layouts"))).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("recounts through a parenthetical aside, period included (#269 finding 8)", () => {
+    const root = makeRoot(CORRECT.replace("9 compositions", "9 compositions (e.g. Stack, v1.5)"));
+    try {
+      const failures = checkDocClaims(root, countFixed);
+      // The aside's own periods ("e.g.", "1.5") used to truncate the capture
+      // at the parenthesis and fail every kind after it. Asides are stripped
+      // before the capture; the enumeration behind them is intact.
+      expect(failures).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("states the one-sentence constraint when a period splits the enumeration", () => {
+    const root = makeRoot(CORRECT.replace("13 patterns", "13 patterns. Also 9 layouts"));
+    try {
+      const failures = checkDocClaims(root, countFixed);
+      // The capture ends at the first period, so everything after it is
+      // invisible to the recount — the constraint the reader cannot see from
+      // the failure alone, stated in the message since #269 finding 8.
+      expect(failures.some((f) => f.includes("omits layouts"))).toBe(true);
+      expect(failures.some((f) => f.includes("first period"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("reads the committed tree and says so when the working tree is ahead", () => {
+    const root = makeRoot(ROTTED);
+    try {
+      const dirty = checkDocClaims(root, countFixed, () => true);
+      expect(dirty.some((f) => f.includes("holds 9 tracked directories at HEAD"))).toBe(true);
+      expect(dirty.some((f) => f.includes("commit and re-run before editing the sentence"))).toBe(
+        true,
+      );
+      const clean = checkDocClaims(root, countFixed, () => false);
+      // Same verdict, no remedy that would send a clean tree chasing a commit.
+      expect(clean.some((f) => f.includes("holds 9 tracked directories at HEAD"))).toBe(true);
+      expect(clean.some((f) => f.includes("commit and re-run"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("stays deaf outside a repository — false, and silent about it", () => {
+    const root = mkdtempSync(join(tmpdir(), "loom-doc-claims-no-repo-"));
+    try {
+      const stderr: string[] = [];
+      const write = vi
+        .spyOn(process.stderr, "write")
+        .mockImplementation((chunk: unknown): boolean => {
+          stderr.push(String(chunk));
+          return true;
+        });
+      try {
+        // No .git anywhere above this tmpdir: git dies, the predicate's
+        // answer is the advisory false, and git's fatal narrates itself
+        // nowhere — the leak the fixture runs used to print twice per suite.
+        expect(hasUncommittedChanges(root, "packages/primitives")).toBe(false);
+        expect(stderr.join("")).not.toContain("not a git repository");
+      } finally {
+        write.mockRestore();
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("answers for cwd, not for a caller's GIT_DIR — the hook leak, pinned", () => {
+    const root = mkdtempSync(join(tmpdir(), "loom-doc-claims-no-repo-"));
+    const decoy = mkdtempSync(join(tmpdir(), "loom-doc-claims-decoy-"));
+    try {
+      // A pre-push hook exports GIT_DIR, and with GIT_DIR set and no
+      // GIT_WORK_TREE git regards its cwd as that repository's work tree — so
+      // a probe from a tmpdir answered for the hooking repository's index,
+      // where every file reads as deleted. A decoy repository pins exactly
+      // that shape deterministically: unscrubbed, the empty index beside a
+      // non-empty tmpdir reads as changes; scrubbed, git discovers from cwd,
+      // finds no repository, and the advisory stays false.
+      execFileSync("git", ["init", decoy], { stdio: "ignore" });
+      const previous = process.env.GIT_DIR;
+      process.env.GIT_DIR = decoy;
+      try {
+        expect(hasUncommittedChanges(root, "packages/primitives")).toBe(false);
+      } finally {
+        if (previous === undefined) delete process.env.GIT_DIR;
+        else process.env.GIT_DIR = previous;
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(decoy, { recursive: true, force: true });
     }
   });
 

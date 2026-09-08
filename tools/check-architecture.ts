@@ -50,12 +50,13 @@
  * 8. The published build carries zero engine bytes, as an import-graph fact:
  *    no module under the facade reaches a `./layout` adapter by relative
  *    path, no barrel below the facade re-exports one (relatively or through
- *    a package's own deep specifier), and the engine is reached by no
- *    specifier — package or relative, at any subpath depth — outside the
- *    engine itself and the composition adapters' `src/layout.ts`. This is
- *    check 5's former engine judgment (D3/M1 of the gap analysis), now
- *    file-precise and scanned across whole package directories rather than
- *    src trees only.
+ *    a package's own deep specifier), no module outside the engine reaches an
+ *    adapter by relative path except its own package's tests and e2e proving
+ *    it, and the engine is reached by no specifier — package or relative, at
+ *    any subpath depth — outside the engine itself and the composition
+ *    adapters' `src/layout.ts`. This is check 5's former engine judgment
+ *    (D3/M1 of the gap analysis), now file-precise and scanned across whole
+ *    package directories rather than src trees only.
  *
  * The body is a pure `runChecks(root)` so the rules can be exercised against
  * fixture trees in tools/check-architecture.test.ts; the CLI entry at the
@@ -63,7 +64,7 @@
  * violation.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import { execFileSync } from "node:child_process";
 import { internalPackages, TIERS, type Layer } from "./architecture/graph.ts";
 
@@ -110,18 +111,51 @@ export function runChecks(root: string): string[] {
   // prefix, so the bare side-effect form (`import "@ecoma-io/loom"`) never
   // matches it; and the dashed subpath (`@ecoma-io/loom/theme-css`) is exactly
   // the shape the old `(?:/\w+)?` group was blind to. The group is now
-  // `[\w-]+` — the grammar INTERNAL_SPEC already carried — so both readers
-  // accept one set of spellings, while check 5 maps subpaths onto the facade
-  // and reports nothing: one import, one report.
+  // `[\w.-]+` per segment and unbounded in segments — the grammar INTERNAL_SPEC
+  // and check 8's rows carry — so all three readers accept one set of
+  // spellings, while check 5 maps subpaths onto the facade and reports
+  // nothing: one import, one report.
   const FACADE_SPEC = ["@ecoma-io", "loom"].join("/");
-  const FACADE_TARGET = `${FACADE_SPEC}(?:/[\\w-]+)?`;
-  const FACADE_IMPORT = new RegExp(
-    `from\\s+["'\`]${FACADE_TARGET}["'\`]` +
-      `|import\\s*\\(\\s*["'\`]${FACADE_TARGET}["'\`]` +
-      // The bare side-effect form has no `from` and no call parens — the one
-      // spelling that escaped every reader, this checker included, before 2G.
-      `|import\\s+["'\`]${FACADE_TARGET}["'\`]`,
-  );
+  // The subpath group is unbounded, as in check 8's own engine rule: a
+  // two-segment spelling (`@ecoma-io/loom/styles/global.css` — the documented
+  // stylesheet shape) is one more facade spelling, not a different kind of
+  // import, and the one-segment cap both readers carried let it through
+  // (#269 finding 10). Segments carry dots too — `.css` is part of the
+  // spelling — which `[\w-]+` alone stopped short of. The scan set stays
+  // `packages/*/src`, which carries no such import today; the grammar
+  // widening costs nothing there.
+  const FACADE_TARGET = `${FACADE_SPEC}(?:/[\\w.-]+)*`;
+  // The three statement forms a specifier can arrive in, anchored to a line
+  // start wherever the real spelling allows it. Comments are already stripped
+  // by walkSrcFiles, but a string literal that *quotes* an import used to
+  // report as an edge: `throw new Error('import from "@ecoma-io/loom"
+  // instead')` matched the bare `from "…"` fragment (#269). The `from` and
+  // side-effect forms anchor to a line start, which is where every import
+  // sits once prettier has run — and a single- or double-quoted string cannot
+  // contain a line break, so the anchor cannot fire inside one. The
+  // dynamic-call form cannot take the anchor at all: a real dynamic import
+  // sits mid-line (`await import(…)`), so anchoring it would hide the defect
+  // the form exists to catch.
+  //
+  // Check 8's rows share this helper on purpose: its edge shapes are the same
+  // statements, and a string literal quoting `from "./layout"` fooled them
+  // exactly as it fooled these (review of #269). One helper, one disclosed
+  // residual list.
+  //
+  // The anchor's residuals, probed firing: a semicolon-chained statement on
+  // one line (`const a = 1;import "@ecoma-io/loom";` — the anchor is a line
+  // start, and prettier never produces that shape), a template literal that
+  // spells an import on its own line, and a trailing `//` comment naming a
+  // dynamic import (`const x = f(); // await import("…")` — stripComments
+  // removes only comments that open a line, and the dynamic form is
+  // unanchored). All three stay the text-reader ambiguity they always were.
+  const statementForms = (specSource: string): string =>
+    `(?:^|\\n)\\s*(?:import|export)\\b[^;]*?from\\s*["'\`]${specSource}["'\`]` +
+    `|import\\s*\\(\\s*["'\`]${specSource}["'\`]` +
+    // The bare side-effect form has no `from` and no call parens — the one
+    // spelling that escaped every reader, this checker included, before 2G.
+    `|(?:^|\\n)\\s*import\\s+["'\`]${specSource}["'\`]`;
+  const FACADE_IMPORT = new RegExp(statementForms(FACADE_TARGET));
   const packages = internalPackages(root);
   for (const pkg of packages) {
     if (pkg.stylesOnly || pkg.name === "loom") continue;
@@ -144,21 +178,62 @@ export function runChecks(root: string): string[] {
       // a comment, a path, another tag — so a project tagged `["a11y"]` would
       // pass despite owning specs nobody's graph runs. The actual `tags:` list
       // is the only thing that decides whether the shared e2e task inherits.
-      const tags = parseTags(readFileSync(join(root, "packages", tier, name, "moon.yml"), "utf8"));
+      const moonText = readFileSync(join(root, "packages", tier, name, "moon.yml"), "utf8");
+      const tags = parseTags(moonText);
       if (!tags.includes("e2e")) {
-        fail(`${tier}/${name}: owns e2e/ specs but its moon.yml tags omit \`e2e\``);
+        fail(
+          `${tier}/${name}: owns e2e/ specs but its moon.yml tags omit \`e2e\`` +
+            // A `tags:` key that parsed as neither spelling — a flow map,
+            // `tags: {e2e: true}` — lands here too, and "omit" alone would
+            // claim the tag was read and judged absent when the reader never
+            // got that far. The second clause tells the author which repair
+            // is the real one: reshape the key, not add a tag to it.
+            (parseTagsSawNoShape(moonText)
+              ? " — or a tags shape this gate cannot parse (it reads `tags: [a, b]` and block sequences only)"
+              : ""),
+        );
       }
     }
   }
 
-  /** The `tags:` YAML list in a project's moon.yml, e.g. `["e2e"]`. */
+  /**
+   * The `tags:` list in a project's moon.yml, in either YAML spelling: the
+   * inline flow (`tags: [e2e]`) and the block sequence
+   * (`tags:` newline `- e2e`) the real tree already carries — tree-view's
+   * moon.yml is block-form, and the inline-only reader reported its correct
+   * `layer-primitives` tag set as "tags omit `e2e`" the moment someone added
+   * specs to it (#269 finding 9). Parsed, never searched for: the same
+   * discipline as before, just against both shapes.
+   */
   function parseTags(moonText: string): string[] {
-    const match = /^tags:\s*\[(.*)\]$/m.exec(moonText);
-    if (!match) return [];
-    return (match[1] ?? "")
-      .split(",")
-      .map((tag) => tag.trim().replace(/^"|"$/g, ""))
+    const flow = /^tags:\s*\[(.*)\]\s*$/m.exec(moonText);
+    if (flow) {
+      return (flow[1] ?? "")
+        .split(",")
+        .map((tag) => tag.trim().replace(/^"|"$/g, ""))
+        .filter(Boolean);
+    }
+    const block = /(^|\n)tags:\s*\n((?:[ \t]+-[^\n]*\n?)*)/.exec(moonText);
+    if (!block) return [];
+    return (block[2] ?? "")
+      .split("\n")
+      .map((line) =>
+        line
+          .replace(/^[ \t]+-[ \t]*/, "")
+          .trim()
+          .replace(/^"|"$/g, ""),
+      )
       .filter(Boolean);
+  }
+
+  /**
+   * Whether a `tags:` key is present but parsed as neither spelling — the
+   * "this gate never got that far" case the check-3 message's second clause
+   * names. An empty list (`tags: []`) parses cleanly and stays false: there
+   * the plain "omit" verdict is simply true.
+   */
+  function parseTagsSawNoShape(moonText: string): boolean {
+    return /^tags:/m.test(moonText) && parseTags(moonText).length === 0;
   }
 
   function isDirectoryWithSpecs(dir: string): boolean {
@@ -213,13 +288,22 @@ export function runChecks(root: string): string[] {
     "layout-engine/core → labels → primitives → composition → patterns → layouts → facade";
 
   // The specifier side of `from "…"`, `export … from "…"`, and `import("…")` —
-  // quoted string or backtick template literal. A facade subpath
-  // (`@ecoma-io/loom/theme`) is the facade and is treated as such below; the
-  // bare `@ecoma-io/loom` and each `@ecoma-io/loom-<name>` package are the
-  // internal graph. Doc comments naming an `@ecoma-io/loom/…` subpath cannot
-  // match because the regex requires a `from "` / `import(` prefix.
-  const INTERNAL_SPEC =
-    /(?:from\s+|import\s*\(\s*)["'`](@ecoma-io\/loom(?:-[a-z0-9-]+)?(?:\/[\w-]+)?)["'`]/g;
+  // quoted string or backtick template literal, anchored like FACADE_IMPORT
+  // above: a string literal quoting an import must not become an edge, while
+  // the dynamic call stays unanchored because a real one sits mid-line. A
+  // facade subpath (`@ecoma-io/loom/theme`) is the facade and is treated as
+  // such below; the bare `@ecoma-io/loom` and each `@ecoma-io/loom-<name>`
+  // package are the internal graph. Subpath segments carry dots —
+  // `…/loom-core/src/theme.ts` names a real file on disk — because the
+  // extensionless grammar let such a deep path compile unseen (review of
+  // #269); the same dotted grammar is what check 8's rows and the facade
+  // target above use, so one specifier spelling is accepted everywhere.
+  const SPEC_GROUP = `(@ecoma-io\\/loom(?:-[a-z0-9-]+)?(?:\\/[\\w.-]+)*)`;
+  const INTERNAL_SPEC = new RegExp(
+    `(?:^|\\n)\\s*(?:import|export)\\b[^;]*?from\\s*["'\`]${SPEC_GROUP}["'\`]` +
+      `|import\\s*\\(\\s*["'\`]${SPEC_GROUP}["'\`]`,
+    "g",
+  );
 
   interface InternalEdge {
     from: (typeof graphPackages)[number];
@@ -232,7 +316,9 @@ export function runChecks(root: string): string[] {
     const importedSpecs = new Set<string>();
     walkSrcFiles(pkg, (file, text) => {
       for (const match of text.matchAll(INTERNAL_SPEC)) {
-        const rawSpec = match[1];
+        // Two alternatives, one capture group each: the anchored `from` form
+        // lands in group 1, the unanchored dynamic call in group 2.
+        const rawSpec = match[1] ?? match[2];
         if (!rawSpec) continue;
         // A facade subpath (`@ecoma-io/loom/theme`) is an edge to the facade
         // itself: the subpath is part of the public surface, so importing it
@@ -362,56 +448,113 @@ export function runChecks(root: string): string[] {
   //     checker's own configs legitimately *name* the specifier — tsconfig
   //     paths, the vite alias, the mutation harness — and an allow-list of the
   //     checker itself is how allow-lists rot.
+  //
+  // (d) a non-engine package reaching an adapter by relative path — the plain
+  //     `import { layout } from "./layout"` the re-export rule cannot see,
+  //     because it names no engine specifier and no barrel. Within the
+  //     adapter's own package the only files allowed to spell it are the ones
+  //     proving the adapter — its unit tests and its e2e conformance cases,
+  //     none of which enters the published module graph — which is the same
+  //     blessing (b)'s comment records. Every other file in a scanned package
+  //     is consumer-reachable, and a consumer-reachable module that pulls the
+  //     adapter in ships engine bytes whether or not anything renders. The
+  //     adapter itself is deliberately absent from that allowance: it never
+  //     names itself, so an exemption for it would license nothing but a bug.
   const ENGINE_SPEC = ["@ecoma-io", "loom-layout-engine"].join("/");
   const INTERNAL_PKG_PREFIX = ["@ecoma-io", "loom-"].join("/");
   // `from "…/layout"`, `import("…/layout")` and the bare `import "…/layout"` —
-  // the same three-form context the facade regex uses, against a relative
-  // specifier that resolves to a module named layout (`./layout`,
-  // `../src/layout`, `../../composition/stack/src/layout`). "Any module named
-  // layout" is an approximation, accepted so the rule stays resolution-free:
-  // if it ever fires on a module that is not an adapter, the answer is an
-  // explicit allow-list entry here — never a quiet narrowing of the pattern.
+  // the same three-form context the facade regex uses — via statementForms,
+  // against a relative specifier that resolves to a module named layout
+  // (`./layout`, `../src/layout`, `../../composition/stack/src/layout`). The
+  // specifier keeps the anchor discipline of checks 2 and 5: a string literal
+  // quoting `from "./layout"` is prose, and an unanchored row reported it as
+  // an edge (review of #269). The module name carries a dotted tail because
+  // the extension is real on disk (`../src/layout.ts` compiled unseen under
+  // the extensionless grammar — same review). "Any module named layout" is an
+  // approximation, accepted so the rule stays resolution-free: if it ever
+  // fires on a module that is not an adapter, the answer is an explicit
+  // allow-list entry here — never a quiet narrowing of the pattern.
   const LAYOUT_EDGE = new RegExp(
-    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`](?:\\.\\.?/)+(?:[\\w-]+/)*layout["'\`]`,
+    statementForms(`(?:\\.\\.?/)+(?:[\\w.-]+/)*layout(?:\\.[\\w-]+)*`),
+  );
+  // The relative spellings that can mean only this package's own adapter —
+  // the narrowing of LAYOUT_EDGE that rule (d)'s filename allowance is
+  // entitled to bless. A climb ending in `src/layout`, or `./layout` from a
+  // src sibling; anything that names another package first
+  // (`../inline/src/layout`) resolves outside this package and stays an edge.
+  const OWN_ADAPTER_SPEC = new RegExp(
+    statementForms(`(?:(?:\\./)|(?:\\.\\./)+src/)layout(?:\\.[\\w-]+)*`),
   );
   // A re-export is the outward edge: `export { layout } from "./layout"`,
-  // `export * from "./layout"`, `export type { … } from "./layout"`. Two shapes
+  // `export * from "./layout"`, `export type { … } from "./layout"`. Shapes
   // the first cut missed, each probed against this checker before the grammar
   // moved: prettier wraps the clause across lines (`export {\n  layout,\n}
   // from …`), so the export→from gap is `[^;]` — newline-tolerant, still
   // bounded by the statement's semicolon so the lazy gap cannot reach into a
-  // later statement; and a barrel can name the adapter without `./layout`
-  // text at all, through its own package's deep specifier
-  // (`…/loom-stack/src/layout`), which resolves to the same file. The plain
-  // imports inside the adapter's own package — its unit tests, its
-  // conformance cases — are the adapter working as designed and must stay
-  // legal.
+  // later statement; a barrel can name the adapter without `./layout` text at
+  // all, through its own package's deep specifier (`…/loom-stack/src/layout`),
+  // which resolves to the same file; and both specifier sides carry the same
+  // dotted tail as LAYOUT_EDGE, since `…/loom-stack/src/layout.ts` is the
+  // file's own name. The row is line-start anchored like every other
+  // statement row — a string quoting `export … from "./layout"` is prose
+  // there to warn, not an edge to fail on. The plain relative *imports* of
+  // the adapter inside its own package are rule (d)'s judgment, not this
+  // row's: a re-export is forbidden wherever it appears, while an import is
+  // legal exactly where the adapter is being proved.
   const LAYOUT_REEXPORT = new RegExp(
-    `export\\s[^;]*?from\\s*["'\`]` +
-      `(?:(?:\\.\\.?/)+(?:[\\w-]+/)*|${INTERNAL_PKG_PREFIX}[\\w-]+(?:/[\\w-]+)*/)layout["'\`]`,
+    `(?:^|\\n)\\s*export\\b[^;]*?from\\s*["'\`]` +
+      `(?:(?:\\.\\.?/)+(?:[\\w.-]+/)*|${INTERNAL_PKG_PREFIX}[\\w-]+(?:\\/[\\w.-]+)*\\/)layout(?:\\.[\\w-]+)*["'\`]`,
   );
-  // The engine edge, under the spellings text can see. The package form names
-  // the engine at any subpath depth — the bare-specifier-only grammar let
-  // `…engine/src/pure` compile unseen. The relative form is the same edge
-  // spelled so it needs no tsconfig entry to compile
+  // The engine edge, under the spellings text can see, through statementForms
+  // like every other row. The package form names the engine at any subpath
+  // depth with dots in the segments — the extensionless grammar let
+  // `…engine/src/pure` compile unseen, and its dotted file form
+  // (`…engine/src/pure.ts`) too. The relative form is the same edge spelled
+  // so it needs no tsconfig entry to compile
   // (`../../layout-engine/src/index`); it keys on the climb naming the
   // engine's directory, exact today because no other directory in the tree
   // carries that name. One spelling the grammar deliberately does not claim:
   // a dynamic import whose specifier is interpolated resolves to nothing
   // until run time, and a text reader that claimed to see it would promise
   // more than it does.
-  const ENGINE_PACKAGE_IMPORT = new RegExp(
-    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`]${ENGINE_SPEC}(?:/[\\w-]+)*["'\`]`,
-  );
+  const ENGINE_PACKAGE_IMPORT = new RegExp(statementForms(`${ENGINE_SPEC}(?:\\/[\\w.-]+)*`));
   const ENGINE_RELATIVE_IMPORT = new RegExp(
-    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`](?:\\.\\.?/)+(?:[\\w-]+/)*layout-engine(?:/[\\w-]+)*["'\`]`,
+    statementForms(`(?:\\.\\.?/)+(?:[\\w.-]+/)*layout-engine(?:\\/[\\w.-]+)*`),
   );
   for (const pkg of graphPackages) {
     const isEngine = pkg.tier === "layout-engine";
+    // Rule (d)'s allowance, computed per package. Two bounds, each of which a
+    // probe of #269 caught missing. The e2e bound is the directory itself:
+    // `join(dir, "e2e", "")` drops the empty segment, so the prefix was not
+    // directory-bounded and a hypothetical `e2e-extra/` sibling rode the
+    // allow-list — the separator is appended by hand. And the allowance is
+    // keyed on the specifier as well as the filename: a test file proves the
+    // adapter only when the specifier it writes resolves to *this package's*
+    // adapter — a climb followed by `src/layout`, or `./layout` from a src
+    // sibling — so `../inline/src/layout` in a foreign test file stays the
+    // edge it is instead of inheriting the blessing from its `.test.ts` name.
+    // The bound shares statementForms so a quoted mention in prose cannot
+    // grant the exemption a real import would.
+    const provesAdapter = (file: string, text: string): boolean =>
+      (/\.(test|e2e)\.ts$/.test(file) || file.startsWith(join(pkg.dir, "e2e") + sep)) &&
+      OWN_ADAPTER_SPEC.test(text);
     walkPackageFiles(pkg, (file, text) => {
       if (pkg.tier === "loom" && LAYOUT_EDGE.test(text)) {
         fail(
           `${labelOf(pkg)}: ${rel(root, file)} reaches a layout adapter by relative path — the facade is the bundle root, so one edge from it ships engine bytes in every consumer import`,
+        );
+      }
+      // Rule (d). The facade exclusion above it is scope, not dedup: the
+      // bundle-root message names the stronger reason the facade may never
+      // spell the adapter, tests and e2e included.
+      if (
+        !isEngine &&
+        pkg.tier !== "loom" &&
+        LAYOUT_EDGE.test(text) &&
+        !provesAdapter(file, text)
+      ) {
+        fail(
+          `${labelOf(pkg)}: ${rel(root, file)} imports the layout adapter by relative path — a consumer-reachable module may not reach the adapter; only the adapter itself and its own package's tests and e2e may spell it, and anything else ships engine bytes in the published build`,
         );
       }
       // The loom exclusion is dedup, not scope: rule (a)'s `from "./layout"`
@@ -423,12 +566,18 @@ export function runChecks(root: string): string[] {
         );
       }
       // Both spellings are the same edge, so they share the condition, the
-      // allow-list (the engine itself, each adapter's exact src/layout.ts) and
-      // the message — one engine import, one report.
+      // allow-list and the message — one engine import, one report. The
+      // allow-list entry is the composition adapters' src/layout.ts — the file
+      // the contract and this rule's message both name, and which is why the
+      // tier is checked: keyed on the file path alone, any scanned package
+      // could open its own src/layout.ts and import the engine past this rule,
+      // the message notwithstanding.
+      const sanctionedAdapter =
+        pkg.tier === "composition" && file === join(pkg.dir, "src", "layout.ts");
       if (
         (ENGINE_PACKAGE_IMPORT.test(text) || ENGINE_RELATIVE_IMPORT.test(text)) &&
         !isEngine &&
-        file !== join(pkg.dir, "src", "layout.ts")
+        !sanctionedAdapter
       ) {
         fail(
           `${labelOf(pkg)}: ${rel(root, file)} imports the layout engine — its only consumers are the engine itself and the composition adapters' src/layout.ts (${DIRECTION}); any other edge ships engine bytes in the published build`,

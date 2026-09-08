@@ -411,6 +411,27 @@ export const MUTATIONS: Mutation[] = [
       },
     ],
   },
+  {
+    name: "blind-spot-same-package-adapter-import",
+    attack:
+      "a composition barrel imports its own layout adapter, pulling the engine into the package's published module graph",
+    // The engine edge the zero-engine-bytes contract forbids, spelled inside
+    // one project: Archkeep's relative-import rule is judged across project
+    // boundaries, and an intra-project edge has no row in the constraint
+    // table to break. tools/check-architecture.ts check 8 owns the edge
+    // instead — its fixture `fails a plain same-package adapter import` is
+    // the proof this mutation fails there — so this row is what turns red if
+    // Archkeep ever grows an intra-project reach, which is the signal to
+    // retire the note and let this reader carry the verdict.
+    expect: [],
+    note: "a documented blind spot, not a control: the same edit fails the text reader, so the law is enforced — only not by this reader.",
+    edits: [
+      {
+        path: "packages/composition/stack/src/index.ts",
+        append: '\nimport { layout } from "./layout";\n',
+      },
+    ],
+  },
 ];
 
 /** The violation ids `archkeep check --format json` reported for this tree. */
