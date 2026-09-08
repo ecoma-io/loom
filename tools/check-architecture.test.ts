@@ -192,6 +192,57 @@ describe("runChecks", () => {
     }
   });
 
+  it("flags a *dashed* facade subpath — the \\w-only group was blind to @ecoma-io/loom/theme-css", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import { tokens } from "@ecoma-io/loom/theme-css";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("public facade"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a bare side-effect import of the facade — no `from`, no call parens", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import "@ecoma-io/loom";\n',
+      );
+      const failures = runChecks(root);
+      // This spelling escapes check 5's `from`/`import(` grammar entirely, so
+      // check 2 is the only reader that can report it — the assertion below is
+      // what makes the ownership claim true rather than aspirational.
+      const facadeFailures = failures.filter((f) => f.includes("public facade"));
+      expect(facadeFailures).toHaveLength(1);
+      expect(facadeFailures[0]).toContain("Button.vue");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("reports a facade import exactly once — check 2 owns the edge, check 5 stays silent", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import { Button } from "@ecoma-io/loom";\n',
+      );
+      const failures = runChecks(root);
+      // Before 2G this one import drew three reports: check 2's facade rule,
+      // check 5's facade rule, and check 7 demanding a package.json entry for
+      // a dependency no internal package may declare. One edge, one report.
+      expect(failures.filter((f) => f.includes("facade"))).toHaveLength(1);
+      expect(failures.some((f) => f.includes("does not declare"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("flags a backtick template-literal dynamic import", () => {
     const root = makeRoot();
     try {

@@ -13,12 +13,17 @@
  *    `moon :test --affected` and `moon :e2e --affected` genuinely propagate.
  *
  * 2. No package below the facade may import the public facade — the specifier
- *    written `at-ecoma-io/loom` — as a bare import (checked under every
- *    internal src tree except packages/loom and theme-core's CSS). The
- *    facade's `deps: loom -> everything` is the publishing boundary; a
- *    component importing it would make affected selection a lie — a
- *    facade-level change looks like a Loom change and nothing in the real
- *    graph is a Loom-dependent package.
+ *    written `at-ecoma-io/loom`, under every spelling: the bare import, each
+ *    subpath including dashed ones, the dynamic `import()`, and the bare
+ *    side-effect `import "…"` (checked under every internal src tree except
+ *    packages/loom and theme-core's CSS). The facade's
+ *    `deps: loom -> everything` is the publishing boundary; a component
+ *    importing it would make affected selection a lie — a facade-level
+ *    change looks like a Loom change and nothing in the real graph is a
+ *    Loom-dependent package. This check is also the edge's only reporter:
+ *    check 5 maps facade subpaths onto the facade and stays silent, because
+ *    the side-effect spelling is invisible to its `from`/`import(` grammar
+ *    and a second report for the same import is noise.
  *
  * 3. A package that owns browser evidence — specs under its own `e2e/`
  *    directory (the glob `packages/<tier>/<name>/e2e/*.e2e.ts`) — must
@@ -87,20 +92,33 @@ export function runChecks(root: string): string[] {
   // The specifier is assembled rather than written out because the parser in
   // eslint's project-service mode trips over a bare at-ecoma-io-slash-loom token
   // inside a string literal (module-declaration name parsing). Same bytes, no
-  // parse error. `(?:/…)?` covers the facade's subpaths (`@ecoma-io/loom/theme`,
-  // `@ecoma-io/loom/a11y`) — they are the facade too, and a component that
-  // imports one is importing the public surface.
+  // parse error.
+  //
+  // Check 2 owns the facade edge outright, and that is deliberate rather than
+  // historical: it is the only reader whose specifier grammar reaches every
+  // spelling. Check 5's INTERNAL_SPEC requires a `from "…"` or `import("…")`
+  // prefix, so the bare side-effect form (`import "@ecoma-io/loom"`) never
+  // matches it; and the dashed subpath (`@ecoma-io/loom/theme-css`) is exactly
+  // the shape the old `(?:/\w+)?` group was blind to. The group is now
+  // `[\w-]+` — the grammar INTERNAL_SPEC already carried — so both readers
+  // accept one set of spellings, while check 5 maps subpaths onto the facade
+  // and reports nothing: one import, one report.
   const FACADE_SPEC = ["@ecoma-io", "loom"].join("/");
+  const FACADE_TARGET = `${FACADE_SPEC}(?:/[\\w-]+)?`;
   const FACADE_IMPORT = new RegExp(
-    `from\\s+["'\`]${FACADE_SPEC}(?:/\\w+)?["'\`]|import\\s*\\(\\s*["'\`]${FACADE_SPEC}(?:/\\w+)?["'\`]`,
+    `from\\s+["'\`]${FACADE_TARGET}["'\`]` +
+      `|import\\s*\\(\\s*["'\`]${FACADE_TARGET}["'\`]` +
+      // The bare side-effect form has no `from` and no call parens — the one
+      // spelling that escaped every reader, this checker included, before 2G.
+      `|import\\s+["'\`]${FACADE_TARGET}["'\`]`,
   );
   const packages = internalPackages(root);
   for (const pkg of packages) {
     if (pkg.stylesOnly || pkg.name === "loom") continue;
-    walkSrcFiles(pkg, (_file, text) => {
+    walkSrcFiles(pkg, (file, text) => {
       if (FACADE_IMPORT.test(text)) {
         fail(
-          `${labelOf(pkg)}: src imports the public facade (or a facade subpath) — that edge would corrupt affected selection`,
+          `${labelOf(pkg)}: ${rel(root, file)} imports the public facade (or a facade subpath) — that edge would corrupt affected selection`,
         );
       }
     });
@@ -223,14 +241,16 @@ export function runChecks(root: string): string[] {
           );
           continue;
         }
+        // The facade edge belongs to check 2, and records nothing here: not
+        // the failure (one import, one report — check 2 is the only reader
+        // that also sees the bare side-effect spelling), not the undeclared-
+        // dependency demand check 7 would raise beside it, and not the
+        // cycle-graph edge, which is safe to drop because the facade
+        // terminates the graph — a cycle through it already contains the edge
+        // check 2 reported.
+        if (to.spec === FACADE_SPEC) continue;
         importedSpecs.add(to.spec);
         edges.push({ from: pkg, to, file });
-        if (to.spec === FACADE_SPEC) {
-          fail(
-            `${labelOf(pkg)}: ${rel(root, file)} imports the public facade — ${DIRECTION} ends there; nothing below packages/loom may import it`,
-          );
-          continue;
-        }
         // graphPackages already excluded theme-core (stylesOnly), and the
         // facade is handled above, so both tiers are real layer keys.
         const fromRank = LAYERS[pkg.tier as Exclude<Layer, "theme-core">];
