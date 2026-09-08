@@ -49,11 +49,13 @@
  *
  * 8. The published build carries zero engine bytes, as an import-graph fact:
  *    no module under the facade reaches a `./layout` adapter by relative
- *    path, no barrel below the facade re-exports one, and the engine
- *    specifier names nothing outside the engine itself and the composition
- *    adapters' `src/layout.ts`. This is check 5's former engine judgment
- *    (D3/M1 of the gap analysis), now file-precise and scanned across whole
- *    package directories rather than src trees only.
+ *    path, no barrel below the facade re-exports one (relatively or through
+ *    a package's own deep specifier), and the engine is reached by no
+ *    specifier — package or relative, at any subpath depth — outside the
+ *    engine itself and the composition adapters' `src/layout.ts`. This is
+ *    check 5's former engine judgment (D3/M1 of the gap analysis), now
+ *    file-precise and scanned across whole package directories rather than
+ *    src trees only.
  *
  * The body is a pure `runChecks(root)` so the rules can be exercised against
  * fixture trees in tools/check-architecture.test.ts; the CLI entry at the
@@ -335,7 +337,7 @@ export function runChecks(root: string): string[] {
   //
   // (a) the facade reaching a layout adapter by relative path. `./layout` is
   //     the adapter filename in every composition and the engine's own
-  //     internals; no module under packages/loom/src has any business naming
+  //     internals; no module under packages/loom has any business naming
   //     it, because the facade is the bundle root — one edge from it and the
   //     engine ships inside every consumer import, whatever tree-shaking does.
   // (b) a barrel re-exporting an adapter outward. That file names no engine
@@ -361,22 +363,48 @@ export function runChecks(root: string): string[] {
   //     paths, the vite alias, the mutation harness — and an allow-list of the
   //     checker itself is how allow-lists rot.
   const ENGINE_SPEC = ["@ecoma-io", "loom-layout-engine"].join("/");
+  const INTERNAL_PKG_PREFIX = ["@ecoma-io", "loom-"].join("/");
   // `from "…/layout"`, `import("…/layout")` and the bare `import "…/layout"` —
   // the same three-form context the facade regex uses, against a relative
   // specifier that resolves to a module named layout (`./layout`,
-  // `../src/layout`).
+  // `../src/layout`, `../../composition/stack/src/layout`). "Any module named
+  // layout" is an approximation, accepted so the rule stays resolution-free:
+  // if it ever fires on a module that is not an adapter, the answer is an
+  // explicit allow-list entry here — never a quiet narrowing of the pattern.
   const LAYOUT_EDGE = new RegExp(
-    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`]\\.{1,2}/(?:[\\w-]+/)*layout["'\`]`,
+    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`](?:\\.\\.?/)+(?:[\\w-]+/)*layout["'\`]`,
   );
   // A re-export is the outward edge: `export { layout } from "./layout"`,
-  // `export * from "./layout"`, `export type { … } from "./layout"`. The plain
-  // imports inside the adapter's own package — its unit tests, its conformance
-  // cases — are the adapter working as designed and must stay legal.
+  // `export * from "./layout"`, `export type { … } from "./layout"`. Two shapes
+  // the first cut missed, each probed against this checker before the grammar
+  // moved: prettier wraps the clause across lines (`export {\n  layout,\n}
+  // from …`), so the export→from gap is `[^;]` — newline-tolerant, still
+  // bounded by the statement's semicolon so the lazy gap cannot reach into a
+  // later statement; and a barrel can name the adapter without `./layout`
+  // text at all, through its own package's deep specifier
+  // (`…/loom-stack/src/layout`), which resolves to the same file. The plain
+  // imports inside the adapter's own package — its unit tests, its
+  // conformance cases — are the adapter working as designed and must stay
+  // legal.
   const LAYOUT_REEXPORT = new RegExp(
-    `export\\s[^;\\n]*?from\\s*["'\`]\\.{1,2}/(?:[\\w-]+/)*layout["'\`]`,
+    `export\\s[^;]*?from\\s*["'\`]` +
+      `(?:(?:\\.\\.?/)+(?:[\\w-]+/)*|${INTERNAL_PKG_PREFIX}[\\w-]+(?:/[\\w-]+)*/)layout["'\`]`,
   );
-  const ENGINE_IMPORT = new RegExp(
-    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`]${ENGINE_SPEC}["'\`]`,
+  // The engine edge, under the spellings text can see. The package form names
+  // the engine at any subpath depth — the bare-specifier-only grammar let
+  // `…engine/src/pure` compile unseen. The relative form is the same edge
+  // spelled so it needs no tsconfig entry to compile
+  // (`../../layout-engine/src/index`); it keys on the climb naming the
+  // engine's directory, exact today because no other directory in the tree
+  // carries that name. One spelling the grammar deliberately does not claim:
+  // a dynamic import whose specifier is interpolated resolves to nothing
+  // until run time, and a text reader that claimed to see it would promise
+  // more than it does.
+  const ENGINE_PACKAGE_IMPORT = new RegExp(
+    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`]${ENGINE_SPEC}(?:/[\\w-]+)*["'\`]`,
+  );
+  const ENGINE_RELATIVE_IMPORT = new RegExp(
+    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`](?:\\.\\.?/)+(?:[\\w-]+/)*layout-engine(?:/[\\w-]+)*["'\`]`,
   );
   for (const pkg of graphPackages) {
     const isEngine = pkg.tier === "layout-engine";
@@ -386,12 +414,22 @@ export function runChecks(root: string): string[] {
           `${labelOf(pkg)}: ${rel(root, file)} reaches a layout adapter by relative path — the facade is the bundle root, so one edge from it ships engine bytes in every consumer import`,
         );
       }
+      // The loom exclusion is dedup, not scope: rule (a)'s `from "./layout"`
+      // clause already reports the facade's own re-export of the adapter, and
+      // one edge is one report.
       if (!isEngine && pkg.tier !== "loom" && LAYOUT_REEXPORT.test(text)) {
         fail(
           `${labelOf(pkg)}: ${rel(root, file)} re-exports a layout adapter — only the engine's own index may re-export ./layout; an exported adapter puts engine bytes on the consumer path through the facade's re-export of this package`,
         );
       }
-      if (ENGINE_IMPORT.test(text) && !isEngine && file !== join(pkg.dir, "src", "layout.ts")) {
+      // Both spellings are the same edge, so they share the condition, the
+      // allow-list (the engine itself, each adapter's exact src/layout.ts) and
+      // the message — one engine import, one report.
+      if (
+        (ENGINE_PACKAGE_IMPORT.test(text) || ENGINE_RELATIVE_IMPORT.test(text)) &&
+        !isEngine &&
+        file !== join(pkg.dir, "src", "layout.ts")
+      ) {
         fail(
           `${labelOf(pkg)}: ${rel(root, file)} imports the layout engine — its only consumers are the engine itself and the composition adapters' src/layout.ts (${DIRECTION}); any other edge ships engine bytes in the published build`,
         );

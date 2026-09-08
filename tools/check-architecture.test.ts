@@ -241,6 +241,114 @@ describe("runChecks", () => {
     }
   });
 
+  it("fails a prettier-wrapped re-export of the adapter — the export…from gap crosses lines", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The same re-export the rule exists for, spelled the way prettier
+      // prints it once the braces wrap: the old `[^;\n]` gap could not cross
+      // the newline and the clause sailed through.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "index.ts"),
+        'export {\n  layout,\n} from "./layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("re-exports a layout adapter"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a multi-segment relative re-export of the adapter", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // Two climbs, then path segments, then the adapter: the old
+      // `\.{1,2}/`-once grammar stopped at the second `..`.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "index.ts"),
+        'export { layout } from "../../composition/stack/src/layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("re-exports a layout adapter"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a deep package-specifier re-export of the adapter — no ./layout text needed", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // Naming the adapter through the package's own deep specifier resolves
+      // to the same file while never spelling `./layout`, and check 5's
+      // single-segment subpath group cannot see the spelling either — so
+      // without this arm the re-export escapes every reader.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "index.ts"),
+        'export { layout } from "@ecoma-io/loom-stack/src/layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("re-exports a layout adapter"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a relative engine import — the spelling that needs no tsconfig entry", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // A relative climb into the engine compiles today with no paths entry
+      // and names no engine specifier, so the package-form rule never saw it.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "Stack.vue"),
+        'import { layout } from "../../layout-engine/src/index";\n<template><div /></template>\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout engine"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails an engine import at a subpath — …/src/pure is still the engine", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The engine rule watched only the package root, so a two-segment
+      // subpath resolved past it.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "Stack.vue"),
+        'import { pure } from "@ecoma-io/loom-layout-engine/src/pure";\n<template><div /></template>\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout engine"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails an engine import from a package's tests tree — the seam is a file, not a directory", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // Check 8 walks whole package directories on purpose; a test file
+      // reaching the engine relatively is the same forbidden edge as the
+      // component's own source spelling it.
+      mkdirSync(join(root, "packages", "composition", "stack", "tests"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "tests", "layout.test.ts"),
+        'import { layout } from "../../layout-engine/src/index";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout engine"))).toBe(true);
+      expect(failures.some((f) => f.includes("tests/layout.test.ts"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("fails a facade module reaching ./layout — the barrel chain into the bundle root", () => {
     const root = makeRoot();
     try {
