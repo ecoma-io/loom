@@ -120,6 +120,48 @@ if (typeof window !== "undefined") {
   window.history.replaceState(null, "", window.location.href);
 }
 
+// The sanctioned guard in conditional-expression form — each polarity defers
+// one branch to run time.
+// ok: loom-browser-api-at-module-scope
+const ternaryViewport = typeof window !== "undefined" ? window.innerWidth : 0;
+// ok: loom-browser-api-at-module-scope
+const ternaryViewportDark = typeof window === "undefined" ? 0 : window.innerWidth;
+
+// Further conjuncts do not unsanction the guard, on either side of the `&&`.
+// ok: loom-browser-api-at-module-scope
+if (typeof window !== "undefined" && window.location.protocol === "https:") {
+  window.history.replaceState(null, "", window.location.href);
+}
+// ok: loom-browser-api-at-module-scope
+if (navigator.userAgent && typeof document !== "undefined") {
+  document.documentElement.dataset["loomBoot"] = "1";
+}
+
+// An immediately-invoked body is not a deferral: the invocation happens while
+// the module is evaluating, which is the defect itself.
+(function boot(): void {
+  // ruleid: loom-browser-api-at-module-scope
+  const bootViewport = window.innerWidth;
+})();
+(function (): void {
+  // ruleid: loom-browser-api-at-module-scope
+  document.documentElement.dataset["loomBoot"] = "1";
+})();
+(() => {
+  // ruleid: loom-browser-api-at-module-scope
+  localStorage.getItem("loom");
+})();
+// ruleid: loom-browser-api-at-module-scope
+(() => document.title)("x");
+
+// A module-scope call is reported through its callee member — one defect
+// shape, one finding. `semgrep --test` counts annotated lines rather than
+// findings, so this file cannot pin the count; the count is probe-verified
+// instead (semgrep 1.172.0, before the call shapes were dropped: this line
+// reported twice).
+// ruleid: loom-browser-api-at-module-scope
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
 // Listener registration keeps its own rule: the addEventListener line below is
 // loom-global-listener-at-module-scope's finding and must not double-report.
 // ruleid: loom-global-listener-at-module-scope

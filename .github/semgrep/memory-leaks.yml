@@ -87,7 +87,9 @@ rules:
       the import into a side effect bundlers cannot drop. Do the read inside
       the component's lifecycle or the composable's setup; a module that
       genuinely must branch on the environment guards the read with
-      `typeof window !== "undefined"`.
+      `typeof window !== "undefined"`, and wrapping the read in a function
+      expression that is invoked immediately is not a deferral — an IIFE runs
+      its body while the module is evaluating.
     # This rule carries no CWE on purpose, unlike the rules beside it: it
     # enforces Loom's own import-time contract rather than a leak shape, and
     # the harm is a consumer's server render crashing on `window` — not
@@ -107,16 +109,65 @@ rules:
         - packages/**
         - .github/semgrep/**
     patterns:
+      # A read is matched through its member expression, and the bare
+      # `matchMedia(...)` call is the one read reached without a recipient
+      # prefix. The call shapes this rule used to carry (`window.$METHOD(...)`)
+      # were dropped on purpose: the callee member inside the call is the same
+      # read, and matching both shapes drew two findings for one defect —
+      # probed on semgrep 1.172.0, a module-scope `window.matchMedia(...)`
+      # reported twice. `pattern-not-inside` cannot deduplicate that pair: its
+      # range test includes the node itself, so exempting the call would
+      # silence the member inside it as well.
+      #
+      # The two branches below split on where the read lives, and both carry
+      # the same read set (the YAML anchor), because a read is either at
+      # module scope (branch A) or inside a body that runs at import anyway
+      # (branch B) — exactly one of the two can match a given read, so one
+      # defect is one finding.
       - pattern-either:
-          - pattern: window.$MEMBER
-          - pattern: window.$METHOD(...)
-          - pattern: document.$MEMBER
-          - pattern: document.$METHOD(...)
-          - pattern: navigator.$MEMBER
-          - pattern: navigator.$METHOD(...)
-          - pattern: localStorage.$MEMBER
-          - pattern: localStorage.$METHOD(...)
-          - pattern: matchMedia(...)
+          # Branch A — reads outside anything that defers evaluation to a
+          # later call.
+          - patterns:
+              - pattern-either: &module_scope_reads
+                  - pattern: window.$MEMBER
+                  - pattern: document.$MEMBER
+                  - pattern: navigator.$MEMBER
+                  - pattern: localStorage.$MEMBER
+                  - pattern: matchMedia(...)
+              # A read inside a deferring body runs when that body runs, not
+              # at import — the component lifecycle and composable setup the
+              # message points at.
+              - pattern-not-inside: function $F(...) { ... }
+              # Both arrow shapes need exempting: a concise body
+              # (`() => window.innerWidth`) defers the read to call time just
+              # like a block body does, and without this row it would be
+              # reported as if it ran at import.
+              - pattern-not-inside: (...) => { ... }
+              - pattern-not-inside: (...) => $EXPR
+              - pattern-not-inside: function (...) { ... }
+              - pattern-not-inside: class $C { ... }
+          # Branch B — the same reads inside an immediately-invoked body:
+          # exempted syntactically by branch A, but the invocation happens
+          # while the module is evaluating, which is the whole defect. The
+          # inside-match is the invocation itself, so it reaches every depth
+          # of the body — an IIFE whose body calls inner functions is the
+          # common shape, not a hole in the rule.
+          - patterns:
+              - pattern-either: *module_scope_reads
+              - pattern-inside: (function $F(...) { ... })()
+          - patterns:
+              - pattern-either: *module_scope_reads
+              - pattern-inside: (function (...) { ... })()
+          - patterns:
+              - pattern-either: *module_scope_reads
+              - pattern-inside: (() => { ... })(...)
+          - patterns:
+              - pattern-either: *module_scope_reads
+              # The trailing (...) is load-bearing: paired with the arrow's
+              # own parameters it is what makes semgrep see the concise arrow
+              # and its invoking call as one expression
+              # (`(() => document.title)("x")` went unseen without it).
+              - pattern-inside: (() => $EXPR)(...)
       # Listener registration is the rule above's finding, and one defect shape
       # has one rule: without these exemptions the same module-scope
       # `window.addEventListener(...)` line draws two reports. The call form
@@ -127,19 +178,25 @@ rules:
       - pattern-not: $TARGET.removeEventListener(...)
       - pattern-not: $TARGET.removeEventListener
       # The sanctioned guard. `typeof` itself is not a member read, so the
-      # guard expression never matches; these exempt the reads a guard wraps.
+      # guard expression never matches; these exempt the reads a guard wraps,
+      # in the three shapes a guard is written: the plain `if`, the compound
+      # `if` with further conjuncts — the ellipses on both sides of the
+      # `typeof` cover every position it can sit in (probed: first, last and
+      # middle; the plain guard is deliberately not covered by that row, so
+      # it keeps its own) — and the conditional-expression form, each shape
+      # in all four comparison polarities.
       - pattern-not-inside: if (typeof $GLOBAL !== $UNDEF) { ... }
+      - pattern-not-inside: if (... && typeof $GLOBAL !== $UNDEF && ...) { ... }
       - pattern-not-inside: if (typeof $GLOBAL === $UNDEF) { ... }
+      - pattern-not-inside: if (... && typeof $GLOBAL === $UNDEF && ...) { ... }
       - pattern-not-inside: if (typeof $GLOBAL != $UNDEF) { ... }
+      - pattern-not-inside: if (... && typeof $GLOBAL != $UNDEF && ...) { ... }
       - pattern-not-inside: if (typeof $GLOBAL == $UNDEF) { ... }
-      - pattern-not-inside: function $F(...) { ... }
-      # Both arrow shapes need exempting: a concise body (`() => window.innerWidth`)
-      # defers the read to call time just like a block body does, and without
-      # this row it would be reported as if it ran at import.
-      - pattern-not-inside: (...) => { ... }
-      - pattern-not-inside: (...) => $EXPR
-      - pattern-not-inside: function (...) { ... }
-      - pattern-not-inside: class $C { ... }
+      - pattern-not-inside: if (... && typeof $GLOBAL == $UNDEF && ...) { ... }
+      - pattern-not-inside: "typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL === $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL != $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL == $UNDEF ? $THEN : $ELSE"
 
   - id: loom-discarded-timer-handle
     languages: [javascript, typescript]
