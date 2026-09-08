@@ -5,7 +5,7 @@ import { join, relative, sep } from "node:path";
 /**
  * Every documentation page, as the path VitePress serves it under — read off
  * the files in `docs/` rather than kept as a list beside them. A hand-written
- * list of every component and block page is a second copy of the directory
+ * list of every component and pattern page is a second copy of the directory
  * tree, and the failure it produces is the quiet one: a page ships, and the
  * accessibility sweep simply never looks at it because nobody remembered to
  * add the new URL. Deriving it here means a page added tomorrow is covered

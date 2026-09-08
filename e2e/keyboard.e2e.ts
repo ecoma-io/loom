@@ -50,7 +50,7 @@ test("the focus ring appears on keyboard entry and stays hidden after a mouse cl
 // it did before this test existed.
 //
 // Focusability is asserted rather than a full Tab walk. Tabbing to every table
-// on 45 pages would spend minutes proving what the browser decides in one
+// on every page would spend minutes proving what the browser decides in one
 // question — whether the element is in the tab order at all — and that
 // question is the whole of WCAG 2.1.1 here. The failure this guards against is
 // an element that no key press can reach, not one that is reached late.
