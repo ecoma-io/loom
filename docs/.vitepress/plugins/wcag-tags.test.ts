@@ -81,6 +81,55 @@ describe("expandWcagTags", () => {
     expect(() => expand("export const OTHER = 1;\n")).toThrow(new RegExp(PAGE));
   });
 
+  it("publishes the real declaration when a trailing comment carries the lookalike", () => {
+    const source = readFileSync(A11Y_SCOPE, "utf8");
+    // The trailing `//` was the one place a lookalike survived every strip:
+    // the comment that opens no line hides a full declaration in plain sight
+    // after real code. With the real declaration present, the lookalike must
+    // lose — the fence renders what the gates import.
+    const poisoned = source.replace(
+      /^export const WCAG_TAGS/m,
+      'export const LEGACY = true; // superseded: export const WCAG_TAGS = ["wcagkp"] as const;\n' +
+        "export const WCAG_TAGS",
+    );
+    const result = expand(poisoned);
+    expect(result).toContain(realDeclaration(source));
+    expect(result).not.toContain('"wcagkp"');
+  });
+
+  it("fails the build when a trailing comment carries the only declaration", () => {
+    // With no real declaration, the commented-out lookalike used to be the
+    // only match left standing — the page published a scope the gates do not
+    // enforce, sourced from text the file had itself retired.
+    expect(() =>
+      expand(
+        'export const LEGACY = true; // superseded: export const WCAG_TAGS = ["wcagkp"] as const;\n',
+      ),
+    ).toThrow(/no "export const WCAG_TAGS/);
+  });
+
+  it("keeps a string literal's slashes — the comment rule cannot eat the code beside it", () => {
+    // The residual runs the other way on purpose: a quoted lookalike inside a
+    // string survives the strip verbatim (bounded by the pin test on the real
+    // file), and in exchange a URL's `//` can never cut a declaration that
+    // shares its line — which any drop-from-the-first-slashes rule would do.
+    const result = expand(
+      'const ORIGIN = "https://example.com"; export const WCAG_TAGS = ["wcag2a", "wcag2aa"] as const;\n',
+    );
+    expect(result).toContain('export const WCAG_TAGS = ["wcag2a", "wcag2aa"] as const;');
+  });
+
+  it("fails a page carrying more than one marker instead of rendering the fence twice", () => {
+    const source = readFileSync(A11Y_SCOPE, "utf8");
+    // String.replace with a global pattern renders the claim at every marker;
+    // the scope is one claim, so a second marker is a mistake to refuse, not
+    // a wish to fulfil.
+    const twice = `# A\n\n${MARKER}\n\n# B\n\n${MARKER}\n`;
+    expect(() => expandWcagTags({ markdown: twice, id: PAGE, source })).toThrow(
+      /2 @wcag-tags markers/,
+    );
+  });
+
   it("fails the build when the literal stops being valid JSON", () => {
     expect(() => expand('export const WCAG_TAGS = ["wcag2a",] as const;\n')).toThrow(
       /no longer valid JSON/,
