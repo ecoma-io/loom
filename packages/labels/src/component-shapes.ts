@@ -960,6 +960,8 @@ export interface TreeViewLabels {
  * label but an unnamed button.
  */
 export interface WindowControlsLabels {
+  /** Names the cluster itself — the container renders role="group" named by it. */
+  readonly group: string;
   /** Send the window to the taskbar. */
   readonly minimize: string;
   /** Fill the screen. The middle button's name while the window is restored. */

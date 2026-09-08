@@ -23,6 +23,13 @@ describe("WindowControls", () => {
     expect(wrapper.findAll("svg").every((s) => s.attributes("aria-hidden") === "true")).toBe(true);
   });
 
+  it("groups the three buttons under a named role=group, so they read as one cluster rather than three stray buttons", () => {
+    const wrapper = mount(WindowControls);
+    const group = wrapper.get('[role="group"]');
+    expect(group.attributes("aria-label")).toBe("Window controls");
+    expect(group.findAll("button")).toHaveLength(3);
+  });
+
   it("relabels the middle button to Restore while maximized, and swaps its glyph — one button, two states", async () => {
     const wrapper = mount(WindowControls, { props: { isMaximized: false } });
     const restoreGlyph = () => wrapper.get('[data-testid="win-maximize"]').findAll("path");
