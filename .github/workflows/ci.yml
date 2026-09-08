@@ -220,6 +220,19 @@ jobs:
       - name: Check api parity
         run: node --experimental-strip-types tools/check-api-parity.ts
 
+      # Two more gates from the lint script, and the reason they get their own
+      # steps rather than relying on the script: `check-template-artifacts.ts`
+      # (the template contract's five-artifact pairing) and
+      # `check-manifest-privacy.ts` (the 2D one-public-package gate) run only
+      # inside root `pnpm lint`, and the verify job's ESLint path is the
+      # affected moon tasks, which never chain the root script — so without a
+      # step each was a gate no pull request ever executed.
+      - name: Check template artifacts
+        run: node tools/check-template-artifacts.ts
+
+      - name: Check manifest privacy
+        run: node tools/check-manifest-privacy.ts
+
       # The third architecture gate, and the one that judges resolved imports
       # rather than specifier text. `archkeep check` reads the Moon project
       # graph, resolves every `.ts`/`.vue` specifier through
