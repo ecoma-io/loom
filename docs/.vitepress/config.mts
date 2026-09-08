@@ -205,6 +205,20 @@ export default defineConfig({
         // `../../src` import would work and would also quietly document a path
         // no consumer can write; the alias keeps every snippet on this site
         // copy-pasteable into a real application.
+        //
+        // The facade subpaths are listed before the bare `@ecoma-io/loom`
+        // entry: Vite's alias resolution is first-match, and a string alias
+        // also matches the specifier it prefixes, so a bare entry listed first
+        // would swallow `@ecoma-io/loom/a11y` and `@ecoma-io/loom/theme` and
+        // resolve them to `index.ts/theme` — a path that does not exist. This
+        // is the same ordering the root vite.config.ts follows, and the reason
+        // is why `check-api-parity.ts` pins the subpaths against this map.
+        "@ecoma-io/loom/a11y": fileURLToPath(
+          new URL("../../packages/loom/src/a11y.ts", import.meta.url),
+        ),
+        "@ecoma-io/loom/theme": fileURLToPath(
+          new URL("../../packages/loom/src/theme.ts", import.meta.url),
+        ),
         "@ecoma-io/loom": fileURLToPath(
           new URL("../../packages/loom/src/index.ts", import.meta.url),
         ),

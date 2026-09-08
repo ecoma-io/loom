@@ -94,7 +94,14 @@ export type {
 } from "@ecoma-io/loom-breadcrumb";
 export { default as Button, buttonVariants } from "@ecoma-io/loom-button";
 export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
-export { default as CopyButton } from "@ecoma-io/loom-copy-button";
+// S5 trim decision: the sibling package indexes export a few things the
+// facade deliberately does not — internal helpers (COPY_REVERT_MS,
+// buttonVariantClasses, TableRowState, headAlignClass, nextSort). The label
+// and variant maps they also export (COPY_BUTTON_LABELS,
+// timelineMarkerVariants) are public surface and belong here; the helpers do
+// not, and this comment records which is which so the distinction stays a
+// decision rather than an accident.
+export { default as CopyButton, COPY_BUTTON_LABELS } from "@ecoma-io/loom-copy-button";
 export type {
   CopyButtonLabels,
   CopyButtonSize,
@@ -141,7 +148,7 @@ export type { TooltipSide } from "@ecoma-io/loom-tooltip";
 
 export { default as Timeline, TIMELINE_LABELS } from "@ecoma-io/loom-timeline";
 export type { TimelineLabels, TimelineStatus } from "@ecoma-io/loom-timeline";
-export { TimelineItem } from "@ecoma-io/loom-timeline";
+export { TimelineItem, timelineMarkerVariants } from "@ecoma-io/loom-timeline";
 export {
   TableCell,
   TableHead,

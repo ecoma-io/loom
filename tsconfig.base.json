@@ -84,7 +84,7 @@
     "paths": {
       "@ecoma-io/loom": ["./packages/loom/src/index.ts"],
       "@ecoma-io/loom/a11y": ["./packages/loom/src/a11y.ts"],
-      "@ecoma-io/loom/theme": ["./packages/core/src/theme.ts"],
+      "@ecoma-io/loom/theme": ["./packages/loom/src/theme.ts"],
       "@ecoma-io/loom-core": ["./packages/core/src/index.ts"],
       // Shared test support. `packages/core` already declares this subpath in its
       // `exports` map, which is enough for TypeScript and Vite — but not for the

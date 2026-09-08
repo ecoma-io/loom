@@ -10,6 +10,10 @@
     "./a11y": {
       "types": "./src/a11y.ts",
       "default": "./src/a11y.ts"
+    },
+    "./theme": {
+      "types": "./src/theme.ts",
+      "default": "./src/theme.ts"
     }
   },
   "dependencies": {

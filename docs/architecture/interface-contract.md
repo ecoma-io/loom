@@ -141,7 +141,13 @@ Evidence today: `packages/loom/src/index.ts` is the single source of truth
 for the published surface; the five-artifact gate pairs export with docs
 page and test (the demo through the docs build each page's own import
 performs); the exports map and the build must agree for every subpath
-([contract](./contract.md#the-public-api)).
+([contract](./contract.md#the-public-api)). `tools/check-api-parity.ts` (in
+`pnpm lint` and CI) now enforces that agreement mechanically — the exports
+map, the vite `lib.entry` set, the emitted declarations, the `./styles/*.css`
+sources and the docs' own `@ecoma-io/loom/<subpath>` references must all name
+one surface. The internal-helper trims (the sibling indexes' `COPY_REVERT_MS`,
+`buttonVariantClasses`, `TableRowState`, `headAlignClass`, `nextSort`) are a
+recorded decision in `packages/loom/src/index.ts`, not an accident.
 
 **New artifact duties:** the facade export, the docs page with its
 `<!-- @api -->` marker, and the demo land in the same change as the
@@ -177,4 +183,4 @@ in that same PR.
 | Composition               | Quality   | PARTIALLY_ENFORCED | Conformance route holds the four adapter-bearing compositions; rest is review                                                                                                                                                                                                                                     |
 | Theming                   | Quality   | PARTIALLY_ENFORCED | Contrast pins + dark gates; token-usage itself unlinted                                                                                                                                                                                                                                                           |
 | Semantic interaction      | Quality   | PARTIALLY_ENFORCED | Suites + per-component specs; coverage varies                                                                                                                                                                                                                                                                     |
-| Public API deliberateness | Quality   | PARTIALLY_ENFORCED | Pairing gate enforces the artifacts; deliberateness is review                                                                                                                                                                                                                                                     |
+| Public API deliberateness | Quality   | PARTIALLY_ENFORCED | `check-api-parity.ts` enforces exports↔build↔declarations↔styles↔docs agreement; the internal-helper trims are stated in `packages/loom/src/index.ts`; the per-component deliberateness of each new export stays review                                                                                           |

@@ -38,8 +38,10 @@ export default defineConfig({
       // also matches the specifier it prefixes, and without this line
       // `@ecoma-io/loom-core/testing` would resolve to `index.ts/testing`.
       "@ecoma-io/loom-core/testing": pkg("core/src/testing/attach-to-body.ts"),
-      // The a11y subpath is listed before the bare package for the same reason.
+      // The a11y and theme subpaths are listed before the bare package for the
+      // same reason: a string alias also matches the specifier it prefixes.
       "@ecoma-io/loom/a11y": pkg("loom/src/a11y.ts"),
+      "@ecoma-io/loom/theme": pkg("loom/src/theme.ts"),
       "@ecoma-io/loom-core": pkg("core/src/index.ts"),
       "@ecoma-io/loom-labels": pkg("labels/src/index.ts"),
       "@ecoma-io/loom-layout-engine": pkg("layout-engine/src/index.ts"),
@@ -183,7 +185,10 @@ export default defineConfig({
       // Everything a consumer could plausibly already have, or would want to
       // deduplicate. Bundling Vue breaks reactivity outright; bundling Reka
       // would ship a second copy of its focus and portal machinery alongside
-      // the consumer's.
+      // the consumer's. @internationalized/date is the same story — the date
+      // pickers import it directly, and so does the consumer (often through
+      // reka-ui's own copy), so bundling ours into the facade's dist would
+      // ship a second copy of the calendar arithmetic.
       external: [
         "vue",
         "reka-ui",
@@ -191,6 +196,7 @@ export default defineConfig({
         "clsx",
         "tailwind-merge",
         "class-variance-authority",
+        "@internationalized/date",
       ],
       output: {
         // One output file per source module rather than one bundle. A consumer

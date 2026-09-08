@@ -13,13 +13,16 @@
  * one the mutation was designed to produce, and the file is restored byte for
  * byte before the next one starts.
  *
- * Two of the cases below expect Archkeep to report NOTHING, and they are the
- * most valuable rows in the file. Each documents a boundary this repository
- * enforces that Archkeep structurally cannot see — the reason
+ * A few of the cases below expect Archkeep to report NOTHING — the legal
+ * controls and the blind spots. A blind spot documents a boundary this
+ * repository enforces that Archkeep structurally cannot see, and is the reason
  * `tools/check-architecture.ts` is still wired into `pnpm lint` rather than
  * retired in favour of this. If Archkeep grows the ability to see one, that row
  * turns red, which is the signal to delete it and the corresponding note in
- * `docs/architecture/contract.md`.
+ * `docs/architecture/contract.md`. One such blind spot closed in 2E: with the
+ * `@ecoma-io/loom/theme` tsconfig path landing on the facade's own source, the
+ * subpath resolves to the facade project and Archkeep sees the edge, so that
+ * row is now an ordinary `facade-subpath-import` expectation.
  *
  * Restoration is by stored bytes and a `finally`, never by `git checkout`: the
  * working tree is usually dirty while someone is working, and a mutation
@@ -381,10 +384,14 @@ export const MUTATIONS: Mutation[] = [
     ],
   },
   {
-    name: "blind-spot-facade-subpath",
+    // The subpath blind spot is CLOSED (2E): with the tsconfig path for
+    // `@ecoma-io/loom/theme` landing on `packages/loom/src/theme.ts` (the
+    // facade's own source, S6), Archkeep resolves the subpath to the facade
+    // project and the same cycle `facade-import-from-below` proves. This row
+    // pins that the resolution now lands on the facade, not on core.
+    name: "facade-subpath-import",
     attack: "a primitive imports the facade's `/theme` subpath rather than the facade itself",
-    expect: [],
-    note: "`@ecoma-io/loom/theme` is a path alias onto `packages/core/src/theme.ts`, so Archkeep resolves the specifier to the CORE project and judges primitives->core, which the table allows. The specifier is the public surface and importing it is importing the facade — a fact about the published entry map that no resolver can recover from the file it lands on. tools/check-architecture.ts check 2 matches the specifier text and reports it; this row is why that check is not redundant.",
+    expect: ["noCircularDependencies"],
     edits: [
       {
         path: "packages/primitives/badge/src/index.ts",
