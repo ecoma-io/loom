@@ -88,6 +88,50 @@ describe("checkDocClaims", () => {
     }
   });
 
+  it("recounts through a parenthetical aside, period included (#269 finding 8)", () => {
+    const root = makeRoot(CORRECT.replace("9 compositions", "9 compositions (e.g. Stack, v1.5)"));
+    try {
+      const failures = checkDocClaims(root, countFixed);
+      // The aside's own periods ("e.g.", "1.5") used to truncate the capture
+      // at the parenthesis and fail every kind after it. Asides are stripped
+      // before the capture; the enumeration behind them is intact.
+      expect(failures).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("states the one-sentence constraint when a period splits the enumeration", () => {
+    const root = makeRoot(CORRECT.replace("13 patterns", "13 patterns. Also 9 layouts"));
+    try {
+      const failures = checkDocClaims(root, countFixed);
+      // The capture ends at the first period, so everything after it is
+      // invisible to the recount — the constraint the reader cannot see from
+      // the failure alone, stated in the message since #269 finding 8.
+      expect(failures.some((f) => f.includes("omits layouts"))).toBe(true);
+      expect(failures.some((f) => f.includes("first period"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("reads the committed tree and says so when the working tree is ahead", () => {
+    const root = makeRoot(ROTTED);
+    try {
+      const dirty = checkDocClaims(root, countFixed, () => true);
+      expect(dirty.some((f) => f.includes("holds 9 tracked directories at HEAD"))).toBe(true);
+      expect(dirty.some((f) => f.includes("commit and re-run before editing the sentence"))).toBe(
+        true,
+      );
+      const clean = checkDocClaims(root, countFixed, () => false);
+      // Same verdict, no remedy that would send a clean tree chasing a commit.
+      expect(clean.some((f) => f.includes("holds 9 tracked directories at HEAD"))).toBe(true);
+      expect(clean.some((f) => f.includes("commit and re-run"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("fails a document that opens without naming the documentation model", () => {
     const root = makeRoot(CORRECT);
     try {
