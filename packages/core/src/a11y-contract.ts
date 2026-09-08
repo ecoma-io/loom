@@ -112,6 +112,35 @@ export const A11Y_ROLES = [...ARIA_ROLES, ...NON_ROLE_MEMBERS] as const;
  * rules of `a11y-scope.ts` the family covers, or the bespoke suite where axe
  * ships no rule for the criterion (2.4.11 has none, which is why
  * `e2e/focus-not-obscured.e2e.ts` exists at all).
+ *
+ * The families deliberately do not cover the whole partition — 27 of the 68
+ * runtime-tier rules are named by no family, and the absence is recorded
+ * rather than hidden, the way TAGGED_BUT_DISABLED_RULES records its own two:
+ *
+ * - host-document facts a consumer's page answers, not a component:
+ *   `aria-hidden-body`, `bypass`, `document-title`, `html-has-lang`,
+ *   `html-lang-valid`, `html-xml-lang-mismatch`, `meta-refresh`,
+ *   `meta-viewport`, `valid-lang`;
+ * - elements no Loom component ships: `blink`, `frame-focusable-content`,
+ *   `frame-title`, `frame-title-unique`, `input-button-name`, `marquee`,
+ *   `no-autoplay-audio`, `object-alt`, `server-side-image-map`,
+ *   `summary-name`, `video-caption`;
+ * - attributes whose truth belongs to the host, not the component:
+ *   `aria-braille-equivalent` (no Loom component emits a braille equivalent
+ *   today) and `autocomplete-valid` (the token is forwarded unchanged by
+ *   combobox, editable, tags-input, text-field and command — the rule judges
+ *   whether the host chose the right token for its field, which no component
+ *   can answer for);
+ * - consumer styling, not component markup: `avoid-inline-spacing`;
+ * - conservative-partial table geometry, run by the sweep site-wide but owed
+ *   by no role's row per-component: `table-fake-caption`, `td-has-header`,
+ *   `td-headers-attr`, `th-has-data-cells`.
+ *
+ * The sweep runs all 68 site-wide regardless, so an uncovered rule is still
+ * exercised on every page — what no role owes is per-component accountability.
+ * The coverage set is pinned by packages/core/tests/a11y-contract.test.ts: a
+ * rule that moves into or out of a family must edit that pin and this list
+ * together.
  */
 export const A11Y_EVIDENCE_REQUIREMENTS = [
   {
