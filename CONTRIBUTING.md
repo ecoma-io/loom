@@ -59,7 +59,9 @@ yourself bumping it by hand, that is the reason not to.
 
 `pnpm lint` is three checks in a trench coat, and the third is the one worth
 knowing about. After ESLint it runs `tools/check-component-artifacts.ts` (the
-five-artifacts-per-component gate), `tools/check-architecture.ts` (the layer
+five-artifacts-per-component gate), `tools/check-a11y-evidence.ts` (the sixth
+artifact — the per-component accessibility claim, held to the law in
+`packages/core/src/a11y-contract.ts`), `tools/check-architecture.ts` (the layer
 order, matched against specifier text) and `archkeep check` (the same layer
 order, judged against what each specifier _resolves to_). Two commands expose
 the last one on its own:

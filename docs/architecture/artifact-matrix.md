@@ -100,9 +100,26 @@ All `layer-layouts`, all facade-exported, all shell-geometry by exports.
 
 ## Primitives (76)
 
-| Family                                                         | Current layer      | Intended type | Public?                                                       | Evidence                                    | Gap                                                                  | Action                                                              |
-| -------------------------------------------------------------- | ------------------ | ------------- | ------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `packages/primitives/*` (76 directories, each facade-exported) | `layer-primitives` | Primitive     | All 107 component re-exports verified 1:1 against facade deps | `check-component-artifacts.ts` pairing gate | 44/76 own no harness spec; `tree-view` manifest defect filed as #238 | Phase 2: interaction-spec floor for role-bearing controls; fix #238 |
+| Family                                                         | Current layer      | Intended type | Public?                                                       | Evidence                                                                                                                                                                     | Gap                                                                                                                             | Action                                                                            |
+| -------------------------------------------------------------- | ------------------ | ------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `packages/primitives/*` (76 directories, each facade-exported) | `layer-primitives` | Primitive     | All 107 component re-exports verified 1:1 against facade deps | `check-component-artifacts.ts` pairing gate; per-component `a11y.json` role claims held to `packages/core/src/a11y-contract.ts` by `tools/check-a11y-evidence.ts` (Phase 3A) | 22/76 role claims carry a named keyboard exception (no component-owned harness spec); `tree-view` manifest defect filed as #238 | Phase 3B/3D: the interaction-spec floor the exception records name, per component |
+
+## The accessibility claims (107) — Phase 3A
+
+Every tiered component now carries a sixth artifact beside its source:
+`packages/<tier>/<name>/a11y.json`, the declared role claim
+`tools/check-a11y-evidence.ts` holds to the role → requirement matrix in
+`packages/core/src/a11y-contract.ts`. The claim is declared, not derived —
+reka-ui injects ARIA roles at runtime, so no reader can derive one from the
+source with confidence — and the gate counts the requirements nothing answers
+yet instead of failing, which turns the two standing browser-evidence gaps into
+enumerable numbers: **24 keyboard exceptions** (22 primitives, plus
+`composition/scroll-reel` and `patterns/form-section` — no component-owned
+harness spec exists to witness the traversal) and **53 focus-not-obscured
+exceptions** (49 primitives, 4 composition/patterns — the 2.4.11 suite sweeps
+three pages today: button, dialog, drawer). Every exception names its reason in
+the sidecar, so 3B/3D's work list is the gate's exception output, not an audit
+opinion.
 
 ## Templates (3)
 

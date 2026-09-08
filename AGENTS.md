@@ -34,7 +34,7 @@ any one file will not tell you.
 `packages/loom/src/index.ts` is the complete public surface and says so in its own docblock,
 including the two things that deliberately are not in it.
 
-## Five artifacts per component, and a script that says so
+## Six artifacts per component, and the scripts that say so
 
 A component is not done when it renders. `packages/<tier>/<name>/` must carry
 `src/<Name>.vue` and `tests/<Name>.test.ts`, with its demo in `docs/demos/` and a
@@ -45,6 +45,18 @@ marker; and `packages/loom/src/index.ts` must export it.
 missing file. Every one of those failures is otherwise silent — a component nobody
 exported still compiles and still passes its own tests — which is why the pairing is
 asserted rather than left to a reviewer remembering all five.
+
+The sixth artifact is the component's accessibility claim: `a11y.json` beside the
+source. It declares the ARIA role the component's rendered markup asserts — a claim
+declared, not derived, because reka-ui injects roles at runtime and no reader can
+derive one from the source with confidence — cites the evidence files that exist in
+each tier, and records an exception with its reason for every requirement of the
+role's matrix row that nothing answers yet.
+`node --experimental-strip-types tools/check-a11y-evidence.ts`, the next gate in
+`pnpm lint`, holds every claim to the law in `packages/core/src/a11y-contract.ts`
+(the closed role vocabulary and the role → requirement matrix), verifies every cited
+file exists, and counts the named exceptions instead of failing on them: the contract
+lands truthfully, and the exception list shrinks as evidence lands.
 
 Adding one: the `add-component` skill in `.claude/skills/` walks the whole sequence.
 
@@ -219,7 +231,7 @@ directory:
 
 | skill           | reach for it when                                                  |
 | --------------- | ------------------------------------------------------------------ |
-| `add-component` | adding a component — it walks all five artifacts and the export    |
+| `add-component` | adding a component — it walks all six artifacts and the export     |
 | `arch-context`  | before editing, to learn which constraint row governs the package  |
 | `arch-change`   | making a change that crosses or approaches a layer boundary        |
 | `arch-check`    | after a change, for the authoritative fail-closed boundary verdict |
