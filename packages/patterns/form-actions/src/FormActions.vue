@@ -13,6 +13,11 @@
  * slot carries the secondary action. In "between" mode the two slots sit at
  * opposite ends; in "right" or "left" mode everything goes through the default
  * slot, shifted to one side.
+ *
+ * The row wraps rather than scrolls or shrinks: a cancel slot plus several
+ * primary actions cannot be guaranteed to fit a phone width, and an action
+ * row that pushes past the viewport is the one overflow the interface
+ * contract names outright.
  */
 export type FormActionsAlign = "right" | "left" | "between";
 </script>
@@ -45,7 +50,14 @@ const justify: Record<FormActionsAlign, string> = {
 <template>
   <!-- border-t separates the actions from the form content above without
        needing a wrapping section or extra spacing rules -->
-  <div :class="cn('flex items-center gap-3 border-t border-border pt-6', justify[align])">
+  <!-- The gap is FormSection's sm band, not its md band, on purpose: sm:gap-3
+       keeps the gap every existing form already renders at and above `sm`, so
+       only the phone band — the band where the row actually wraps — tightens. -->
+  <div
+    :class="
+      cn('flex flex-wrap items-center gap-2 sm:gap-3 border-t border-border pt-6', justify[align])
+    "
+  >
     <!-- @slot The secondary/cancel action — placed on the left in "between" mode. -->
     <slot name="cancel" />
     <!-- @slot The primary actions (submit, save) — placed on the right in "between" mode. -->
