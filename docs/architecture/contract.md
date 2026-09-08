@@ -65,22 +65,22 @@ primitives 2  generic controls — one directory per component
   ↓
 composition 3 layout-intent primitives (Stack, Split, Grid, …)
   ↓
-layouts 4     responsive application shells
+blocks 4      recognisable arrangements of primitives (Pattern)
   ↓
-blocks 5      composed arrangements of primitives
+layouts 5     responsive application shells
   ↓
 facade 6      @ecoma-io/loom — the public surface (packages/loom)
 ```
 
 Why this order, rather than any other? It is the dependency direction of
 _complexity_: a primitive is a single generic control, a composition is
-primitives arranged, a layout is an application shell, a block is a
-recognisable arrangement of the layers beneath it. Code that composes other
-code may import what it composes; the composed layer never imports the
-composer back. That is the invariant that keeps the graph acyclic and the
-affected-selection honest — a block importing a primitive is the direction
-the graph already flows, a primitive importing a block would be reaching up
-for something that should have been composed beneath it.
+primitives arranged, a block is a recognisable arrangement of the layers
+beneath it, a layout is an application shell that assembles blocks. Code that
+composes other code may import what it composes; the composed layer never
+imports the composer back. That is the invariant that keeps the graph acyclic
+and the affected-selection honest — a block importing a primitive is the
+direction the graph already flows, a primitive importing a block would be
+reaching up for something that should have been composed beneath it.
 
 Beside the stack, not inside it, sit the consumer-shaped projects — the
 documentation site (`layer-docs`), the E2E suites (`layer-e2e`) and the
@@ -291,10 +291,11 @@ chain).
 
 ## Deciding where new code belongs
 
-A component is either a primitive, a composition, a layout, or a block (the
-legacy directory name of the Pattern kind — the terminology status table in
+A component is either a primitive, a composition, a block (the legacy
+directory name of the Pattern kind — the terminology status table in
 the [artifact model](./artifact-model.md#terminology-status) carries the
-status of every contested name). The test is "what kind of thing is this":
+status of every contested name), or a layout. The test is "what kind of thing
+is this":
 
 - A single generic control a product would reach for as-is → **primitive**.
 - A layout-intent container (arranges children, has no domain meaning) →

@@ -30,8 +30,8 @@
  *    `package.json` exists with an `exports` field.
  *
  * 5. Layer direction: an internal package may import only packages at or
- *    below its own layer — core → labels → primitives → composition →
- *    layouts → blocks → facade. An upward edge is the general form of the
+ *    below its own layer — layout-engine/core → labels → primitives →
+ *    composition → blocks → layouts → facade. An upward edge is the general form of the
  *    check-2 facade ban, which is its topmost case.
  *
  * 6. The internal src edge set contains no cycles, reported as paths. A cycle
@@ -164,17 +164,25 @@ export function runChecks(root: string): string[] {
   // Rank of each layer in the dependency direction. A package may import at or
   // below its own rank; the facade (6) is the top, and check 2 already reports
   // the forbidden edge into it — here it is simply the highest upward case.
+  //
+  // The layout engine sits at Foundation rank 0 on purpose — its rank says
+  // "below everything", yet only the composition adapters may import it. That
+  // is what the boundary row enforces for archkeep, and what a rank number
+  // cannot express for the text reader, so the edge into the engine is judged
+  // against its real consumer set rather than against a rank (D3/M1 of the
+  // gap analysis).
   const LAYERS = {
     core: 0,
     labels: 1,
     "layout-engine": 0,
     primitives: 2,
     composition: 3,
-    layouts: 4,
-    blocks: 5,
+    blocks: 4,
+    layouts: 5,
     loom: 6,
   } satisfies Record<Exclude<Layer, "theme-core">, number>;
-  const DIRECTION = "core → labels → primitives → composition → layouts → blocks → facade";
+  const DIRECTION =
+    "layout-engine/core → labels → primitives → composition → blocks → layouts → facade";
 
   // The specifier side of `from "…"`, `export … from "…"`, and `import("…")` —
   // quoted string or backtick template literal. A facade subpath
@@ -226,6 +234,16 @@ export function runChecks(root: string): string[] {
         // graphPackages already excluded theme-core (stylesOnly), and the
         // facade is handled above, so both tiers are real layer keys.
         const fromRank = LAYERS[pkg.tier as Exclude<Layer, "theme-core">];
+        // The engine is a dependency-pure leaf: only the composition adapters
+        // may import it. Rank cannot express that — it sits at 0 with core —
+        // so the edge is judged by the set of real consumers (D3/M1 of the
+        // gap analysis; the boundary row states the same set).
+        if (to.tier === "layout-engine" && pkg.tier !== "composition") {
+          fail(
+            `${labelOf(pkg)}: ${rel(root, file)} imports the layout engine — its consumers are the composition adapters only (${DIRECTION})`,
+          );
+          continue;
+        }
         const toRank = LAYERS[to.tier as Exclude<Layer, "theme-core">];
         if (toRank > fromRank) {
           fail(

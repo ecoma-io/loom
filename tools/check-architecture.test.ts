@@ -115,6 +115,69 @@ describe("runChecks", () => {
     }
   });
 
+  it("flags a non-composition importing the layout engine — a primitive is not its consumer", () => {
+    const root = makeRoot();
+    try {
+      // The engine package must exist for the spec to resolve, and a non-composition
+      // (here a primitive) importing it is exactly the D3/M1 edge.
+      mkdirSync(join(root, "packages", "layout-engine", "src"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "layout-engine", "package.json"),
+        JSON.stringify({ name: "@ecoma-io/loom-layout-engine", exports: {} }),
+      );
+      writeFileSync(join(root, "packages", "layout-engine", "src", "index.ts"), "");
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import { layout } from "@ecoma-io/loom-layout-engine";\n',
+      );
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "package.json"),
+        JSON.stringify({
+          name: "@ecoma-io/loom-button",
+          exports: {},
+          dependencies: { "@ecoma-io/loom-layout-engine": "workspace:*" },
+        }),
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("layout engine"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("permits a composition adapter to import the layout engine", () => {
+    const root = makeRoot();
+    try {
+      mkdirSync(join(root, "packages", "layout-engine", "src"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "layout-engine", "package.json"),
+        JSON.stringify({ name: "@ecoma-io/loom-layout-engine", exports: {} }),
+      );
+      writeFileSync(join(root, "packages", "layout-engine", "src", "index.ts"), "");
+      mkdirSync(join(root, "packages", "composition", "stack", "src"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "package.json"),
+        JSON.stringify({
+          name: "@ecoma-io/loom-stack",
+          exports: {},
+          dependencies: { "@ecoma-io/loom-layout-engine": "workspace:*" },
+        }),
+      );
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "moon.yml"),
+        "project:\n  name: stack\n",
+      );
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "layout.ts"),
+        'import { layout } from "@ecoma-io/loom-layout-engine";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("layout engine"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("flags a facade *subpath* import — @ecoma-io/loom/theme is still the facade", () => {
     const root = makeRoot();
     try {
@@ -222,6 +285,46 @@ describe("runChecks", () => {
       writeFileSync(join(root, "packages", "primitives", "orphan", "src", "Orphan.vue"), "");
       const failures = runChecks(root);
       expect(failures.some((f) => f.includes("missing moon.yml"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a block importing a layout — Pattern below Layout in the text reader, so the edge is upward", () => {
+    const root = makeRoot();
+    try {
+      // A block (the Pattern kind, rank 4) importing a layout (rank 5)
+      // is the exact edge the inverted ranks forbid. `LAYERS` maps
+      // blocks: 4, layouts: 5, so the text reader must report it.
+      mkdirSync(join(root, "packages", "blocks", "title-bar", "src"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "blocks", "title-bar", "package.json"),
+        JSON.stringify({ name: "@ecoma-io/loom-title-bar", exports: {} }),
+      );
+      writeFileSync(join(root, "packages", "blocks", "title-bar", "src", "TitleBar.vue"), "");
+      mkdirSync(join(root, "packages", "layouts", "app-shell", "src"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "layouts", "app-shell", "package.json"),
+        JSON.stringify({ name: "@ecoma-io/loom-app-shell", exports: {} }),
+      );
+      writeFileSync(join(root, "packages", "layouts", "app-shell", "src", "AppShell.vue"), "");
+      // title-bar now imports app-shell — a block reaching up to a layout.
+      writeFileSync(
+        join(root, "packages", "blocks", "title-bar", "src", "TitleBar.vue"),
+        'import AppShell from "@ecoma-io/loom-app-shell";\n',
+      );
+      writeFileSync(
+        join(root, "packages", "blocks", "title-bar", "package.json"),
+        JSON.stringify({
+          name: "@ecoma-io/loom-title-bar",
+          exports: {},
+          dependencies: { "@ecoma-io/loom-app-shell": "workspace:*" },
+        }),
+      );
+
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the public facade"))).toBe(false);
+      expect(failures.some((f) => f.includes("above"))).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

@@ -72,4 +72,14 @@ describe("pagesIn", () => {
 
     expect(partial).toHaveLength(all.length);
   });
+
+  it("includes pages in a subdirectory, linked at their full path, so architecture `decisions/` ADRs are not a silent absence", () => {
+    const adr = pagesIn("architecture").find((page) =>
+      page.link.startsWith("/architecture/decisions/"),
+    );
+
+    expect(adr).toBeDefined();
+    expect(adr?.link).not.toBe("/architecture/decisions");
+    expect(adr?.text).not.toBe("");
+  });
 });
