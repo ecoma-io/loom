@@ -7,7 +7,7 @@
 // publish` escape, and no `publishConfig` to smuggle publish metadata past
 // it. A publishable-shaped manifest — the facade shape without the private
 // flag — could be accidentally published, and #238 is that failure already
-// shipped once: `packages/primitives/tree-view` was the only one of 106
+// shipped once: `packages/primitives/tree-view` was the only one of 107
 // component manifests without `"private": true`, and nothing complained.
 // Templates get this gate already (`check-template-artifacts.ts` asserts
 // `private` for its own tree); component manifests had none. This is the
