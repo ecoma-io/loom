@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <a href="https://loom.ecoma.io"><strong>Documentation&nbsp;→</strong></a>
+  <a href="https://ecoma.io/docs/contribute/design-system/"><strong>Documentation&nbsp;→</strong></a>
 </p>
 
 ---
@@ -173,7 +173,7 @@ Use it, ship it, fork it, sell what you build with it.
   <img src=".github/assets/logo.png" alt="" width="56" /><br />
   <sub>
     An <a href="https://ecoma.io">Ecoma</a> open-source project ·
-    <a href="https://loom.ecoma.io">Documentation</a> ·
+    <a href="https://ecoma.io/docs/contribute/design-system/">Documentation</a> ·
     <a href="https://github.com/ecoma-io">Organisation</a> ·
     <a href="CONTRIBUTING.md">Contribute</a>
   </sub>
