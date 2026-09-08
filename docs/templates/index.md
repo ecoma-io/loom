@@ -2,8 +2,8 @@
 
 An Official Template is a copyable, prebuilt **page** — a starting point
 composed from Loom components and patterns that a team takes into their
-application and builds on: AI Chat, Chat, Dashboard, Music Player, Settings,
-Analytics, Inbox. Where a [pattern](/patterns/app-header) is a reusable
+application and builds on: Starter, Analytics, Workspace settings. Where a
+[pattern](/patterns/app-header) is a reusable
 component you compose with and a [Pattern](/patterns/forms) page is a worked
 example explained in prose, a template is a page you start from.
 

@@ -33,7 +33,7 @@ features:
   - title: Accessible by construction
     details: Focus rings are a promise rather than a default. Busy states announce themselves, hidden layers are hidden from assistive technology too, and the suite fails the build on a WCAG 2.1 AA violation.
   - title: Ready-made layouts
-    details: AppShell, MasterDetail, Dashboard, Settings, Form, Reading — composed from primitives, responsive from mobile to ultrawide, and opinionated so you don't assemble them from scratch.
+    details: AppShell, Centered, Dashboard, DesktopAppShell, FormLayout, MasterDetail, Reading, Settings, SplitLayout — composed from primitives, responsive from mobile to ultrawide, and opinionated so you don't assemble them from scratch.
     link: /layouts/app-shell
     linkText: Browse layouts
   - title: Tokens, not hex codes

@@ -76,7 +76,7 @@ as an independent open-source UI system.
 | **Composition primitives**   | Layout building blocks — Stack, Grid, Split, Center, Sidebar — that express spatial intent and adapt to viewport without the host writing breakpoint queries.                 |
 | **Patterns**                 | Compositions worth standardising once — empty states, page headers, title bars, sidebar navigation — assembled from primitives, never from scratch.                           |
 | **Showcase**                 | Demonstrations, in this documentation site, of what the parts produce when they compose — for discovery and teaching. A showcase is read; it is not a starting point to copy. |
-| **Templates**                | Copyable prebuilt pages — AI Chat, Dashboard, Music Player — to take into an application and build on. One page each; routing, auth and backend stay with the consumer.       |
+| **Templates**                | Copyable prebuilt pages — Starter, Analytics, Workspace settings — to take into an application and build on. One page each; routing, auth and backend stay with the consumer. |
 | **Accessibility, built in**  | Keyboard paths, focus restoration, accessible names and reduced-motion behaviour ship inside the component. WCAG is the acceptance bar, not a checklist run afterwards.       |
 | **Theming that survives**    | Every visual decision is a token reference, so white-labelling a tenant is configuration rather than a fork.                                                                  |
 | **Typed and tree-shakeable** | Ships ES modules with TypeScript types. Consumers bundle what they import and nothing more.                                                                                   |
