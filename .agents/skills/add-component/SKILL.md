@@ -1,6 +1,6 @@
 ---
 name: add-component
-description: Add a component to Loom — the five artifacts every component needs, in the order that keeps each one honest. Use when adding, renaming or removing anything under packages/primitives/, packages/composition/, packages/blocks/, packages/layouts/ (or the legacy src/ tree during migration).
+description: Add a component to Loom — the five artifacts every component needs, in the order that keeps each one honest. Use when adding, renaming or removing anything under packages/primitives/, packages/composition/, packages/patterns/, packages/layouts/ (or the legacy src/ tree during migration).
 ---
 
 # Adding a component
@@ -21,9 +21,9 @@ Then pick the tier, which decides two directory names and nothing else:
 - **Composition** (`packages/composition/`, documented in `docs/composition/`) — a layout
   primitive that answers "how are things arranged?" rather than "what does it look like?"
   or "what does it mean?"
-- **Block** (`packages/blocks/`, documented in `docs/blocks/`) — a composition that is
+- **Pattern** (`packages/patterns/`, documented in `docs/patterns/`) — a composition that is
   _assembled_ from primitives. If you write it by importing three primitives, it is a
-  block, however small.
+  pattern, however small.
 - **Layout** (`packages/layouts/`, documented in `docs/layouts/`) — a ready-made responsive
   application shell that composes composition primitives into a full-screen arrangement.
 
@@ -31,7 +31,7 @@ Then pick the tier, which decides two directory names and nothing else:
 
 Do not start from a blank file. Open the closest existing component in the same tier and
 match it — `Badge` for a presentational primitive, `Checkbox` for one wrapping a reka-ui
-control, `EmptyState` for a block, `Stack` for a composition, `Dashboard` for a layout.
+control, `EmptyState` for a pattern, `Stack` for a composition, `Dashboard` for a layout.
 Conventions worth having in front of you:
 
 - `@ecoma-io/loom-core` — every component routes its `class` through `cn()`, which is what
@@ -48,7 +48,7 @@ Conventions worth having in front of you:
 
 ## 2. Write the five artifacts
 
-For `<Name>` in tier `<tier>` (`primitives`, `composition`, `blocks`, or `layouts`),
+For `<Name>` in tier `<tier>` (`primitives`, `composition`, `patterns`, or `layouts`),
 `<name>` being its kebab-case form:
 
 1. **The component** — `packages/<tier>/<name>/src/<Name>.vue`

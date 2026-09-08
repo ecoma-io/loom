@@ -29,7 +29,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
-const TIERS = ["primitives", "composition", "blocks", "layouts"];
+const TIERS = ["primitives", "composition", "patterns", "layouts"];
 
 interface PackageInfo {
   dir: string;

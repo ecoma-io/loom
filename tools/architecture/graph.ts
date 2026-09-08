@@ -20,7 +20,7 @@ import { join } from "node:path";
 export const ROOT = join(import.meta.dirname, "..", "..");
 
 /** Component tiers in dependency order — later tiers may import earlier ones. */
-export const TIERS = ["primitives", "composition", "blocks", "layouts"] as const;
+export const TIERS = ["primitives", "composition", "patterns", "layouts"] as const;
 export type Tier = (typeof TIERS)[number];
 
 /** A layer key: a component tier, or one of the five fixed packages. */

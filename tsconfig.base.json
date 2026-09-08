@@ -164,7 +164,7 @@
         "./packages/primitives/date-time-range-picker/src/index.ts"
       ],
       "@ecoma-io/loom-editable": ["./packages/primitives/editable/src/index.ts"],
-      "@ecoma-io/loom-error-summary": ["./packages/blocks/error-summary/src/index.ts"],
+      "@ecoma-io/loom-error-summary": ["./packages/patterns/error-summary/src/index.ts"],
       "@ecoma-io/loom-file-upload": ["./packages/primitives/file-upload/src/index.ts"],
       "@ecoma-io/loom-pagination": ["./packages/primitives/pagination/src/index.ts"],
       "@ecoma-io/loom-tags-input": ["./packages/primitives/tags-input/src/index.ts"],
@@ -194,20 +194,20 @@
       "@ecoma-io/loom-settings": ["./packages/layouts/settings/src/index.ts"],
       "@ecoma-io/loom-split-layout": ["./packages/layouts/split-layout/src/index.ts"],
       // Blocks.
-      "@ecoma-io/loom-app-header": ["./packages/blocks/app-header/src/index.ts"],
-      "@ecoma-io/loom-dashboard-grid": ["./packages/blocks/dashboard-grid/src/index.ts"],
-      "@ecoma-io/loom-desktop-app-shell": ["./packages/blocks/desktop-app-shell/src/index.ts"],
-      "@ecoma-io/loom-empty-state": ["./packages/blocks/empty-state/src/index.ts"],
-      "@ecoma-io/loom-error-state": ["./packages/blocks/error-state/src/index.ts"],
-      "@ecoma-io/loom-form-actions": ["./packages/blocks/form-actions/src/index.ts"],
-      "@ecoma-io/loom-form-section": ["./packages/blocks/form-section/src/index.ts"],
-      "@ecoma-io/loom-loading-state": ["./packages/blocks/loading-state/src/index.ts"],
-      "@ecoma-io/loom-metric-card": ["./packages/blocks/metric-card/src/index.ts"],
-      "@ecoma-io/loom-page-header": ["./packages/blocks/page-header/src/index.ts"],
-      "@ecoma-io/loom-row-actions": ["./packages/blocks/row-actions/src/index.ts"],
-      "@ecoma-io/loom-sidebar-nav": ["./packages/blocks/sidebar-nav/src/index.ts"],
-      "@ecoma-io/loom-title-bar": ["./packages/blocks/title-bar/src/index.ts"],
-      "@ecoma-io/loom-toast-stack": ["./packages/blocks/toast-stack/src/index.ts"]
+      "@ecoma-io/loom-app-header": ["./packages/patterns/app-header/src/index.ts"],
+      "@ecoma-io/loom-dashboard-grid": ["./packages/composition/dashboard-grid/src/index.ts"],
+      "@ecoma-io/loom-desktop-app-shell": ["./packages/layouts/desktop-app-shell/src/index.ts"],
+      "@ecoma-io/loom-empty-state": ["./packages/patterns/empty-state/src/index.ts"],
+      "@ecoma-io/loom-error-state": ["./packages/patterns/error-state/src/index.ts"],
+      "@ecoma-io/loom-form-actions": ["./packages/patterns/form-actions/src/index.ts"],
+      "@ecoma-io/loom-form-section": ["./packages/patterns/form-section/src/index.ts"],
+      "@ecoma-io/loom-loading-state": ["./packages/patterns/loading-state/src/index.ts"],
+      "@ecoma-io/loom-metric-card": ["./packages/patterns/metric-card/src/index.ts"],
+      "@ecoma-io/loom-page-header": ["./packages/patterns/page-header/src/index.ts"],
+      "@ecoma-io/loom-row-actions": ["./packages/patterns/row-actions/src/index.ts"],
+      "@ecoma-io/loom-sidebar-nav": ["./packages/patterns/sidebar-nav/src/index.ts"],
+      "@ecoma-io/loom-title-bar": ["./packages/patterns/title-bar/src/index.ts"],
+      "@ecoma-io/loom-toast-stack": ["./packages/patterns/toast-stack/src/index.ts"]
     }
   }
 

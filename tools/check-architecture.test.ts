@@ -25,7 +25,7 @@ function writeFixture(root: string): void {
   const coreDir = join(root, "packages", "core");
   // Every tier directory must exist so internalPackages() can enumerate them;
   // the fixed packages (core, labels, theme-core, loom) also live under packages/.
-  for (const tier of ["primitives", "composition", "layouts", "blocks"]) {
+  for (const tier of ["primitives", "composition", "layouts", "patterns"]) {
     mkdirSync(join(root, "packages", tier), { recursive: true });
   }
   for (const fixed of ["core", "labels", "theme-core", "loom"]) {
@@ -290,31 +290,31 @@ describe("runChecks", () => {
     }
   });
 
-  it("flags a block importing a layout — Pattern below Layout in the text reader, so the edge is upward", () => {
+  it("flags a pattern importing a layout — Pattern below Layout in the text reader, so the edge is upward", () => {
     const root = makeRoot();
     try {
-      // A block (the Pattern kind, rank 4) importing a layout (rank 5)
+      // A pattern (rank 4) importing a layout (rank 5)
       // is the exact edge the inverted ranks forbid. `LAYERS` maps
-      // blocks: 4, layouts: 5, so the text reader must report it.
-      mkdirSync(join(root, "packages", "blocks", "title-bar", "src"), { recursive: true });
+      // patterns: 4, layouts: 5, so the text reader must report it.
+      mkdirSync(join(root, "packages", "patterns", "title-bar", "src"), { recursive: true });
       writeFileSync(
-        join(root, "packages", "blocks", "title-bar", "package.json"),
+        join(root, "packages", "patterns", "title-bar", "package.json"),
         JSON.stringify({ name: "@ecoma-io/loom-title-bar", exports: {} }),
       );
-      writeFileSync(join(root, "packages", "blocks", "title-bar", "src", "TitleBar.vue"), "");
+      writeFileSync(join(root, "packages", "patterns", "title-bar", "src", "TitleBar.vue"), "");
       mkdirSync(join(root, "packages", "layouts", "app-shell", "src"), { recursive: true });
       writeFileSync(
         join(root, "packages", "layouts", "app-shell", "package.json"),
         JSON.stringify({ name: "@ecoma-io/loom-app-shell", exports: {} }),
       );
       writeFileSync(join(root, "packages", "layouts", "app-shell", "src", "AppShell.vue"), "");
-      // title-bar now imports app-shell — a block reaching up to a layout.
+      // title-bar now imports app-shell — a pattern reaching up to a layout.
       writeFileSync(
-        join(root, "packages", "blocks", "title-bar", "src", "TitleBar.vue"),
+        join(root, "packages", "patterns", "title-bar", "src", "TitleBar.vue"),
         'import AppShell from "@ecoma-io/loom-app-shell";\n',
       );
       writeFileSync(
-        join(root, "packages", "blocks", "title-bar", "package.json"),
+        join(root, "packages", "patterns", "title-bar", "package.json"),
         JSON.stringify({
           name: "@ecoma-io/loom-title-bar",
           exports: {},

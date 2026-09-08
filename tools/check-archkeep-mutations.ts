@@ -95,22 +95,22 @@ export const MUTATIONS: Mutation[] = [
   {
     name: "pattern-imports-layout",
     attack:
-      "a block (the legacy Pattern kind) imports a layout — the Pattern→Layout edge the phase-2 hierarchy makes illegal",
+      "a pattern imports a layout — the Pattern→Layout edge the phase-2 hierarchy makes illegal",
     // The semantic order puts Pattern below Layout (constitution §5), and the
-    // blocks row now names no `layer-layouts`, so a pattern reaching upward
+    // patterns row now names no `layer-layouts`, so a pattern reaching upward
     // for a layout is exactly the edge the inverted rank exists to forbid.
     expect: ["onlyTagsConstraintViolation"],
     edits: [
       {
-        path: "packages/blocks/title-bar/src/index.ts",
+        path: "packages/patterns/title-bar/src/index.ts",
         append: '\nimport "@ecoma-io/loom-reading";\n',
       },
     ],
   },
   {
     name: "layout-imports-pattern-is-allowed",
-    attack: "a layout imports a block (the Pattern kind) — the downward edge the hierarchy permits",
-    // The layout row names `layer-blocks`, so a layout composing a pattern is
+    attack: "a layout imports a pattern — the downward edge the hierarchy permits",
+    // The layout row names `layer-patterns`, so a layout composing a pattern is
     // the control for the row above: the mode is legal and must stay clean.
     expect: [],
     note: "the control. A layout assembling a pattern is the mode the inverted row exists to license; a failure here reports the tree, not a mutation.",
@@ -285,7 +285,7 @@ export const MUTATIONS: Mutation[] = [
         path: "tsconfig.base.json",
         replace: [
           /("@ecoma-io\/loom-core": \["\.\/packages\/core\/src\/index\.ts"\],)/,
-          '$1\n      "@loom-mutation/inside-a-block": ["./packages/blocks/page-header/src/index.ts"],',
+          '$1\n      "@loom-mutation/inside-a-block": ["./packages/patterns/page-header/src/index.ts"],',
         ],
       },
       {

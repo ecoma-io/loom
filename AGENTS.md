@@ -18,7 +18,7 @@ any one file will not tell you.
 | Path                        | What it holds                                                                                                                                                                           |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/primitives/`      | Generic controls, one directory per component                                                                                                                                           |
-| `packages/blocks/`          | Compositions of primitives, same shape                                                                                                                                                  |
+| `packages/patterns/`        | Compositions of primitives, same shape                                                                                                                                                  |
 | `packages/core/`            | `cn`, props merging, motion — the shared helpers components are built from                                                                                                              |
 | `packages/layout-engine/`   | The platform-independent layout core — pure geometry, imports nothing; the oracle the conformance route holds equal to the browser. Adapters live in each composition's `src/layout.ts` |
 | `packages/theme-core/`      | `theme.css` — **the token source of truth** — plus `global.css` and `fonts.css`                                                                                                         |
@@ -38,7 +38,7 @@ including the two things that deliberately are not in it.
 
 A component is not done when it renders. `packages/<tier>/<name>/` must carry
 `src/<Name>.vue` and `tests/<Name>.test.ts`, with its demo in `docs/demos/` and a
-`docs/components/<name>.md` (or `docs/blocks/`) page carrying an `<!-- @api <Name> -->`
+`docs/components/<name>.md` (or `docs/patterns/`) page carrying an `<!-- @api <Name> -->`
 marker; and `packages/loom/src/index.ts` must export it.
 
 `node tools/check-component-artifacts.ts` runs inside `pnpm lint` and fails naming each
@@ -126,8 +126,8 @@ what a test exercises without touching any project's own files.
 
 ## Two architecture readers, and the tag set that feeds one of them
 
-The layer order (`core -> labels -> primitives -> composition -> layouts ->
-blocks -> facade`) is enforced twice, and the split is the point.
+The layer order (`core -> labels -> primitives -> composition -> patterns ->
+layouts -> facade`) is enforced twice, and the split is the point.
 `tools/check-architecture.ts` matches specifier _text_ under each package's
 `src/`; `archkeep check` reads the Moon project graph, resolves each specifier
 through `tsconfig.base.json`, and judges the _resolved target_ against

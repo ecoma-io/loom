@@ -3,9 +3,9 @@
 An Official Template is a copyable, prebuilt **page** — a starting point
 composed from Loom components and patterns that a team takes into their
 application and builds on: AI Chat, Chat, Dashboard, Music Player, Settings,
-Analytics, Inbox. Where a [block](/blocks/app-header) is a component you
-compose with and a [pattern](/patterns/forms) is a worked example explained in
-prose, a template is a page you start from.
+Analytics, Inbox. Where a [pattern](/patterns/app-header) is a reusable
+component you compose with and a [Pattern](/patterns/forms) page is a worked
+example explained in prose, a template is a page you start from.
 
 The sentence that keeps the layers apart:
 
@@ -21,7 +21,7 @@ surface, that is a defect in the surface, and it is filed as one.
 ## What belongs here
 
 - One page's composition — a real, complete page, not a single region (that is
-  [Blocks](/blocks/app-header)) and not a page-scale shell component (that is
+  [Patterns](/patterns/app-header)) and not a page-scale shell component (that is
   [Layouts](/layouts/app-shell)).
 - Fixture data with the swap points called out: where your API call goes, where
   your state lives. Everything a page needs to be real before the backend

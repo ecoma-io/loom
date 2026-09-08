@@ -28,7 +28,7 @@ const ROOT = new URL("../", import.meta.url);
 const TIERS = [
   { noun: "primitive", tier: "packages/primitives", docs: "docs/components" },
   { noun: "composition", tier: "packages/composition", docs: "docs/composition" },
-  { noun: "block", tier: "packages/blocks", docs: "docs/blocks" },
+  { noun: "pattern", tier: "packages/patterns", docs: "docs/patterns" },
   { noun: "layout", tier: "packages/layouts", docs: "docs/layouts" },
 ] as const;
 

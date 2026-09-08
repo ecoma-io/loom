@@ -3,7 +3,7 @@
 The second canonical composition. One realistic surface — a support inbox
 that starts loaded and shrinks as the reader works it — assembled from the
 same components the [component pages](/components/button) demonstrate one at
-a time and the [blocks](/blocks/row-actions) package into units. Read it to
+a time and the [blocks](/patterns/row-actions) package into units. Read it to
 see what the parts produce when they are composed with care; it is a
 demonstration, not a starting point.
 
@@ -37,14 +37,14 @@ a toast — it has not changed the list.
 | The conversation rows — avatars, status badges, the selected row's `aria-current`          | [List](/components/list), [ListItem](/components/list), [Avatar](/components/avatar), [Badge](/components/badge) |
 | The per-row menu — flag, archive, the destructive delete held behind an ellipsis           | [DropdownMenu](/components/dropdown-menu)                                                                        |
 | The conversation / activity tabs in the detail pane                                        | [Tabs](/components/tabs)                                                                                         |
-| The triage toolbar — hover- and focus-revealed verbs on the open conversation              | [RowActions](/blocks/row-actions)                                                                                |
+| The triage toolbar — hover- and focus-revealed verbs on the open conversation              | [RowActions](/patterns/row-actions)                                                                              |
 | The named icon buttons and their prose hints                                               | [IconButton](/components/icon-button), [Tooltip](/components/tooltip)                                            |
 | The confirmation before destruction — title, consequence, two verbs, focus landing on Keep | [AlertDialog](/components/alert-dialog)                                                                          |
 | The reply surface — a labelled field whose error the submit produces                       | [Drawer](/components/drawer), [Field](/components/field), [Textarea](/components/textarea)                       |
 | The spoken confirmation                                                                    | [LiveRegion](/components/live-region)                                                                            |
-| The on-screen confirmation                                                                 | [ToastStack](/blocks/toast-stack)                                                                                |
+| The on-screen confirmation                                                                 | [ToastStack](/patterns/toast-stack)                                                                              |
 | The command palette — a host `Dialog` around the inline `Command`, `⌘K` wired by the host  | [Command](/components/command), [Dialog](/components/dialog), [Kbd](/components/kbd)                             |
-| The two empty states — a filter matching nothing, and no selection yet                     | [EmptyState](/blocks/empty-state)                                                                                |
+| The two empty states — a filter matching nothing, and no selection yet                     | [EmptyState](/patterns/empty-state)                                                                              |
 | The rule between the message body and the triage toolbar                                   | [Separator](/components/separator)                                                                               |
 
 Everything else in the demo is the host's: the conversations, the filter,

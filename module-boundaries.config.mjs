@@ -5,7 +5,7 @@
  * order `tools/architecture/graph.ts` registers and `tools/check-architecture.ts`
  * has enforced since the package split:
  *
- *   layout-engine/core → labels → primitives → composition → blocks → layouts → facade
+ *   layout-engine/core → labels → primitives → composition → patterns → layouts → facade
  *   (the layout engine is a Foundation sibling of core, rank 0)
  *
  * What is new is *who* can see it. `check-architecture.ts` reads the specifier
@@ -122,7 +122,7 @@ export const depConstraints = [
       "layer-labels",
       "layer-primitives",
       "layer-composition",
-      "layer-blocks",
+      "layer-patterns",
       "layer-layouts",
     ],
     description: "A layout assembles patterns, compositions and primitives into a page shape.",
@@ -130,22 +130,21 @@ export const depConstraints = [
       "A layout reaching across or upward has the direction inverted; pass what it needs in a slot.",
   },
 
-  // Blocks (the legacy name of the Pattern kind) sit below layouts in the
-  // semantic hierarchy — a block is a composition of parts recognised as a
-  // feature, and a layout may assemble it. Nothing below a pattern may import
-  // a layout; the migration (Phase 2C) renames this tier to `patterns` and
-  // leaves the rank table unchanged.
+  // Patterns sit below layouts in the semantic hierarchy — a pattern is a
+  // composition of parts recognised as a feature, and a layout may assemble
+  // it. Nothing below a pattern may import a layout; the source tag is the
+  // Pattern tier (renamed from `layer-blocks` in Phase 2C).
   {
-    sourceTag: "layer-blocks",
+    sourceTag: "layer-patterns",
     onlyDependOnLibsWithTags: [
       "layer-core",
       "layer-labels",
       "layer-primitives",
       "layer-composition",
-      "layer-blocks",
+      "layer-patterns",
     ],
     description:
-      "A block (Pattern) composes parts into a recognisable feature; layouts assemble it, it never reaches upward.",
+      "A pattern composes parts into a recognisable feature; layouts assemble it, it never reaches upward.",
     remediation:
       "A pattern that reaches for a layout has the direction inverted; pass the layout in a slot.",
   },
@@ -167,7 +166,7 @@ export const depConstraints = [
       "layer-primitives",
       "layer-composition",
       "layer-layouts",
-      "layer-blocks",
+      "layer-patterns",
     ],
     description:
       "The public facade re-exports the library. It may reach every internal layer and nothing outside the published tree — not the docs site, not the browser suite, not the repository's own tooling.",

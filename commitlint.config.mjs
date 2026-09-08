@@ -13,7 +13,7 @@ export default {
       [
         "primitives",
         "composition",
-        "blocks",
+        "patterns",
         "layouts",
         "brand",
         "lib",

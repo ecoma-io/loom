@@ -64,7 +64,7 @@ SidebarNav and AppHeader use.
 `platform` is passed through to TitleBar, which adjusts layout for native
 window controls. On macOS the brand cluster shifts right to leave room for
 the traffic-light buttons, and WindowControls renders nothing. See
-[TitleBar](/blocks/title-bar#platform-awareness) for the full detail.
+[TitleBar](/patterns/title-bar#platform-awareness) for the full detail.
 
 ## Responsive collapse
 

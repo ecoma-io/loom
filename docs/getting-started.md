@@ -77,7 +77,7 @@ question:
 | --------------- | ------------------------------------------------------------------- | ------------------------------------------------- |
 | Foundations     | [Foundations](/foundations/colour)                                  | The tokens every component reads                  |
 | Parts           | [Primitives](/components/button), [Composition](/composition/stack) | The controls, and the geometry that arranges them |
-| Regions         | [Blocks](/blocks/app-header), [Layouts](/layouts/app-shell)         | Named regions, and ready-made page shells         |
+| Regions         | [Patterns](/patterns/app-header), [Layouts](/layouts/app-shell)     | Named regions, and ready-made page shells         |
 | Patterns        | [Patterns](/patterns/forms)                                         | Worked examples that cross component boundaries   |
 | See it together | [Showcase](/showcase/)                                              | What Loom's parts produce when they compose       |
 | Start from      | [Templates](/templates/)                                            | Copyable pages to begin a real page from          |

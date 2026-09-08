@@ -52,7 +52,7 @@ inter-button gap at the default window scale.
 draws its own minimize, maximize and close buttons. A Linux desktop that
 handles buttons natively can set `platform="macos"` to hide the cluster.
 
-See [TitleBar](/blocks/title-bar) and [WindowControls](/components/window-controls)
+See [TitleBar](/patterns/title-bar) and [WindowControls](/components/window-controls)
 for the component API detail.
 
 ### The host owns the window bridge
