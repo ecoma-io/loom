@@ -111,11 +111,20 @@ export function runChecks(root: string): string[] {
   // prefix, so the bare side-effect form (`import "@ecoma-io/loom"`) never
   // matches it; and the dashed subpath (`@ecoma-io/loom/theme-css`) is exactly
   // the shape the old `(?:/\w+)?` group was blind to. The group is now
-  // `[\w-]+` — the grammar INTERNAL_SPEC already carried — so both readers
-  // accept one set of spellings, while check 5 maps subpaths onto the facade
-  // and reports nothing: one import, one report.
+  // `[\w-]+` per segment and unbounded in segments — the grammar INTERNAL_SPEC
+  // and check 8's engine rule carry — so all three readers accept one set of
+  // spellings, while check 5 maps subpaths onto the facade and reports
+  // nothing: one import, one report.
   const FACADE_SPEC = ["@ecoma-io", "loom"].join("/");
-  const FACADE_TARGET = `${FACADE_SPEC}(?:/[\\w-]+)?`;
+  // The subpath group is unbounded, as in check 8's own engine rule: a
+  // two-segment spelling (`@ecoma-io/loom/styles/global.css` — the documented
+  // stylesheet shape) is one more facade spelling, not a different kind of
+  // import, and the one-segment cap both readers carried let it through
+  // (#269 finding 10). Segments carry dots too — `.css` is part of the
+  // spelling — which `[\w-]+` alone stopped short of. The scan set stays
+  // `packages/*/src`, which carries no such import today; the grammar
+  // widening costs nothing there.
+  const FACADE_TARGET = `${FACADE_SPEC}(?:/[\\w.-]+)*`;
   // Comments are already stripped by walkSrcFiles, but a string literal that
   // *quotes* an import used to report as an edge: `throw new Error('import
   // from "@ecoma-io/loom" instead')` matched the bare `from "…"` fragment
@@ -163,13 +172,33 @@ export function runChecks(root: string): string[] {
     }
   }
 
-  /** The `tags:` YAML list in a project's moon.yml, e.g. `["e2e"]`. */
+  /**
+   * The `tags:` list in a project's moon.yml, in either YAML spelling: the
+   * inline flow (`tags: [e2e]`) and the block sequence
+   * (`tags:` newline `- e2e`) the real tree already carries — tree-view's
+   * moon.yml is block-form, and the inline-only reader reported its correct
+   * `layer-primitives` tag set as "tags omit `e2e`" the moment someone added
+   * specs to it (#269 finding 9). Parsed, never searched for: the same
+   * discipline as before, just against both shapes.
+   */
   function parseTags(moonText: string): string[] {
-    const match = /^tags:\s*\[(.*)\]$/m.exec(moonText);
-    if (!match) return [];
-    return (match[1] ?? "")
-      .split(",")
-      .map((tag) => tag.trim().replace(/^"|"$/g, ""))
+    const flow = /^tags:\s*\[(.*)\]\s*$/m.exec(moonText);
+    if (flow) {
+      return (flow[1] ?? "")
+        .split(",")
+        .map((tag) => tag.trim().replace(/^"|"$/g, ""))
+        .filter(Boolean);
+    }
+    const block = /(^|\n)tags:\s*\n((?:[ \t]+-[^\n]*\n?)*)/.exec(moonText);
+    if (!block) return [];
+    return (block[2] ?? "")
+      .split("\n")
+      .map((line) =>
+        line
+          .replace(/^[ \t]+-[ \t]*/, "")
+          .trim()
+          .replace(/^"|"$/g, ""),
+      )
       .filter(Boolean);
   }
 
@@ -231,7 +260,7 @@ export function runChecks(root: string): string[] {
   // facade subpath (`@ecoma-io/loom/theme`) is the facade and is treated as
   // such below; the bare `@ecoma-io/loom` and each `@ecoma-io/loom-<name>`
   // package are the internal graph.
-  const SPEC_GROUP = `(@ecoma-io\\/loom(?:-[a-z0-9-]+)?(?:\\/[\\w-]+)?)`;
+  const SPEC_GROUP = `(@ecoma-io\\/loom(?:-[a-z0-9-]+)?(?:\\/[\\w-]+)*)`;
   const INTERNAL_SPEC = new RegExp(
     `(?:^|\\n)\\s*(?:import|export)\\b[^;]*?from\\s*["'\`]${SPEC_GROUP}["'\`]` +
       `|import\\s*\\(\\s*["'\`]${SPEC_GROUP}["'\`]`,

@@ -466,6 +466,58 @@ describe("runChecks", () => {
     }
   });
 
+  it("reads a block-form tags list carrying `e2e` — the shape tree-view's moon.yml already has", () => {
+    const root = makeRoot();
+    try {
+      const buttonDir = join(root, "packages", "primitives", "button");
+      mkdirSync(join(buttonDir, "e2e"), { recursive: true });
+      writeFileSync(join(buttonDir, "e2e", "button.e2e.ts"), "export const case = 1;\n");
+      writeFileSync(
+        join(buttonDir, "moon.yml"),
+        "deps:\n  - core\ntags:\n  - layer-primitives\n  - e2e\nproject:\n  name: button\n",
+      );
+      const failures = runChecks(root);
+      // The inline-only reader reported this correct block-form list as
+      // "tags omit `e2e`" (#269 finding 9) — fail-loud on the wrong line.
+      expect(failures.some((f) => f.includes("tags omit"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("still fails a block-form tags list whose `e2e` tag is genuinely missing", () => {
+    const root = makeRoot();
+    try {
+      const buttonDir = join(root, "packages", "primitives", "button");
+      mkdirSync(join(buttonDir, "e2e"), { recursive: true });
+      writeFileSync(join(buttonDir, "e2e", "button.e2e.ts"), "export const case = 1;\n");
+      writeFileSync(
+        join(buttonDir, "moon.yml"),
+        "deps:\n  - core\ntags:\n  - layer-primitives\nproject:\n  name: button\n",
+      );
+      const failures = runChecks(root);
+      // Supporting the block form must not read it as tagged: a block
+      // sequence without `e2e` fails exactly like the inline one does.
+      expect(failures.some((f) => f.includes("tags omit `e2e`"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps reading the inline flow tags form", () => {
+    const root = makeRoot();
+    try {
+      const buttonDir = join(root, "packages", "primitives", "button");
+      mkdirSync(join(buttonDir, "e2e"), { recursive: true });
+      writeFileSync(join(buttonDir, "e2e", "button.e2e.ts"), "export const case = 1;\n");
+      writeFileSync(join(buttonDir, "moon.yml"), "tags: [layer-primitives, e2e]\n");
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("tags omit"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("flags a facade *subpath* import — @ecoma-io/loom/theme is still the facade", () => {
     const root = makeRoot();
     try {
@@ -508,6 +560,40 @@ describe("runChecks", () => {
       const facadeFailures = failures.filter((f) => f.includes("public facade"));
       expect(facadeFailures).toHaveLength(1);
       expect(facadeFailures[0]).toContain("Button.vue");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a two-segment facade subpath — the one-segment caps were blind to it", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import "@ecoma-io/loom/styles/global.css";\n',
+      );
+      const failures = runChecks(root);
+      // #269 finding 10: `@ecoma-io/loom/styles/global.css` is the documented
+      // stylesheet spelling, and `(?:/[\w-]+)?` stopped after one segment.
+      expect(failures.some((f) => f.includes("public facade"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("maps a two-segment internal subpath through check 5's unknown-specifier report", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import { deep } from "@ecoma-io/loom-core/src/internal/deep";\n',
+      );
+      const failures = runChecks(root);
+      // Check 5's cap shared the same one-segment ceiling; a multi-segment
+      // specifier of an internal package now reaches the specifier lookup
+      // (and fails there, because no such module is a known package) instead
+      // of passing unseen.
+      expect(failures.some((f) => f.includes("not a known internal package"))).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
