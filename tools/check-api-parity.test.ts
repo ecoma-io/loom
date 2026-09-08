@@ -296,6 +296,38 @@ describe("runChecks", () => {
     }
   });
 
+  it("flags a re-added internal-package alias in the docs config", () => {
+    const root = makeRoot();
+    try {
+      // The B1 relapse: a dash-form internal alias back in the docs config.
+      // The facade-ordering legs cannot see it — their reader matches the
+      // facade and its subpaths only — so this failure is its own leg.
+      writeFileSync(
+        join(root, "docs", ".vitepress", "config.mts"),
+        [
+          "export default defineConfig({",
+          "  vite: {",
+          "    resolve: {",
+          "      alias: {",
+          '        "@ecoma-io/loom/a11y": fileURLToPath(new URL("../../packages/loom/src/a11y.ts", import.meta.url)),',
+          '        "@ecoma-io/loom/theme": fileURLToPath(new URL("../../packages/loom/src/theme.ts", import.meta.url)),',
+          '        "@ecoma-io/loom-accordion": fileURLToPath(new URL("../../packages/primitives/accordion/src/index.ts", import.meta.url)),',
+          '        "@ecoma-io/loom": fileURLToPath(new URL("../../packages/loom/src/index.ts", import.meta.url)),',
+          "      },",
+          "    },",
+          "  },",
+          "})",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some((f) => f.includes("@ecoma-io/loom-accordion is an internal-package alias")),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("ignores subpath mentions inside docs/architecture/ (the frozen audit record)", () => {
     const root = makeRoot();
     try {

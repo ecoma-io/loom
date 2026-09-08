@@ -162,6 +162,18 @@ export function runChecks(root: string): string[] {
       fail(`exports map carries ./${name} but no docs/ markdown mentions @ecoma-io/loom/${name}`);
     }
   }
+
+  // The pruned-map guard. The docs config once carried ~109 internal-package
+  // aliases (`@ecoma-io/loom-accordion`, …) that no docs file imported; 2F
+  // pruned it to the facade keys. `docsAliasEntries` is structurally blind to
+  // a dash-form key — its pattern matches the facade and its subpaths only —
+  // so every leg above would wave a re-added internal alias through, and
+  // this reader exists to make the relapse fail instead.
+  for (const alias of docsInternalAliases(root)) {
+    fail(
+      `${alias} is an internal-package alias in docs/.vitepress/config.mts — internal-package aliases were pruned from the docs config; the facade keys are the only aliases it may carry`,
+    );
+  }
   for (const state of styles) {
     if (
       !documented.some(
@@ -308,6 +320,30 @@ function docsAliasEntries(root: string): string[] {
   const text = readFileSync(config, "utf8");
   const entries: string[] = [];
   for (const match of text.matchAll(/["'](@ecoma-io\/loom(?:\/[a-z0-9-]+)?)["']\s*:/g)) {
+    if (match[1]) entries.push(match[1]);
+  }
+  return entries;
+}
+
+/**
+ * The dash-form internal-package alias keys (`@ecoma-io/loom-accordion`, …)
+ * declared in the docs VitePress config, in file order.
+ *
+ * A sibling of `docsAliasEntries` rather than part of it, because the two
+ * answer opposite questions: that reader collects the facade keys that are
+ * allowed to exist, and a dash-form key is invisible to its pattern — which
+ * is exactly how a re-added internal alias would slip past the ordering
+ * legs. The docs config deliberately carries none of the internal aliases
+ * (the facade's bare-specifier imports resolve through the packages/loom
+ * workspace links instead), so any match is a violation, not a parity input.
+ * Parsed as text for the same reason `docsAliasEntries` is.
+ */
+function docsInternalAliases(root: string): string[] {
+  const config = join(root, "docs", ".vitepress", "config.mts");
+  if (!existsSync(config)) return [];
+  const text = readFileSync(config, "utf8");
+  const entries: string[] = [];
+  for (const match of text.matchAll(/["'](@ecoma-io\/loom-[a-z0-9-]+(?:\/[a-z0-9-]+)?)["']\s*:/g)) {
     if (match[1]) entries.push(match[1]);
   }
   return entries;
