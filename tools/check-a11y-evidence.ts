@@ -14,22 +14,32 @@
 // tools/check-component-artifacts.ts:
 //
 //   1. a sidecar exists and parses as JSON against the contract's shape;
-//   2. the claimed role is in the vocabulary and carries a matrix row;
+//   2. the claimed role is in the vocabulary and carries a matrix row — both
+//      halves of that sentence are the parser's guarantees, checked before a
+//      single sidecar is read;
 //   3. every requirement of the row is answered by evidence in the
 //      requirement's tier, or carries a recorded exception — requirement id
 //      plus reason. Exceptions are counted and named, not failed on: the
-//      contract lands truthfully and shrinks as evidence grows. One refinement
-//      keeps that honest where the tiers are not uniform: a rule family whose
-//      only judge is a named bespoke suite (focus-not-obscured, whose suite
-//      covers three pages while the sweep runs over every page) is answered
-//      only by a sweep entry whose `because` names that suite — a page
-//      citation answers contrast on every page, but not a suite the page has
-//      not joined yet;
+//      contract lands truthfully and shrinks as evidence grows. Three
+//      refinements keep that honest where the tiers are not uniform:
+//        - a rule family whose only judge is a named bespoke suite
+//          (focus-not-obscured, three pages while the sweep runs over every
+//          page) is answered by a TREE FACT, not prose: the gate reads the
+//          suite's own source for its page.goto population and checks this
+//          component's page is in it — fail-closed if the suite cannot be
+//          read, because an unreadable suite must never read as an empty one;
+//        - an evidence entry in a DEMANDED tier answers only when it is
+//          unqualified. A `because` on a demanded-tier entry is a scope
+//          declaration — this file witnesses less than the tier's full
+//          obligation — so the requirements it leaves unwitnessed must carry
+//          exceptions. Keyboard coverage depth — what a harness spec must
+//          exercise to answer the family — is 3D's design space; until that
+//          mechanism exists the gate takes an unqualified spec at its word;
 //   4. no exception for a requirement the evidence already answers, and none
 //      for a requirement the role does not owe — a claim cannot both have and
 //      lack the same thing;
-//   5. every evidence path exists in the tree. Declared-but-absent evidence
-//      is the fabricated kind, and fails outright;
+//   5. every evidence path exists in the tree as a file. Declared-but-absent
+//      evidence is the fabricated kind, and fails outright;
 //   6. evidence in a tier the role's row does not demand carries a `because`
 //      — surplus without a recorded reason would let any component claim any
 //      tier and reduce the matrix to decoration.
@@ -180,6 +190,20 @@ export function parseA11yContract(source: string): ParsedA11yContract {
   if (matrix.length === 0) unreadable("A11Y_EVIDENCE_MATRIX is empty");
   const matrixRoles = new Set(matrix.map((row) => row.role));
   if (matrixRoles.size !== matrix.length) unreadable("A11Y_EVIDENCE_MATRIX repeats a role");
+  // Parity, both directions: a role the vocabulary carries but no row judges
+  // would pass every gate while owing nothing, and a row that demands nothing
+  // would make the matrix read as law while exempting its role from all of it.
+  const unjudged = roles.filter((role) => !matrixRoles.has(role));
+  if (unjudged.length > 0) {
+    unreadable(
+      `the vocabulary carries ${unjudged.map((role) => `"${role}"`).join(", ")} with no matrix row — a role that owes nothing is not in the vocabulary`,
+    );
+  }
+  for (const row of matrix) {
+    if (row.requirements.length === 0) {
+      unreadable(`role ${row.role}'s row is empty — a row that demands nothing is not law`);
+    }
+  }
 
   return { tiers, roles, requirements, matrix };
 }
@@ -189,6 +213,32 @@ export function readA11yContract(root: string): ParsedA11yContract {
   return parseA11yContract(
     readFileSync(join(root, "packages", "core", "src", "a11y-contract.ts"), "utf8"),
   );
+}
+
+/**
+ * The population a bespoke suite actually sweeps, read out of the suite's own
+ * `page.goto("…/<page>")` targets — a tree fact, not a sidecar's prose. The
+ * failure modes are deliberately loud: a suite that is missing, unreadable or
+ * names no page stops the gate, because an unreadable suite must never be
+ * mistaken for an empty one.
+ */
+export function readSuitePopulation(root: string, suite: string): Set<string> {
+  let text: string;
+  try {
+    text = readFileSync(join(root, ...suite.split("/")), "utf8");
+  } catch {
+    throw new Error(
+      `the bespoke suite ${suite} is unreadable, and its population is a tree fact the gate will not guess`,
+    );
+  }
+  const pages = [...text.matchAll(/goto\(\s*["'`]([^"'`]+)["'`]/g)].map(
+    (match) => (match[1] ?? "").split("/").pop() ?? "",
+  );
+  const named = pages.filter((page) => page.length > 0);
+  if (named.length === 0) {
+    throw new Error(`the bespoke suite ${suite} names no page.goto population`);
+  }
+  return new Set(named);
 }
 
 interface EvidenceEntry {
@@ -359,6 +409,15 @@ export function checkA11yEvidence(root: string, contract: ParsedA11yContract): s
       })
       .filter((pair): pair is [string, string] => pair !== null),
   );
+  /** A suite's population, read once — the gate checks it, it never guesses it. */
+  const populations = new Map<string, Set<string>>();
+  function population(suite: string): Set<string> {
+    const known = populations.get(suite);
+    if (known) return known;
+    const read = readSuitePopulation(root, suite);
+    populations.set(suite, read);
+    return read;
+  }
 
   /** A declared path is repository-root-relative, and it exists as a file. */
   function checkPath(component: string, where: string, raw: unknown): void {
@@ -371,8 +430,12 @@ export function checkA11yEvidence(root: string, contract: ParsedA11yContract): s
       return;
     }
     const resolved = join(root, ...raw.split("/"));
-    if (!existsSync(resolved) || !statSync(resolved).isFile()) {
+    if (!existsSync(resolved)) {
       failures.push(`${component}: ${where} "${raw}" does not exist in the tree`);
+    } else if (!statSync(resolved).isFile()) {
+      // A directory is not evidence of anything — the sweep reads pages, the
+      // harness reads specs, and neither is a directory.
+      failures.push(`${component}: ${where} "${raw}" is not a file`);
     }
   }
 
@@ -398,17 +461,23 @@ export function checkA11yEvidence(root: string, contract: ParsedA11yContract): s
       if (!sidecar) continue;
 
       const row = rowByRole.get(sidecar.role);
-      if (!row) continue; // an out-of-vocabulary role is already reported above
+      // The parser's parity check makes this unreachable; the guard stays so a
+      // parser edit that loses parity can never turn into a skipped sidecar.
+      if (!row) continue;
 
       const answered = new Set(
         row.filter((id) => {
           const entries = sidecar.evidence[tierOfRequirement.get(id) ?? ""] ?? [];
           if (entries.length === 0) return false;
           const suite = bespokeSuite.get(id);
-          if (suite === undefined) return true;
-          // A suite-judged family is answered only by an entry that declares
-          // the suite covers this component — the page citation alone does not.
-          return entries.some((entry) => entry.because?.includes(suite) === true);
+          // A suite-judged family is answered by the tree fact of this
+          // component's page sitting in the suite's population — not by any
+          // prose a sidecar can write about it.
+          if (suite !== undefined) return population(suite).has(name);
+          // An unqualified entry stands for the tier's full obligation; a
+          // because-qualified one declares it witnesses less than that, and
+          // answers nothing this tier owes.
+          return entries.some((entry) => entry.because === undefined);
         }),
       );
       const demandedTiers = new Set(row.map((id) => tierOfRequirement.get(id) ?? ""));

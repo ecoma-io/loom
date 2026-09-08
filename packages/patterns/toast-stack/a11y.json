@@ -6,10 +6,19 @@
       "docs/demos/ToastStackDemo.vue",
       "packages/patterns/toast-stack/tests/ToastStack.test.ts"
     ],
-    "harness": ["packages/patterns/toast-stack/e2e/toast-stack.e2e.ts"],
+    "harness": [
+      {
+        "path": "packages/patterns/toast-stack/e2e/toast-stack.e2e.ts",
+        "because": "toast-stack.e2e.ts proves the queue cap retires the oldest cards under reduce and every exit unmounts — motion and queue evidence; it exercises no keyboard interaction"
+      }
+    ],
     "sweep": ["docs/patterns/toast-stack.md"]
   },
   "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "dismissing is each toast's labelled close <button>'s own Space/Enter contract and toast-stack.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+    },
     {
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"

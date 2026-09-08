@@ -3,10 +3,19 @@
   "basis": "Reka SwitchRoot renders <button role=\"switch\" aria-checked>.",
   "evidence": {
     "browserless": ["docs/demos/SwitchDemo.vue", "packages/primitives/switch/tests/Switch.test.ts"],
-    "harness": ["packages/primitives/switch/e2e/switch-direction.e2e.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/switch/e2e/switch-direction.e2e.ts",
+        "because": "switch-direction.e2e.ts pins the LTR and RTL thumb geometry — directional rendering evidence; it exercises no keyboard interaction"
+      }
+    ],
     "sweep": ["docs/components/switch.md"]
   },
   "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "toggling is the native <button role=\"switch\">'s own Space contract and switch-direction.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+    },
     {
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"

@@ -6,10 +6,19 @@
       "docs/demos/FileUploadDemo.vue",
       "packages/primitives/file-upload/tests/FileUpload.test.ts"
     ],
-    "harness": ["packages/primitives/file-upload/e2e/file-upload.e2e.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/file-upload/e2e/file-upload.e2e.ts",
+        "because": "file-upload.e2e.ts proves drop-append, landing on a child of the zone, the accept-list refusal, and the disabled zone — pointer evidence; it exercises no keyboard interaction"
+      }
+    ],
     "sweep": ["docs/components/file-upload.md"]
   },
   "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "activation is the native <input type=\"file\">'s own contract and file-upload.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+    },
     {
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"

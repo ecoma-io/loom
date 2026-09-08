@@ -6,10 +6,19 @@
       "docs/demos/StepperDemo.vue",
       "packages/primitives/stepper/tests/Stepper.test.ts"
     ],
-    "harness": ["packages/primitives/stepper/e2e/stepper.e2e.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/stepper/e2e/stepper.e2e.ts",
+        "because": "stepper.e2e.ts pins the single live region and that advancing the flow repaints it — announcement evidence; it exercises no keyboard interaction"
+      }
+    ],
     "sweep": ["docs/components/stepper.md"]
   },
   "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "step traversal is the wrapped Reka stepper's runtime behaviour and stepper.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+    },
     {
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"

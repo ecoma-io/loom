@@ -10,10 +10,12 @@
 // the parser cannot read must stop the gate, never empty it. Each case builds
 // a minimal `packages/` tree with exactly the shape needed to trip one rule —
 // a missing sidecar, a role outside the vocabulary, a dangling evidence path —
-// and asserts the reported failure names the component. One case runs the
+// and asserts the reported failure names the component. Three cases run the
 // opposite direction: a tree whose sidecars satisfy the law must report zero
-// failures, so a future over-eager rule fails loudly rather than quietly
-// blocking every component.
+// failures, a matrix that lost parity with its vocabulary must throw, and a
+// bespoke suite the gate cannot read must stop the run rather than read as an
+// empty one — so a future over-eager rule or a quietly emptied law fails
+// loudly instead of passing everything.
 import { afterAll, describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -57,12 +59,30 @@ export const A11Y_EVIDENCE_MATRIX = [
 ] as const;
 `;
 
-/** Every evidence file a satisfying sidecar may cite, created as empty files. */
+/** Where the fixture contract says focus-not-obscured's only judge lives. */
+const FNOB_SUITE_PATH = "e2e/focus-not-obscured.e2e.ts";
+
+/**
+ * The suite itself, carrying the one fact the gate reads from it: a
+ * `page.goto` whose last path segment is a page name. Button's page is in
+ * this population; no other component's is — which is exactly the split the
+ * fixtures below assert on.
+ */
+const FNOB_SUITE = [
+  'import { test } from "@playwright/test";',
+  "",
+  'test("focus is not obscured on the button page", async ({ page }) => {',
+  '  await page.goto("components/button");',
+  "});",
+].join("\n");
+
+/** Every evidence file a satisfying sidecar may cite, created as files. */
 const EVIDENCE_FILES = [
   "docs/demos/ButtonDemo.vue",
   "docs/components/button.md",
   "packages/primitives/button/tests/Button.test.ts",
   "packages/primitives/button/e2e/button.e2e.ts",
+  FNOB_SUITE_PATH,
 ];
 
 const roots: string[] = [];
@@ -75,24 +95,23 @@ afterAll(() => {
   for (const root of roots) rmSync(root, { recursive: true, force: true });
 });
 
-/** A tree with the contract and one component's evidence files; no sidecar yet. */
+/** A tree with the contract, the bespoke suite, and one component's evidence; no sidecar yet. */
 function makeTree(): string {
   const root = makeRoot();
   mkdirSync(join(root, "packages", "core", "src"), { recursive: true });
   writeFileSync(join(root, "packages", "core", "src", "a11y-contract.ts"), CONTRACT);
   for (const rel of EVIDENCE_FILES) {
     mkdirSync(join(root, ...rel.split("/").slice(0, -1)), { recursive: true });
-    writeFileSync(join(root, ...rel.split("/")), "");
+    // The suite is not an empty stand-in: its goto population is the tree
+    // fact the gate reads, so the fixture carries the shape the real one does.
+    writeFileSync(join(root, ...rel.split("/")), rel === FNOB_SUITE_PATH ? FNOB_SUITE : "");
   }
   return root;
 }
 
-function writeSidecar(root: string, sidecar: object): void {
-  mkdirSync(join(root, "packages", "primitives", "button"), { recursive: true });
-  writeFileSync(
-    join(root, "packages", "primitives", "button", "a11y.json"),
-    JSON.stringify(sidecar),
-  );
+function writeSidecar(root: string, sidecar: object, name = "button"): void {
+  mkdirSync(join(root, "packages", "primitives", name), { recursive: true });
+  writeFileSync(join(root, "packages", "primitives", name, "a11y.json"), JSON.stringify(sidecar));
 }
 
 /** The shape a fixture sidecar takes, so spreads stay type-safe. */
@@ -111,12 +130,10 @@ function completeSidecar(): FixtureSidecar {
     evidence: {
       browserless: ["docs/demos/ButtonDemo.vue", "packages/primitives/button/tests/Button.test.ts"],
       harness: ["packages/primitives/button/e2e/button.e2e.ts"],
-      sweep: [
-        {
-          path: "docs/components/button.md",
-          because: "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) sweeps this page.",
-        },
-      ],
+      // A bare page citation, and focus-not-obscured still answers — because
+      // the answer is the tree fact that button's page sits in the suite's
+      // goto population, not anything this citation says.
+      sweep: ["docs/components/button.md"],
     },
   };
 }
@@ -153,12 +170,7 @@ describe("checkA11yEvidence", () => {
       evidence: {
         browserless: ["docs/demos/ButtonDemo.vue"],
         harness: [],
-        sweep: [
-          {
-            path: "docs/components/button.md",
-            because: "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) sweeps this page.",
-          },
-        ],
+        sweep: ["docs/components/button.md"],
       },
     });
     expect(checkA11yEvidence(root, contract)).toEqual([
@@ -166,20 +178,76 @@ describe("checkA11yEvidence", () => {
     ]);
   });
 
-  it("fails a focus-not-obscured row answered by a bare page citation", () => {
-    // The suite-judged refinement: a page citation answers contrast on every
-    // page, but not a bespoke suite whose population the page has not joined.
+  it("answers focus-not-obscured by the tree fact alone — the suite's population, not the sidecar's prose", () => {
+    // The citation below answers contrast, but focus-not-obscured reads the
+    // suite's goto population — and no sidecar entry can put a page in it.
+    const outside = makeTree();
+    writeSidecar(outside, completeSidecar());
+    writeSidecar(outside, completeSidecar(), "icon-button");
+    expect(checkA11yEvidence(outside, contract)).toEqual([
+      "IconButton: role button requires focus-not-obscured (sweep tier) — no evidence declared and no exception recorded",
+    ]);
+    // With the exception recorded the same tree passes: an obligation the
+    // suite does not witness lives in the record, not in wording.
+    const excepted = makeTree();
+    writeSidecar(excepted, completeSidecar());
+    writeSidecar(
+      excepted,
+      {
+        ...completeSidecar(),
+        exceptions: [
+          { requirement: "focus-not-obscured", because: "the page has not joined the suite yet" },
+        ],
+      },
+      "icon-button",
+    );
+    expect(checkA11yEvidence(excepted, contract)).toEqual([]);
+  });
+
+  it("stops at a bespoke suite it cannot read, never mistaking it for an empty one", () => {
     const root = makeTree();
-    writeSidecar(root, {
+    writeSidecar(root, completeSidecar());
+    rmSync(join(root, ...FNOB_SUITE_PATH.split("/")));
+    expect(() => checkA11yEvidence(root, contract)).toThrow(/unreadable/);
+  });
+
+  it("stops at a bespoke suite whose source names no page.goto population", () => {
+    const root = makeTree();
+    writeSidecar(root, completeSidecar());
+    writeFileSync(
+      join(root, ...FNOB_SUITE_PATH.split("/")),
+      'import { test } from "@playwright/test";',
+    );
+    expect(() => checkA11yEvidence(root, contract)).toThrow(/names no page\.goto population/);
+  });
+
+  it("takes an unqualified harness spec at its word, but a because-qualified one answers nothing", () => {
+    // The mechanism-free half of the keyboard story: a bare spec stands for
+    // the tier's full obligation; a `because` narrows the claim to what the
+    // file witnesses, and what it leaves unwitnessed owes an exception.
+    const qualified = {
       ...completeSidecar(),
       evidence: {
         ...completeSidecar().evidence,
-        sweep: ["docs/components/button.md"],
+        harness: [
+          {
+            path: "packages/primitives/button/e2e/button.e2e.ts",
+            because: "witnesses the click, not the roving focus",
+          },
+        ],
       },
-    });
-    expect(checkA11yEvidence(root, contract)).toEqual([
-      "Button: role button requires focus-not-obscured (sweep tier) — no evidence declared and no exception recorded",
+    };
+    const silent = makeTree();
+    writeSidecar(silent, qualified);
+    expect(checkA11yEvidence(silent, contract)).toEqual([
+      "Button: role button requires keyboard (harness tier) — no evidence declared and no exception recorded",
     ]);
+    const excepted = makeTree();
+    writeSidecar(excepted, {
+      ...qualified,
+      exceptions: [{ requirement: "keyboard", because: "the spec exercises activation only" }],
+    });
+    expect(checkA11yEvidence(excepted, contract)).toEqual([]);
   });
 
   it("fails an exception recorded for evidence that already answers the requirement", () => {
@@ -190,6 +258,17 @@ describe("checkA11yEvidence", () => {
     });
     expect(checkA11yEvidence(root, contract)).toEqual([
       "Button: contrast is answered by evidence and excepted at once — drop one or the other",
+    ]);
+  });
+
+  it("fails an exception for a suite-judged requirement the population already answers", () => {
+    const root = makeTree();
+    writeSidecar(root, {
+      ...completeSidecar(),
+      exceptions: [{ requirement: "focus-not-obscured", because: "page not yet in the suite" }],
+    });
+    expect(checkA11yEvidence(root, contract)).toEqual([
+      "Button: focus-not-obscured is answered by evidence and excepted at once — drop one or the other",
     ]);
   });
 
@@ -223,17 +302,38 @@ describe("checkA11yEvidence", () => {
     ]);
   });
 
-  it("rejects a path that escapes the repository root", () => {
+  it("rejects a path that escapes the repository root — forward or backward slashes", () => {
+    for (const escape of ["../elsewhere/spec.e2e.ts", "..\\elsewhere\\spec.e2e.ts"]) {
+      const root = makeTree();
+      writeSidecar(root, {
+        ...completeSidecar(),
+        evidence: { ...completeSidecar().evidence, harness: [escape] },
+      });
+      expect(checkA11yEvidence(root, contract), escape).toEqual([
+        `Button: evidence.harness entry "${escape}" must be repository-root-relative`,
+      ]);
+    }
+  });
+
+  it("rejects an absolute path, which no repository-root-relative claim can be", () => {
     const root = makeTree();
     writeSidecar(root, {
       ...completeSidecar(),
-      evidence: {
-        ...completeSidecar().evidence,
-        harness: ["../elsewhere/spec.e2e.ts"],
-      },
+      evidence: { ...completeSidecar().evidence, harness: ["/elsewhere/spec.e2e.ts"] },
     });
     expect(checkA11yEvidence(root, contract)).toEqual([
-      'Button: evidence.harness entry "../elsewhere/spec.e2e.ts" must be repository-root-relative',
+      'Button: evidence.harness entry "/elsewhere/spec.e2e.ts" must be repository-root-relative',
+    ]);
+  });
+
+  it("refuses a directory standing in for a file — a directory evidences nothing", () => {
+    const root = makeTree();
+    writeSidecar(root, {
+      ...completeSidecar(),
+      evidence: { ...completeSidecar().evidence, harness: ["packages/primitives"] },
+    });
+    expect(checkA11yEvidence(root, contract)).toEqual([
+      'Button: evidence.harness entry "packages/primitives" is not a file',
     ]);
   });
 
@@ -253,6 +353,66 @@ describe("checkA11yEvidence", () => {
         'Button: evidence.harness entry "packages/primitives/button/e2e/button.e2e.ts" — role img owes nothing in the harness tier; record a because for surplus evidence',
       ),
     ]);
+  });
+
+  it("fails each malformed sidecar shape instead of reading past it", () => {
+    const cases: { name: string; sidecar: object; fragment: string }[] = [
+      {
+        name: "a blank basis",
+        sidecar: { ...completeSidecar(), basis: "   " },
+        fragment: "Button: packages/primitives/button/a11y.json carries no basis",
+      },
+      {
+        name: "a sidecar that is not an object",
+        sidecar: ["button"],
+        fragment: "Button: packages/primitives/button/a11y.json must be a JSON object",
+      },
+      {
+        name: "an evidence bag that is not an object",
+        sidecar: { ...completeSidecar(), evidence: ["browserless"] },
+        fragment:
+          "Button: packages/primitives/button/a11y.json evidence must be an object keyed by tier",
+      },
+      {
+        name: "a tier whose value is not an array",
+        sidecar: {
+          ...completeSidecar(),
+          evidence: { ...completeSidecar().evidence, browserless: "docs/demos/ButtonDemo.vue" },
+        },
+        fragment:
+          "Button: packages/primitives/button/a11y.json evidence.browserless must be an array",
+      },
+      {
+        name: "an entry of the wrong shape",
+        sidecar: {
+          ...completeSidecar(),
+          evidence: { ...completeSidecar().evidence, harness: [42] },
+        },
+        fragment:
+          "Button: packages/primitives/button/a11y.json evidence.harness carries an entry that is neither a path nor { path, because }",
+      },
+      {
+        name: "exceptions that are not an array",
+        sidecar: { ...completeSidecar(), exceptions: "none" },
+        fragment: "Button: packages/primitives/button/a11y.json exceptions must be an array",
+      },
+      {
+        name: "an exception entry that is not an object",
+        sidecar: {
+          ...completeSidecar(),
+          evidence: { ...completeSidecar().evidence, harness: [] },
+          exceptions: [42],
+        },
+        fragment: "Button: packages/primitives/button/a11y.json records an exception for null",
+      },
+    ];
+    for (const testCase of cases) {
+      const root = makeTree();
+      writeSidecar(root, testCase.sidecar);
+      // First failure, not the whole list: a malformed shape can also leave a
+      // requirement unanswered, and the shape fault is what this case is for.
+      expect(checkA11yEvidence(root, contract)[0], testCase.name).toContain(testCase.fragment);
+    }
   });
 
   it("fails an unknown sidecar key instead of reading past it", () => {
@@ -313,19 +473,24 @@ describe("checkA11yEvidence", () => {
     const root = makeTree();
     writeSidecar(root, {
       ...completeSidecar(),
-      exceptions: [
-        { requirement: "keyboard", because: "no spec yet" },
-        { requirement: "focus-not-obscured", because: "page not yet in the suite" },
-      ],
+      evidence: { ...completeSidecar().evidence, harness: [] },
+      exceptions: [{ requirement: "keyboard", because: "no spec yet" }],
     });
     mkdirSync(join(root, "packages", "primitives", "icon-button"), { recursive: true });
     writeFileSync(join(root, "packages", "primitives", "icon-button", "a11y.json"), "{");
     mkdirSync(join(root, "packages", "primitives", "avatar"), { recursive: true });
     writeFileSync(
       join(root, "packages", "primitives", "avatar", "a11y.json"),
-      JSON.stringify({ ...completeSidecar(), role: "img" }),
+      JSON.stringify({
+        role: "img",
+        basis: "renders an <img alt>",
+        evidence: {
+          browserless: ["docs/demos/ButtonDemo.vue"],
+          sweep: ["docs/components/button.md"],
+        },
+      }),
     );
-    expect(exceptionSummary(root, contract)).toEqual({ count: 2, components: 1 });
+    expect(exceptionSummary(root, contract)).toEqual({ count: 1, components: 1 });
   });
 });
 
@@ -379,5 +544,29 @@ describe("parseA11yContract", () => {
         ),
       ),
     ).toThrow(/A11Y_EVIDENCE_MATRIX is empty/);
+  });
+
+  it("holds the matrix to parity with the vocabulary, both directions, before any sidecar is read", () => {
+    const fault = (source: string) => () => parseA11yContract(source);
+    // A vocabulary member without a row would pass every gate while owing
+    // nothing — the role that quietly exited the law.
+    expect(
+      fault(
+        CONTRACT.replace(
+          '  { role: "img", requirements: ["semantic-aria", "name", "contrast"] },\n',
+          "",
+        ),
+      ),
+    ).toThrow(/with no matrix row/);
+    // A row that demands nothing would read as law while exempting its role
+    // from all of it.
+    expect(
+      fault(
+        CONTRACT.replace(
+          '{ role: "img", requirements: ["semantic-aria", "name", "contrast"] }',
+          '{ role: "img", requirements: [] }',
+        ),
+      ),
+    ).toThrow(/row is empty/);
   });
 });
