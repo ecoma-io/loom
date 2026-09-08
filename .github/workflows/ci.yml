@@ -240,6 +240,15 @@ jobs:
       - name: Check skills
         run: node tools/check-skills.ts
 
+      # `check-doc-claims.ts` is the same lint-only class once more: it recounts
+      # the artifact matrix's count sentence against the tracked directories and
+      # requires every architecture document to open by naming the
+      # documentation model. Both are prose claims nothing else type-checks, and
+      # 2C's reclassification is the drift this catches — the sentence kept the
+      # pre-reclassification counts through the rename.
+      - name: Check doc claims
+        run: node --experimental-strip-types tools/check-doc-claims.ts
+
       # The third architecture gate, and the one that judges resolved imports
       # rather than specifier text. `archkeep check` reads the Moon project
       # graph, resolves every `.ts`/`.vue` specifier through
