@@ -185,7 +185,10 @@ export default defineConfig({
       // Everything a consumer could plausibly already have, or would want to
       // deduplicate. Bundling Vue breaks reactivity outright; bundling Reka
       // would ship a second copy of its focus and portal machinery alongside
-      // the consumer's.
+      // the consumer's. @internationalized/date is the same story — the date
+      // pickers import it directly, and so does the consumer (often through
+      // reka-ui's own copy), so bundling ours into the facade's dist would
+      // ship a second copy of the calendar arithmetic.
       external: [
         "vue",
         "reka-ui",
@@ -193,6 +196,7 @@ export default defineConfig({
         "clsx",
         "tailwind-merge",
         "class-variance-authority",
+        "@internationalized/date",
       ],
       output: {
         // One output file per source module rather than one bundle. A consumer
