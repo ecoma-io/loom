@@ -43,6 +43,16 @@ surface, that is a defect in the surface, and it is filed as one.
 
 ## The templates
 
+### Starter
+
+The minimal template: an `AppShell` page holding a `Stack` of welcome copy, a
+`Card` naming what to change first and a `Button` that flips the theme, every
+import a published `@ecoma-io/loom` specifier. It exists to prove the template
+contract buildable — the page-scale composition the production templates carry
+is deliberately omitted.
+
+[README](https://github.com/ecoma-io/loom/blob/main/templates/starter/README.md)
+
 ### Analytics
 
 An analytics page: `PageHeader`, four `MetricCard`s derived from the same rows
