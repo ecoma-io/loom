@@ -89,5 +89,7 @@ question:
 
 Templates is the newest section with content in it: the
 [contract](/templates/contract) is defined, the starter is runnable, and
-Analytics is the first production page template. Showcase is still its landing
-page today, and its first demonstration is on the roadmap.
+Analytics is the first production page template. Showcase has two shipped
+demonstrations — [Invite your team](/showcase/invite-teammates) and
+[Triage the inbox](/showcase/inbox-triage) — linked from
+[its landing page](/showcase/).
