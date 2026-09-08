@@ -64,11 +64,35 @@ function stripParentheticals(text: string): string {
   return text.replace(/\([^)]*\)/g, "");
 }
 
+/**
+ * The caller's environment minus the variables that pin git to one specific
+ * repository. A pre-push hook runs with `GIT_DIR` exported, and every git this
+ * gate spawned inherited the pin: with `GIT_DIR` set and no `GIT_WORK_TREE`,
+ * git treats its own cwd as that repository's work tree, so a probe from a
+ * fixture tmpdir answered for the worktree's index — hundreds of files
+ * "deleted" — and the advisory hint fired on a directory no repository can
+ * see. Every verdict these two helpers produce is defined relative to `cwd`
+ * ("tracked at HEAD", "carries uncommitted changes"), and discovery from cwd
+ * is the only way to get it; the variables must be gone, not overridden.
+ */
+function gitEnvironment(): Record<string, string | undefined> {
+  const pinned = [
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_COMMON_DIR",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+  ];
+  return Object.fromEntries(Object.entries(process.env).filter(([key]) => !pinned.includes(key)));
+}
+
 /** Tracked child directories of `dir`, counted from the committed tree — see the header. */
 function countTrackedDirs(root: string, dir: string): number {
   const listing = execFileSync("git", ["ls-tree", "HEAD", "--", `${dir}/`], {
     cwd: root,
     encoding: "utf8",
+    env: gitEnvironment(),
   });
   return listing.split("\n").filter((line) => line.startsWith("040000 tree")).length;
 }
@@ -77,14 +101,23 @@ function countTrackedDirs(root: string, dir: string): number {
  * Whether `dir` carries staged or unstaged changes relative to HEAD — the
  * difference between "your sentence is wrong" and "your sentence is right but
  * this gate cannot see your newest directory yet". Deaf (false) when git
- * itself is unavailable: the hint is advisory, the verdict still comes from
- * `ls-tree HEAD`, and a git failure must not mask it with a wrong remedy.
+ * itself is unavailable, and silenced while being deaf: git's own "not a
+ * repository" output went straight to the gate's stderr when the predicate
+ * ran outside a repository — a fixture run, a sandboxed CI step — and an
+ * advisory hint has no business printing a fatal. The verdict still comes
+ * from `ls-tree HEAD`; a git failure must neither mask it nor narrate itself.
+ * Exported because the deafness is behaviour a test pins, not an accident to
+ * refactor away.
  */
-function hasUncommittedChanges(root: string, dir: string): boolean {
+export function hasUncommittedChanges(root: string, dir: string): boolean {
   try {
     return (
-      execFileSync("git", ["status", "--porcelain", "--", dir], { cwd: root, encoding: "utf8" })
-        .length > 0
+      execFileSync("git", ["status", "--porcelain", "--", dir], {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        env: gitEnvironment(),
+      }).length > 0
     );
   } catch {
     return false;

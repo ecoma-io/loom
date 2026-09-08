@@ -6,12 +6,13 @@
 // directories needs a git repository — the fixtures prove the gate's
 // arithmetic and its failure messages, and the real tree is what `pnpm lint`
 // runs against.
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { checkDocClaims } from "./check-doc-claims.ts";
+import { checkDocClaims, hasUncommittedChanges } from "./check-doc-claims.ts";
 
 /** The sentence as 2C left the tree: 9 compositions, 13 patterns, 9 layouts. */
 const CORRECT =
@@ -64,7 +65,11 @@ describe("checkDocClaims", () => {
   it("fails the audit-era sentence, naming each drift and the retired kind", () => {
     const root = makeRoot(ROTTED);
     try {
-      const failures = checkDocClaims(root, countFixed);
+      // The dirty predicate is beside the point of this test, and the default
+      // one shells out to git — it belongs to the real tree, not to a tmpdir
+      // with no repository, where git dies loudly. Declared false here; the
+      // default predicate's own contract is pinned in the dedicated test.
+      const failures = checkDocClaims(root, countFixed, () => false);
       // 2C moved DashboardGrid and DesktopAppShell and renamed the Blocks
       // family; the rotted sentence drifts on two kinds, names a third this
       // gate maps no directory to, and silently drops the fourth.
@@ -129,6 +134,56 @@ describe("checkDocClaims", () => {
       expect(clean.some((f) => f.includes("commit and re-run"))).toBe(false);
     } finally {
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("stays deaf outside a repository — false, and silent about it", () => {
+    const root = mkdtempSync(join(tmpdir(), "loom-doc-claims-no-repo-"));
+    try {
+      const stderr: string[] = [];
+      const write = vi
+        .spyOn(process.stderr, "write")
+        .mockImplementation((chunk: unknown): boolean => {
+          stderr.push(String(chunk));
+          return true;
+        });
+      try {
+        // No .git anywhere above this tmpdir: git dies, the predicate's
+        // answer is the advisory false, and git's fatal narrates itself
+        // nowhere — the leak the fixture runs used to print twice per suite.
+        expect(hasUncommittedChanges(root, "packages/primitives")).toBe(false);
+        expect(stderr.join("")).not.toContain("not a git repository");
+      } finally {
+        write.mockRestore();
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("answers for cwd, not for a caller's GIT_DIR — the hook leak, pinned", () => {
+    const root = mkdtempSync(join(tmpdir(), "loom-doc-claims-no-repo-"));
+    const decoy = mkdtempSync(join(tmpdir(), "loom-doc-claims-decoy-"));
+    try {
+      // A pre-push hook exports GIT_DIR, and with GIT_DIR set and no
+      // GIT_WORK_TREE git regards its cwd as that repository's work tree — so
+      // a probe from a tmpdir answered for the hooking repository's index,
+      // where every file reads as deleted. A decoy repository pins exactly
+      // that shape deterministically: unscrubbed, the empty index beside a
+      // non-empty tmpdir reads as changes; scrubbed, git discovers from cwd,
+      // finds no repository, and the advisory stays false.
+      execFileSync("git", ["init", decoy], { stdio: "ignore" });
+      const previous = process.env.GIT_DIR;
+      process.env.GIT_DIR = decoy;
+      try {
+        expect(hasUncommittedChanges(root, "packages/primitives")).toBe(false);
+      } finally {
+        if (previous === undefined) delete process.env.GIT_DIR;
+        else process.env.GIT_DIR = previous;
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(decoy, { recursive: true, force: true });
     }
   });
 
