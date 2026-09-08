@@ -87,7 +87,7 @@ interface SidebarNavSection {
 }
 ```
 
-`icon` takes a component, never a string name to look up — every block in
+`icon` takes a component, never a string name to look up — every component in
 this package that accepts an icon does the same, so a host always passes the
 component it imported rather than threading a name through a lookup table
 this package does not maintain.

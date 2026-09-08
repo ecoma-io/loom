@@ -3,7 +3,7 @@
 _History, not guidance — the [documentation model](./README.md) maps every document's role._
 
 This document records the repository state before the Moonrepo monorepo migration,
-establishing the ground truth the migration must preserve.
+as the tree stood when the snapshot was taken.
 
 ## Repository Shape
 

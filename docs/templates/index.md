@@ -2,8 +2,8 @@
 
 An Official Template is a copyable, prebuilt **page** — a starting point
 composed from Loom components and patterns that a team takes into their
-application and builds on: AI Chat, Chat, Dashboard, Music Player, Settings,
-Analytics, Inbox. Where a [pattern](/patterns/app-header) is a reusable
+application and builds on: Starter, Analytics, Workspace settings. Where a
+[pattern](/patterns/app-header) is a reusable
 component you compose with and a [Pattern](/patterns/forms) page is a worked
 example explained in prose, a template is a page you start from.
 
@@ -42,6 +42,16 @@ surface, that is a defect in the surface, and it is filed as one.
   the [Showcase](/showcase/)'s job.
 
 ## The templates
+
+### Starter
+
+The minimal template: an `AppShell` page holding a `Stack` of welcome copy, a
+`Card` naming what to change first and a `Button` that flips the theme, every
+import a published `@ecoma-io/loom` specifier. It exists to prove the template
+contract buildable — the page-scale composition the production templates carry
+is deliberately omitted.
+
+[README](https://github.com/ecoma-io/loom/blob/main/templates/starter/README.md)
 
 ### Analytics
 

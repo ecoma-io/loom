@@ -152,7 +152,7 @@ export default defineConfig({
       "@ecoma-io/loom-reading": pkg("layouts/reading/src/index.ts"),
       "@ecoma-io/loom-settings": pkg("layouts/settings/src/index.ts"),
       "@ecoma-io/loom-split-layout": pkg("layouts/split-layout/src/index.ts"),
-      // Blocks.
+      // Patterns.
       "@ecoma-io/loom-app-header": pkg("patterns/app-header/src/index.ts"),
       "@ecoma-io/loom-dashboard-grid": pkg("composition/dashboard-grid/src/index.ts"),
       "@ecoma-io/loom-desktop-app-shell": pkg("layouts/desktop-app-shell/src/index.ts"),

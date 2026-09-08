@@ -2,7 +2,7 @@
 /**
  * ErrorState — the shape of "something went wrong": icon → title → optional
  * description → optional retry action, centered in the error region. This is
- * EmptyState's mirror: where that block says "nothing here yet" and invites
+ * EmptyState's mirror: where that pattern says "nothing here yet" and invites
  * the next step, this one says "something broke" and offers a retry.
  *
  * No staggered entrance. EmptyState is content appearing — a welcome, budgeted

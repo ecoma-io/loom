@@ -10,15 +10,16 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/banner.png" alt="Loom — an opinionated UI system and composition library for cross-platform web applications" width="100%" />
+  <img src=".github/assets/banner.png" alt="Loom — an Application Interface System for Vue" width="100%" />
 </p>
 
 <h1 align="center">Loom</h1>
 
 <p align="center">
-  <strong>Opinionated UI system &amp; composition library for cross-platform web applications.</strong><br />
+  <strong>An Application Interface System for Vue.</strong><br />
   An open-source, accessibility-first component library and design-token system —
-  Vue&nbsp;3, TypeScript and Tailwind&nbsp;CSS — from mobile to ultrawide.<br />
+  Vue&nbsp;3, TypeScript and Tailwind&nbsp;CSS — from mobile to ultrawide, for
+  cross-platform web applications.<br />
   <em>Build the interface once. Ship it everywhere. Never re-decide what a button is.</em>
 </p>
 
@@ -74,9 +75,9 @@ as an independent open-source UI system.
 | **Design tokens**            | Colour, spacing, radius, elevation, typography and motion — one source that light mode and dark mode both read from, so a rebrand is an edit rather than an audit.            |
 | **UI primitives**            | The generic controls every product needs and no product should own: buttons, inputs, selects, dialogs, menus, toasts, tooltips, skeletons, switches, progress.                |
 | **Composition primitives**   | Layout building blocks — Stack, Grid, Split, Center, Sidebar — that express spatial intent and adapt to viewport without the host writing breakpoint queries.                 |
-| **Blocks**                   | Compositions worth standardising once — empty states, page headers, title bars, sidebar navigation — assembled from primitives, never from scratch.                           |
+| **Patterns**                 | Compositions worth standardising once — empty states, page headers, title bars, sidebar navigation — assembled from primitives, never from scratch.                           |
 | **Showcase**                 | Demonstrations, in this documentation site, of what the parts produce when they compose — for discovery and teaching. A showcase is read; it is not a starting point to copy. |
-| **Templates**                | Copyable prebuilt pages — AI Chat, Dashboard, Music Player — to take into an application and build on. One page each; routing, auth and backend stay with the consumer.       |
+| **Templates**                | Copyable prebuilt pages — Starter, Analytics, Workspace settings — to take into an application and build on. One page each; routing, auth and backend stay with the consumer. |
 | **Accessibility, built in**  | Keyboard paths, focus restoration, accessible names and reduced-motion behaviour ship inside the component. WCAG is the acceptance bar, not a checklist run afterwards.       |
 | **Theming that survives**    | Every visual decision is a token reference, so white-labelling a tenant is configuration rather than a fork.                                                                  |
 | **Typed and tree-shakeable** | Ships ES modules with TypeScript types. Consumers bundle what they import and nothing more.                                                                                   |

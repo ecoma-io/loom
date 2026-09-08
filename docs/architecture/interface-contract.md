@@ -60,8 +60,10 @@ visible focus, focus restoration, state not conveyed by colour alone,
 the axe gates import their rule partitions from that same module, and a
 browserless test pins the partition to equal exactly the rules `WCAG_TAGS`
 select — the gate and the published claim cannot drift apart. The site's
-accessibility page quotes the array; the quote is transcribed today, which
-the gap analysis records.
+accessibility page renders the array from that constant too: its fence is
+expanded out of `a11y-scope.ts` at build time, the same
+generated-never-transcribed rule the token and API tables follow, so the
+published claim has no hand-copied second to go stale.
 
 Evidence today: the root sweep's axe gate runs with **no excludes** over the
 built site; keyboard, focus-not-obscured, target-size, contrast and

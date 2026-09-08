@@ -6,7 +6,7 @@
  * readonly propagation, and hint/error line) with vertical Stack spacing
  * between the fields.
  *
- * The block exists because that composition is written at every form page
+ * The pattern exists because that composition is written at every form page
  * and the spacing between sections is a layout decision it can own once.
  * It is a thin convenience over Fieldset, not a replacement: when a group
  * needs a shape FormSection does not offer, Fieldset is still the right
