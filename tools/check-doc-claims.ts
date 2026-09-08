@@ -11,11 +11,15 @@
 //    git index (`git ls-tree`), not from the filesystem, because the ledger of
 //    record is the repository and not this machine's working tree — an
 //    untracked residue directory on one checkout must not change the verdict.
-// 2. Every architecture document opens by linking the documentation model,
-//    because the model is what decides which document governs when two
-//    disagree. A new document without the link has skipped that role
-//    assignment. README.md is the model the others link, so it cannot carry
-//    the link itself.
+//    The recount is that one sentence: the matrix's per-section inline counts
+//    and its command block's `wc -l` lines stay outside it — the boundary
+//    issue #259 records.
+// 2. Every top-level architecture document (docs/architecture/*.md — the
+//    decisions/ ADRs below it are not walked) opens by linking the
+//    documentation model, because the model is what decides which document
+//    governs when two disagree. A new document without the link has skipped
+//    that role assignment. README.md is the model the others link, so it
+//    cannot carry the link itself.
 //
 // The ESLint class of tools cannot hold either claim — they are statements
 // about markdown, not code — which is why this is a bespoke tool beside the
@@ -36,6 +40,12 @@ const KIND_DIRS: Record<string, string> = {
   templates: "templates",
 };
 
+// The list is captured up to the first period, so the sentence has to stay
+// one sentence: a period inside the enumeration — an abbreviation, a decimal
+// — truncates what the recount sees, and a count the gate never saw cannot
+// fail. Widening the match to the whole block would re-couple the gate to the
+// block's formatting instead; the constraint is stated here, where the shape
+// is chosen.
 /** The enumeration the matrix puts on the line after "not recalled:". */
 const COUNT_SENTENCE = /not recalled:\s*\n(?<list>[^.]*)\./;
 
@@ -113,7 +123,7 @@ export function checkDocClaims(
     const head = readFileSync(join(docsDir, entry.name), "utf8").split("\n", 5).join("\n");
     if (!head.includes("[documentation model](./README.md)")) {
       failures.push(
-        `doc-claims: ${DOCS_DIR}/${entry.name} opens without linking the documentation model — every architecture document names its role through ./README.md`,
+        `doc-claims: ${DOCS_DIR}/${entry.name} opens without linking the documentation model — every top-level architecture document names its role through ./README.md`,
       );
     }
   }
@@ -130,5 +140,7 @@ if (import.meta.url === `file://${process.argv[1] ?? ""}`) {
     console.error(`\n${String(failures.length)} stale doc claim(s). Fix before pushing.`);
     process.exit(1);
   }
-  console.log("doc claims match the tracked tree; every architecture document names its role.");
+  console.log(
+    "doc claims match the tracked tree; every top-level architecture document names its role.",
+  );
 }
