@@ -13,7 +13,7 @@
       "default": "./src/testing/attach-to-body.ts"
     }
   },
-  "dependencies": {
+  "peerDependencies": {
     "@lucide/vue": "^1.40.0"
   }
 }
