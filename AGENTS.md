@@ -74,8 +74,9 @@ Component evidence and the site-wide quality sweeps run through three
 different Playwright configs that share `playwright/profiles.ts`:
 
 - **Root** (`playwright.config.ts`) — the cross-cutting suite (`e2e/`: axe,
-  contrast, target-size, keyboard, focus-not-obscured, responsive) against the
-  **built** site. `pnpm e2e` is this, and it is what a prose change still needs.
+  contrast, target-size, keyboard, focus-not-obscured, motion, responsive)
+  against the **built** site. `pnpm e2e` is this, and it is what a prose change
+  still needs.
 - **Harness** (`playwright/harness/`) — mounts `docs/demos/<X>Demo.vue` via a
   Vite dev server in seconds. A component's `e2e/*.e2e.ts` runs here, so its
   browser evidence never pays for VitePress.

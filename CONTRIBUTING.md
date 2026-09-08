@@ -208,8 +208,8 @@ Component-owned E2E never pays for VitePress. Two Playwright configs share the
 browser profiles:
 
 - **Root** (`playwright.config.ts`) runs the cross-cutting suite — accessibility,
-  contrast, target-size, keyboard, focus-not-obscured, responsive — against the
-  **built** documentation site. `pnpm e2e` drives this.
+  contrast, target-size, keyboard, focus-not-obscured, motion, responsive —
+  against the **built** documentation site. `pnpm e2e` drives this.
 - **Harness** (`playwright/harness/playwright.config.ts`) mounts one demo per
   component through a Vite dev server in seconds. A component's `e2e/*.e2e.ts`
   runs against this when its `moon.yml` carries `tags: [e2e]`, so a small
