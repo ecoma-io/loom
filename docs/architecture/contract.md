@@ -340,10 +340,12 @@ directories and the named projects only), `tools/architecture/graph.ts`
 `LAYERS` map by its `satisfies` clause, so the two cannot drift), a boundary
 row in `module-boundaries.config.mjs` plus the mutation rows that prove it
 can redden, the `tsconfig.base.json` paths entry, the matching Vite alias —
-and the package's moon `deps:` **by hand**: `sync-moon-deps.ts` covers tier
-directories only, and nothing checks the fixed packages (`labels` declares
-`@ecoma-io/loom-core` in package.json while its moon.yml carries no `deps:`
-at all — drifted silently for exactly that reason).
+and the package's moon `deps:`, which need no hand entry:
+`sync-moon-deps.ts` derives them from the package.json exactly as it does for
+every tier package, because its walk is every directory under `packages/`
+that carries a package.json, fixed packages included. (`labels` once declared
+`@ecoma-io/loom-core` in package.json while its moon.yml carried no `deps:`
+at all — the sync's old tier-only scope is what let that drift.)
 
 Rules that do not bend:
 

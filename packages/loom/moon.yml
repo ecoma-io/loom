@@ -1,18 +1,13 @@
-tags: ["layer-facade"]
-project:
-  name: "loom"
-  description: "Public facade — re-exports from foundation and component packages"
-
 # The facade is the single source of truth for the published `@ecoma-io/loom`.
 # It re-exports every component package, so it depends on all of them — inside
 # moon, that means the facade's own tasks run only after each re-exported
-# package has built, linted and type-checked. `deps` here mirror the imports in
-# src/index.ts; a package added to the facade without a matching entry here
-# would silently drop out of the build graph.
+# package has built, linted and type-checked. The list is not hand-maintained:
+# tools/sync-moon-deps.ts derives it from the facade package.json's workspace
+# dependency entries, so a package added there joins the build graph or
+# `pnpm lint` fails on the drift — nothing drops out silently.
 deps:
-  - "core"
-  - "labels"
   - "accordion"
+  - "alert"
   - "alert-dialog"
   - "app-header"
   - "app-shell"
@@ -21,15 +16,23 @@ deps:
   - "badge"
   - "breadcrumb"
   - "button"
+  - "calendar"
+  - "card"
+  - "carousel"
   - "center"
   - "centered"
   - "checkbox"
   - "chip"
+  - "collapse"
   - "color-picker"
   - "combobox"
+  - "command"
   - "context-menu"
+  - "copy-button"
+  - "core"
   - "dashboard"
   - "dashboard-grid"
+  - "data-grid"
   - "date-picker"
   - "date-range-picker"
   - "date-time-picker"
@@ -41,6 +44,7 @@ deps:
   - "editable"
   - "empty-state"
   - "error-state"
+  - "error-summary"
   - "field"
   - "fieldset"
   - "file-upload"
@@ -54,11 +58,17 @@ deps:
   - "indicator"
   - "inline"
   - "inline-error"
+  - "kbd"
+  - "labels"
+  - "live-region"
   - "link"
+  - "list"
   - "loading-state"
   - "master-detail"
   - "menubar"
+  - "meter"
   - "metric-card"
+  - "navigation-menu"
   - "number-field"
   - "otp-input"
   - "page-header"
@@ -79,6 +89,7 @@ deps:
   - "sidebar"
   - "sidebar-nav"
   - "skeleton"
+  - "skip-link"
   - "slider"
   - "speed-dial"
   - "spinner"
@@ -88,17 +99,26 @@ deps:
   - "stepper"
   - "surface"
   - "switch"
+  - "table"
   - "tabs"
   - "tags-input"
-  - "textarea"
   - "text-field"
+  - "textarea"
   - "time-picker"
+  - "timeline"
   - "title-bar"
+  - "toggle-group"
   - "toast"
   - "toast-stack"
+  - "toolbar"
   - "tooltip"
+  - "tree-view"
+  - "visually-hidden"
   - "window-controls"
-
+tags: ["layer-facade"]
+project:
+  name: "loom"
+  description: "Public facade — re-exports from foundation and component packages"
 tasks:
   # `build` is the published library build — the one real, consumer-shaped
   # build in the repository, which is why the facade is the only component-tree

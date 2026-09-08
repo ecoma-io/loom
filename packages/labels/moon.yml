@@ -9,6 +9,8 @@
 # label type the library exports is reachable without an edge back into a
 # component package.
 
+deps:
+  - "core"
 tags: ["layer-labels"]
 project:
   name: "labels"
