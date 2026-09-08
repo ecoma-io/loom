@@ -1,0 +1,70 @@
+name: Triage
+
+# Dogfood enrollment (ecoma-io/action-agents docs/dogfood.md @ v0.11.2, issue
+# #261): triage phase 1 — no label sheet on disk, so the classification's only
+# destination is a comment and the run therefore writes nothing. Dry-run is
+# the posture, and the full decision plan lands in the machine-readable run
+# record uploaded below. The flip to live is a deliberate one-line step with
+# its own checklist, and the ref is the released exact tag — adopting a later
+# fix is a re-pin, never an accident of a moving tag.
+#
+# A fork's pull request carries neither org secret nor a write token, so the
+# run fails at startup (the required `api-url` input is empty) and writes
+# nothing — the action's documented fail-loudly posture, not an incident.
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+  pull_request:
+    types: [opened, edited, synchronize, ready_for_review, reopened, labeled]
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  # One run per thread: a rapid edit sequence replaces the queued run instead
+  # of stacking classifications of stale text.
+  group: triage-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # A job-level block replaces the workflow-level one, so a job added later
+    # inherits read-only instead of silently widening. `pull-requests: write`
+    # is load-bearing even though triage only writes labels — GitHub refuses
+    # the issues-API label write on a pull request number without it. No
+    # `security-events`, no `actions`: the action never touches them, and a
+    # workflow that grants more than its action needs is a defect before it
+    # runs.
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      # No checkout step: a target references the released action by ref, and
+      # triage reads everything through the API — one less thing in the
+      # workspace.
+      - uses: ecoma-io/action-agents/triage@v0.11.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
+          api-key: ${{ secrets.ECOMA_LLM_API_KEY }}
+          model: triage
+          dry-run: "true"
+
+      # The run record — a dry run's record is the run's whole output. Hidden
+      # by design, so `include-hidden-files: true` is load-bearing:
+      # upload-artifact prunes hidden files by default and the glob would
+      # match zero files while the step reports success. `if-no-files-found:
+      # warn` keeps a declared write that lands nowhere loud instead of green
+      # over nothing.
+      - name: Upload the run record
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: triage-run-record
+          path: .triage-record/triage-record-*.json
+          include-hidden-files: true
+          if-no-files-found: warn
