@@ -48,7 +48,10 @@ export default defineConfig({
       // Component package aliases. These are needed by Vitest so it can follow
       // imports without node_modules installation. The library build does not
       // use these paths (it starts from the loom entry and follows relative
-      // imports). Each component package alias is added as it migrates.
+      // imports). The list mirrors the internal packages that exist — it is
+      // not a migration queue, and the docs VitePress config deliberately
+      // carries none of it: there the facade's bare-specifier imports resolve
+      // through the packages/loom workspace links instead.
       "@ecoma-io/loom-hover-card": pkg("primitives/hover-card/src/index.ts"),
       "@ecoma-io/loom-progress": pkg("primitives/progress/src/index.ts"),
       "@ecoma-io/loom-radial-progress": pkg("primitives/radial-progress/src/index.ts"),
