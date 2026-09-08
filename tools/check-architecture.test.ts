@@ -252,6 +252,70 @@ describe("runChecks", () => {
     }
   });
 
+  it("keeps allowing the dotted spelling of the same proof imports", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The allowance is keyed on the resolved shape of the specifier, not on
+      // its prettiness: the same two proof files writing the adapter with its
+      // extension must stay blessed, or the widened grammar turns the real
+      // tree red the day someone names the file fully.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "layout.test.ts"),
+        'import { STACK_GAP_STEPS, stackLayout } from "./layout.ts";\n',
+      );
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "e2e", "conformance.cases.ts"),
+        'import { layout, stackLayout } from "../src/layout.ts";\n',
+      );
+      expect(runChecks(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a non-test file under an `e2e-extra/` sibling — the allow-list prefix is directory-bounded", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // `join(dir, "e2e", "")` dropped its empty segment, so the exemption
+      // prefix was `…/stack/e2e` and `e2e-extra/` rode the allow-list on a
+      // shared prefix. The separator is appended by hand now; this is the
+      // shape that got loud.
+      mkdirSync(join(root, "packages", "composition", "stack", "e2e-extra"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "e2e-extra", "case.ts"),
+        'import { layout } from "../src/layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout adapter"))).toBe(true);
+      expect(failures.some((f) => f.includes("e2e-extra/case.ts"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a foreign package's adapter import hiding in a .test.ts file — the allowance is the package's own adapter", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The allowance used to key on the filename alone, so any `.test.ts`
+      // under the package blessed any relative `…/src/layout` — including a
+      // sibling composition's, which is a cross-package reach with a test
+      // file's name as camouflage.
+      mkdirSync(join(root, "packages", "composition", "stack", "tests"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "tests", "foreign.test.ts"),
+        'import { layout } from "../inline/src/layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout adapter"))).toBe(true);
+      expect(failures.some((f) => f.includes("tests/foreign.test.ts"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("fails a pattern reaching a composition's adapter by relative path", () => {
     const root = makeRoot();
     try {
@@ -397,6 +461,25 @@ describe("runChecks", () => {
     }
   });
 
+  it("fails a dotted deep-specifier re-export of the adapter — the file's own name resolves identically", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The re-export rule's package form carried the same extensionless
+      // grammar as everything else, so `…/loom-stack/src/layout.ts` — the
+      // specifier a consumer writes when naming the file rather than the
+      // module — re-exported the adapter past every reader.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "index.ts"),
+        'export { layout } from "@ecoma-io/loom-stack/src/layout.ts";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("re-exports a layout adapter"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("fails a relative engine import — the spelling that needs no tsconfig entry", () => {
     const root = makeRoot();
     try {
@@ -406,6 +489,24 @@ describe("runChecks", () => {
       writeFileSync(
         join(root, "packages", "composition", "stack", "src", "Stack.vue"),
         'import { layout } from "../../layout-engine/src/index";\n<template><div /></template>\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout engine"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails an engine import whose subpath carries a file extension — …/src/pure.ts is still the engine", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The extensionless grammar the engine rule shared with checks 2 and 5
+      // stopped at the dot: `…/src/pure.ts` is how the file is actually named
+      // on disk, and it compiled unseen until the segments carried dots.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "Stack.vue"),
+        'import { pure } from "@ecoma-io/loom-layout-engine/src/pure.ts";\n<template><div /></template>\n',
       );
       const failures = runChecks(root);
       expect(failures.some((f) => f.includes("imports the layout engine"))).toBe(true);
@@ -518,6 +619,23 @@ describe("runChecks", () => {
     }
   });
 
+  it("says when a tags shape is unparsable instead of only claiming the tag is absent", () => {
+    const root = makeRoot();
+    try {
+      const buttonDir = join(root, "packages", "primitives", "button");
+      mkdirSync(join(buttonDir, "e2e"), { recursive: true });
+      writeFileSync(join(buttonDir, "e2e", "button.e2e.ts"), "export const case = 1;\n");
+      // A flow map carries `e2e` in its text; "tags omit `e2e`" on its own
+      // would read as nonsense to the author who wrote exactly that. The
+      // second clause names the real repair — reshape the key.
+      writeFileSync(join(buttonDir, "moon.yml"), "tags: {e2e: true}\n");
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("cannot parse"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("flags a facade *subpath* import — @ecoma-io/loom/theme is still the facade", () => {
     const root = makeRoot();
     try {
@@ -599,6 +717,24 @@ describe("runChecks", () => {
     }
   });
 
+  it("maps a *dotted* deep internal subpath through check 5's unknown-specifier report too", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import { theme } from "@ecoma-io/loom-core/src/theme.ts";\n',
+      );
+      const failures = runChecks(root);
+      // The same deep path spelled with the file's extension: before the
+      // specifier segments carried dots, this import compiled without any
+      // reader seeing it — no unknown-specifier report, no declared-dependency
+      // demand, nothing.
+      expect(failures.some((f) => f.includes("not a known internal package"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("reports a facade import exactly once — check 2 owns the edge, check 5 stays silent", () => {
     const root = makeRoot();
     try {
@@ -667,6 +803,31 @@ describe("runChecks", () => {
       // string cannot contain a line break, which is what finally separates
       // this prose from a real import.
       expect(failures).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not report a string literal quoting check 8's adapter and engine edges", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // Check 8's rows read the same statements checks 2 and 5 read, so they
+      // carried the same unanchored flaw: a module that *quotes* the forbidden
+      // spelling — an error message teaching the rule — reported as the edge
+      // it names. All three rows are statement-anchored now; this file quotes
+      // one shape per row and must stay clean.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "notes.ts"),
+        [
+          "const advice = [",
+          "  'import { layout } from \"./layout\" would ship engine bytes;',",
+          "  'export { layout } from \"../src/layout\" is the barrel chain;',",
+          "  'import { pure } from \"@ecoma-io/loom-layout-engine/src/pure.ts\" is worse;',",
+          '].join("\\n");',
+        ].join("\n") + "\n",
+      );
+      expect(runChecks(root)).toEqual([]);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
