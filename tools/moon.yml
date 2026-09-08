@@ -23,7 +23,8 @@ project:
 # future widened walk must be able to tell these edges from ones it may
 # regenerate.
 deps:
-  # preserved — stage-docs.ts imports docs/.vitepress/base.ts; no specifier moon can see
+  # preserved — stage-docs.ts imports docs/.vitepress/base.ts and
+  # check-doc-claims.ts reads docs/architecture/*.md; no specifier moon can see
   - "docs"
   # preserved — e2e-plan.ts imports playwright/profiles.ts; no specifier moon can see
   - "playwright"
