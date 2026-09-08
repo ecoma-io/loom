@@ -220,6 +220,26 @@ jobs:
       - name: Check api parity
         run: node --experimental-strip-types tools/check-api-parity.ts
 
+      # Three more gates from the lint script, and the reason they get their
+      # own steps rather than relying on the script: `check-template-artifacts.ts`
+      # (the template contract's five-artifact pairing),
+      # `check-manifest-privacy.ts` (the 2D one-public-package gate) and
+      # `check-skills.ts` (the vendored-skill parity check) run only inside
+      # root `pnpm lint`, and the verify job's ESLint path is the affected
+      # moon tasks, which never chain the root script — so without a step
+      # each was a gate no pull request ever executed. check-skills is the
+      # third member of that lint-only class: its own vitest file runs only
+      # on a tools/** change, so a hand-edited or drifted-mirrored skill
+      # directory reached no pull-request leg at all.
+      - name: Check template artifacts
+        run: node tools/check-template-artifacts.ts
+
+      - name: Check manifest privacy
+        run: node tools/check-manifest-privacy.ts
+
+      - name: Check skills
+        run: node tools/check-skills.ts
+
       # The third architecture gate, and the one that judges resolved imports
       # rather than specifier text. `archkeep check` reads the Moon project
       # graph, resolves every `.ts`/`.vue` specifier through
@@ -1003,7 +1023,7 @@ jobs:
       # names more, and `${{ matrix.specs }}` from `join` is the set of harness
       # paths a component leg runs — the affected components' e2e dirs plus the
       # harness axe gate, empty for a root leg, whose config's `testMatch`
-      # scopes it to the six crossing specs. The same projects feed
+      # scopes it to the whole cross-cutting suite. The same projects feed
       # `matrix.demos`, which becomes `HARNESS_DEMOS` so the axe gate sweeps
       # exactly the demos the leg's component specs drive.
       # One step times the actual Playwright run: `SECONDS` counts from its own

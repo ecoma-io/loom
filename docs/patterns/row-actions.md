@@ -17,6 +17,9 @@ import rowActionsDemoSource from "../demos/RowActionsDemo.vue?raw";
 The row element must carry Tailwind's `group` class — the reveal is scoped
 to that group, so other rows stay quiet.
 
+The action icons come from `@lucide/vue` — declare it in your own project
+when copying a snippet; see [Iconography](../foundations/iconography.md).
+
 ```vue
 <script setup lang="ts">
 import { RowActions, Button } from "@ecoma-io/loom";

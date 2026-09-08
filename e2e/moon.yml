@@ -15,23 +15,26 @@ project:
 
 tasks:
   e2e:
-    # The cross-cutting suite lives here, not under a package — so each root
-    # spec is named explicitly to avoid the `packages/**/e2e` shadow. A bare
-    # `e2e/` substring would also match every component-owned spec.
-    # The shared e2e task's command drives the component harness; this project
-    # drives the built docs site instead, so the command is overridden here.
+    # What this suite runs is the config's own collection, not a list here:
+    # playwright.config.ts's `testMatch` (`e2e/**/*.e2e.ts`) gathers the whole
+    # cross-cutting suite, and its `testIgnore` (`packages/**`) is what keeps
+    # the component-owned specs out. Naming specs positionally forked that
+    # collection and stranded whatever the copy missed — reduced-motion.e2e.ts
+    # ran only through the config, never through this task.
+    # `mergeArgs: replace` is what makes the config's collection the only
+    # input. Moon APPENDS an inherited task's args by default, so a local
+    # `command:` replaces only the command — the resolved vector still carried
+    # the shared harness's args (`$projectRoot/e2e`, the harness axe gate)
+    # ahead of this suite's own `--config`, and `playwright` treated the
+    # leftover positions as filters no root spec matches. Six hand-listed
+    # specs used to sit in front of the mangle and mask it. With the replace,
+    # the resolved vector is exactly `test --config playwright.config.ts`.
     # `runInCI: skip`: the dedicated e2e matrix job owns this suite (profile
     # and shard count decided per change by tools/e2e-plan.ts); moon ci in the
     # verify job must not run a second copy on top.
     command: "playwright test --config playwright.config.ts"
     options:
+      mergeArgs: replace
       runInCI: skip
-    args:
-      - "e2e/accessibility.e2e.ts"
-      - "e2e/contrast.e2e.ts"
-      - "e2e/focus-not-obscured.e2e.ts"
-      - "e2e/keyboard.e2e.ts"
-      - "e2e/layout-responsive.e2e.ts"
-      - "e2e/target-size.e2e.ts"
     env:
       PW_PROFILE: "standard"

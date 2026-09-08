@@ -14,6 +14,9 @@ import metricCardDemoSource from "../demos/MetricCardDemo.vue?raw";
 
 ## Usage
 
+The trend icon comes from `@lucide/vue` — declare it in your own project
+when copying a snippet; see [Iconography](../foundations/iconography.md).
+
 ```vue
 <script setup lang="ts">
 import { MetricCard } from "@ecoma-io/loom";

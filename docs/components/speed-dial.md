@@ -16,6 +16,10 @@ toolbar or a table row and the commands read as a list, and for
 [Button](./button.md) when there is one action and no menu at all. A SpeedDial
 that has grown past four or five actions has become a menu and should be one.
 
+The snippets on this page import `@lucide/vue` for their icons — declare it
+in your own project when copying one; see
+[Iconography](../foundations/iconography.md).
+
 <script setup lang="ts">
 import { SpeedDial } from "@ecoma-io/loom";
 import { FilePlus, Upload, UserPlus } from "@lucide/vue";

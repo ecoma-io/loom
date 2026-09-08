@@ -17,6 +17,9 @@ import toolbarDemoSource from "../demos/ToolbarDemo.vue?raw";
 
 ## Usage
 
+The icons in this snippet come from `@lucide/vue` — declare it in your own
+project when copying one; see [Iconography](../foundations/iconography.md).
+
 ```vue
 <script setup lang="ts">
 import { IconButton, Select, Toolbar, ToolbarSeparator } from "@ecoma-io/loom";

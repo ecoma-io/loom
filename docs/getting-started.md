@@ -20,6 +20,11 @@ only walks the line between them.
 pnpm add @ecoma-io/loom
 ```
 
+The install alone is enough for the components — but their icons resolve
+from `@lucide/vue`, which arrives only transitively and is not importable
+under a strict layout; [Iconography](/foundations/iconography) says when to
+declare it yourself.
+
 ## Import the styles
 
 ```css

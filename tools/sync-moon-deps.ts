@@ -9,11 +9,18 @@
  *
  * The rule is intentionally simple so the architecture stays enforceable: for
  * every package under `packages/`, the Moon `deps:` of its project must be
- * exactly the set of `@ecoma-io/loom-*` workspace dependencies declared in its
- * package.json, minus the package's own specifier (a package depending on
- * itself is a pnpm workspaces quirk, not a graph edge). Each specifier maps to
- * a Moon project id by stripping the `@ecoma-io/loom-` prefix — which is valid
- * because every component package's directory name matches its project id.
+ * exactly the set of `@ecoma-io/loom-*` workspace dependencies — `dependencies`
+ * and `devDependencies` alike — declared in its package.json, minus the
+ * package's own specifier (a package depending on itself is a pnpm workspaces
+ * quirk, not a graph edge). DevDependencies count because a test-only import
+ * is still an affected-closure edge: tags-input's tests import field through
+ * `devDependencies`, and without the edge a field change would leave those
+ * tests silently skippable. Each specifier maps to a Moon project id by
+ * stripping the `@ecoma-io/loom-` prefix — which is valid because every
+ * package's directory name matches its project id. The facade is the one
+ * apparent exception: its project id is `loom` while its package name is
+ * `@ecoma-io/loom-facade`, but nothing depends on the facade (it is the
+ * private aggregator), so no edge ever has to be written to it.
  *
  * Run `node tools/sync-moon-deps.ts` to rewrite the moon.yml files in place;
  * run it with `--check` to exit non-zero on drift (wired into `pnpm lint` via
@@ -21,15 +28,15 @@
  *
  * A package may declare extra edges that are not package.json dependencies —
  * e.g. a representative component that owns theme-sensitive evidence and must
- * therefore become affected when the tokens change. Those are hand-declared
- * in `packages/<tier>/<name>/moon.yml` under a `deps` block prefixed with the
- * `# preserved` marker; this tool keeps them.
+ * therefore become affected when the tokens change. Those are hand-declared in
+ * the package's own `moon.yml` — a tier child's or a fixed top-level package's
+ * alike — under a `deps` block prefixed with the `# preserved` marker; this
+ * tool keeps them.
  */
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
-const TIERS = ["primitives", "composition", "patterns", "layouts"];
 
 interface PackageInfo {
   dir: string;
@@ -39,27 +46,56 @@ interface PackageInfo {
   deps: string[]; // cross-package Moon project ids from package.json
 }
 
+function readPackage(dir: string, relDir: string): PackageInfo | null {
+  const pkgJsonPath = join(dir, "package.json");
+  let pkgJson: Record<string, unknown>;
+  try {
+    pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8")) as Record<string, unknown>;
+  } catch {
+    // The walk covers this workspace's package directories; a manifest that
+    // does not parse is not one of them, and a directory with no readable
+    // manifest must not become a derived edge.
+    return null;
+  }
+  const spec = pkgJson.name as string;
+  // Same on names: anything outside the `@ecoma-io/loom-` scope is not a
+  // package this workspace graph reasons about, so it is skipped rather than
+  // handed to moon as a would-be project id.
+  if (!spec.startsWith("@ecoma-io/loom-")) return null;
+  const selfId = spec.slice("@ecoma-io/loom-".length);
+  // Both dependency blocks derive edges, under the same workspace filter
+  // below: a test-only import is still an affected-closure edge, so a
+  // devDependency on a sibling must mark this package affected too.
+  const depSpecs = {
+    ...((pkgJson.dependencies ?? {}) as Record<string, string>),
+    ...((pkgJson.devDependencies ?? {}) as Record<string, string>),
+  };
+  const deps = Object.keys(depSpecs)
+    .filter((d) => d.startsWith("@ecoma-io/loom-"))
+    .map((d) => d.slice("@ecoma-io/loom-".length))
+    .filter((id) => id !== selfId);
+  return { dir, relDir, spec, selfId, deps };
+}
+
+/** Every Loom package: a `packages/` directory that is one, plus each child of one that is a tier. */
 function loadPackages(): PackageInfo[] {
   const packages: PackageInfo[] = [];
-  for (const tier of TIERS) {
-    for (const name of readdirSync(join(ROOT, "packages", tier))) {
-      const dir = join(ROOT, "packages", tier, name);
-      const pkgJsonPath = join(dir, "package.json");
-      let pkgJson: Record<string, unknown>;
-      try {
-        pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8")) as Record<string, unknown>;
-      } catch {
-        continue; // not a package directory
-      }
-      const spec = pkgJson.name as string;
-      if (!spec.startsWith("@ecoma-io/loom-")) continue;
-      const selfId = spec.slice("@ecoma-io/loom-".length);
-      const depSpecs = (pkgJson.dependencies ?? {}) as Record<string, string>;
-      const deps = Object.keys(depSpecs)
-        .filter((d) => d.startsWith("@ecoma-io/loom-"))
-        .map((d) => d.slice("@ecoma-io/loom-".length))
-        .filter((id) => id !== selfId);
-      packages.push({ dir, relDir: `packages/${tier}/${name}`, spec, selfId, deps });
+  for (const entry of readdirSync(join(ROOT, "packages"), { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const top = join(ROOT, "packages", entry.name);
+    // Two shapes live under packages/: a fixed package that is the whole
+    // directory (core, labels, layout-engine, theme-core, loom) and a tier of
+    // component packages, one per child directory. The scope is structural —
+    // a directory carrying a package.json is a package — so a package added
+    // outside the four tier names is still derived, not silently hand-held.
+    if (existsSync(join(top, "package.json"))) {
+      const pkg = readPackage(top, `packages/${entry.name}`);
+      if (pkg) packages.push(pkg);
+      continue;
+    }
+    for (const name of readdirSync(top)) {
+      const pkg = readPackage(join(top, name), `packages/${entry.name}/${name}`);
+      if (pkg) packages.push(pkg);
     }
   }
   return packages;
@@ -138,8 +174,12 @@ function writeDeps(moonPath: string, deps: string[], preserved: string[]): void 
   const depsBlock =
     deps.length || preserved.length ? `deps:\n${generatedBlock}${preservedBlock}` : "";
   if (/^deps:$/m.test(text)) {
-    // Replace an existing deps block (its own lines) but keep the keys after it.
-    const withoutDeps = text.replace(/^deps:\n(?:^ {2}- .*\n?|^ {2}# preserved\n?)+/m, "");
+    // Replace an existing deps block (its own lines) but keep the keys after
+    // it. A preserved line may carry trailing prose (`# preserved — why this
+    // edge exists`), which is a legal form of the marker, so the marker arm
+    // consumes the whole line: matching the bare marker would stop mid-line
+    // and orphan the prose — invalid YAML — above the rewritten block.
+    const withoutDeps = text.replace(/^deps:\n(?:^ {2}- .*\n?|^ {2}# preserved[^\n]*\n?)+/m, "");
     writeFileSync(
       moonPath,
       withoutDeps.replace(/(?=^tags:|^project:|^tasks:|^inheritedBy:)/m, depsBlock),

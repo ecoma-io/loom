@@ -13,6 +13,23 @@ project:
   name: "tools"
   description: "Repository tooling — architecture checker, component artifacts, moon-deps sync"
 
+# Three real cross-project reads that no package.json can express, because this
+# project has none: the edges below are hand-declared under `# preserved`
+# markers so an edit to any of the three files marks `tools` affected and
+# re-runs the architecture-rule tests, instead of the change silently skipping
+# them. tools/sync-moon-deps.ts never walks this file — it derives only from
+# packages/ manifests — and the markers are still required here: every
+# moon.yml that hand-declares an edge carries the same marker shape, and a
+# future widened walk must be able to tell these edges from ones it may
+# regenerate.
+deps:
+  # preserved — stage-docs.ts imports docs/.vitepress/base.ts; no specifier moon can see
+  - "docs"
+  # preserved — e2e-plan.ts imports playwright/profiles.ts; no specifier moon can see
+  - "playwright"
+  # preserved — e2e-plan.ts imports e2e/docs-pages.ts; no specifier moon can see
+  - "e2e"
+
 tasks:
   # Inherit lint and test from .moon/tasks/*.yml. The shared test task's
   # `"$projectRoot"` filter selects this project's own test files
