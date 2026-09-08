@@ -1,0 +1,12 @@
+{
+  "role": "visual-only",
+  "basis": "renders an aria-hidden <div> — a pure visual placeholder with nothing in the accessibility tree.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SkeletonDemo.vue",
+      "packages/primitives/skeleton/tests/Skeleton.test.ts"
+    ],
+    "harness": [],
+    "sweep": []
+  }
+}

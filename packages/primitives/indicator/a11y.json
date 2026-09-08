@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "a presence marker: the glyph or count is aria-hidden and the signal is an sr-only <span> tied to the marked element by aria-describedby — no role of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/IndicatorDemo.vue",
+      "packages/primitives/indicator/tests/Indicator.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/indicator.md"]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "role": "navigation",
+  "basis": "renders a native <nav aria-label> over <ul>/<li> of <a> items with aria-current=\"page\" — the navigation landmark is the contract.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SidebarNavDemo.vue",
+      "packages/patterns/sidebar-nav/tests/SidebarNav.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/sidebar-nav.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

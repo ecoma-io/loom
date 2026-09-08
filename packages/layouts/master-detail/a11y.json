@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "bare <div> master/detail geometry — no role of its own; the panes' semantics belong to their content.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/MasterDetailDemo.vue",
+      "packages/layouts/master-detail/tests/MasterDetail.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/layouts/master-detail.md"]
+  }
+}

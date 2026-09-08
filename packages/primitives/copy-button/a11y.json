@@ -1,0 +1,18 @@
+{
+  "role": "button",
+  "basis": "renders an IconButton — a native <button> named by its label; clipboard state is announced outside the button's own semantics.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/CopyButtonDemo.vue",
+      "packages/primitives/copy-button/tests/CopyButton.test.ts"
+    ],
+    "harness": ["packages/primitives/copy-button/e2e/copy-button-clipboard.e2e.ts"],
+    "sweep": ["docs/components/copy-button.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

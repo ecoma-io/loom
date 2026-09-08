@@ -1,0 +1,12 @@
+{
+  "role": "separator",
+  "basis": "Reka Separator renders role=\"separator\" — native <hr> semantics on the element it renders.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SeparatorDemo.vue",
+      "packages/primitives/separator/tests/Separator.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/separator.md"]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "a <div> shell with a <header> slot — the shell asserts no role of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/FormLayoutDemo.vue",
+      "packages/layouts/form-layout/tests/FormLayout.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/layouts/form-layout.md"]
+  }
+}

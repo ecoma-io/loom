@@ -1,0 +1,14 @@
+{
+  "role": "alert",
+  "basis": "Reka's ToastAnnounce wraps each toast in role=\"alert\" (aria-live assertive for foreground, polite for background — verified in the reka-ui dist), with a labelled close <button>.",
+  "evidence": {
+    "browserless": ["docs/demos/ToastDemo.vue", "packages/primitives/toast/tests/Toast.test.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/toast/e2e/toast.e2e.ts",
+        "because": "toast.e2e.ts proves dismissal unmounting and the queue cap — interaction evidence beyond the alert row, kept as the component's own proof"
+      }
+    ],
+    "sweep": ["docs/components/toast.md"]
+  }
+}

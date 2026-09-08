@@ -1,0 +1,18 @@
+{
+  "role": "button",
+  "basis": "Reka CollapsibleTrigger renders <button aria-expanded aria-controls>; the revealed panel asserts no role.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/CollapseDemo.vue",
+      "packages/primitives/collapse/tests/Collapse.test.ts"
+    ],
+    "harness": ["packages/primitives/collapse/e2e/collapse.e2e.ts"],
+    "sweep": ["docs/components/collapse.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "role": "list",
+  "basis": "renders an explicit role=\"list\" whose members are role=\"listitem\" spans each carrying an sr-only member name, the overflow counter a further listitem.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/AvatarGroupDemo.vue",
+      "packages/primitives/avatar-group/tests/AvatarGroup.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/avatar-group.md"]
+  }
+}

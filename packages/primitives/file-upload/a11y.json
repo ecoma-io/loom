@@ -1,0 +1,18 @@
+{
+  "role": "textbox",
+  "basis": "renders a native <input type=\"file\"> (HTML-AAM: textbox) named by the wrapping <label>, a polite aria-live region for refusals, and a list of files with labelled remove <button>s.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/FileUploadDemo.vue",
+      "packages/primitives/file-upload/tests/FileUpload.test.ts"
+    ],
+    "harness": ["packages/primitives/file-upload/e2e/file-upload.e2e.ts"],
+    "sweep": ["docs/components/file-upload.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

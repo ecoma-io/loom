@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "a <div> shell with native <header>/<footer> landmark slots — the shell asserts no role of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/CenteredDemo.vue",
+      "packages/layouts/centered/tests/Centered.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/layouts/centered.md"]
+  }
+}

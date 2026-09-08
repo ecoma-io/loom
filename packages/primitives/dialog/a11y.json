@@ -1,0 +1,14 @@
+{
+  "role": "dialog",
+  "basis": "Reka DialogContent renders role=\"dialog\" (verified in the reka-ui dist), named by DialogTitle, with an aria-labelled close <button>.",
+  "evidence": {
+    "browserless": ["docs/demos/DialogDemo.vue", "packages/primitives/dialog/tests/Dialog.test.ts"],
+    "harness": ["packages/primitives/dialog/e2e/dialog-keyboard.e2e.ts"],
+    "sweep": [
+      {
+        "path": "docs/components/dialog.md",
+        "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) sweeps this page — one of the three pages the suite covers today."
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "role": "group",
+  "basis": "Reka StepperRoot renders role=\"group\" of step triggers inside a role=\"status\" live wrapper announcing the current step; steps carry aria-current.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/StepperDemo.vue",
+      "packages/primitives/stepper/tests/Stepper.test.ts"
+    ],
+    "harness": ["packages/primitives/stepper/e2e/stepper.e2e.ts"],
+    "sweep": ["docs/components/stepper.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

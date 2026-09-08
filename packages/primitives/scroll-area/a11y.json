@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "Reka ScrollArea parts render an unroled viewport and scrollbar — the component's obligation is scrollable-region-focusable, a browser-tier rule the sweep judges.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ScrollAreaDemo.vue",
+      "packages/primitives/scroll-area/tests/ScrollArea.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/scroll-area.md"]
+  }
+}

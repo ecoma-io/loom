@@ -1,0 +1,15 @@
+{
+  "role": "radiogroup",
+  "basis": "Reka RatingRoot renders role=\"radiogroup\" of <button role=\"radio\"> stars; the painted glyph layer is role=\"img\" aria-hidden — the widgets carry the contract.",
+  "evidence": {
+    "browserless": ["docs/demos/RatingDemo.vue", "packages/primitives/rating/tests/Rating.test.ts"],
+    "harness": ["packages/primitives/rating/e2e/rating.e2e.ts"],
+    "sweep": ["docs/components/rating.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

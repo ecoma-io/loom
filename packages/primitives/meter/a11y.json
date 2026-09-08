@@ -1,0 +1,9 @@
+{
+  "role": "meter",
+  "basis": "renders role=\"meter\" with aria-valuenow/-min/-max and its name via aria-labelledby or aria-label (Meter.vue).",
+  "evidence": {
+    "browserless": ["docs/demos/MeterDemo.vue", "packages/primitives/meter/tests/Meter.test.ts"],
+    "harness": [],
+    "sweep": ["docs/components/meter.md"]
+  }
+}

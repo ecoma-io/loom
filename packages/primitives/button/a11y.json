@@ -1,0 +1,14 @@
+{
+  "role": "button",
+  "basis": "renders a native <button> (implicit role button); while busy it swaps in a subordinate role=\"status\" live region.",
+  "evidence": {
+    "browserless": ["docs/demos/ButtonDemo.vue", "packages/primitives/button/tests/Button.test.ts"],
+    "harness": ["packages/primitives/button/e2e/button.e2e.ts"],
+    "sweep": [
+      {
+        "path": "docs/components/button.md",
+        "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) sweeps this page — one of the three pages the suite covers today."
+      }
+    ]
+  }
+}

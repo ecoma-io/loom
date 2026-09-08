@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders an unroled clipping wrapper — the contract is presentation (screen-reader-only), never semantics of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/VisuallyHiddenDemo.vue",
+      "packages/primitives/visually-hidden/tests/VisuallyHidden.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/visually-hidden.md"]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> — split geometry only, no semantics of its own.",
+  "evidence": {
+    "browserless": ["docs/demos/SplitDemo.vue", "packages/composition/split/tests/Split.test.ts"],
+    "harness": [
+      {
+        "path": "packages/composition/split/e2e/split.e2e.ts",
+        "because": "split.e2e.ts proves the collapsed/wide pane behaviour — layout evidence beyond the none row, kept as the composition's own proof"
+      }
+    ],
+    "sweep": ["docs/composition/split.md"]
+  }
+}

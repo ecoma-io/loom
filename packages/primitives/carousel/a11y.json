@@ -1,0 +1,18 @@
+{
+  "role": "region",
+  "basis": "renders role=\"region\" aria-roledescription=\"carousel\" holding role=\"group\" slides (aria-roledescription=\"slide\") between labelled prev/next <button>s.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/CarouselDemo.vue",
+      "packages/primitives/carousel/tests/Carousel.test.ts"
+    ],
+    "harness": ["packages/primitives/carousel/e2e/carousel.e2e.ts"],
+    "sweep": ["docs/components/carousel.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

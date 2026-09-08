@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders a native <header> wrapping the Menubar and WindowControls patterns — the landmark is the contract and the controls' roles are their own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/TitleBarDemo.vue",
+      "packages/patterns/title-bar/tests/TitleBar.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/title-bar.md"]
+  }
+}

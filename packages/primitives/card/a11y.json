@@ -1,0 +1,14 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> of flow content at rest; the interactive variant becomes one spanning anchor (card.e2e.ts pins it) — the div asserts no role.",
+  "evidence": {
+    "browserless": ["docs/demos/CardDemo.vue", "packages/primitives/card/tests/Card.test.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/card/e2e/card.e2e.ts",
+        "because": "card.e2e.ts proves the interactive card-link variant — keyboard-focus evidence beyond the none row, kept as the component's own proof"
+      }
+    ],
+    "sweep": ["docs/components/card.md"]
+  }
+}

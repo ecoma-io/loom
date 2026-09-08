@@ -1,0 +1,22 @@
+{
+  "role": "searchbox",
+  "basis": "renders input role=\"searchbox\" with aria-autocomplete=\"list\" and aria-activedescendant over a role=\"listbox\", plus a role=\"status\" span announcing the result count.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/CommandDemo.vue",
+      "packages/primitives/command/tests/Command.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/command.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

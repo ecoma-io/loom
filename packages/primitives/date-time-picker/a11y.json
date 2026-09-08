@@ -1,0 +1,18 @@
+{
+  "role": "group",
+  "basis": "Reka DatePickerField renders role=\"group\" of date and time segments (role=\"spinbutton\" each); the popup carries the calendar grid.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/DateTimePickerDemo.vue",
+      "packages/primitives/date-time-picker/tests/DateTimePicker.test.ts"
+    ],
+    "harness": ["packages/primitives/date-time-picker/e2e/date-time-picker.e2e.ts"],
+    "sweep": ["docs/components/date-time-picker.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "a <header> slot over split geometry — the shell asserts no role of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SplitLayoutDemo.vue",
+      "packages/layouts/split-layout/tests/SplitLayout.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/layouts/split-layout.md"]
+  }
+}

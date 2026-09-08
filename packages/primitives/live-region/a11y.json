@@ -1,0 +1,12 @@
+{
+  "role": "status",
+  "basis": "renders a visually-hidden div asserting aria-live/aria-relevant/aria-atomic directly — the announcement contract by attribute, polite by default, which is the status shape.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/LiveRegionDemo.vue",
+      "packages/primitives/live-region/tests/LiveRegion.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/live-region.md"]
+  }
+}

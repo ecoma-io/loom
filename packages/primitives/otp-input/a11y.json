@@ -1,0 +1,22 @@
+{
+  "role": "group",
+  "basis": "PinInputRoot carries an explicit role=\"group\" named by label/labelledby, wrapping one-character text inputs (implicit textbox each).",
+  "evidence": {
+    "browserless": [
+      "docs/demos/OtpInputDemo.vue",
+      "packages/primitives/otp-input/tests/OtpInput.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/otp-input.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

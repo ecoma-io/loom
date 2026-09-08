@@ -1,0 +1,18 @@
+{
+  "role": "radiogroup",
+  "basis": "Reka RadioGroupRoot renders role=\"radiogroup\" of <button role=\"radio\" aria-checked> items.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/RadioGroupDemo.vue",
+      "packages/primitives/radio-group/tests/RadioGroup.test.ts"
+    ],
+    "harness": ["packages/primitives/radio-group/e2e/radio-group-keyboard.e2e.ts"],
+    "sweep": ["docs/components/radio-group.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "role": "region",
+  "basis": "renders Reka's role=\"region\" toast viewport holding each toast's role=\"alert\" announce region — the stack's contract is the announcements.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ToastStackDemo.vue",
+      "packages/patterns/toast-stack/tests/ToastStack.test.ts"
+    ],
+    "harness": ["packages/patterns/toast-stack/e2e/toast-stack.e2e.ts"],
+    "sweep": ["docs/patterns/toast-stack.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

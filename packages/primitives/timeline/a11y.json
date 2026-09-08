@@ -1,0 +1,17 @@
+{
+  "role": "list",
+  "basis": "renders an explicit role=\"list\" of role=\"listitem\" entries on a div — the roles are the semantics, because the docs site's unlayered ol rules beat every utility.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/TimelineDemo.vue",
+      "packages/primitives/timeline/tests/Timeline.test.ts"
+    ],
+    "harness": [
+      {
+        "path": "packages/primitives/timeline/e2e/timeline.e2e.ts",
+        "because": "timeline.e2e.ts pins the connector rendering — rendering evidence beyond the list row's browserless obligations, kept as the component's own proof"
+      }
+    ],
+    "sweep": ["docs/components/timeline.md"]
+  }
+}

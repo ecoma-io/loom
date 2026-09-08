@@ -1,0 +1,18 @@
+{
+  "role": "navigation",
+  "basis": "Reka PaginationRoot renders <nav aria-label> of labelled page controls with aria-current=\"page\" on the present page.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/PaginationDemo.vue",
+      "packages/primitives/pagination/tests/Pagination.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/pagination.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

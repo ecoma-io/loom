@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "Reka HoverCardContent renders an unroled container (verified in the reka-ui dist); the trigger is the slotted control's own semantics.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/HoverCardDemo.vue",
+      "packages/primitives/hover-card/tests/HoverCard.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/hover-card.md"]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> of slotted action controls — no role asserted.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/FormActionsDemo.vue",
+      "packages/patterns/form-actions/tests/FormActions.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/form-actions.md"]
+  }
+}

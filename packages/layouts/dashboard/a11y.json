@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders <header>/<aside> landmarks in a grid shell — the shell asserts no role of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/DashboardDemo.vue",
+      "packages/layouts/dashboard/tests/Dashboard.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/layouts/dashboard.md"]
+  }
+}

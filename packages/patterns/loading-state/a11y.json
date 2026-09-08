@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders Spinner and Skeleton over copy — no role asserted; the announcement is the Spinner's own role=\"status\".",
+  "evidence": {
+    "browserless": [
+      "docs/demos/LoadingStateDemo.vue",
+      "packages/patterns/loading-state/tests/LoadingState.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/loading-state.md"]
+  }
+}

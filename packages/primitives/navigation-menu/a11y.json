@@ -1,0 +1,18 @@
+{
+  "role": "navigation",
+  "basis": "renders a native <nav aria-label> wrapping Reka NavigationMenuRoot/NavigationMenuList — the navigation landmark is the contract; triggers and links come from the slot.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/NavigationMenuDemo.vue",
+      "packages/primitives/navigation-menu/tests/NavigationMenu.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/navigation-menu.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

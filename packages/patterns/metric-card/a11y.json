@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders flow content carrying aria-busy while its value loads — no role asserted.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/MetricCardDemo.vue",
+      "packages/patterns/metric-card/tests/MetricCard.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/metric-card.md"]
+  }
+}

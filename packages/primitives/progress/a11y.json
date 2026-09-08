@@ -1,0 +1,12 @@
+{
+  "role": "progressbar",
+  "basis": "Reka ProgressRoot renders role=\"progressbar\" with aria-valuenow when determinate.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ProgressDemo.vue",
+      "packages/primitives/progress/tests/Progress.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/progress.md"]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "role": "combobox",
+  "basis": "Reka ComboboxInput carries the combobox pattern's labelled input (aria-autocomplete) over a role=\"listbox\" of role=\"option\" items.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ComboboxDemo.vue",
+      "packages/primitives/combobox/tests/Combobox.test.ts"
+    ],
+    "harness": ["packages/primitives/combobox/e2e/combobox.e2e.ts"],
+    "sweep": ["docs/components/combobox.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

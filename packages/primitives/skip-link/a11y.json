@@ -1,0 +1,18 @@
+{
+  "role": "link",
+  "basis": "renders a native <a href=\"#…\">, the page's first focusable element — the link role is the contract.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SkipLinkDemo.vue",
+      "packages/primitives/skip-link/tests/SkipLink.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/skip-link.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "role": "tablist",
+  "basis": "Reka tabs parts render role=\"tablist\" of role=\"tab\" triggers with aria-selected over role=\"tabpanel\" content.",
+  "evidence": {
+    "browserless": ["docs/demos/TabsDemo.vue", "packages/primitives/tabs/tests/Tabs.test.ts"],
+    "harness": ["packages/primitives/tabs/e2e/tabs-keyboard.e2e.ts"],
+    "sweep": ["docs/components/tabs.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}
