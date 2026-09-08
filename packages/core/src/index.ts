@@ -23,6 +23,26 @@ export {
 // The WCAG scope the library holds itself to.
 export { WCAG_TAGS, BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "./a11y-scope";
 
+// The role-aware evidence contract the scope is answered per component —
+// exported for the same reason the partition is: the narrow a11y entry is the
+// one import a non-Vue consumer can afford.
+export {
+  A11Y_EVIDENCE_TIERS,
+  A11Y_EVIDENCE_REQUIREMENTS,
+  A11Y_EVIDENCE_MATRIX,
+  ARIA_ROLES,
+  NON_ROLE_MEMBERS,
+  A11Y_ROLES,
+} from "./a11y-contract";
+export type {
+  A11yContract,
+  A11yRole,
+  AriaRole,
+  A11yEvidenceTier,
+  A11yRequirementId,
+  A11yEvidenceEntry,
+} from "./a11y-contract";
+
 // Theme switching (also re-exported from the public @ecoma-io/loom entry).
 export { useTheme, themeScript } from "./theme";
 export type { ThemePreference, ResolvedTheme } from "./theme";
