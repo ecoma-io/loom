@@ -2,7 +2,7 @@
 
 The shape of "something went wrong": icon → title → optional description →
 optional retry action, centered in the region. This is EmptyState's mirror:
-where that block says "nothing here yet" and invites the next step, this one
+where that pattern says "nothing here yet" and invites the next step, this one
 says "something broke" and offers a retry. That fixed shape is the decision
 that makes this a pattern — an error region should name the problem and offer
 exactly one way forward, and a hand-rolled version drifts call site to call

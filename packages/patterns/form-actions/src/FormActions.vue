@@ -5,7 +5,7 @@
  * same action alignment: primary action right, cancel left, separated from the
  * form content by a top border.
  *
- * The block exists because "submit right, cancel left" is a layout decision
+ * The pattern exists because "submit right, cancel left" is a layout decision
  * repeated in every form, and getting the spacing and alignment wrong is easy.
  * It owns the geometry; the host owns the button text and behavior.
  *
