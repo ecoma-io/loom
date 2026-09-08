@@ -95,6 +95,19 @@ function writeEngineFixture(root: string): void {
   );
   writeFileSync(join(stackDir, "src", "index.ts"), 'export { default } from "./Stack.vue";\n');
   writeFileSync(join(stackDir, "src", "Stack.vue"), "<template><div /></template>\n");
+  // The adapter being proved, exactly as the real tree carries it: its
+  // co-located unit test and its e2e conformance case import it relatively.
+  // These are rule (d)'s allowance, and their presence here is what makes the
+  // green case below prove the allowance rather than assume it.
+  writeFileSync(
+    join(stackDir, "src", "layout.test.ts"),
+    'import { STACK_GAP_STEPS, stackLayout } from "./layout";\n',
+  );
+  mkdirSync(join(stackDir, "e2e"), { recursive: true });
+  writeFileSync(
+    join(stackDir, "e2e", "conformance.cases.ts"),
+    'import { layout, stackLayout } from "../src/layout";\n',
+  );
 }
 
 describe("runChecks", () => {
@@ -200,6 +213,95 @@ describe("runChecks", () => {
       // adapter's engine import are both legitimate — the check must report
       // nothing for the exact shape the real tree carries.
       expect(runChecks(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a plain same-package adapter import — the shape the barrel rule cannot see", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The component naming its own adapter relatively is the hole the
+      // re-export rule was blind to: no engine specifier appears anywhere in
+      // the file, the import is not an export, and the render path pulls the
+      // engine into every consumer bundle all the same.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "Stack.vue"),
+        '<script lang="ts">\nimport { layout } from "./layout";\n</script>\n<template><div /></template>\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout adapter"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps allowing the adapter's own tests and e2e to import it", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The allowance arm of rule (d): the co-located unit test and the e2e
+      // conformance case import the adapter relatively — writeEngineFixture
+      // writes both — and none of that enters the published module graph.
+      // Asserting the specific files stay clean is what keeps the rule from
+      // being "fixed" later by banning the proof along with the leak.
+      expect(runChecks(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a pattern reaching a composition's adapter by relative path", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The cross-package spelling of the same reach: relative, so check 5's
+      // specifier grammar never sees it, and an import, so the re-export rule
+      // never sees it either.
+      mkdirSync(join(root, "packages", "patterns", "title-bar", "src"), { recursive: true });
+      writeFileSync(
+        join(root, "packages", "patterns", "title-bar", "package.json"),
+        JSON.stringify({ name: "@ecoma-io/loom-title-bar", exports: {} }),
+      );
+      writeFileSync(
+        join(root, "packages", "patterns", "title-bar", "src", "TitleBar.vue"),
+        'import { layout } from "../../composition/stack/src/layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout adapter"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails an engine import sheltering in a non-composition's src/layout.ts", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The allow-list used to key on the file path alone, so any package
+      // could open a src/layout.ts and import the engine past this rule while
+      // the message said "composition adapters". The tier is part of the
+      // allow-list now; this is the shape that got quieter.
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'import { cn } from "@ecoma-io/loom-core";\n',
+      );
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "layout.ts"),
+        'import { layout } from "@ecoma-io/loom-layout-engine";\n',
+      );
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "package.json"),
+        JSON.stringify({
+          name: "@ecoma-io/loom-button",
+          exports: {},
+          dependencies: { "@ecoma-io/loom-layout-engine": "workspace:*" },
+        }),
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("imports the layout engine"))).toBe(true);
+      expect(failures.some((f) => f.includes("button/src/layout.ts"))).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

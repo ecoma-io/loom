@@ -50,12 +50,13 @@
  * 8. The published build carries zero engine bytes, as an import-graph fact:
  *    no module under the facade reaches a `./layout` adapter by relative
  *    path, no barrel below the facade re-exports one (relatively or through
- *    a package's own deep specifier), and the engine is reached by no
- *    specifier — package or relative, at any subpath depth — outside the
- *    engine itself and the composition adapters' `src/layout.ts`. This is
- *    check 5's former engine judgment (D3/M1 of the gap analysis), now
- *    file-precise and scanned across whole package directories rather than
- *    src trees only.
+ *    a package's own deep specifier), no module outside the engine reaches an
+ *    adapter by relative path except its own package's tests and e2e proving
+ *    it, and the engine is reached by no specifier — package or relative, at
+ *    any subpath depth — outside the engine itself and the composition
+ *    adapters' `src/layout.ts`. This is check 5's former engine judgment
+ *    (D3/M1 of the gap analysis), now file-precise and scanned across whole
+ *    package directories rather than src trees only.
  *
  * The body is a pure `runChecks(root)` so the rules can be exercised against
  * fixture trees in tools/check-architecture.test.ts; the CLI entry at the
@@ -362,6 +363,18 @@ export function runChecks(root: string): string[] {
   //     checker's own configs legitimately *name* the specifier — tsconfig
   //     paths, the vite alias, the mutation harness — and an allow-list of the
   //     checker itself is how allow-lists rot.
+  //
+  // (d) a non-engine package reaching an adapter by relative path — the plain
+  //     `import { layout } from "./layout"` the re-export rule cannot see,
+  //     because it names no engine specifier and no barrel. Within the
+  //     adapter's own package the only files allowed to spell it are the ones
+  //     proving the adapter — its unit tests and its e2e conformance cases,
+  //     none of which enters the published module graph — which is the same
+  //     blessing (b)'s comment records. Every other file in a scanned package
+  //     is consumer-reachable, and a consumer-reachable module that pulls the
+  //     adapter in ships engine bytes whether or not anything renders. The
+  //     adapter itself is deliberately absent from that allowance: it never
+  //     names itself, so an exemption for it would license nothing but a bug.
   const ENGINE_SPEC = ["@ecoma-io", "loom-layout-engine"].join("/");
   const INTERNAL_PKG_PREFIX = ["@ecoma-io", "loom-"].join("/");
   // `from "…/layout"`, `import("…/layout")` and the bare `import "…/layout"` —
@@ -383,9 +396,9 @@ export function runChecks(root: string): string[] {
   // later statement; and a barrel can name the adapter without `./layout`
   // text at all, through its own package's deep specifier
   // (`…/loom-stack/src/layout`), which resolves to the same file. The plain
-  // imports inside the adapter's own package — its unit tests, its
-  // conformance cases — are the adapter working as designed and must stay
-  // legal.
+  // relative *imports* of the adapter inside its own package are rule (d)'s
+  // judgment, not this row's: a re-export is forbidden wherever it appears,
+  // while an import is legal exactly where the adapter is being proved.
   const LAYOUT_REEXPORT = new RegExp(
     `export\\s[^;]*?from\\s*["'\`]` +
       `(?:(?:\\.\\.?/)+(?:[\\w-]+/)*|${INTERNAL_PKG_PREFIX}[\\w-]+(?:/[\\w-]+)*/)layout["'\`]`,
@@ -408,10 +421,24 @@ export function runChecks(root: string): string[] {
   );
   for (const pkg of graphPackages) {
     const isEngine = pkg.tier === "layout-engine";
+    // Rule (d)'s allowance, computed per package: the adapter is proved by its
+    // own package's test files and its e2e directory, and by nothing else.
+    // `join(dir, "e2e", "")` keeps the prefix directory-bounded, so a
+    // hypothetical `e2e-extra/` sibling cannot ride the allow-list.
+    const provesAdapter = (file: string): boolean =>
+      /\.(test|e2e)\.ts$/.test(file) || file.startsWith(join(pkg.dir, "e2e", ""));
     walkPackageFiles(pkg, (file, text) => {
       if (pkg.tier === "loom" && LAYOUT_EDGE.test(text)) {
         fail(
           `${labelOf(pkg)}: ${rel(root, file)} reaches a layout adapter by relative path — the facade is the bundle root, so one edge from it ships engine bytes in every consumer import`,
+        );
+      }
+      // Rule (d). The facade exclusion above it is scope, not dedup: the
+      // bundle-root message names the stronger reason the facade may never
+      // spell the adapter, tests and e2e included.
+      if (!isEngine && pkg.tier !== "loom" && LAYOUT_EDGE.test(text) && !provesAdapter(file)) {
+        fail(
+          `${labelOf(pkg)}: ${rel(root, file)} imports the layout adapter by relative path — a consumer-reachable module may not reach the adapter; only the adapter itself and its own package's tests and e2e may spell it, and anything else ships engine bytes in the published build`,
         );
       }
       // The loom exclusion is dedup, not scope: rule (a)'s `from "./layout"`
@@ -423,12 +450,18 @@ export function runChecks(root: string): string[] {
         );
       }
       // Both spellings are the same edge, so they share the condition, the
-      // allow-list (the engine itself, each adapter's exact src/layout.ts) and
-      // the message — one engine import, one report.
+      // allow-list and the message — one engine import, one report. The
+      // allow-list entry is the composition adapters' src/layout.ts — the file
+      // the contract and this rule's message both name, and which is why the
+      // tier is checked: keyed on the file path alone, any scanned package
+      // could open its own src/layout.ts and import the engine past this rule,
+      // the message notwithstanding.
+      const sanctionedAdapter =
+        pkg.tier === "composition" && file === join(pkg.dir, "src", "layout.ts");
       if (
         (ENGINE_PACKAGE_IMPORT.test(text) || ENGINE_RELATIVE_IMPORT.test(text)) &&
         !isEngine &&
-        file !== join(pkg.dir, "src", "layout.ts")
+        !sanctionedAdapter
       ) {
         fail(
           `${labelOf(pkg)}: ${rel(root, file)} imports the layout engine — its only consumers are the engine itself and the composition adapters' src/layout.ts (${DIRECTION}); any other edge ships engine bytes in the published build`,
