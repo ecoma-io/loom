@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { CopyButton } from "@ecoma-io/loom";
 
 const installCommand = "pnpm add @ecoma-io/loom";
-const shareUrl = "https://loom.ecoma.io";
+const shareUrl = "https://ecoma.io/docs/contribute/design-system/";
 
 // A getText host: the snippet only exists once the consumer asks for it —
 // here, when the button is clicked.

@@ -57,7 +57,7 @@ wired through `aria-labelledby`.
 
 ## Labels
 
-All strings go through the `@ecoma-io/loom-labels` seam — override one
+All strings go through the labels seam — override one
 instance with the `labels` prop or translate every Loom component at once with
 `provideLoomLabels` above your application root. `valueText` builds
 `aria-valuetext` from the raw `{ value, min, max }` (default "17 of 40" — a

@@ -5,7 +5,7 @@ Status: **Accepted**
 ## Context
 
 The Phase 1 audit ([audit](./../audit.md), gap
-analysis [P1](./../gap-analysis.md#p1), artifact matrix) recorded three
+analysis [P1](./../gap-analysis.md#missing-enforcement), artifact matrix) recorded three
 packages currently living under `packages/blocks/` whose intended kind is
 disputed: the audit's structural mismatch table marked DashboardGrid,
 DesktopAppShell and TitleBar as "shipped under one kind for another". The

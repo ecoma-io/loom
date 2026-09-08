@@ -139,6 +139,6 @@ added to Loom in a later release is one your bag may ignore. See
 variant, title, description and actions. A standalone `Toast` renders a
 `ToastItem` in its own viewport; a multi-toast host drives `ToastItem`s
 directly from its own queue. See [Presentational — the host owns the
-queue](#presentational--the-host-owns-the-queue).
+queue](#presentational-—-the-host-owns-the-queue).
 
 <!-- @api ToastItem -->

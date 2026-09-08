@@ -24,8 +24,10 @@ about what counts as a violation.
 WCAG 2.2 Level A introduces three new success criteria (2.4.11 Focus Not
 Obscured, 2.4.13 Focus Appearance, 2.5.8 Target Size), but axe-core tags
 all three under `wcag21a` since each is also a 2.1 A rule by inheritance.
-Loom tests for those criteria separately — the target-size and
-focus-not-obscured e2e tests cover what axe does not yet automate.
+Loom tests for those criteria separately — what axe does not yet automate:
+target-size walks every documentation page, while focus-not-obscured holds
+three hand-picked scenarios (content focus under the fixed header, a Dialog,
+a Drawer), not every page.
 
 ## Why it ships from `@ecoma-io/loom/a11y`
 

@@ -56,8 +56,9 @@ Enforced today; full mechanics in [the contract](./contract.md#the-checks-and-wh
 behaviour appropriate to their role: accessible names, keyboard operability,
 visible focus, focus restoration, state not conveyed by colour alone,
 `prefers-reduced-motion` honoured. The library holds itself to `WCAG_TAGS`
-([`packages/loom/src/a11y.ts`](https://github.com/ecoma-io/loom/blob/main/packages/loom/src/a11y.ts)):
-the axe gates import their rule partitions from that same module, and a
+([`packages/core/src/a11y-scope.ts`](https://github.com/ecoma-io/loom/blob/main/packages/core/src/a11y-scope.ts)):
+the axe gates import their rule partitions from that same source —
+re-exported through the narrow `@ecoma-io/loom/a11y` entry — and a
 browserless test pins the partition to equal exactly the rules `WCAG_TAGS`
 select — the gate and the published claim cannot drift apart. The site's
 accessibility page renders the array from that constant too: its fence is
