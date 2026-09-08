@@ -8,7 +8,10 @@
 #   drives that config.
 # - the root `e2e` project runs the cross-cutting suite against the built docs
 #   site, so it overrides `e2e` with the root config explicitly (`playwright
-#   test --config playwright.config.ts`).
+#   test --config playwright.config.ts`) — and must also set
+#   `mergeArgs: replace` when it does, because moon appends inherited args by
+#   default and the two args below would otherwise ride along as filters on
+#   its suite.
 # The mutex serialises them: both boot a server on a fixed port, and two such
 # servers at once would fight.
 inheritedBy:
