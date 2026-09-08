@@ -1003,7 +1003,7 @@ jobs:
       # names more, and `${{ matrix.specs }}` from `join` is the set of harness
       # paths a component leg runs — the affected components' e2e dirs plus the
       # harness axe gate, empty for a root leg, whose config's `testMatch`
-      # scopes it to the six crossing specs. The same projects feed
+      # scopes it to the whole cross-cutting suite. The same projects feed
       # `matrix.demos`, which becomes `HARNESS_DEMOS` so the axe gate sweeps
       # exactly the demos the leg's component specs drive.
       # One step times the actual Playwright run: `SECONDS` counts from its own
