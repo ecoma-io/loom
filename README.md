@@ -10,15 +10,16 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/banner.png" alt="Loom — an opinionated UI system and composition library for cross-platform web applications" width="100%" />
+  <img src=".github/assets/banner.png" alt="Loom — an Application Interface System for Vue" width="100%" />
 </p>
 
 <h1 align="center">Loom</h1>
 
 <p align="center">
-  <strong>Opinionated UI system &amp; composition library for cross-platform web applications.</strong><br />
+  <strong>An Application Interface System for Vue.</strong><br />
   An open-source, accessibility-first component library and design-token system —
-  Vue&nbsp;3, TypeScript and Tailwind&nbsp;CSS — from mobile to ultrawide.<br />
+  Vue&nbsp;3, TypeScript and Tailwind&nbsp;CSS — from mobile to ultrawide, for
+  cross-platform web applications.<br />
   <em>Build the interface once. Ship it everywhere. Never re-decide what a button is.</em>
 </p>
 

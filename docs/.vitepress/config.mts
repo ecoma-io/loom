@@ -112,7 +112,7 @@ const ARCHITECTURE = pagesIn("architecture", [
 export default defineConfig({
   title: "Loom",
   description:
-    "An opinionated UI system and composition library for cross-platform web applications — primitives, tokens and motion for Vue.",
+    "An Application Interface System for Vue — accessible primitives, tokens, motion and responsive layouts for cross-platform web applications.",
   lang: "en-US",
   base: BASE,
   cleanUrls: true,

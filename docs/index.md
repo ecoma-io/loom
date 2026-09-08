@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Loom
-  text: An opinionated UI system for cross-platform web applications
-  tagline: Primitives, tokens, composition and responsive layouts for Vue — accessible by construction, desktop-aware by design.
+  text: An Application Interface System for Vue
+  tagline: Primitives, tokens, composition and responsive layouts for cross-platform web applications — accessible by construction, desktop-aware by design.
   actions:
     - theme: brand
       text: Get started
