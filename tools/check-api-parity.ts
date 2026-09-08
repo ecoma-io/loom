@@ -5,8 +5,9 @@
 //     (`./a11y`, `./theme`, `./styles/*.css`) a built file;
 //  2. the library build's `vite.config.ts` `build.lib.entry` declares which
 //     `.ts` files those JS units are bundled from;
-//  3. the declaration files the build emits in `packages/loom/src/` are the
-//     type side of the same surface;
+//  3. the declaration stems in `packages/loom/src/` are the type side of the
+//     same surface (the build emits the `.d.ts` files to `dist/`; the gate
+//     reads the sources they are built from);
 //  4. the documentation site's markdown imports and appeals to each subpath —
 //     a subpath nothing documents is a defect, and one documented but absent
 //     from `exports` is a broken link for every consumer.
@@ -43,6 +44,7 @@ export function runChecks(root: string): string[] {
   const declarations = declarationStems(root);
   const styles = styleExports(exportsMap);
   const documented = documentedSubpaths(root);
+  const docsAliasOrder = docsAliasEntries(root);
 
   // JS-side parity: the exports surface (`.` plus every JS subpath), the vite
   // build entries, and the emitted declarations must be one set. A drift
@@ -96,6 +98,13 @@ export function runChecks(root: string): string[] {
   // docs/ but absent from exports is a broken link for every reader who tries
   // it; an exports entry nothing documents is surface that appeared without
   // the deliberate-narrowing discussion in contract.md#the-public-api.
+  //
+  // The documented set is scoped to the pages a consumer actually reads —
+  // `docs/**` except `docs/architecture/`, which is a frozen audit record, not
+  // a copy-pasteable reference. A historical mention in baseline.md or a
+  // contract table must not become a binding contract on today's exports map;
+  // that is the reverse of the gate's purpose and would make a deliberate
+  // subpath removal unlandable without touching old prose.
   for (const reference of documented) {
     if (reference.startsWith("styles/")) {
       // `@ecoma-io/loom/styles/*.css` (contract.md's own table) is a
@@ -119,6 +128,31 @@ export function runChecks(root: string): string[] {
     if (!surface.has(reference)) {
       fail(
         `docs/ mention @ecoma-io/loom/${reference} but the exports map does not list ./${reference}`,
+      );
+    }
+  }
+
+  // The docs toolchain leg. Every exported JS subpath must have a VitePress
+  // alias, listed before the bare `@ecoma-io/loom` entry. The docs import the
+  // library the way a consumer does — a snippet on the site is copy-pasteable —
+  // so a subpath the site ships in a fence or a live demo must resolve in the
+  // docs build. Vite's alias resolution is first-match and a string alias
+  // matches the specifier it prefixes, so a bare entry listed before a subpath
+  // swallows it and rewrites `@ecoma-io/loom/theme` to `index.ts/theme` — a
+  // broken path. The root vite.config.ts orders subpaths before the bare entry
+  // for the same reason; this leg pins the docs config to the same rule.
+  const bareAliasIndex = docsAliasOrder.indexOf("@ecoma-io/loom");
+  for (const name of sortedSurface(surface)) {
+    if (name === "index") continue; // the bare entry cannot shadow itself
+    const subpath = `@ecoma-io/loom/${name}`;
+    const aliasIndex = docsAliasOrder.indexOf(subpath);
+    if (aliasIndex === -1) {
+      fail(
+        `./${name} has no alias in docs/.vitepress/config.mts — a documented @ecoma-io/loom/${name} import cannot resolve there`,
+      );
+    } else if (bareAliasIndex !== -1 && aliasIndex > bareAliasIndex) {
+      fail(
+        `@ecoma-io/loom/${name} is listed after the bare @ecoma-io/loom alias in docs/.vitepress/config.mts, so it can never resolve (first-match prefix alias)`,
       );
     }
   }
@@ -236,6 +270,11 @@ function declarationStems(root: string): string[] {
  * (`theme`, `styles/global`). The docs import the library the way a consumer
  * does — a snippet on the site is copy-pasteable — so a subpath referenced
  * here is a documented part of the surface.
+ *
+ * `docs/architecture/` is excluded: it is a frozen audit record (baseline,
+ * gap analysis, contract), not a page a consumer reads. A subpath named there
+ * is a historical fact, not a promise about today's exports map — excluding it
+ * keeps a deliberate subpath removal from being blocked by old prose.
  */
 function documentedSubpaths(root: string): string[] {
   const found = new Set<string>();
@@ -251,12 +290,38 @@ function documentedSubpaths(root: string): string[] {
   return [...found];
 }
 
-/** Walk every .md file under a directory tree. */
+/**
+ * The facade aliases declared in the docs VitePress config, in file order.
+ *
+ * The docs config aliases `@ecoma-io/loom` and its subpaths to the facade's
+ * source (see config.mts). Order matters here: Vite resolves aliases as
+ * first-match prefixes, so the bare entry must come after the subpaths or it
+ * swallows them — this is exactly the shadow `check-api-parity.ts` pins.
+ *
+ * Parsed as text (the config is TypeScript, not imported) for the same reason
+ * the vite entry map is parsed: the checker should not execute the tools it
+ * audits.
+ */
+function docsAliasEntries(root: string): string[] {
+  const config = join(root, "docs", ".vitepress", "config.mts");
+  if (!existsSync(config)) return [];
+  const text = readFileSync(config, "utf8");
+  const entries: string[] = [];
+  for (const match of text.matchAll(/["'](@ecoma-io\/loom(?:\/[a-z0-9-]+)?)["']\s*:/g)) {
+    if (match[1]) entries.push(match[1]);
+  }
+  return entries;
+}
+
+/** Walk every .md file under a directory tree, skipping docs/architecture/. */
 function walkMarkdown(dir: string, visit: (text: string) => void): void {
   if (!existsSync(dir)) return;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) {
+      // docs/architecture/ is the frozen audit record — pinned to the exports
+      // map by contract.md's own table, not by every historical mention.
+      if (entry.name === "architecture") continue;
       walkMarkdown(path, visit);
       continue;
     }

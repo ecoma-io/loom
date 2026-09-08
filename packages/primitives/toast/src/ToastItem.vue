@@ -24,10 +24,12 @@ import { optional } from "@ecoma-io/loom-core";
 import type { ToastVariant } from "./Toast.vue";
 
 /**
- * ToastItem — one toast card (ToastRoot + Loom treatment), INTERNAL to
- * the design system. It must live inside a `ToastProvider` whose
- * `ToastViewport` it teleports into: `Toast` bundles that pair for the
- * standalone case. Not exported from the barrel — hosts use `Toast`.
+ * ToastItem — one toast card (ToastRoot + Loom treatment). It must live
+ * inside a `ToastProvider` whose `ToastViewport` it teleports into: `Toast`
+ * bundles that pair for the standalone case, and the rest is the queue-host
+ * contract. Exported from the barrel so a host building its own viewport
+ * stack composes `ToastItem` (with its labels and variant maps) rather than
+ * reaching past the facade.
  */
 const props = withDefaults(
   defineProps<{
