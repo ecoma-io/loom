@@ -208,12 +208,17 @@ jobs:
       # artifacts are checked on every run, not just the local one. The same
       # goes for `tools/check-architecture.ts`, which keeps the Moon dependency
       # graph, the facade-import boundary and the component-E2E ownership rules
-      # mechanically enforced rather than review-recalled.
+      # mechanically enforced rather than review-recalled, and for
+      # `tools/check-api-parity.ts`, which pins the facade's exports map to its
+      # build entries, declarations, stylesheets and docs references.
       - name: Check component artifacts
         run: node tools/check-component-artifacts.ts
 
       - name: Check architecture
         run: node --experimental-strip-types tools/check-architecture.ts
+
+      - name: Check api parity
+        run: node --experimental-strip-types tools/check-api-parity.ts
 
       # The third architecture gate, and the one that judges resolved imports
       # rather than specifier text. `archkeep check` reads the Moon project
