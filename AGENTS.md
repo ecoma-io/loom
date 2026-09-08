@@ -15,21 +15,21 @@ any one file will not tell you.
 
 ## What lives where
 
-| Path                        | What it holds                                                                                                                                                                           |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/primitives/`      | Generic controls, one directory per component                                                                                                                                           |
-| `packages/patterns/`        | Compositions of primitives, same shape                                                                                                                                                  |
-| `packages/core/`            | `cn`, props merging, motion — the shared helpers components are built from                                                                                                              |
-| `packages/layout-engine/`   | The platform-independent layout core — pure geometry, imports nothing; the oracle the conformance route holds equal to the browser. Adapters live in each composition's `src/layout.ts` |
-| `packages/theme-core/`      | `theme.css` — **the token source of truth** — plus `global.css` and `fonts.css`                                                                                                         |
-| `packages/loom/src/a11y.ts` | `WCAG_TAGS`, the tag set the library holds itself to                                                                                                                                    |
-| `templates/`                | Official Templates — copyable prebuilt **pages** consumers take into their application; the contract is `docs/templates/contract.md`                                                    |
-| `docs/`                     | The VitePress site, which imports the tree rather than describing it. Showcase and Templates have landing pages defining what each artifact kind is                                     |
-| `e2e/`                      | Playwright, driving the _built_ site                                                                                                                                                    |
-| `tools/`                    | Repository scripts, run from `package.json` and from CI                                                                                                                                 |
-| `.github/semgrep/`          | This repository's own analysis rules, with their fixtures beside them                                                                                                                   |
-| `playwright/`               | The component E2E harness — mounts one demo via Vite, no VitePress build                                                                                                                |
-| `playwright/profiles.ts`    | The browser profiles, single-sourced to the three Playwright configs                                                                                                                    |
+| Path                              | What it holds                                                                                                                                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/primitives/`            | Generic controls, one directory per component                                                                                                                                           |
+| `packages/patterns/`              | Compositions of primitives, same shape                                                                                                                                                  |
+| `packages/core/`                  | `cn`, props merging, motion — the shared helpers components are built from                                                                                                              |
+| `packages/layout-engine/`         | The platform-independent layout core — pure geometry, imports nothing; the oracle the conformance route holds equal to the browser. Adapters live in each composition's `src/layout.ts` |
+| `packages/theme-core/`            | `theme.css` — **the token source of truth** — plus `global.css` and `fonts.css`                                                                                                         |
+| `packages/core/src/a11y-scope.ts` | `WCAG_TAGS`, the tag set the library holds itself to (re-exported through the `@ecoma-io/loom/a11y` entry)                                                                              |
+| `templates/`                      | Official Templates — copyable prebuilt **pages** consumers take into their application; the contract is `docs/templates/contract.md`                                                    |
+| `docs/`                           | The VitePress site, which imports the tree rather than describing it. Showcase and Templates have landing pages defining what each artifact kind is                                     |
+| `e2e/`                            | Playwright, driving the _built_ site                                                                                                                                                    |
+| `tools/`                          | Repository scripts, run from `package.json` and from CI                                                                                                                                 |
+| `.github/semgrep/`                | This repository's own analysis rules, with their fixtures beside them                                                                                                                   |
+| `playwright/`                     | The component E2E harness — mounts one demo via Vite, no VitePress build                                                                                                                |
+| `playwright/profiles.ts`          | The browser profiles, single-sourced to the three Playwright configs                                                                                                                    |
 
 `packages/loom/src/index.ts` is the complete public surface and says so in its own docblock,
 including the two things that deliberately are not in it.
@@ -159,9 +159,10 @@ Three things about this that reading one file will not tell you:
 
 ## One accessibility tag set, two readers
 
-`WCAG_TAGS` in `packages/loom/src/a11y.ts` is imported by the `axe` gate in
-`e2e/accessibility.e2e.ts`
-**and** by the documentation site's accessibility page. The gate and the published claim
+`WCAG_TAGS` in `packages/core/src/a11y-scope.ts` reaches both of its readers
+without a second copy: the `axe` gate in `e2e/accessibility.e2e.ts` imports
+the rule partitions re-exported through `@ecoma-io/loom/a11y`,
+**and** the documentation site's accessibility page renders it, with the docs plugin reading the core file directly. The gate and the published claim
 are the same array by construction; widening or narrowing it moves both, which is the
 point and the reason it is a literal in neither.
 

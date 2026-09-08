@@ -131,11 +131,11 @@ list is deliberate:
 The narrow subpaths exist only where the main entry is the wrong shape for a
 consumer:
 
-| Subpath                       | What it is                                          |
-| ----------------------------- | --------------------------------------------------- |
-| `@ecoma-io/loom/a11y`         | `WCAG_TAGS`, for consumers that do not compile SFCs |
-| `@ecoma-io/loom/theme`        | the `useTheme` composable, with no component weight |
-| `@ecoma-io/loom/styles/*.css` | the stylesheets, shipped as authored                |
+| Subpath                       | What it is                                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `@ecoma-io/loom/a11y`         | `WCAG_TAGS` and the axe rule partitions (`BROWSERLESS_RULES`, `BROWSER_REQUIRED_RULES`), for consumers that do not compile SFCs |
+| `@ecoma-io/loom/theme`        | the `useTheme` composable, with no component weight                                                                             |
+| `@ecoma-io/loom/styles/*.css` | the stylesheets, shipped as authored                                                                                            |
 
 Subpath exports must be declared in the root `package.json` `exports` map and
 emitted by the build (an entry per subpath). A subpath documented anywhere in
