@@ -95,9 +95,9 @@ defect is in the published surface, and it is filed there.
 Rules:
 
 1. **Downward and same-layer edges are allowed.** A primitive may import
-   another primitive (`combobox → chip`), a block may import a primitive
+   another primitive (`combobox → chip`), a pattern may import a primitive
    (`form-section → fieldset`), a primitive may import `labels` and `core`.
-2. **Upward edges are forbidden.** A primitive may not import a block; a
+2. **Upward edges are forbidden.** A primitive may not import a pattern; a
    composition may not import a layout; a component may not import the
    facade.
 3. **The facade is a sink, not a source.** Nothing below `packages/loom` may
@@ -318,7 +318,7 @@ is this":
 - A layout-intent container (arranges children, has no domain meaning) →
   **composition**.
 - A responsive application shell → **layout**.
-- A composition of Loom parts into a recognisable UI arrangement → **block**.
+- A composition of Loom parts into a recognisable UI arrangement → **pattern**.
 
 Not everything here is a component, and the package tiers above decide only
 which tier a _component_ lands in. The artifact kinds the repository talks
@@ -368,7 +368,7 @@ Rules that do not bend:
 
 - **No internal package may import the facade.** Depend on the concrete
   internal package that owns what you need.
-- **No upward edges.** A block never imports a primitive's "higher"
+- **No upward edges.** A pattern never imports a primitive's "higher"
   counterpart; the layers are the dependency order.
 - **No JS module side effects.** CSS is the only declared side effect.
 - **No new public subpackages.** If an overwhelming reason to publish a
