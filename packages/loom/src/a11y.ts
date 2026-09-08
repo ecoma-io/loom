@@ -8,9 +8,13 @@
 // Now also exports the browserless/browser partition (BROWSERLESS_RULES,
 // BROWSER_REQUIRED_RULES) and the role-aware evidence contract
 // (A11Y_EVIDENCE_TIERS/REQUIREMENTS/MATRIX, the role vocabulary and the
-// A11yContract sidecar type) so the jsdom tier, the browser gates and
-// tools/check-a11y-evidence.ts's consumers can all import from the same
-// source — the same reason WCAG_TAGS is not restated.
+// A11yContract sidecar type). The contract's own readers do not come through
+// here today — the gate parses the law from packages/core/src/a11y-contract.ts
+// and its pin test imports core directly — so this re-export is a bet, not a
+// dependency: a consumer or docs page that wants to read the evidence law
+// gets it from the same facade that carries WCAG_TAGS, which is restated
+// nowhere. If no reader ever arrives, dropping the re-export is a one-line
+// deletion with no caller to migrate.
 export {
   WCAG_TAGS,
   BROWSERLESS_RULES,

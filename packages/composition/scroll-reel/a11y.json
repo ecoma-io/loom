@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the reel is scroll-snap by CSS and whether it owes a keyboard path is the undecided question the artifact matrix records; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "the reel renders a named role=\"region\" with tabindex=\"0\" and a Loom-owned keydown handler whose Home/End/arrow stepping tests/ScrollReel.test.ts pins browserlessly; the exception stands only because no component-owned harness spec witnesses the stepping in a browser yet; that floor is 3D's to build"
     },
     {
       "requirement": "focus-not-obscured",

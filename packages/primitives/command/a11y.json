@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "traversal and active-descendant handling are Loom's own DOM handlers, not a wrapped Reka primitive — ArrowUp/ArrowDown movement is dispatched and pinned browserlessly by tests/Command.test.ts; no component-owned harness spec witnesses it in a browser yet; that floor is 3D's to build"
     },
     {
       "requirement": "focus-not-obscured",

@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "activation is the native element's own contract (Space/Enter on a real <button>); no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "activation is the native <button>'s own Space/Enter contract; no component-owned harness spec witnesses it in a browser yet; that floor is 3D's to build"
     },
     {
       "requirement": "focus-not-obscured",
