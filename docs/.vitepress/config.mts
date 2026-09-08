@@ -208,6 +208,12 @@ export default defineConfig({
         "@ecoma-io/loom": fileURLToPath(
           new URL("../../packages/loom/src/index.ts", import.meta.url),
         ),
+        // The theme subpath is a facade subpath and must resolve to the same
+        // source tree the build emits from — the main entry, but the composable
+        // only. Like the bare entry, it is listed before the internal packages.
+        "@ecoma-io/loom/theme": fileURLToPath(
+          new URL("../../packages/loom/src/theme.ts", import.meta.url),
+        ),
         // Internal workspace packages, resolved to source so the VitePress dev
         // server and build can follow imports without node_modules. These mirror
         // the tsconfig paths and the root Vite config aliases. Each component

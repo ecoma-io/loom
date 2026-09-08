@@ -38,8 +38,10 @@ export default defineConfig({
       // also matches the specifier it prefixes, and without this line
       // `@ecoma-io/loom-core/testing` would resolve to `index.ts/testing`.
       "@ecoma-io/loom-core/testing": pkg("core/src/testing/attach-to-body.ts"),
-      // The a11y subpath is listed before the bare package for the same reason.
+      // The a11y and theme subpaths are listed before the bare package for the
+      // same reason: a string alias also matches the specifier it prefixes.
       "@ecoma-io/loom/a11y": pkg("loom/src/a11y.ts"),
+      "@ecoma-io/loom/theme": pkg("loom/src/theme.ts"),
       "@ecoma-io/loom-core": pkg("core/src/index.ts"),
       "@ecoma-io/loom-labels": pkg("labels/src/index.ts"),
       "@ecoma-io/loom-layout-engine": pkg("layout-engine/src/index.ts"),
