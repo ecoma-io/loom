@@ -285,6 +285,7 @@ export type { WindowPlatform, WindowControlsLabels } from "@ecoma-io/loom-window
 // Compositions — alphabetical.
 export { default as Center } from "@ecoma-io/loom-center";
 export type { CenterMaxWidth } from "@ecoma-io/loom-center";
+export { default as DashboardGrid } from "@ecoma-io/loom-dashboard-grid";
 export { default as Frame } from "@ecoma-io/loom-frame";
 export type { FrameRatio } from "@ecoma-io/loom-frame";
 export { default as Grid } from "@ecoma-io/loom-grid";
@@ -307,6 +308,7 @@ export { default as Centered } from "@ecoma-io/loom-centered";
 export type { CenteredMaxWidth } from "@ecoma-io/loom-centered";
 export { default as Dashboard } from "@ecoma-io/loom-dashboard";
 export type { DashboardMinTileWidth } from "@ecoma-io/loom-dashboard";
+export { default as DesktopAppShell } from "@ecoma-io/loom-desktop-app-shell";
 export { default as FormLayout } from "@ecoma-io/loom-form-layout";
 export type { FormLayoutMaxWidth } from "@ecoma-io/loom-form-layout";
 export { default as MasterDetail } from "@ecoma-io/loom-master-detail";
@@ -320,8 +322,6 @@ export type { SplitLayoutGap } from "@ecoma-io/loom-split-layout";
 
 // Patterns — alphabetical.
 export { default as AppHeader } from "@ecoma-io/loom-app-header";
-export { default as DashboardGrid } from "@ecoma-io/loom-dashboard-grid";
-export { default as DesktopAppShell } from "@ecoma-io/loom-desktop-app-shell";
 export { default as EmptyState } from "@ecoma-io/loom-empty-state";
 export { default as ErrorState } from "@ecoma-io/loom-error-state";
 export { default as ErrorSummary, ERROR_SUMMARY_LABELS } from "@ecoma-io/loom-error-summary";
