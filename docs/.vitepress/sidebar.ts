@@ -37,32 +37,46 @@ function title(markdown: string, fallback: string): string {
  */
 export function pagesIn(directory: string, order?: readonly string[]): SidebarLink[] {
   const root = new URL(`${directory}/`, DOCS);
-  const rank = new Map(order?.map((slug, i) => [slug, i]));
-  return (
-    readdirSync(fileURLToPath(root))
-      .filter((file) => file.endsWith(".md"))
-      // A directory's `index.md` is the section landing the group header links
-      // to, not an item inside its own list — and its `index` slug would
-      // otherwise emit a `/dir/index` link that `cleanUrls` routing never
-      // serves.
-      .filter((file) => file !== "index.md")
-      .map((file) => {
-        const slug = file.slice(0, -".md".length);
-        const source = readFileSync(fileURLToPath(new URL(file, root)), "utf8");
-        return { slug, text: title(source, slug), link: `/${directory}/${slug}` };
-      })
-      .sort((a, b) => {
-        // Compared before subtracting, and that is the whole point: two unranked
-        // pages are both `Infinity`, and `Infinity - Infinity` is `NaN`. A
-        // comparator that returns `NaN` does not sort — the engine reads it as
-        // "these two are equal" and leaves them in the order the directory
-        // happened to be read in. The alphabetical fallback below would never
-        // run, and the failure is invisible, because a list in filesystem order
-        // usually looks sorted until the one entry that is not.
-        const ra = rank.get(a.slug) ?? Infinity;
-        const rb = rank.get(b.slug) ?? Infinity;
-        return ra !== rb ? ra - rb : a.text.localeCompare(b.text, "en");
-      })
-      .map(({ text, link }) => ({ text, link }))
-  );
+  const rank = new Map<string, number>((order ?? []).map((slug, i) => [slug, i] as const));
+  const pages: (SidebarLink & { slug: string })[] = [];
+  const toLink = (dir: URL, file: string, prefix = ""): void => {
+    const slug = `${prefix}${file.slice(0, -".md".length)}`;
+    const source = readFileSync(fileURLToPath(new URL(file, dir)), "utf8");
+    pages.push({ slug, text: title(source, slug), link: `/${directory}/${slug}` });
+  };
+
+  // The tree is the source, one level down: a subdirectory's pages (the
+  // architecture `decisions/` ADRs) belong in the sidebar too, and a nested md
+  // is linked at its full path without hand-maintaining it here.
+  for (const entry of readdirSync(fileURLToPath(root), { withFileTypes: true })) {
+    // A directory's `index.md` is the section landing the group header links
+    // to, not an item inside its own list — and its `index` slug would
+    // otherwise emit a `/dir/index` link that `cleanUrls` routing never
+    // serves.
+    if (entry.isDirectory()) {
+      const nestedRoot = new URL(`${entry.name}/`, root);
+      for (const file of readdirSync(fileURLToPath(nestedRoot))) {
+        if (file.endsWith(".md") && file !== "index.md") toLink(nestedRoot, file, `${entry.name}/`);
+      }
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".md") && entry.name !== "index.md") {
+      toLink(root, entry.name);
+    }
+  }
+
+  return pages
+    .sort((a, b) => {
+      // Compared before subtracting, and that is the whole point: two unranked
+      // pages are both `Infinity`, and `Infinity - Infinity` is `NaN`. A
+      // comparator that returns `NaN` does not sort — the engine reads it as
+      // "these two are equal" and leaves them in the order the directory
+      // happened to be read in. The alphabetical fallback below would never
+      // run, and the failure is invisible, because a list in filesystem order
+      // usually looks sorted until the one entry that is not.
+      const ra = rank.get(a.slug) ?? Infinity;
+      const rb = rank.get(b.slug) ?? Infinity;
+      return ra !== rb ? ra - rb : a.text.localeCompare(b.text, "en");
+    })
+    .map(({ text, link }) => ({ text, link }));
 }

@@ -93,6 +93,35 @@ export const MUTATIONS: Mutation[] = [
     ],
   },
   {
+    name: "pattern-imports-layout",
+    attack:
+      "a block (the legacy Pattern kind) imports a layout — the Pattern→Layout edge the phase-2 hierarchy makes illegal",
+    // The semantic order puts Pattern below Layout (constitution §5), and the
+    // blocks row now names no `layer-layouts`, so a pattern reaching upward
+    // for a layout is exactly the edge the inverted rank exists to forbid.
+    expect: ["onlyTagsConstraintViolation"],
+    edits: [
+      {
+        path: "packages/blocks/title-bar/src/index.ts",
+        append: '\nimport "@ecoma-io/loom-reading";\n',
+      },
+    ],
+  },
+  {
+    name: "layout-imports-pattern-is-allowed",
+    attack: "a layout imports a block (the Pattern kind) — the downward edge the hierarchy permits",
+    // The layout row names `layer-blocks`, so a layout composing a pattern is
+    // the control for the row above: the mode is legal and must stay clean.
+    expect: [],
+    note: "the control. A layout assembling a pattern is the mode the inverted row exists to license; a failure here reports the tree, not a mutation.",
+    edits: [
+      {
+        path: "packages/layouts/app-shell/src/index.ts",
+        append: '\nimport "@ecoma-io/loom-page-header";\n',
+      },
+    ],
+  },
+  {
     name: "facade-import-from-below",
     attack: "a primitive imports the public facade, inverting the publishing boundary",
     // Reported as a CYCLE rather than as a tag violation, and that is right
@@ -150,6 +179,12 @@ export const MUTATIONS: Mutation[] = [
   {
     name: "engine-imported-from-a-row-that-forbids-it",
     attack: "labels imports the layout engine, a layer its row does not name",
+    // This row pins archkeep's labels-row verdict — the `layer-labels` row
+    // names no `layer-layout-engine`, and that mechanical law predates the
+    // phase-2 hierarchy. It cannot see the PR's NEW rule, the composition-only
+    // consumer set in the text reader (archkeep flagged labels→engine before
+    // the PR too); the fixture `flags a non-composition importing the layout
+    // engine` in check-architecture.test.ts is that rule's pinning test.
     expect: ["onlyTagsConstraintViolation"],
     edits: [
       {

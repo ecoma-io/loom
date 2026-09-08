@@ -5,7 +5,8 @@
  * order `tools/architecture/graph.ts` registers and `tools/check-architecture.ts`
  * has enforced since the package split:
  *
- *   core → labels → primitives → composition → layouts → blocks → facade
+ *   layout-engine/core → labels → primitives → composition → blocks → layouts → facade
+ *   (the layout engine is a Foundation sibling of core, rank 0)
  *
  * What is new is *who* can see it. `check-architecture.ts` reads the specifier
  * text of every file under a package's `src/` with a regular expression; it is
@@ -69,6 +70,14 @@ export const depConstraints = [
   // layout oracle that touched the platform it is held against could not be
   // an oracle. The empty list is that fact as law, in the same shape as
   // core's row.
+  //
+  // Identity is the moon tag, and the consumer set reads "tag says
+  // composition": re-tagging a package `layer-composition` (or staging it under
+  // `packages/composition/`) spoofs that set — deliberate, never accidental,
+  // the same shape `project-loses-its-layer-tag` pins from the other side.
+  // And, like every other row here, an `import.meta.glob` spelling escapes
+  // both architecture readers — the conformance route's comment below names
+  // that shared residual, which the composition-only rule inherits.
   {
     sourceTag: "layer-layout-engine",
     onlyDependOnLibsWithTags: [],
@@ -113,15 +122,19 @@ export const depConstraints = [
       "layer-labels",
       "layer-primitives",
       "layer-composition",
+      "layer-blocks",
       "layer-layouts",
     ],
-    description: "A layout assembles compositions and primitives into a page shape.",
+    description: "A layout assembles patterns, compositions and primitives into a page shape.",
     remediation:
-      "A layout that needs a block has the direction inverted; pass the block in a slot.",
+      "A layout reaching across or upward has the direction inverted; pass what it needs in a slot.",
   },
 
-  // Blocks are the top of the internal graph — the compositions of primitives
-  // a consumer recognises as a feature (PageHeader, MetricCard, SidebarNav).
+  // Blocks (the legacy name of the Pattern kind) sit below layouts in the
+  // semantic hierarchy — a block is a composition of parts recognised as a
+  // feature, and a layout may assemble it. Nothing below a pattern may import
+  // a layout; the migration (Phase 2C) renames this tier to `patterns` and
+  // leaves the rank table unchanged.
   {
     sourceTag: "layer-blocks",
     onlyDependOnLibsWithTags: [
@@ -129,12 +142,12 @@ export const depConstraints = [
       "layer-labels",
       "layer-primitives",
       "layer-composition",
-      "layer-layouts",
       "layer-blocks",
     ],
-    description: "A block is the highest internal layer; only the public facade sits above it.",
+    description:
+      "A block (Pattern) composes parts into a recognisable feature; layouts assemble it, it never reaches upward.",
     remediation:
-      "Nothing above a block exists to import. If the facade is being reached for, the export belongs here instead.",
+      "A pattern that reaches for a layout has the direction inverted; pass the layout in a slot.",
   },
 
   // The publishing boundary. `packages/loom` re-exports the whole library and
