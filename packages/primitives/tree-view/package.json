@@ -1,6 +1,7 @@
 {
   "name": "@ecoma-io/loom-tree-view",
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "exports": {
     ".": {
