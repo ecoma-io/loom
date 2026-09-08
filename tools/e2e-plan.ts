@@ -101,7 +101,7 @@ const isPrLevel = (): boolean =>
 
 // The reverse of the harness's kebabToPascal (`?component=` → demo filename):
 // a project id is `badge`, its demo is `docs/demos/BadgeDemo.vue`. The
-// five-artifacts rule guarantees every component owns one, so on-disk existence
+// artifact gate guarantees every component owns a demo, so on-disk existence
 // is the honest "is a real component" test — it separates a badge from the
 // loom facade, docs, core and labels that ride along in an affected set but
 // own no demo and so no browser evidence.

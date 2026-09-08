@@ -1,4 +1,7 @@
-// Every component ships five artifacts, and this is what says so.
+// Five of a component's artifacts are paired here — source, test, demo, docs
+// page, export. The sixth, the a11y.json evidence claim, is
+// tools/check-a11y-evidence.ts's to assert; repeating it here would let one
+// gate's edit drift from the other's.
 //
 // A component that exists but is not exported compiles, passes its tests and
 // is unreachable. One with no demo cannot be seen; one with no documentation
