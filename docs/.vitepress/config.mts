@@ -3,6 +3,7 @@ import { defineConfig, type UserConfig } from "vitepress";
 import tailwindcss from "@tailwindcss/vite";
 import { componentApi } from "./plugins/component-api";
 import { designTokens } from "./plugins/design-tokens";
+import { wcagTags } from "./plugins/wcag-tags";
 import { pagesIn } from "./sidebar";
 import { BASE } from "./base";
 
@@ -198,7 +199,12 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [componentApi(), designTokens(), ...(tailwindcss() as unknown as VitePlugins)],
+    plugins: [
+      componentApi(),
+      designTokens(),
+      wcagTags(),
+      ...(tailwindcss() as unknown as VitePlugins),
+    ],
     resolve: {
       alias: {
         // The documentation imports Loom the way a consumer does. A relative

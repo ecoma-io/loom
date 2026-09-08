@@ -9,10 +9,7 @@ accessibility bug is filed and fixed as a bug, the same as any other.
 
 ## `WCAG_TAGS`
 
-```ts
-// packages/core/src/a11y-scope.ts
-export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] as const;
-```
+<!-- @wcag-tags -->
 
 This is the exact scope Loom holds itself to when an automated tool (axe) is
 run against it: the assistive-technology and keyboard rule sets, not axe's
