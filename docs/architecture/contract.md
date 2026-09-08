@@ -177,11 +177,15 @@ Runs in `pnpm lint` and in its own CI step. Eight rules, matched against the
    honest; a component that imports `chip` must declare it, or a `chip`
    change will not re-test it.
 2. **No component → facade imports.** The publishing boundary, under every
-   import spelling: the bare specifier, each subpath including dashed ones
-   (`@ecoma-io/loom/theme-css`), backtick template-literal dynamic imports,
-   and the bare side-effect `import "@ecoma-io/loom"` that no other reader's
-   grammar can see — which is why this rule, not the layer rule below, is the
-   facade edge's only reporter. Already described above.
+   import spelling the text reader can see: the bare specifier, each subpath
+   including dashed ones (`@ecoma-io/loom/theme-css`), backtick
+   template-literal dynamic imports, and the bare side-effect
+   `import "@ecoma-io/loom"` that no other reader's grammar can see — which is
+   why this rule, not the layer rule below, is the facade edge's only
+   reporter. "Every spelling" carries two honest limits, both review-held: an
+   interpolated template literal (`import(\`@ecoma-io/loom/${name}\`)`)
+resolves to nothing until run time, and a comment wedged between `from` and
+   the specifier sits outside the whitespace gap the matcher allows.
 3. **`e2e/` specs ⇒ `e2e`-tagged Moon project.** An orphan spec runs in
    nobody's graph.
 4. **Every component directory is a Moon project.** No project stub, no
@@ -194,10 +198,14 @@ Runs in `pnpm lint` and in its own CI step. Eight rules, matched against the
    must appear in its `package.json`, so Moon's `--affected` mirrors the edge.
 8. **Zero engine bytes in the published build.** No module under the facade
    reaches a `./layout` adapter by relative path, no barrel below the facade
-   re-exports one, and the engine specifier names nothing outside the engine
-   itself and the composition adapters' `src/layout.ts` — the standing check
-   behind the claim at the end of this document, and the home of the
-   engine-edge judgment this list's rule 5 used to carry.
+   re-exports one — relatively or through a package's own deep specifier,
+   however the `from` and the specifier are spaced — and the engine is reached
+   by no specifier, package or relative, at any subpath depth, outside the
+   engine itself and the composition adapters' exact `src/layout.ts` — the
+   standing check behind the claim at the end of this document, and the home
+   of the engine-edge judgment this list's rule 5 used to carry. One spelling
+   stays outside what a text reader can honestly claim: an interpolated
+   dynamic import resolves to nothing until run time.
 
 The rules read `.ts`/`.vue` source with comments stripped, so a doc comment
 that _shows_ a consumer how to import (`core/src/theme.ts`'s `@example` does)
