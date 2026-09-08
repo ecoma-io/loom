@@ -116,12 +116,23 @@ export function runChecks(root: string): string[] {
   // and reports nothing: one import, one report.
   const FACADE_SPEC = ["@ecoma-io", "loom"].join("/");
   const FACADE_TARGET = `${FACADE_SPEC}(?:/[\\w-]+)?`;
+  // Comments are already stripped by walkSrcFiles, but a string literal that
+  // *quotes* an import used to report as an edge: `throw new Error('import
+  // from "@ecoma-io/loom" instead')` matched the bare `from "…"` fragment
+  // (#269). So the `from` and side-effect forms anchor to a line start, which
+  // is where every import sits once prettier has run — and a single- or
+  // double-quoted string cannot contain a line break, so the anchor cannot
+  // fire inside one. The anchor's residual is a template literal that spells
+  // an import on its own line, plus the dynamic-call form, which cannot take
+  // the anchor at all: a real dynamic import sits mid-line
+  // (`await import(…)`), so anchoring it would hide the defect the form
+  // exists to catch. Both stay the text-reader ambiguity they always were.
   const FACADE_IMPORT = new RegExp(
-    `from\\s+["'\`]${FACADE_TARGET}["'\`]` +
+    `(?:^|\\n)\\s*(?:import|export)\\b[^;]*?from\\s*["'\`]${FACADE_TARGET}["'\`]` +
       `|import\\s*\\(\\s*["'\`]${FACADE_TARGET}["'\`]` +
       // The bare side-effect form has no `from` and no call parens — the one
       // spelling that escaped every reader, this checker included, before 2G.
-      `|import\\s+["'\`]${FACADE_TARGET}["'\`]`,
+      `|(?:^|\\n)\\s*import\\s+["'\`]${FACADE_TARGET}["'\`]`,
   );
   const packages = internalPackages(root);
   for (const pkg of packages) {
@@ -214,13 +225,18 @@ export function runChecks(root: string): string[] {
     "layout-engine/core → labels → primitives → composition → patterns → layouts → facade";
 
   // The specifier side of `from "…"`, `export … from "…"`, and `import("…")` —
-  // quoted string or backtick template literal. A facade subpath
-  // (`@ecoma-io/loom/theme`) is the facade and is treated as such below; the
-  // bare `@ecoma-io/loom` and each `@ecoma-io/loom-<name>` package are the
-  // internal graph. Doc comments naming an `@ecoma-io/loom/…` subpath cannot
-  // match because the regex requires a `from "` / `import(` prefix.
-  const INTERNAL_SPEC =
-    /(?:from\s+|import\s*\(\s*)["'`](@ecoma-io\/loom(?:-[a-z0-9-]+)?(?:\/[\w-]+)?)["'`]/g;
+  // quoted string or backtick template literal, anchored like FACADE_IMPORT
+  // above: a string literal quoting an import must not become an edge, while
+  // the dynamic call stays unanchored because a real one sits mid-line. A
+  // facade subpath (`@ecoma-io/loom/theme`) is the facade and is treated as
+  // such below; the bare `@ecoma-io/loom` and each `@ecoma-io/loom-<name>`
+  // package are the internal graph.
+  const SPEC_GROUP = `(@ecoma-io\\/loom(?:-[a-z0-9-]+)?(?:\\/[\\w-]+)?)`;
+  const INTERNAL_SPEC = new RegExp(
+    `(?:^|\\n)\\s*(?:import|export)\\b[^;]*?from\\s*["'\`]${SPEC_GROUP}["'\`]` +
+      `|import\\s*\\(\\s*["'\`]${SPEC_GROUP}["'\`]`,
+    "g",
+  );
 
   interface InternalEdge {
     from: (typeof graphPackages)[number];
@@ -233,7 +249,9 @@ export function runChecks(root: string): string[] {
     const importedSpecs = new Set<string>();
     walkSrcFiles(pkg, (file, text) => {
       for (const match of text.matchAll(INTERNAL_SPEC)) {
-        const rawSpec = match[1];
+        // Two alternatives, one capture group each: the anchored `from` form
+        // lands in group 1, the unanchored dynamic call in group 2.
+        const rawSpec = match[1] ?? match[2];
         if (!rawSpec) continue;
         // A facade subpath (`@ecoma-io/loom/theme`) is an edge to the facade
         // itself: the subpath is part of the public surface, so importing it

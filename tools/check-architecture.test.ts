@@ -531,6 +531,61 @@ describe("runChecks", () => {
     }
   });
 
+  it("flags an `export … from` spelling of the facade — the statement-anchored form still reads it", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        'export { Button } from "@ecoma-io/loom";\n',
+      );
+      const failures = runChecks(root);
+      // The anchor that silences string-literal lookalikes is keyed on
+      // `import`/`export` at a statement start, so re-exporting the facade —
+      // the wrapped-barrel shape — must survive the anchor.
+      expect(failures.some((f) => f.includes("public facade"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not report a string literal that quotes a facade import (#269 finding 5)", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        `throw new Error('import from "@ecoma-io/loom" instead');\n`,
+      );
+      const failures = runChecks(root);
+      // The exact probe shape from #269: the `from "…"` fragment inside a
+      // string used to satisfy the regex and report one facade violation
+      // sourced from prose. Comments are stripped and statements are
+      // anchored, so nothing here is an edge.
+      expect(failures).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not report a string literal quoting an internal-package import", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(
+        join(root, "packages", "primitives", "button", "src", "Button.vue"),
+        `const hint = 'x; import { cn } from "@ecoma-io/loom-core";';\n`,
+      );
+      const failures = runChecks(root);
+      // Check 5's flavour of the same defect, in the shape that defeated the
+      // first anchor attempt: a single-line string whose content holds
+      // `; import … from "…"` — every statement-start character the anchor
+      // could key on, all inside the string. A single- or double-quoted
+      // string cannot contain a line break, which is what finally separates
+      // this prose from a real import.
+      expect(failures).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("flags a backtick template-literal dynamic import", () => {
     const root = makeRoot();
     try {
