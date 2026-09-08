@@ -4,7 +4,7 @@
  * value, its label, and an optional trend arrow. The shape is fixed (icon →
  * label → value + trend) because a hand-rolled metric row drifts from call
  * site to call site — the icon above the label here, the trend on a second
- * line there — and this block pins one layout so the row scans left-to-right.
+ * line there — and this pattern pins one layout so the row scans left-to-right.
  *
  * The trend is always inline with the value, never a separate line. A trend
  * on its own row reads as a second metric; sharing the value line reads as

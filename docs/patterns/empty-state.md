@@ -2,7 +2,7 @@
 
 The shape of "nothing here yet": icon → title → optional description → at
 most one call-to-action, centered in the region. That fixed shape is the
-decision that makes this a block rather than something a host would lay out
+decision that makes this a pattern rather than something a host would lay out
 itself — an empty region should explain what is missing and invite exactly
 one next step, and a hand-rolled version of that drifts call site to call
 site (one CTA here, two there, a description that turns into a paragraph
@@ -63,7 +63,7 @@ large blank region has nothing to anchor it and reads as a stray mark. The
 medallion (a `bg-subtle` disc with a hairline `border`) gives it a shape to
 sit against without adding a shadow: it is a surface plus a hairline, never
 a float. `bg-subtle` rather than `bg-card` keeps the disc visible whether
-the block is dropped onto `bg-card` or `bg-background` — it is used on both.
+the pattern is dropped onto `bg-card` or `bg-background` — it is used on both.
 
 ## API
 

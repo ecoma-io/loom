@@ -71,7 +71,7 @@ describe("runChecks", () => {
     }
   });
 
-  it("flags an upward edge: a primitive importing a block", () => {
+  it("flags an upward edge: a primitive importing a pattern", () => {
     const root = makeRoot();
     try {
       mkdirSync(join(root, "packages", "patterns", "app-header", "src"), { recursive: true });

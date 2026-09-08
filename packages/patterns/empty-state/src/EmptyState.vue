@@ -21,7 +21,7 @@
  * stray mark; the medallion gives it a shape to anchor without adding a
  * shadow (a disc is a surface plus a hairline, never a float). `bg-subtle`
  * is chosen over `bg-card` so the disc stays visible on `bg-card` and
- * `bg-background` alike — this block is dropped into both.
+ * `bg-background` alike — this pattern is dropped into both.
  *
  * Type comes from the named scale (`text-title` / `text-small`), not
  * hand-picked `text-sm`/`text-xs` — the empty state is a titled moment, not
@@ -47,7 +47,7 @@ defineProps<{
     <!-- One paragraph, not a short titled one before a longer one. The empty
          state is a single message, and a short, larger, bolder <p> sitting
          before a smaller one is exactly the fake-heading shape `p-as-heading`
-         flags (WCAG 1.3.1; measured 2026-08-26 on this block's own demo).
+         flags (WCAG 1.3.1; measured 2026-08-26 on this pattern's own demo).
          Block spans keep the stacked look and the stagger. -->
     <p>
       <span

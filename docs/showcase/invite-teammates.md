@@ -3,7 +3,7 @@
 The first canonical composition. One realistic flow — a member list that
 starts empty and becomes a team — assembled from the same components the
 [component pages](/components/button) demonstrate one at a time and the
-[blocks](/patterns/empty-state) package into units. Read it to see what the
+[patterns](/patterns/empty-state) package into units. Read it to see what the
 parts produce when they are composed with care; it is a demonstration, not a
 starting point.
 

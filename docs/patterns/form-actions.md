@@ -34,12 +34,12 @@ import { FormActions, Button } from "@ecoma-io/loom";
   <FormActionsDemo />
 </Demo>
 
-## The block owns the geometry; the host owns the button text and behavior
+## The pattern owns the geometry; the host owns the button text and behavior
 
 FormActions is a layout decision, not a button factory. It does not render,
 label, or wire up any button — it only places the slots. The host decides
 what "Save" and "Cancel" say, what variant each button carries, and what
-happens when they are clicked. The block's job is to guarantee that the
+happens when they are clicked. The pattern's job is to guarantee that the
 resulting row is always `gap-3`, always separated by a `border-t`, and always
 aligned the same way every other form in the product is aligned.
 

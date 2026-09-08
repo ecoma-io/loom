@@ -82,8 +82,8 @@ export const MUTATIONS: Mutation[] = [
     ],
   },
   {
-    name: "upward-import-primitive-to-block",
-    attack: "a primitive imports a block — an edge against the layer order",
+    name: "upward-import-primitive-to-pattern",
+    attack: "a primitive imports a pattern — an edge against the layer order",
     expect: ["onlyTagsConstraintViolation"],
     edits: [
       {
@@ -228,7 +228,7 @@ export const MUTATIONS: Mutation[] = [
   },
   {
     name: "barrel-reexport-upward",
-    attack: "a primitive re-exports a block from its own barrel rather than importing it",
+    attack: "a primitive re-exports a pattern from its own barrel rather than importing it",
     expect: ["onlyTagsConstraintViolation"],
     edits: [
       {
@@ -271,10 +271,10 @@ export const MUTATIONS: Mutation[] = [
     ],
   },
   {
-    name: "alias-bypass-straight-into-a-block",
+    name: "alias-bypass-straight-into-a-pattern",
     attack:
-      "a new tsconfig path alias points past a block's entry point, and a primitive imports the alias",
-    // The same alias pointed at the block's `.vue` source — once
+      "a new tsconfig path alias points past a pattern's entry point, and a primitive imports the alias",
+    // The same alias pointed at the pattern's `.vue` source — once
     // ecoma-io/archkeep#264, a blind spot under Lattice 0.11, where
     // `ts.resolveModuleName` declined the `.vue` target and the specifier was
     // classified as an undeclared npm package — reports this same id on
@@ -285,12 +285,12 @@ export const MUTATIONS: Mutation[] = [
         path: "tsconfig.base.json",
         replace: [
           /("@ecoma-io\/loom-core": \["\.\/packages\/core\/src\/index\.ts"\],)/,
-          '$1\n      "@loom-mutation/inside-a-block": ["./packages/patterns/page-header/src/index.ts"],',
+          '$1\n      "@loom-mutation/inside-a-pattern": ["./packages/patterns/page-header/src/index.ts"],',
         ],
       },
       {
         path: "packages/primitives/badge/src/index.ts",
-        append: '\nimport "@loom-mutation/inside-a-block";\n',
+        append: '\nimport "@loom-mutation/inside-a-pattern";\n',
       },
     ],
   },

@@ -55,7 +55,7 @@ that is the elevation rhythm's own answer (sunken below background below
 raised), and the row under the pointer steps forward rather than tinting in
 place.
 
-The general lesson, not specific to this block: a hover token only means
+The general lesson, not specific to this pattern: a hover token only means
 something relative to the plane it sits on. Copying it onto a different
 plane is how a state goes missing without anything flagging it.
 

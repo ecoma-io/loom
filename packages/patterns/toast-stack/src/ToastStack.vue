@@ -27,7 +27,7 @@ import { ToastItem, TOAST_LABELS, type ToastLabels } from "@ecoma-io/loom-toast"
  *
  * The queue stays the host's: the host passes the visible entries and
  * removes an entry when `dismiss` fires — on close, swipe, Esc, or
- * auto-dismiss alike. This block owns only the shared-viewport treatment.
+ * auto-dismiss alike. This pattern owns only the shared-viewport treatment.
  * Every rendered item is driven with `open` fixed to `true` — `ToastStack`
  * decides an entry is visible by including it in `items`, never by an
  * item's own open state, so there is no per-item boolean left unset for
@@ -60,7 +60,7 @@ const props = defineProps<{
 
 defineEmits<{ dismiss: [id: string | number] }>();
 
-// This block owns a provider and a viewport of its own rather than borrowing
+// This pattern owns a provider and a viewport of its own rather than borrowing
 // `Toast`'s, which is the whole point of it — and that means it owns their two
 // names as well. Left unset they are not unnamed: Reka defaults them to
 // "Notification" and "Notifications ({hotkey})", English a host has no prop to

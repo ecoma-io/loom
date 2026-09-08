@@ -4,7 +4,7 @@ A labeled group of form fields with an optional description — the
 convenience wrapper around Fieldset + Stack that a form page reaches for
 repeatedly. Every form page builds this same arrangement (a fieldset with
 vertical spacing between its fields), and the spacing between sections is
-a layout decision the block can own once.
+a layout decision the pattern can own once.
 
 <script setup lang="ts">
 import { FormSection } from "@ecoma-io/loom";

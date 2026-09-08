@@ -16,7 +16,7 @@
  *   whatever Skeleton arrangement matches their real layout.
  *
  * The Spinner carries its own accessible label (`aria-label` on the primitive)
- * so this block does not add a redundant one. The skeleton lines are purely
+ * so this pattern does not add a redundant one. The skeleton lines are purely
  * decorative (`aria-hidden` on each Skeleton) — the host's real content will
  * replace them.
  */

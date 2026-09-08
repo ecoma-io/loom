@@ -1,6 +1,6 @@
 <script lang="ts">
 /**
- * TitleBar — a desktop app's custom window chrome (a block: composed from
+ * TitleBar — a desktop app's custom window chrome (a pattern: composed from
  * primitives, domain-aware, but still presentational). Layout:
  *
  *   Windows / Linux:
@@ -30,7 +30,7 @@ import { optional } from "@ecoma-io/loom-core";
 
 withDefaults(
   defineProps<{
-    /** The host app's brand name — required: this block has no identity of its own. */
+    /** The host app's brand name — required: this pattern has no identity of its own. */
     appName: string;
     /** Centered subtitle — usually the open project / composition. */
     title?: string;

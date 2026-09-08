@@ -4,7 +4,7 @@ The title band **pinned to the top** of one surface: the surface's name, its
 live count, one line of orientation, and its primary actions. It composes no
 primitive of its own — every host slots `Button` or whatever else the
 surface's actions call for through `#actions` — and that is the decision
-that makes it a block: the pinning, the plane it sits on, and the gutter and
+that makes it a pattern: the pinning, the plane it sits on, and the gutter and
 wrap rules are fixed once here rather than re-derived by every surface that
 needs a header.
 
@@ -30,7 +30,7 @@ import { PageHeader } from "@ecoma-io/loom";
 </template>
 ```
 
-## Why a block, and not something every surface writes itself
+## Why a pattern, and not something every surface writes itself
 
 This is the difference between "a page" and "a surface of a workspace".
 When a title lives _inside_ the scrolling area, it drifts away — scroll to

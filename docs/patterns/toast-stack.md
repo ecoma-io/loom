@@ -5,7 +5,7 @@ several toasts open at once stack vertically with a gap instead of piling
 onto the same fixed corner — which is what mounting several standalone
 `Toast`s next to each other produces, since each one bundles its own
 viewport at the same screen coordinates. That single shared viewport is the
-decision that makes this a block: a host with more than one live toast needs
+decision that makes this a pattern: a host with more than one live toast needs
 it, and nothing short of composing the two together gets it right.
 
 <script setup lang="ts">
@@ -49,7 +49,7 @@ shared-viewport presentation.
 
 Every rendered item is driven with its own `open` fixed to `true`.
 Visibility is deciding whether an entry belongs in `items`, never a per-item
-open flag the block would otherwise have to track — which is also why an
+open flag the pattern would otherwise have to track — which is also why an
 absent `open` value can never reach a card here.
 
 ## The viewport is sized for both ends of the range it lands in

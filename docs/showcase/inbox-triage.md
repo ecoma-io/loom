@@ -3,7 +3,7 @@
 The second canonical composition. One realistic surface — a support inbox
 that starts loaded and shrinks as the reader works it — assembled from the
 same components the [component pages](/components/button) demonstrate one at
-a time and the [blocks](/patterns/row-actions) package into units. Read it to
+a time and the [patterns](/patterns/row-actions) package into units. Read it to
 see what the parts produce when they are composed with care; it is a
 demonstration, not a starting point.
 

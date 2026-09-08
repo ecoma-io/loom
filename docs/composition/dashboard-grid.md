@@ -3,7 +3,7 @@
 A self-reflowing CSS grid for a dashboard's panels: it packs in as many
 `minTileWidth`-wide tracks as the container allows and drops to fewer columns
 as it narrows, with zero Tailwind breakpoints written at either the component
-or the call site. That is the decision that makes it a block rather than
+or the call site. that is the decision that makes it a composition rather than
 something a host assembles itself — a fixed `grid-cols-N` breakpoint set has
 to be re-derived for every viewport a panel might sit in, and it is already
 wrong the moment the grid lands inside a sidebar narrower than the full

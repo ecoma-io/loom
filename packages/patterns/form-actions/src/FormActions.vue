@@ -1,6 +1,6 @@
 <script lang="ts">
 /**
- * FormActions — the submit/cancel button row at the bottom of a form. A block
+ * FormActions — the submit/cancel button row at the bottom of a form. A pattern
  * that owns the layout of form actions so every form in the product has the
  * same action alignment: primary action right, cancel left, separated from the
  * form content by a top border.

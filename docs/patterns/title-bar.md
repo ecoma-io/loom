@@ -1,6 +1,6 @@
 # TitleBar
 
-Custom window chrome for a frameless desktop app. It is a block: composed
+Custom window chrome for a frameless desktop app. It is a pattern: composed
 from primitives, aware of the desktop-window domain, but still purely
 presentational — it owns no window logic of its own, only re-emitting what
 the menu and the window controls tell it.
@@ -38,7 +38,7 @@ const platform: WindowPlatform = "windows";
 </template>
 ```
 
-`app-name` is required, with no default — the block carries no identity of
+`app-name` is required, with no default — the pattern carries no identity of
 its own. Whatever brand shows on the bar always comes from the host.
 
 <Demo title="Menus, title and window controls" :source="titleBarDemoSource">
@@ -112,7 +112,7 @@ here.
 
 ## The host owns the window bridge
 
-The block knows nothing about which shell it runs in. A host wraps it with a
+The pattern knows nothing about which shell it runs in. A host wraps it with a
 thin layer that wires window intents (and, for `select`, app commands) to
 its own platform:
 
@@ -136,7 +136,7 @@ its own platform:
 multi-window editor's window switcher needs to:
 
 - With a project open, pass `"<Project name> — <appName>"` — and have the
-  host set the OS-level window title to match, since this block only draws
+  host set the OS-level window title to match, since this pattern only draws
   the chrome inside the window and never touches the OS title itself.
 - With no project open, pass an empty `title` and let `appName` alone carry
   the app's identity.

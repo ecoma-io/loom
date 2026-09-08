@@ -12,7 +12,7 @@
  * Layout is three regions, so callers never hand-tune widths: brand (left) ·
  * optional search · a trailing cluster for a leading control, notifications, and
  * the user menu, pushed right by `ml-auto`. Every region is a named slot —
- * this block owns the strip's geometry and elevation, never its content or
+ * this pattern owns the strip's geometry and elevation, never its content or
  * behavior.
  *
  * The trailing cluster is pushed right by its own `ml-auto`, not by a spacer
@@ -21,7 +21,7 @@
  * taking what is actually left; `ml-auto` costs no element and no width, and
  * keeps the cluster flush right even when no search is slotted at all.
  *
- * **Below `sm` the bar is two rows, and that is the point of this block's
+ * **Below `sm` the bar is two rows, and that is the point of this pattern's
  * responsive behavior.** A brand, a real search field, and a leading control +
  * notifications + account cluster do not fit across a 390px viewport: on
  * that width the search field is left about 60px and renders as a magnifier
@@ -30,7 +30,7 @@
  * (`basis-full` + `order-last`), the header height goes from fixed to
  * `min-h-14`, and from `sm` up it snaps back to the single `flex-nowrap` row.
  * Wrapping rather than hiding is deliberate: the host slotted a search
- * because its users need one, and a block does not get to decide they need
+ * because its users need one, and a pattern does not get to decide they need
  * it less on a phone.
  *
  * The `order-last` is the one thing to keep in mind if this changes: it
