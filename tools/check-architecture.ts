@@ -47,6 +47,14 @@
  *    package's package.json. An import without a declared dependency is an
  *    edge check 1 never mirrors into moon, so `--affected` would miss it.
  *
+ * 8. The published build carries zero engine bytes, as an import-graph fact:
+ *    no module under the facade reaches a `./layout` adapter by relative
+ *    path, no barrel below the facade re-exports one, and the engine
+ *    specifier names nothing outside the engine itself and the composition
+ *    adapters' `src/layout.ts`. This is check 5's former engine judgment
+ *    (D3/M1 of the gap analysis), now file-precise and scanned across whole
+ *    package directories rather than src trees only.
+ *
  * The body is a pure `runChecks(root)` so the rules can be exercised against
  * fixture trees in tools/check-architecture.test.ts; the CLI entry at the
  * bottom runs it against the real repository and exits non-zero on any
@@ -184,11 +192,11 @@ export function runChecks(root: string): string[] {
   // the forbidden edge into it — here it is simply the highest upward case.
   //
   // The layout engine sits at Foundation rank 0 on purpose — its rank says
-  // "below everything", yet only the composition adapters may import it. That
-  // is what the boundary row enforces for archkeep, and what a rank number
-  // cannot express for the text reader, so the edge into the engine is judged
-  // against its real consumer set rather than against a rank (D3/M1 of the
-  // gap analysis).
+  // "below everything", yet only the composition adapters may import it. A
+  // rank number cannot express that, so the engine edge is not judged by rank
+  // here at all: check 8 owns it, against the same real-consumer-set argument
+  // D3/M1 of the gap analysis recorded, now file-precise and scanned across
+  // whole package directories.
   const LAYERS = {
     core: 0,
     labels: 1,
@@ -254,16 +262,6 @@ export function runChecks(root: string): string[] {
         // graphPackages already excluded theme-core (stylesOnly), and the
         // facade is handled above, so both tiers are real layer keys.
         const fromRank = LAYERS[pkg.tier as Exclude<Layer, "theme-core">];
-        // The engine is a dependency-pure leaf: only the composition adapters
-        // may import it. Rank cannot express that — it sits at 0 with core —
-        // so the edge is judged by the set of real consumers (D3/M1 of the
-        // gap analysis; the boundary row states the same set).
-        if (to.tier === "layout-engine" && pkg.tier !== "composition") {
-          fail(
-            `${labelOf(pkg)}: ${rel(root, file)} imports the layout engine — its consumers are the composition adapters only (${DIRECTION})`,
-          );
-          continue;
-        }
         const toRank = LAYERS[to.tier as Exclude<Layer, "theme-core">];
         if (toRank > fromRank) {
           fail(
@@ -329,6 +327,78 @@ export function runChecks(root: string): string[] {
     if (!color.has(pkg.spec)) visit(pkg.spec);
   }
 
+  // ---- 8. the published build carries zero engine bytes -------------------
+  // contract.md states that as an import-graph fact and, until 2G, held it
+  // with a one-time byte comparison against the pre-slice build — prose that a
+  // barrel re-export chain would sail through. The fact has three failure
+  // modes, and each is its own rule below:
+  //
+  // (a) the facade reaching a layout adapter by relative path. `./layout` is
+  //     the adapter filename in every composition and the engine's own
+  //     internals; no module under packages/loom/src has any business naming
+  //     it, because the facade is the bundle root — one edge from it and the
+  //     engine ships inside every consumer import, whatever tree-shaking does.
+  // (b) a barrel re-exporting an adapter outward. That file names no engine
+  //     specifier, so the engine rule cannot see it, and composition → engine
+  //     is a *legal* edge for every other reader — this chain is exactly the
+  //     one that passed both readers before this check existed. Only the
+  //     engine's own index may re-export `./layout`: while the other rules
+  //     hold, nothing consumer-reachable imports the engine at all.
+  // (c) the engine specifier naming a file outside its legitimate set,
+  //     enumerated from the tree rather than recalled: the engine itself, and
+  //     the composition adapters at `src/layout.ts` — the same two entries the
+  //     boundary rows and the interface contract state. This is check 5's
+  //     former engine judgment (D3/M1), moved here so one check owns the
+  //     engine edge end to end and can be file-precise about it: a
+  //     composition importing the engine from its component rather than its
+  //     adapter is reaching past the seam the contract names. The scan walks
+  //     whole package directories rather than src trees, and enumerates
+  //     packages through the graph registry — so an untracked migration husk
+  //     under packages/ is never read. Files outside packages/ are out of
+  //     scope on purpose: templates, docs and the E2E suites reach the library
+  //     only through the facade (their own boundary rows say so), while the
+  //     checker's own configs legitimately *name* the specifier — tsconfig
+  //     paths, the vite alias, the mutation harness — and an allow-list of the
+  //     checker itself is how allow-lists rot.
+  const ENGINE_SPEC = ["@ecoma-io", "loom-layout-engine"].join("/");
+  // `from "…/layout"`, `import("…/layout")` and the bare `import "…/layout"` —
+  // the same three-form context the facade regex uses, against a relative
+  // specifier that resolves to a module named layout (`./layout`,
+  // `../src/layout`).
+  const LAYOUT_EDGE = new RegExp(
+    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`]\\.{1,2}/(?:[\\w-]+/)*layout["'\`]`,
+  );
+  // A re-export is the outward edge: `export { layout } from "./layout"`,
+  // `export * from "./layout"`, `export type { … } from "./layout"`. The plain
+  // imports inside the adapter's own package — its unit tests, its conformance
+  // cases — are the adapter working as designed and must stay legal.
+  const LAYOUT_REEXPORT = new RegExp(
+    `export\\s[^;\\n]*?from\\s*["'\`]\\.{1,2}/(?:[\\w-]+/)*layout["'\`]`,
+  );
+  const ENGINE_IMPORT = new RegExp(
+    `(?:from\\s+|import\\s*\\(\\s*|import\\s+)["'\`]${ENGINE_SPEC}["'\`]`,
+  );
+  for (const pkg of graphPackages) {
+    const isEngine = pkg.tier === "layout-engine";
+    walkPackageFiles(pkg, (file, text) => {
+      if (pkg.tier === "loom" && LAYOUT_EDGE.test(text)) {
+        fail(
+          `${labelOf(pkg)}: ${rel(root, file)} reaches a layout adapter by relative path — the facade is the bundle root, so one edge from it ships engine bytes in every consumer import`,
+        );
+      }
+      if (!isEngine && pkg.tier !== "loom" && LAYOUT_REEXPORT.test(text)) {
+        fail(
+          `${labelOf(pkg)}: ${rel(root, file)} re-exports a layout adapter — only the engine's own index may re-export ./layout; an exported adapter puts engine bytes on the consumer path through the facade's re-export of this package`,
+        );
+      }
+      if (ENGINE_IMPORT.test(text) && !isEngine && file !== join(pkg.dir, "src", "layout.ts")) {
+        fail(
+          `${labelOf(pkg)}: ${rel(root, file)} imports the layout engine — its only consumers are the engine itself and the composition adapters' src/layout.ts (${DIRECTION}); any other edge ships engine bytes in the published build`,
+        );
+      }
+    });
+  }
+
   return failures;
 }
 
@@ -355,6 +425,32 @@ function walkSrcFiles(pkg: { srcDir: string }, visit: (file: string, text: strin
     }
   };
   walk(pkg.srcDir);
+}
+
+/**
+ * Every .ts/.vue file below a package's whole directory — src, tests and e2e —
+ * read and passed to `visit` as (file, text). Check 8 scans the whole
+ * directory on purpose: an engine import hiding in a component's test or a
+ * conformance case is not consumer-reachable, but it is still the edge the
+ * boundary rows forbid, and the adapter seam is a file (`src/layout.ts`), not
+ * a tier. `node_modules` is skipped because a package can carry one (pnpm's
+ * workspace links) and nothing under it is this package's source — the same
+ * reason untracked residue must never join a scan of the tree.
+ */
+function walkPackageFiles(pkg: { dir: string }, visit: (file: string, text: string) => void): void {
+  if (!existsSync(pkg.dir)) return;
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (entry.name === "node_modules") continue;
+        walk(join(dir, entry.name));
+        continue;
+      }
+      if (!/\.(ts|vue)$/.test(entry.name)) continue;
+      visit(join(dir, entry.name), stripComments(readFileSync(join(dir, entry.name), "utf8")));
+    }
+  };
+  walk(pkg.dir);
 }
 
 /**

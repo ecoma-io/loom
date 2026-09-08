@@ -61,6 +61,42 @@ function makeRoot(): string {
   return root;
 }
 
+/**
+ * The zero-engine-bytes shape, exactly as the real tree carries it: the engine
+ * whose own index re-exports its internals, one composition whose adapter at
+ * `src/layout.ts` imports the engine, and a facade that re-exports neither.
+ * This fixture is check 8's green case — every allow-list entry is present and
+ * the tree must still report zero violations.
+ */
+function writeEngineFixture(root: string): void {
+  const engineDir = join(root, "packages", "layout-engine");
+  mkdirSync(join(engineDir, "src"), { recursive: true });
+  writeFileSync(
+    join(engineDir, "package.json"),
+    JSON.stringify({ name: "@ecoma-io/loom-layout-engine", exports: {} }),
+  );
+  writeFileSync(join(engineDir, "src", "index.ts"), 'export { layout } from "./layout";\n');
+  writeFileSync(join(engineDir, "src", "layout.ts"), "export const layout = () => ({});\n");
+
+  const stackDir = join(root, "packages", "composition", "stack");
+  mkdirSync(join(stackDir, "src"), { recursive: true });
+  writeFileSync(
+    join(stackDir, "package.json"),
+    JSON.stringify({
+      name: "@ecoma-io/loom-stack",
+      exports: {},
+      dependencies: { "@ecoma-io/loom-layout-engine": "workspace:*" },
+    }),
+  );
+  writeFileSync(join(stackDir, "moon.yml"), "project:\n  name: stack\n");
+  writeFileSync(
+    join(stackDir, "src", "layout.ts"),
+    'import { layout } from "@ecoma-io/loom-layout-engine";\nexport { layout };\n',
+  );
+  writeFileSync(join(stackDir, "src", "index.ts"), 'export { default } from "./Stack.vue";\n');
+  writeFileSync(join(stackDir, "src", "Stack.vue"), "<template><div /></template>\n");
+}
+
 describe("runChecks", () => {
   it("reports zero violations for a tree that satisfies every rule", () => {
     const root = makeRoot();
@@ -148,31 +184,73 @@ describe("runChecks", () => {
   it("permits a composition adapter to import the layout engine", () => {
     const root = makeRoot();
     try {
-      mkdirSync(join(root, "packages", "layout-engine", "src"), { recursive: true });
-      writeFileSync(
-        join(root, "packages", "layout-engine", "package.json"),
-        JSON.stringify({ name: "@ecoma-io/loom-layout-engine", exports: {} }),
-      );
-      writeFileSync(join(root, "packages", "layout-engine", "src", "index.ts"), "");
-      mkdirSync(join(root, "packages", "composition", "stack", "src"), { recursive: true });
-      writeFileSync(
-        join(root, "packages", "composition", "stack", "package.json"),
-        JSON.stringify({
-          name: "@ecoma-io/loom-stack",
-          exports: {},
-          dependencies: { "@ecoma-io/loom-layout-engine": "workspace:*" },
-        }),
-      );
-      writeFileSync(
-        join(root, "packages", "composition", "stack", "moon.yml"),
-        "project:\n  name: stack\n",
-      );
-      writeFileSync(
-        join(root, "packages", "composition", "stack", "src", "layout.ts"),
-        'import { layout } from "@ecoma-io/loom-layout-engine";\n',
-      );
+      writeEngineFixture(root);
       const failures = runChecks(root);
       expect(failures.some((f) => f.includes("layout engine"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps the zero-engine-bytes allow-list green: engine re-export, adapter import, clean facade", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The engine's own `export { layout } from "./layout"` and the stack
+      // adapter's engine import are both legitimate — the check must report
+      // nothing for the exact shape the real tree carries.
+      expect(runChecks(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a composition barrel re-exporting its layout adapter — the chain that passed both readers", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The adapter is legal where it lives; handing it to consumers through
+      // the package index drags the engine into the facade's bundle while
+      // naming no engine specifier anywhere in the barrel.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "index.ts"),
+        'export { default } from "./Stack.vue";\nexport { layout } from "./layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("re-exports a layout adapter"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails an engine import outside the adapter file, even inside a composition", () => {
+    const root = makeRoot();
+    try {
+      writeEngineFixture(root);
+      // The seam the contract names is the file src/layout.ts, not the
+      // composition tier: the component reaching the engine directly is the
+      // same published-bytes edge with the row's blessing as camouflage.
+      writeFileSync(
+        join(root, "packages", "composition", "stack", "src", "Stack.vue"),
+        'import { layout } from "@ecoma-io/loom-layout-engine";\n<template><div /></template>\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("src/layout.ts"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a facade module reaching ./layout — the barrel chain into the bundle root", () => {
+    const root = makeRoot();
+    try {
+      writeFileSync(join(root, "packages", "loom", "src", "layout.ts"), "export const x = 1;\n");
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        'export { x } from "./layout";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("reaches a layout adapter"))).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
