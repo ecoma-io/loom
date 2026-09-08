@@ -14,6 +14,13 @@ import { Search } from "@lucide/vue";
 </template>
 ```
 
+The import is the host's to declare. Loom depends on `@lucide/vue`, and the
+demos and examples across these pages import it directly — but a package
+manager under a strict layout resolves a project's imports through that
+project's own manifest, so a transitive install is not an importable one.
+Copying a snippet that draws an icon means adding `@lucide/vue` to your own
+dependencies.
+
 ## One set of defaults, applied once
 
 `applyLoomIconDefaults()` sets every `@lucide/vue` icon rendered afterward to

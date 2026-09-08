@@ -13,7 +13,8 @@
     "@ecoma-io/loom-badge": "workspace:*",
     "@ecoma-io/loom-core": "workspace:*",
     "@ecoma-io/loom-separator": "workspace:*",
-    "@ecoma-io/loom-tooltip": "workspace:*"
+    "@ecoma-io/loom-tooltip": "workspace:*",
+    "@lucide/vue": "^1.40.0"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

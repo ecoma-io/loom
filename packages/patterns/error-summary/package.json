@@ -14,7 +14,7 @@
     "@ecoma-io/loom-labels": "workspace:*"
   },
   "peerDependencies": {
-    "@lucide/vue": "^1.28.0",
+    "@lucide/vue": "^1.40.0",
     "vue": "^3.5.0"
   }
 }

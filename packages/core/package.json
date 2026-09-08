@@ -12,5 +12,8 @@
       "types": "./src/testing/attach-to-body.ts",
       "default": "./src/testing/attach-to-body.ts"
     }
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.40.0"
   }
 }
