@@ -65,7 +65,7 @@ primitives 2  generic controls — one directory per component
   ↓
 composition 3 layout-intent primitives (Stack, Split, Grid, …)
   ↓
-blocks 4      recognisable arrangements of primitives (Pattern)
+patterns 4    recognisable arrangements of primitives
   ↓
 layouts 5     responsive application shells
   ↓
@@ -74,12 +74,12 @@ facade 6      @ecoma-io/loom — the public surface (packages/loom)
 
 Why this order, rather than any other? It is the dependency direction of
 _complexity_: a primitive is a single generic control, a composition is
-primitives arranged, a block is a recognisable arrangement of the layers
-beneath it, a layout is an application shell that assembles blocks. Code that
+primitives arranged, a pattern is a recognisable arrangement of the layers
+beneath it, a layout is an application shell that assembles patterns. Code that
 composes other code may import what it composes; the composed layer never
 imports the composer back. That is the invariant that keeps the graph acyclic
-and the affected-selection honest — a block importing a primitive is the
-direction the graph already flows, a primitive importing a block would be
+and the affected-selection honest — a pattern importing a primitive is the
+direction the graph already flows, a primitive importing a pattern would be
 reaching up for something that should have been composed beneath it.
 
 Beside the stack, not inside it, sit the consumer-shaped projects — the

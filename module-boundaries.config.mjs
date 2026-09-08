@@ -94,7 +94,7 @@ export const depConstraints = [
     sourceTag: "layer-primitives",
     onlyDependOnLibsWithTags: ["layer-core", "layer-labels", "layer-primitives"],
     description:
-      "A primitive is a generic control. It may compose other primitives, labels and core — never a composition, layout, block or the public facade.",
+      "A primitive is a generic control. It may compose other primitives, labels and core — never a composition, layout, pattern or the public facade.",
     remediation:
       "Reach for the lower-layer piece the composition wraps, or move the shared part down into core.",
   },

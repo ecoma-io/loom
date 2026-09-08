@@ -193,7 +193,7 @@
       "@ecoma-io/loom-reading": ["./packages/layouts/reading/src/index.ts"],
       "@ecoma-io/loom-settings": ["./packages/layouts/settings/src/index.ts"],
       "@ecoma-io/loom-split-layout": ["./packages/layouts/split-layout/src/index.ts"],
-      // Blocks.
+      // Patterns.
       "@ecoma-io/loom-app-header": ["./packages/patterns/app-header/src/index.ts"],
       "@ecoma-io/loom-dashboard-grid": ["./packages/composition/dashboard-grid/src/index.ts"],
       "@ecoma-io/loom-desktop-app-shell": ["./packages/layouts/desktop-app-shell/src/index.ts"],
