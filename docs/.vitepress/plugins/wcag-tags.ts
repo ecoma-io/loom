@@ -11,11 +11,20 @@
 //     <!-- @wcag-tags -->
 //
 import { readFile } from "node:fs/promises";
+import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
+
+const REPO_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 
 const A11Y_SCOPE = fileURLToPath(
   new URL("../../../packages/core/src/a11y-scope.ts", import.meta.url),
 );
+
+// The fence's label comment is derived from the resolved path rather than
+// written beside it: the source path above is already the one edit a
+// relocation costs, and a second, hardcoded copy of it would publish the old
+// location the day the constant moves.
+const FENCE_LABEL = `// ${relative(REPO_ROOT, A11Y_SCOPE)}`;
 
 const MARKER = /^[ \t]*<!--[ \t]*@wcag-tags[ \t]*-->[ \t]*$/gm;
 
@@ -41,7 +50,8 @@ export function wcagTags() {
       if (match?.groups?.literal === undefined) {
         throw new Error(
           `${A11Y_SCOPE}: no "export const WCAG_TAGS = [...] as const" declaration found. ` +
-            `The accessibility page renders its fence from that constant, so the page cannot be built.`,
+            `The accessibility page renders its fence from that constant, so the page cannot be built. ` +
+            `Failing page: ${id}.`,
         );
       }
       // Parsed, not emitted blind: a literal that has stopped being valid JSON
@@ -52,13 +62,14 @@ export function wcagTags() {
       } catch {
         throw new Error(
           `${A11Y_SCOPE}: the WCAG_TAGS literal is no longer valid JSON, so the ` +
-            `accessibility page cannot render it. Keep the array plain JSON values.`,
+            `accessibility page cannot render it. Keep the array plain JSON values. ` +
+            `Failing page: ${id}.`,
         );
       }
 
       const fence =
         "```ts\n" +
-        "// packages/core/src/a11y-scope.ts\n" +
+        `${FENCE_LABEL}\n` +
         `export const WCAG_TAGS = ${match.groups.literal.trim()} as const;\n` +
         "```";
 
