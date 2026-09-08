@@ -2,7 +2,7 @@ deps:
   - "core"
   - "labels"
   - "toast"
-tags: ["layer-blocks", "e2e"]
+tags: ["layer-patterns", "e2e"]
 project:
   name: "toast-stack"
   description: "Migrated block component"
@@ -18,6 +18,6 @@ tasks:
     # own e2e dir.
     options:
       runInCI: skip
-    args: ["packages/blocks/toast-stack/e2e"]
+    args: ["packages/patterns/toast-stack/e2e"]
     env:
       PW_PROFILE: "smoke"

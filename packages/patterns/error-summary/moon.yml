@@ -1,7 +1,7 @@
 deps:
   - "core"
   - "labels"
-tags: ["layer-blocks"]
+tags: ["layer-patterns"]
 project:
   name: "error-summary"
   description: "ErrorSummary block — focusable form error summary (GOV.UK pattern)"

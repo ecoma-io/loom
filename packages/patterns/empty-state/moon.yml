@@ -1,4 +1,4 @@
-tags: ["layer-blocks"]
+tags: ["layer-patterns"]
 project:
-  name: "dashboard-grid"
+  name: "empty-state"
   description: "Migrated block component"

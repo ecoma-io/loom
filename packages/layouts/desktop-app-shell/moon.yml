@@ -1,8 +1,9 @@
 deps:
   - "core"
   - "menubar"
+  - "title-bar"
   - "window-controls"
-tags: ["layer-blocks"]
+tags: ["layer-layouts"]
 project:
-  name: "title-bar"
+  name: "desktop-app-shell"
   description: "Migrated block component"

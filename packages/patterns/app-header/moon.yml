@@ -1,4 +1,4 @@
-tags: ["layer-blocks"]
+tags: ["layer-patterns"]
 project:
-  name: "empty-state"
+  name: "app-header"
   description: "Migrated block component"

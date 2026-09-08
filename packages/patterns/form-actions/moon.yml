@@ -1,7 +1,6 @@
 deps:
   - "core"
-  - "skeleton"
-tags: ["layer-blocks"]
+tags: ["layer-patterns"]
 project:
-  name: "metric-card"
+  name: "form-actions"
   description: "Migrated block component"

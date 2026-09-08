@@ -1,4 +1,4 @@
-tags: ["layer-blocks"]
+tags: ["layer-patterns"]
 project:
-  name: "app-header"
+  name: "error-state"
   description: "Migrated block component"
