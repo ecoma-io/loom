@@ -96,3 +96,42 @@ export function portalsCleaned(): void {
   document.body.appendChild(el);
   onUnmounted(() => document.body.removeChild(el));
 }
+
+// The import-time contract: a module that reads the browser while it is being
+// evaluated runs that read in every consumer that imports it, rendered or not.
+
+// ruleid: loom-browser-api-at-module-scope
+const initialViewport = window.innerWidth;
+// ruleid: loom-browser-api-at-module-scope
+document.documentElement.dataset["loomBoot"] = "1";
+// ruleid: loom-browser-api-at-module-scope
+const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
+// ruleid: loom-browser-api-at-module-scope
+const storedPosition = localStorage.getItem("loom");
+
+// A concise arrow defers its body to call time — module scope ends at the `=>`.
+// ok: loom-browser-api-at-module-scope
+export const viewportWidth = (): number => window.innerWidth;
+
+// The sanctioned guard: the branch exists because the environment may not be a
+// browser, so the reads inside it are deliberate.
+// ok: loom-browser-api-at-module-scope
+if (typeof window !== "undefined") {
+  window.history.replaceState(null, "", window.location.href);
+}
+
+// Listener registration keeps its own rule: the addEventListener line below is
+// loom-global-listener-at-module-scope's finding and must not double-report.
+// ruleid: loom-global-listener-at-module-scope
+window.addEventListener("resize", onResize);
+
+export function browserReadsAreLifecycleWork(): void {
+  // ok: loom-browser-api-at-module-scope
+  document.activeElement?.scrollIntoView();
+  // ok: loom-browser-api-at-module-scope
+  void navigator.clipboard.readText();
+  // ok: loom-browser-api-at-module-scope
+  if (typeof document === "undefined") return;
+  // ok: loom-browser-api-at-module-scope
+  document.title = "loom";
+}

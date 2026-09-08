@@ -11,6 +11,11 @@
 # on review, and are why `WeakMap`/`WeakSet` are the default for anything keyed
 # by a DOM node.
 #
+# One rule here polices a second contract instead: `loom-browser-api-at-module-scope`
+# enforces the import-time half of "no JS module side effects" — a module that
+# touches the browser while it is being evaluated runs that code in every
+# consumer that imports it, rendered or not.
+#
 # Run locally: `uvx semgrep scan --config .github/semgrep --exclude
 # .github/semgrep`. CI enforces the same rules, and `uvx semgrep --test --config
 # .github/semgrep .github/semgrep` runs the fixtures beside this file.
@@ -70,6 +75,69 @@ rules:
           - pattern: globalThis.addEventListener(...)
       - pattern-not-inside: function $F(...) { ... }
       - pattern-not-inside: (...) => { ... }
+      - pattern-not-inside: function (...) { ... }
+      - pattern-not-inside: class $C { ... }
+
+  - id: loom-browser-api-at-module-scope
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      This touches the browser while the module is evaluating, so the code runs
+      in every consumer that imports the module — rendered or not — and turns
+      the import into a side effect bundlers cannot drop. Do the read inside
+      the component's lifecycle or the composable's setup; a module that
+      genuinely must branch on the environment guards the read with
+      `typeof window !== "undefined"`.
+    # This rule carries no CWE on purpose, unlike the rules beside it: it
+    # enforces Loom's own import-time contract rather than a leak shape, and
+    # the harm is a consumer's server render crashing on `window` — not
+    # retained memory.
+    metadata:
+      category: correctness
+      confidence: HIGH
+    # Scoped to the library on purpose. The import-time contract binds the
+    # modules a consumer imports; the Playwright harness's own entry pages
+    # (`playwright/harness/conformance.ts`, `main.ts`) are `layer-e2e`
+    # artifacts whose module scope *is* the page load — reading
+    # `window.location.search` there is what a mounted page does, not a side
+    # effect smuggled into someone's import. The second include is the fixture
+    # directory, so `semgrep --test` can still see the rule's own fixtures.
+    paths:
+      include:
+        - packages/**
+        - .github/semgrep/**
+    patterns:
+      - pattern-either:
+          - pattern: window.$MEMBER
+          - pattern: window.$METHOD(...)
+          - pattern: document.$MEMBER
+          - pattern: document.$METHOD(...)
+          - pattern: navigator.$MEMBER
+          - pattern: navigator.$METHOD(...)
+          - pattern: localStorage.$MEMBER
+          - pattern: localStorage.$METHOD(...)
+          - pattern: matchMedia(...)
+      # Listener registration is the rule above's finding, and one defect shape
+      # has one rule: without these exemptions the same module-scope
+      # `window.addEventListener(...)` line draws two reports. The call form
+      # alone is not enough — `window.$MEMBER` also matches the bare member
+      # expression inside the call, so both shapes need excluding.
+      - pattern-not: $TARGET.addEventListener(...)
+      - pattern-not: $TARGET.addEventListener
+      - pattern-not: $TARGET.removeEventListener(...)
+      - pattern-not: $TARGET.removeEventListener
+      # The sanctioned guard. `typeof` itself is not a member read, so the
+      # guard expression never matches; these exempt the reads a guard wraps.
+      - pattern-not-inside: if (typeof $GLOBAL !== $UNDEF) { ... }
+      - pattern-not-inside: if (typeof $GLOBAL === $UNDEF) { ... }
+      - pattern-not-inside: if (typeof $GLOBAL != $UNDEF) { ... }
+      - pattern-not-inside: if (typeof $GLOBAL == $UNDEF) { ... }
+      - pattern-not-inside: function $F(...) { ... }
+      # Both arrow shapes need exempting: a concise body (`() => window.innerWidth`)
+      # defers the read to call time just like a block body does, and without
+      # this row it would be reported as if it ran at import.
+      - pattern-not-inside: (...) => { ... }
+      - pattern-not-inside: (...) => $EXPR
       - pattern-not-inside: function (...) { ... }
       - pattern-not-inside: class $C { ... }
 
