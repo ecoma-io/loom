@@ -1,0 +1,15 @@
+{
+  "role": "slider",
+  "basis": "Reka slider parts render role=\"slider\" thumbs with aria-valuenow over the track.",
+  "evidence": {
+    "browserless": ["docs/demos/SliderDemo.vue", "packages/primitives/slider/tests/Slider.test.ts"],
+    "harness": ["packages/primitives/slider/e2e/slider.e2e.ts"],
+    "sweep": ["docs/components/slider.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

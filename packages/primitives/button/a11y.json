@@ -1,0 +1,20 @@
+{
+  "role": "button",
+  "basis": "renders a native <button> (implicit role button); while busy it swaps in a subordinate role=\"status\" live region.",
+  "evidence": {
+    "browserless": ["docs/demos/ButtonDemo.vue", "packages/primitives/button/tests/Button.test.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/button/e2e/button.e2e.ts",
+        "because": "button.e2e.ts pins the busy state's DOM-disabled aria-busy handshake and the icon variant's aria-label self-naming — click and attribute evidence; it exercises no keyboard interaction"
+      }
+    ],
+    "sweep": ["docs/components/button.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "activation is the native <button>'s own Space/Enter contract and button.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+    }
+  ]
+}

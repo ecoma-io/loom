@@ -1,0 +1,12 @@
+{
+  "role": "tooltip",
+  "basis": "Reka TooltipContent renders role=\"tooltip\" (verified in the reka-ui dist), named by its content; the trigger is the slotted control's own semantics.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/TooltipDemo.vue",
+      "packages/primitives/tooltip/tests/Tooltip.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/tooltip.md"]
+  }
+}

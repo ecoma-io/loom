@@ -1,0 +1,22 @@
+{
+  "role": "dialog",
+  "basis": "Reka PopoverContent renders role=\"dialog\" (verified in the reka-ui dist); the trigger is the slotted control's own semantics.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/PopoverDemo.vue",
+      "packages/primitives/popover/tests/Popover.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/popover.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the open/close focus contract is Reka PopoverContent's (role=\"dialog\") runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

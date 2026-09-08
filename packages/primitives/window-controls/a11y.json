@@ -1,0 +1,22 @@
+{
+  "role": "group",
+  "basis": "a role=\"group\" named by its label around three native labelled <button>s (minimize, maximize/restore, close); on macOS it renders nothing because the OS owns the buttons.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/WindowControlsDemo.vue",
+      "packages/primitives/window-controls/tests/WindowControls.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/window-controls.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "activation is the native <button>'s own Space/Enter contract; no component-owned harness spec witnesses it in a browser yet; that floor is 3D's to build"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

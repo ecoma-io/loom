@@ -1,0 +1,27 @@
+{
+  "role": "button",
+  "basis": "Reka CollapsibleTrigger renders <button aria-expanded aria-controls>; the revealed panel asserts no role.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/CollapseDemo.vue",
+      "packages/primitives/collapse/tests/Collapse.test.ts"
+    ],
+    "harness": [
+      {
+        "path": "packages/primitives/collapse/e2e/collapse.e2e.ts",
+        "because": "collapse.e2e.ts pins the region's growth-to-hidden transition and that rapid toggling settles with trigger and region agreeing — geometry and state evidence; it exercises no keyboard interaction"
+      }
+    ],
+    "sweep": ["docs/components/collapse.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "activation is the native trigger <button>'s own Space/Enter contract and collapse.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "role": "alert",
+  "basis": "renders role=\"alert\" on the root so a mounted error is announced at once (InlineError.vue).",
+  "evidence": {
+    "browserless": [
+      "docs/demos/InlineErrorDemo.vue",
+      "packages/primitives/inline-error/tests/InlineError.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/inline-error.md"]
+  }
+}

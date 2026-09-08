@@ -28,8 +28,9 @@
 // carry their manifest at `packages/<name>/package.json`. Two-level
 // packages — the component tiers (`primitives`, `composition`, `patterns`,
 // `layouts`) — carry theirs at `packages/<tier>/<name>/package.json`. A
-// component is five artifacts deep — `src/`, `tests/`, a docs page — and
-// none of those directory names read as a package, so there is nothing
+// component's artifacts sit flat in its own directory — `src/`, `tests/`,
+// its `a11y.json` claim — with the demo and docs page living under `docs/`,
+// and none of those directory names read as a package, so there is nothing
 // nested worth walking. A manifest that is not in this tree — the root one,
 // a template, a fixture — is none of this gate's business.
 //

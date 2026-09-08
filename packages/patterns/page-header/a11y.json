@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders a native <header> holding the <h1> and context slots — the heading structure is the contract.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/PageHeaderDemo.vue",
+      "packages/patterns/page-header/tests/PageHeader.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/page-header.md"]
+  }
+}

@@ -1,11 +1,11 @@
 ---
 name: add-component
-description: Add a component to Loom — the five artifacts every component needs, in the order that keeps each one honest. Use when adding, renaming or removing anything under packages/primitives/, packages/composition/, packages/patterns/, packages/layouts/ (or the legacy src/ tree during migration).
+description: Add a component to Loom — the six artifacts every component needs, in the order that keeps each one honest. Use when adding, renaming or removing anything under packages/primitives/, packages/composition/, packages/patterns/, packages/layouts/ (or the legacy src/ tree during migration).
 ---
 
 # Adding a component
 
-`pnpm lint` fails until a component has all five of its artifacts, so this is the order
+`pnpm lint` fails until a component has all six of its artifacts, so this is the order
 that gets there without a half-landed component in between.
 
 ## 0. Decide it belongs here at all
@@ -46,7 +46,7 @@ Conventions worth having in front of you:
   need does not exist, add it to `packages/theme-core/src/theme.css` first — that is the
   source of truth the documentation tables are generated from.
 
-## 2. Write the five artifacts
+## 2. Write the six artifacts
 
 For `<Name>` in tier `<tier>` (`primitives`, `composition`, `patterns`, or `layouts`),
 `<name>` being its kebab-case form:
@@ -76,6 +76,18 @@ For `<Name>` in tier `<tier>` (`primitives`, `composition`, `patterns`, or `layo
    export { default as <Name> } from "@ecoma-io/loom-<name>";
    export type { <Name>Variant } from "@ecoma-io/loom-<name>";
    ```
+
+6. **The accessibility claim** — `packages/<tier>/<name>/a11y.json`. The claim is
+   declared, not derived — reka-ui injects ARIA roles at runtime, so no reader can
+   derive one from the source — and it is held to the law in
+   `packages/core/src/a11y-contract.ts`: pick the role from the closed vocabulary whose
+   AT contract your markup asserts, cite in `basis` the element that makes it true
+   (the native element, or the reka part that renders the role), list the evidence
+   files that actually exist per tier (the demo and test from steps 3-4, the docs page,
+   your own `e2e/` specs), and record an exception with its reason for every requirement
+   of the role's matrix row nothing answers yet. `tools/check-a11y-evidence.ts` — the
+   next gate in `pnpm lint` — verifies every cited file exists and counts the named
+   exceptions; copy the shape from any sibling's `a11y.json`.
 
 ### Supporting files for a new component package
 
@@ -180,7 +192,7 @@ pnpm exec moon :e2e --affected    # your component's specs, through the harness
 ```
 
 `check-architecture.ts` in `pnpm lint` keeps three things mechanically true that
-the five-artifact check cannot see: the moon `deps:` blocks equal the
+the artifact check cannot see: the moon `deps:` blocks equal the
 package.json workspace deps, no `@ecoma-io/loom` facade import appears inside
 `packages/*/src` (the one documented exception is `packages/labels`, type-only),
 and every `packages/**/e2e/*.e2e.ts` lives in a project tagged `e2e`. A component

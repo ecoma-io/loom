@@ -1,0 +1,14 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> — frame geometry only, no semantics of its own.",
+  "evidence": {
+    "browserless": ["docs/demos/FrameDemo.vue", "packages/composition/frame/tests/Frame.test.ts"],
+    "harness": [
+      {
+        "path": "packages/composition/frame/e2e/layout-conformance.e2e.ts",
+        "because": "layout-conformance proves the engine twin against the mounted DOM — geometry evidence beyond the none row, kept because it is how the composition's layout is proven"
+      }
+    ],
+    "sweep": ["docs/composition/frame.md"]
+  }
+}

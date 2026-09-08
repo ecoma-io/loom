@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders a native <header> landmark (aria-label when named) around slotted content — the landmark is the contract.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/AppHeaderDemo.vue",
+      "packages/patterns/app-header/tests/AppHeader.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/app-header.md"]
+  }
+}

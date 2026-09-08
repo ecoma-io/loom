@@ -1,0 +1,9 @@
+{
+  "role": "none",
+  "basis": "renders a bare <span> of text — no role asserted or needed; the meaning is the caller's context.",
+  "evidence": {
+    "browserless": ["docs/demos/BadgeDemo.vue", "packages/primitives/badge/tests/Badge.test.ts"],
+    "harness": [],
+    "sweep": ["docs/components/badge.md"]
+  }
+}

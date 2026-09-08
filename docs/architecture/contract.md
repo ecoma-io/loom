@@ -37,8 +37,9 @@ Why have internal packages at all, then?
   When `packages/core` changes, every component that imports it is re-tested.
   A single flat `src/` directory has no such graph — everything is "all".
 - **Ownership.** A component's directory owns its source, tests, demo, docs
-  page and `e2e/` specs. The five-artifact contract
-  (`tools/check-component-artifacts.ts`) is checked against that shape.
+  page, `e2e/` specs and its `a11y.json` evidence claim. Two gates assert that
+  shape: `tools/check-component-artifacts.ts` for the first five, and
+  `tools/check-a11y-evidence.ts` for the claim.
 - **The published boundary is testable.** Because the facade is the only
   thing that imports "everything", the check that nothing else does is a
   small, fast, deterministic rule — not a judgement call.

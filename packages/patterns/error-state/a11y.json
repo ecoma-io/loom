@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders flow content — heading, copy and an actions slot — no role asserted.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ErrorStateDemo.vue",
+      "packages/patterns/error-state/tests/ErrorState.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/error-state.md"]
+  }
+}

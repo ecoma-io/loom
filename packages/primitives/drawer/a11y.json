@@ -1,0 +1,20 @@
+{
+  "role": "dialog",
+  "basis": "Reka DrawerContent renders role=\"dialog\" (verified in the reka-ui dist), named by DrawerTitle, with an aria-labelled close <button>.",
+  "evidence": {
+    "browserless": ["docs/demos/DrawerDemo.vue", "packages/primitives/drawer/tests/Drawer.test.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/drawer/e2e/drawer.e2e.ts",
+        "because": "drawer.e2e.ts proves drag-to-dismiss and that a non-dismissible drawer declines the same drag — pointer evidence; it exercises no keyboard interaction"
+      }
+    ],
+    "sweep": ["docs/components/drawer.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the panel's focus-and-Escape contract is the wrapped Reka dialog's runtime behaviour and drawer.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+    }
+  ]
+}

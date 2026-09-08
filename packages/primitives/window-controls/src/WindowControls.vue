@@ -26,6 +26,7 @@ export type WindowPlatform = "windows" | "macos" | "linux";
  * exported so a host can build a partial vocabulary against the real thing.
  */
 export const WINDOW_CONTROLS_LABELS: WindowControlsLabels = {
+  group: "Window controls",
   minimize: "Minimize",
   maximize: "Maximize",
   restore: "Restore",
@@ -76,9 +77,13 @@ const text = useLabels("windowControls", WINDOW_CONTROLS_LABELS, () => props.lab
 <template>
   <!-- On macOS the OS owns the traffic-light buttons; rendering a second set
        would be redundant. The host can also choose "linux" if their desktop
-       environment handles window buttons natively. -->
+       environment handles window buttons natively. The container is
+       role="group" named by its label: three adjacent buttons in a bare div
+       read as three unrelated controls, and the cluster is one thing. -->
   <div
     v-if="platform !== 'macos'"
+    role="group"
+    :aria-label="text.group"
     class="flex h-full items-stretch"
     style="-webkit-app-region: no-drag"
   >

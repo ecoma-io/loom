@@ -1,0 +1,22 @@
+{
+  "role": "tree",
+  "basis": "renders role=\"tree\" of role=\"treeitem\" nodes with role=\"group\" branches — Loom's own ul/li markup, expansion via aria-expanded triggers.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/TreeViewDemo.vue",
+      "packages/primitives/tree-view/tests/TreeView.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/tree-view.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "expansion and traversal are Loom's own keydown handlers on the tree's markup, not a wrapped Reka primitive — ArrowRight expansion and ArrowDown movement are dispatched and pinned browserlessly by tests/TreeView.test.ts; no component-owned harness spec witnesses it in a browser yet; that floor is 3D's to build"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

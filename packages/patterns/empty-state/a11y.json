@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders flow content — aria-hidden glyph, heading and copy — no role asserted.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/EmptyStateDemo.vue",
+      "packages/patterns/empty-state/tests/EmptyState.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/empty-state.md"]
+  }
+}

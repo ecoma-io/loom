@@ -1,0 +1,18 @@
+{
+  "role": "menubar",
+  "basis": "renders role=\"menubar\" of role=\"menuitem\" triggers opening role=\"menu\" popups with role=\"separator\" dividers.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/MenubarDemo.vue",
+      "packages/primitives/menubar/tests/Menubar.test.ts"
+    ],
+    "harness": ["packages/primitives/menubar/e2e/menubar-keyboard.e2e.ts"],
+    "sweep": ["docs/components/menubar.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

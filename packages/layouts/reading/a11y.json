@@ -1,0 +1,9 @@
+{
+  "role": "none",
+  "basis": "native <header>/<footer> around a measured reading column — the shell asserts no role of its own.",
+  "evidence": {
+    "browserless": ["docs/demos/ReadingDemo.vue", "packages/layouts/reading/tests/Reading.test.ts"],
+    "harness": [],
+    "sweep": ["docs/layouts/reading.md"]
+  }
+}

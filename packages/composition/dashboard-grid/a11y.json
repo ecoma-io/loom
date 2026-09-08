@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> — grid geometry only, no semantics of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/DashboardGridDemo.vue",
+      "packages/composition/dashboard-grid/tests/DashboardGrid.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/composition/dashboard-grid.md"]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders the TitleBar pattern, <aside> and <main> landmarks — the shell asserts no role of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/DesktopAppShellDemo.vue",
+      "packages/layouts/desktop-app-shell/tests/DesktopAppShell.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/layouts/desktop-app-shell.md"]
+  }
+}

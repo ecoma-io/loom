@@ -1,0 +1,22 @@
+{
+  "role": "region",
+  "basis": "Reka accordion parts: AccordionTrigger renders a <button> under a heading, and AccordionContent carries role=\"region\" labelled by it (verified in the reka-ui dist) — the asserted role is the disclosure region.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/AccordionDemo.vue",
+      "packages/primitives/accordion/tests/Accordion.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/accordion.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

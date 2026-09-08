@@ -1,0 +1,22 @@
+{
+  "role": "textbox",
+  "basis": "renders a native <input> — the implicit textbox role — named and described by the Field wiring, with labelled adornment <button>s.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/TextFieldDemo.vue",
+      "packages/primitives/text-field/tests/TextField.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/text-field.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "text editing is the native input's own contract and the adornments are plain labelled buttons; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

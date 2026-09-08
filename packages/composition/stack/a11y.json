@@ -1,0 +1,14 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> over slotted content — stack geometry only; any Separator inside carries the primitive's own semantics.",
+  "evidence": {
+    "browserless": ["docs/demos/StackDemo.vue", "packages/composition/stack/tests/Stack.test.ts"],
+    "harness": [
+      {
+        "path": "packages/composition/stack/e2e/layout-conformance.e2e.ts",
+        "because": "layout-conformance proves the engine twin against the mounted DOM — geometry evidence beyond the none row, kept because it is how the composition's layout is proven"
+      }
+    ],
+    "sweep": ["docs/composition/stack.md"]
+  }
+}

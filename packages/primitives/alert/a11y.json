@@ -1,0 +1,14 @@
+{
+  "role": "alert",
+  "basis": "the root is a live region whose role follows the tone: role=\"alert\" for assertive news, role=\"status\" for polite, no role when live=\"off\" (Alert.vue).",
+  "evidence": {
+    "browserless": ["docs/demos/AlertDemo.vue", "packages/primitives/alert/tests/Alert.test.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/alert/e2e/alert.e2e.ts",
+        "because": "alert.e2e.ts pins the live region's announcement behaviour — evidence beyond the alert row's browserless obligations, kept as the component's own proof"
+      }
+    ],
+    "sweep": ["docs/components/alert.md"]
+  }
+}

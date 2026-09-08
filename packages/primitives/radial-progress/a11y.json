@@ -1,0 +1,12 @@
+{
+  "role": "progressbar",
+  "basis": "Reka ProgressRoot renders role=\"progressbar\" as an SVG ring with aria-valuenow.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/RadialProgressDemo.vue",
+      "packages/primitives/radial-progress/tests/RadialProgress.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/radial-progress.md"]
+  }
+}

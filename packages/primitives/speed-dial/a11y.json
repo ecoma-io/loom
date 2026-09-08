@@ -1,0 +1,22 @@
+{
+  "role": "menu",
+  "basis": "Reka DropdownMenu parts render role=\"menu\" entries opened from the labelled trigger <button>.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SpeedDialDemo.vue",
+      "packages/primitives/speed-dial/tests/SpeedDial.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/speed-dial.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

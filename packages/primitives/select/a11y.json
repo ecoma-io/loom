@@ -1,0 +1,15 @@
+{
+  "role": "combobox",
+  "basis": "Reka SelectTrigger renders role=\"combobox\" (a button naming the selected value) over a role=\"listbox\" of role=\"option\" items.",
+  "evidence": {
+    "browserless": ["docs/demos/SelectDemo.vue", "packages/primitives/select/tests/Select.test.ts"],
+    "harness": ["packages/primitives/select/e2e/select.e2e.ts"],
+    "sweep": ["docs/components/select.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

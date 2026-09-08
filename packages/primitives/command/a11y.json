@@ -1,0 +1,22 @@
+{
+  "role": "searchbox",
+  "basis": "renders input role=\"searchbox\" with aria-autocomplete=\"list\" and aria-activedescendant over a role=\"listbox\", plus a role=\"status\" span announcing the result count.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/CommandDemo.vue",
+      "packages/primitives/command/tests/Command.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/command.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "traversal and active-descendant handling are Loom's own DOM handlers, not a wrapped Reka primitive — ArrowUp/ArrowDown movement is dispatched and pinned browserlessly by tests/Command.test.ts; no component-owned harness spec witnesses it in a browser yet; that floor is 3D's to build"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> of slotted row controls — no role asserted.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/RowActionsDemo.vue",
+      "packages/patterns/row-actions/tests/RowActions.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/row-actions.md"]
+  }
+}

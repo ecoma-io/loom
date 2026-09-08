@@ -1,0 +1,22 @@
+{
+  "role": "group",
+  "basis": "renders a native <fieldset><legend> — the implicit ARIA group role, named by its legend.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/FieldsetDemo.vue",
+      "packages/primitives/fieldset/tests/Fieldset.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/fieldset.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the group's traversal belongs to the controls slotted into it; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

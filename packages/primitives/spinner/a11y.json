@@ -1,0 +1,12 @@
+{
+  "role": "status",
+  "basis": "renders <span role=\"status\" aria-label> so loading is announced; the painted arc is aria-hidden.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SpinnerDemo.vue",
+      "packages/primitives/spinner/tests/Spinner.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/spinner.md"]
+  }
+}

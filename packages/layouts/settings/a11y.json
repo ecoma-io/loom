@@ -1,0 +1,12 @@
+{
+  "role": "none",
+  "basis": "<header> and <nav> landmarks around the settings sections — the shell asserts no role of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SettingsDemo.vue",
+      "packages/layouts/settings/tests/Settings.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/layouts/settings.md"]
+  }
+}

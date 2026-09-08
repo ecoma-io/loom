@@ -1,0 +1,18 @@
+{
+  "role": "alertdialog",
+  "basis": "Reka AlertDialogContent renders role=\"alertdialog\" (verified in the reka-ui dist), named by AlertDialogTitle and described by AlertDialogDescription.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/AlertDialogDemo.vue",
+      "packages/primitives/alert-dialog/tests/AlertDialog.test.ts"
+    ],
+    "harness": ["packages/primitives/alert-dialog/e2e/alert-dialog.e2e.ts"],
+    "sweep": ["docs/components/alert-dialog.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "role": "img",
+  "basis": "AvatarRoot wraps an AvatarImage <img alt=…>, or the text AvatarFallback while the photo is absent — the announced surface is a named image.",
+  "evidence": {
+    "browserless": ["docs/demos/AvatarDemo.vue", "packages/primitives/avatar/tests/Avatar.test.ts"],
+    "harness": [],
+    "sweep": ["docs/components/avatar.md"]
+  }
+}

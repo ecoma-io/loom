@@ -1,0 +1,17 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> — an elevation-token surface with no semantics of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/SurfaceDemo.vue",
+      "packages/primitives/surface/tests/Surface.test.ts"
+    ],
+    "harness": [
+      {
+        "path": "packages/primitives/surface/e2e/surface.e2e.ts",
+        "because": "surface.e2e.ts pins each elevation variant's painted surface — rendering evidence beyond the none row, kept as the component's own proof"
+      }
+    ],
+    "sweep": ["docs/components/surface.md"]
+  }
+}

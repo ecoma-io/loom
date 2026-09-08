@@ -1,0 +1,18 @@
+{
+  "role": "group",
+  "basis": "Reka DateRangePickerField renders role=\"group\" of range segments; the popup carries the range calendar grid.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/DateRangePickerDemo.vue",
+      "packages/primitives/date-range-picker/tests/DateRangePicker.test.ts"
+    ],
+    "harness": ["packages/primitives/date-range-picker/e2e/date-range-picker.e2e.ts"],
+    "sweep": ["docs/components/date-range-picker.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

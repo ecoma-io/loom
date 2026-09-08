@@ -1,0 +1,22 @@
+{
+  "role": "button",
+  "basis": "renders a native <button> named by its required aria-label.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/IconButtonDemo.vue",
+      "packages/primitives/icon-button/tests/IconButton.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/components/icon-button.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "activation is the native <button>'s own Space/Enter contract; no component-owned harness spec witnesses it in a browser yet; that floor is 3D's to build"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

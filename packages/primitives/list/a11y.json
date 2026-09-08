@@ -1,0 +1,14 @@
+{
+  "role": "list",
+  "basis": "renders a native <ul aria-label> whose rows come from the slot.",
+  "evidence": {
+    "browserless": ["docs/demos/ListDemo.vue", "packages/primitives/list/tests/List.test.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/list/e2e/list.e2e.ts",
+        "because": "list.e2e.ts proves interactive-row activation and disabled-row announcement — evidence beyond the list row's browserless obligations, kept as the component's own proof"
+      }
+    ],
+    "sweep": ["docs/components/list.md"]
+  }
+}

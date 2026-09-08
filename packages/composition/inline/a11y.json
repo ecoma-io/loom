@@ -1,0 +1,17 @@
+{
+  "role": "none",
+  "basis": "renders a bare <div> — inline-flow geometry only, no semantics of its own.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/InlineDemo.vue",
+      "packages/composition/inline/tests/Inline.test.ts"
+    ],
+    "harness": [
+      {
+        "path": "packages/composition/inline/e2e/layout-conformance.e2e.ts",
+        "because": "conformance throws loudly on wrap/baseline misuse — behavioural evidence beyond the none row, kept because it is how the composition's layout is proven"
+      }
+    ],
+    "sweep": ["docs/composition/inline.md"]
+  }
+}

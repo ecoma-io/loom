@@ -100,9 +100,34 @@ All `layer-layouts`, all facade-exported, all shell-geometry by exports.
 
 ## Primitives (76)
 
-| Family                                                         | Current layer      | Intended type | Public?                                                       | Evidence                                    | Gap                                                                  | Action                                                              |
-| -------------------------------------------------------------- | ------------------ | ------------- | ------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `packages/primitives/*` (76 directories, each facade-exported) | `layer-primitives` | Primitive     | All 107 component re-exports verified 1:1 against facade deps | `check-component-artifacts.ts` pairing gate | 44/76 own no harness spec; `tree-view` manifest defect filed as #238 | Phase 2: interaction-spec floor for role-bearing controls; fix #238 |
+| Family                                                         | Current layer      | Intended type | Public?                                                       | Evidence                                                                                                                                                                     | Gap                                                                                                                             | Action                                                                            |
+| -------------------------------------------------------------- | ------------------ | ------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `packages/primitives/*` (76 directories, each facade-exported) | `layer-primitives` | Primitive     | All 107 component re-exports verified 1:1 against facade deps | `check-component-artifacts.ts` pairing gate; per-component `a11y.json` role claims held to `packages/core/src/a11y-contract.ts` by `tools/check-a11y-evidence.ts` (Phase 3A) | 29/76 role claims carry a named keyboard exception (no component-owned harness spec); `tree-view` manifest defect filed as #238 | Phase 3B/3D: the interaction-spec floor the exception records name, per component |
+
+## The accessibility claims (107) — Phase 3A
+
+Every tiered component now carries a sixth artifact beside its source:
+`packages/<tier>/<name>/a11y.json`, the declared role claim
+`tools/check-a11y-evidence.ts` holds to the role → requirement matrix in
+`packages/core/src/a11y-contract.ts`. The claim is declared, not derived —
+reka-ui injects ARIA roles at runtime, so no reader can derive one from the
+source with confidence — and the gate counts the requirements nothing answers
+yet instead of failing, which turns the two standing browser-evidence gaps into
+enumerable numbers. Recounted in #273 (2026-09-09), directly from the gate's
+own output rather than this prose: **85 named exceptions across 55 components**
+— **32 keyboard** (29 primitives, plus `composition/scroll-reel`,
+`patterns/form-section` and `patterns/toast-stack` — no component-owned
+harness spec witnesses the traversal) and **53 focus-not-obscured** (49
+primitives, 4 composition/patterns). The focus-not-obscured answer is a tree
+fact, not a sidecar's word: the 2.4.11 suite sweeps three pages today — button,
+dialog, drawer — and a component answers by its page sitting in the suite's
+`page.goto` population, which is why button and drawer carry a keyboard
+exception and no focus-not-obscured one. The section is a dated recount, not
+the ledger itself: drift after #273 lands on
+[issue #272](https://github.com/ecoma-io/loom/issues/272), this phase's ledger,
+and the gate's output is always the number of record. Every exception names its
+reason in the sidecar, so 3B/3D's work list is that output, not an audit
+opinion.
 
 ## Templates (3)
 

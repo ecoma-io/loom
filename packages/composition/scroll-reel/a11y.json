@@ -1,0 +1,22 @@
+{
+  "role": "region",
+  "basis": "renders role=\"region\" aria-label around the snap-scrolling reel — a named scroll region.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ScrollReelDemo.vue",
+      "packages/composition/scroll-reel/tests/ScrollReel.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/composition/scroll-reel.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "keyboard",
+      "because": "the reel renders a named role=\"region\" with tabindex=\"0\" and a Loom-owned keydown handler whose Home/End/arrow stepping tests/ScrollReel.test.ts pins browserlessly; the exception stands only because no component-owned harness spec witnesses the stepping in a browser yet; that floor is 3D's to build"
+    },
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

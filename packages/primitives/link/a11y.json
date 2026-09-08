@@ -1,0 +1,15 @@
+{
+  "role": "link",
+  "basis": "renders a native <a href> (implicit role link); the arrow glyph is aria-hidden.",
+  "evidence": {
+    "browserless": ["docs/demos/LinkDemo.vue", "packages/primitives/link/tests/Link.test.ts"],
+    "harness": [],
+    "sweep": ["docs/components/link.md"]
+  },
+  "exceptions": [
+    {
+      "requirement": "focus-not-obscured",
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
+    }
+  ]
+}

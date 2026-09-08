@@ -1,0 +1,12 @@
+{
+  "role": "alert",
+  "basis": "renders a live region that becomes role=\"alert\" once when the errors change, listing <a> links to the failing fields.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ErrorSummaryDemo.vue",
+      "packages/patterns/error-summary/tests/ErrorSummary.test.ts"
+    ],
+    "harness": [],
+    "sweep": ["docs/patterns/error-summary.md"]
+  }
+}

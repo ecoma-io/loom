@@ -1,0 +1,14 @@
+{
+  "role": "none",
+  "basis": "renders the native <kbd> element — flow content with its own semantics, no role added.",
+  "evidence": {
+    "browserless": ["docs/demos/KbdDemo.vue", "packages/primitives/kbd/tests/Kbd.test.ts"],
+    "harness": [
+      {
+        "path": "packages/primitives/kbd/e2e/kbd.e2e.ts",
+        "because": "kbd.e2e.ts pins the monospace rendering — rendering evidence beyond the none row, kept as the component's own proof"
+      }
+    ],
+    "sweep": ["docs/components/kbd.md"]
+  }
+}
