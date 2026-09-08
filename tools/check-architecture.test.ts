@@ -74,12 +74,12 @@ describe("runChecks", () => {
   it("flags an upward edge: a primitive importing a block", () => {
     const root = makeRoot();
     try {
-      mkdirSync(join(root, "packages", "blocks", "app-header", "src"), { recursive: true });
+      mkdirSync(join(root, "packages", "patterns", "app-header", "src"), { recursive: true });
       writeFileSync(
-        join(root, "packages", "blocks", "app-header", "package.json"),
+        join(root, "packages", "patterns", "app-header", "package.json"),
         JSON.stringify({ name: "@ecoma-io/loom-app-header", exports: {} }),
       );
-      writeFileSync(join(root, "packages", "blocks", "app-header", "src", "AppHeader.vue"), "");
+      writeFileSync(join(root, "packages", "patterns", "app-header", "src", "AppHeader.vue"), "");
       // button now imports app-header — an upward edge.
       writeFileSync(
         join(root, "packages", "primitives", "button", "src", "Button.vue"),
