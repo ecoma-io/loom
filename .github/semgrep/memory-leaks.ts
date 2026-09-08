@@ -274,6 +274,61 @@ class GuardedViewportEq {
   static nav = typeof window == "undefined" ? null : window.navigator;
 }
 
+// The class-expression spelling carries the same guards: the unnamed-class
+// branch restates the guard rows because the named pattern does not match
+// `class` without a binding, so each polarity is pinned here too.
+const GuardedExpr = class {
+  // ok: loom-browser-api-at-module-scope
+  static width = typeof window !== "undefined" ? window.innerWidth : 0;
+};
+const GuardedExprDark = class {
+  // ok: loom-browser-api-at-module-scope
+  static nav = typeof window === "undefined" ? null : window.navigator;
+};
+const GuardedExprBang = class {
+  // ok: loom-browser-api-at-module-scope
+  static width = typeof window != "undefined" ? window.innerWidth : 0;
+};
+const GuardedExprEq = class {
+  // ok: loom-browser-api-at-module-scope
+  static nav = typeof window == "undefined" ? null : window.navigator;
+};
+
+// The compound-test guard, at both scopes and in both orders of the `&&` —
+// the same sanction the compound `if` row carries, spelled as a conditional
+// expression. A compound test with no `typeof` conjunct is not a guard: the
+// unguarded compound ternary beside these keeps firing at both scopes.
+// ok: loom-browser-api-at-module-scope
+const secureLink =
+  typeof window !== "undefined" && window.location.protocol === "https:"
+    ? window.location.href
+    : "";
+// ok: loom-browser-api-at-module-scope
+const secureLinkOtherOrder =
+  window.location.protocol === "https:" && typeof window !== "undefined"
+    ? window.location.href
+    : "";
+class SecureLink {
+  // ok: loom-browser-api-at-module-scope
+  static href =
+    typeof window !== "undefined" && window.location.protocol === "https:"
+      ? window.location.href
+      : "";
+}
+class SecureLinkOtherOrder {
+  // ok: loom-browser-api-at-module-scope
+  static href =
+    window.location.protocol === "https:" && typeof window !== "undefined"
+      ? window.location.href
+      : "";
+}
+// ruleid: loom-browser-api-at-module-scope
+const insecureLink = window.location.protocol === "https:" ? window.location.href : "";
+class InsecureLink {
+  // ruleid: loom-browser-api-at-module-scope
+  static href = window.location.href;
+}
+
 // A class declared inside a body evaluates when that body runs, and its
 // static initializers defer with it.
 // ok: loom-browser-api-at-module-scope

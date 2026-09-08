@@ -219,7 +219,8 @@ rules:
           # The guard rows are also restated, in their class-wrapped shape:
           # the top-level `typeof` rows cannot see inside the class this
           # branch binds, and inside an initializer the guard can only be a
-          # conditional expression — the four polarities of that shape are
+          # conditional expression — the four polarities of that shape, with
+          # a plain test or a compound one in either order of the `&&`, are
           # what a static member can carry.
           - patterns:
               - pattern-either: *module_scope_reads
@@ -243,7 +244,31 @@ rules:
               - pattern-not-inside: |
                   class $C {
                     ...
+                    static $FIELD = typeof $GLOBAL !== $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
                     static $FIELD = typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL === $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
                     ...
                   }
               - pattern-not-inside: |
@@ -255,7 +280,31 @@ rules:
               - pattern-not-inside: |
                   class $C {
                     ...
+                    static $FIELD = typeof $GLOBAL != $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL != $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
                     static $FIELD = typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = typeof $GLOBAL == $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class $C {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
                     ...
                   }
           # The same branch for the class-expression spelling: an unnamed
@@ -285,7 +334,31 @@ rules:
               - pattern-not-inside: |
                   class {
                     ...
+                    static $FIELD = typeof $GLOBAL !== $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
                     static $FIELD = typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL === $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL === $UNDEF ? $THEN : $ELSE
                     ...
                   }
               - pattern-not-inside: |
@@ -297,7 +370,31 @@ rules:
               - pattern-not-inside: |
                   class {
                     ...
+                    static $FIELD = typeof $GLOBAL != $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL != $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
                     static $FIELD = typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = typeof $GLOBAL == $UNDEF && $COND ? $THEN : $ELSE
+                    ...
+                  }
+              - pattern-not-inside: |
+                  class {
+                    ...
+                    static $FIELD = $COND && typeof $GLOBAL == $UNDEF ? $THEN : $ELSE
                     ...
                   }
       # Listener registration is the rule above's finding, and one defect shape
@@ -316,7 +413,13 @@ rules:
       # `typeof` cover every position it can sit in (probed: first, last and
       # middle; the plain guard is deliberately not covered by that row, so
       # it keeps its own) — and the conditional-expression form, each shape
-      # in all four comparison polarities.
+      # in all four comparison polarities, with a plain test or a compound
+      # one. The compound conditional is two rows per polarity because the
+      # parenthesised ellipsis spelling that covers both `if` orders does not
+      # parse in a conditional test (probed on semgrep 1.172.0), so each
+      # order of the `&&` is spelled out; a compound test with no `typeof`
+      # conjunct still fires — a conjunct that is not the environment check
+      # guards nothing.
       - pattern-not-inside: if (typeof $GLOBAL !== $UNDEF) { ... }
       - pattern-not-inside: if (... && typeof $GLOBAL !== $UNDEF && ...) { ... }
       - pattern-not-inside: if (typeof $GLOBAL === $UNDEF) { ... }
@@ -326,9 +429,17 @@ rules:
       - pattern-not-inside: if (typeof $GLOBAL == $UNDEF) { ... }
       - pattern-not-inside: if (... && typeof $GLOBAL == $UNDEF && ...) { ... }
       - pattern-not-inside: "typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL !== $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL !== $UNDEF ? $THEN : $ELSE"
       - pattern-not-inside: "typeof $GLOBAL === $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL === $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL === $UNDEF ? $THEN : $ELSE"
       - pattern-not-inside: "typeof $GLOBAL != $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL != $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL != $UNDEF ? $THEN : $ELSE"
       - pattern-not-inside: "typeof $GLOBAL == $UNDEF ? $THEN : $ELSE"
+      - pattern-not-inside: "typeof $GLOBAL == $UNDEF && $COND ? $THEN : $ELSE"
+      - pattern-not-inside: "$COND && typeof $GLOBAL == $UNDEF ? $THEN : $ELSE"
 
   - id: loom-discarded-timer-handle
     languages: [javascript, typescript]
