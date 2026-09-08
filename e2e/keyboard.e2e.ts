@@ -44,10 +44,10 @@ test("the focus ring appears on keyboard entry and stays hidden after a mouse cl
 // The width is the reason these tests exist. Every table on this site is a
 // scroll container — VitePress styles `.vp-doc table` as `display: block;
 // overflow-x: auto` — and whether one actually scrolls is a property of the
-// viewport, not of the table: measured across the built site, 2 of 92 scroll
-// at 1280px and 62 of 92 scroll at 375px. A desktop-only check therefore
-// reports a site-wide keyboard defect as one stray page, which is exactly what
-// it did before this test existed.
+// viewport, not of the table: measured across the built site, the tables that
+// scroll at 1280px are a small minority of the tables that scroll at 375px. A
+// desktop-only check therefore reports a site-wide keyboard defect as one
+// stray page, which is exactly what it did before this test existed.
 //
 // Focusability is asserted rather than a full Tab walk. Tabbing to every table
 // on every page would spend minutes proving what the browser decides in one

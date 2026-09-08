@@ -162,7 +162,7 @@ Three things about this that reading one file will not tell you:
 `WCAG_TAGS` in `packages/core/src/a11y-scope.ts` reaches both of its readers
 without a second copy: the `axe` gate in `e2e/accessibility.e2e.ts` imports
 the rule partitions re-exported through `@ecoma-io/loom/a11y`,
-**and** the documentation site's accessibility page renders it, with the docs plugin reading the core file directly. The gate and the published claim
+**and** the documentation site's accessibility page renders `WCAG_TAGS`, with the docs plugin reading the core file directly. The gate and the published claim
 are the same array by construction; widening or narrowing it moves both, which is the
 point and the reason it is a literal in neither.
 
