@@ -92,6 +92,15 @@ toolbar's accessible name is the consumer's to supply (`label`, or a
 pass-through `aria-label`), and `ToolbarSeparator` carries no text. Controls
 inside bring their own names, as they must anywhere.
 
+## Separator
+
+`ToolbarSeparator` splits the controls into groups — a visual grouping the
+arrow keys walk straight through, so it is for seeing, not for stopping.
+
 ## API
 
 <!-- @api Toolbar -->
+
+### ToolbarSeparator
+
+<!-- @api ToolbarSeparator -->
