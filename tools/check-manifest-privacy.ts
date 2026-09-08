@@ -3,12 +3,14 @@
 // The distributing surface of this repository is exactly `@ecoma-io/loom`,
 // the root manifest. Everything under `packages/` exists to be imported
 // through that facade from a single checkout, so each of those manifests
-// must be un-publishable: a `"private": true` that refuses to let `pnpm
-// publish` escape, and no `publishConfig` to smuggle publish metadata past
-// it. A publishable-shaped manifest — the facade shape without the private
-// flag — could be accidentally published, and #238 is that failure already
-// shipped once: `packages/primitives/tree-view` was the only one of 107
-// component manifests without `"private": true`, and nothing complained.
+// must be un-publishable: a `private` field npm honours (measured against
+// the live registry — any non-empty value, boolean or string, yields
+// EPRIVATE; the empty string does not), and no `publishConfig` to imply
+// publish metadata past it. A publishable-shaped manifest — the facade
+// shape without a private field — could be accidentally published, and #238
+// is that failure already shipped once: `packages/primitives/tree-view` was
+// the only one of 107 component manifests without `"private": true`, and
+// nothing complained.
 // Templates get this gate already (`check-template-artifacts.ts` asserts
 // `private` for its own tree); component manifests had none. This is the
 // gap A2 gate, and it is what flips the "One public package" contract row
@@ -38,16 +40,17 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Check that every two-level-deep package under `packages/` is private and
- * carries no publish metadata, returning one human-readable failure string
- * per offending manifest.
+ * Check that every package under `packages/` is private and carries no
+ * publish metadata, returning one human-readable failure string per
+ * offending manifest.
  *
  * `root` is the repository root. The manifest set is discovered from the
  * tree, never a list: a package added here is checked here, and one deleted
- * deletes its row by this edit rather than silence. `packages/loom` is
- * excluded by the shape of the walk — it is one level deep, and its
- * manifest lives at `packages/loom/package.json`, outside the two-level
- * pattern this gate walks.
+ * deletes its row by this edit rather than silence. Both workspace shapes
+ * are walked — the one-level packages (`core`, `labels`, `layout-engine`,
+ * `theme-core`, the `loom` facade) and the two-level components. A
+ * manifest that is not in this tree — the root one, a template, a fixture —
+ * is none of this gate's business.
  */
 export function checkManifestPrivacy(root: string): string[] {
   const failures: string[] = [];
@@ -58,17 +61,23 @@ export function checkManifestPrivacy(root: string): string[] {
       private?: boolean;
       publishConfig?: unknown;
     };
-    // The `private` field is the publish refusal. It must be the literal
-    // boolean `true`, not a truthy string: only the boolean actually
-    // blocks `npm publish`.
-    if (pkg.private !== true) {
+    // The `private` field is the publish refusal. npm treats any non-empty
+    // value as private (measured against the live registry: `true`, `"true"`
+    // and `"false"` all yield EPRIVATE before any upload); the empty string
+    // and a missing field are what actually publish. So the check is
+    // truthiness, not the literal boolean — a `"private": "true"` is as
+    // un-publishable as the boolean and must not be reported.
+    if (!pkg.private) {
       failures.push(
-        `${manifestPath.replace(root, ".")}: 'private' must be true — a package under packages/ is never published`,
+        `${manifestPath.replace(root, ".")}: 'private' must be present and truthy — a package under packages/ is never published`,
       );
     }
-    // A `publishConfig` overrides parts of the publish flow. On a private
-    // manifest that is an outright inconsistency — the manifest refuses to
-    // publish while carrying instructions for publishing it.
+    // A `publishConfig` on a private manifest is a contradiction in
+    // intent even though npm will not read it on one (EPRIVATE fires
+    // before any publishConfig is consulted — measured). An internal
+    // package is never published, so publish metadata says the opposite
+    // of the manifest's own reason for existing; the only manifest that
+    // carries publishConfig in this repository is the public root one.
     if (pkg.publishConfig !== undefined) {
       failures.push(
         `${manifestPath.replace(root, ".")}: must not carry publishConfig — publish metadata belongs only on the root manifest`,

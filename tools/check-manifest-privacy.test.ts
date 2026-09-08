@@ -81,7 +81,7 @@ describe("checkManifestPrivacy", () => {
       // button lacks `private` — the exact #238 shape (tree-view).
       writeManifest(root, "primitives/button", { name: "@ecoma-io/loom-button" });
       const failures = checkManifestPrivacy(root);
-      expect(failures.some((f) => f.includes("'private' must be true"))).toBe(true);
+      expect(failures.some((f) => f.includes("'private' must be present and truthy"))).toBe(true);
       expect(failures.some((f) => f.includes("primitives/button"))).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
