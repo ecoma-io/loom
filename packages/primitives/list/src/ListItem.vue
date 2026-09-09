@@ -16,7 +16,9 @@ export const listItemVariants = cva(
       shape: {
         static: "",
         // The shared clickable-row language: lift by fill, never by shadow.
-        link: "cursor-pointer outline-none hover:bg-subtle/60 focus-visible:bg-subtle/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out)] active:scale-[0.995]",
+        // The soft press weight, not `scale-press` — a full-width row moving
+        // the full 3% reads as the page jolting rather than the row answering.
+        link: "cursor-pointer outline-none hover:bg-subtle/60 focus-visible:bg-subtle/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo [transition:transform_var(--duration-fast)_var(--ease-spring),background-color_var(--duration-fast)_var(--ease-out)] active:scale-press-soft",
         interactive:
           "cursor-pointer hover:bg-subtle/60 focus-visible:bg-subtle/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo active:bg-subtle",
       },

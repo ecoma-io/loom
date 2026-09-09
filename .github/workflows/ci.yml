@@ -263,6 +263,16 @@ jobs:
       - name: Check composition conformance
         run: node --experimental-strip-types tools/check-composition-conformance.ts
 
+      # `check-token-allowlist.ts` is the same lint-only class: it parses the
+      # token contract and the `@theme static` source as data — never importing
+      # the library it checks, the tooling boundary row again — and fails any
+      # style-bearing value in a component that is not token-anchored and not a
+      # recorded exception. The law it enforces lives in prose the ESLint class
+      # of tools cannot reach, which is why this is a bespoke step beside the
+      # other architecture gates rather than a lint rule.
+      - name: Check token allowlist
+        run: node --experimental-strip-types tools/check-token-allowlist.ts
+
       # `check-doc-claims.ts` is the same lint-only class once more: it recounts
       # the artifact matrix's count sentence against the tracked directories and
       # requires every architecture document to open by naming the

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { LIST_STAGGER_CAP, LIST_STAGGER_STEP_MS, listStaggerDelay } from "./motion";
+import {
+  EMPTY_STATE_STAGGER_STEP_MS,
+  LIST_STAGGER_CAP,
+  LIST_STAGGER_STEP_MS,
+  listStaggerDelay,
+  staggerDelay,
+} from "./motion";
 
 describe("listStaggerDelay", () => {
   it("delays each revealed row one step after the previous", () => {
@@ -21,5 +27,32 @@ describe("listStaggerDelay", () => {
     expect(listStaggerDelay(1)).toBe("24ms");
     expect(listStaggerDelay(5)).toBe("120ms");
     expect(listStaggerDelay(6)).toBe("120ms");
+  });
+});
+
+describe("staggerDelay", () => {
+  // The general form listStaggerDelay is now a special case of — one step per
+  // index, no cap, the caller owns the sequence's length.
+  it("delays the i-th element i steps of the given size", () => {
+    expect(staggerDelay(0, EMPTY_STATE_STAGGER_STEP_MS)).toBe("0ms");
+    expect(staggerDelay(1, EMPTY_STATE_STAGGER_STEP_MS)).toBe("60ms");
+    expect(staggerDelay(2, EMPTY_STATE_STAGGER_STEP_MS)).toBe("120ms");
+    expect(staggerDelay(3, EMPTY_STATE_STAGGER_STEP_MS)).toBe("180ms");
+  });
+
+  it("is what listStaggerDelay is built on — same value for the list family's step", () => {
+    expect(staggerDelay(Math.min(9, LIST_STAGGER_CAP), LIST_STAGGER_STEP_MS)).toBe(
+      listStaggerDelay(9),
+    );
+  });
+});
+
+describe("EMPTY_STATE_STAGGER_STEP_MS", () => {
+  // The empty-state family stages three fixed regions (title, description,
+  // action — the icon is step 0), so its third binding must stay inside the
+  // panel budget the pattern's own docblock claims.
+  it("stages the pattern's three bound regions at 60ms apart", () => {
+    expect(EMPTY_STATE_STAGGER_STEP_MS).toBe(60);
+    expect(staggerDelay(3, EMPTY_STATE_STAGGER_STEP_MS)).toBe("180ms");
   });
 });

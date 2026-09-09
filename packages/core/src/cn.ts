@@ -78,7 +78,7 @@ const twMerge = extendTailwindMerge({
       ease: EASINGS,
       z: ["z-raised", "z-sticky", "z-chrome", "z-overlay", "z-toast"],
       opacity: ["opacity-disabled", "opacity-scrim", "opacity-scrim-light"],
-      scale: ["scale-press"],
+      scale: ["scale-press", "scale-press-soft"],
     },
   },
 });

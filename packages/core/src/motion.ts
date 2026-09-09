@@ -1,18 +1,30 @@
 /**
- * The list-reveal stagger vocabulary — one source for every overlay that
- * reveals rows (DropdownMenu, Menubar, Select) and for the Motion
- * documentation page. Each revealed row is delayed one step after the
- * previous, capped so a long list does not tail off indefinitely.
+ * The stagger vocabularies — one source for every sequence that reveals
+ * element after element. The list family (DropdownMenu, Menubar, Select, the
+ * Motion documentation page) steps quickly and caps, so a long list does not
+ * tail off indefinitely; the empty-state family steps slower because it
+ * stages three fixed regions — icon, title, description, action — rather than
+ * an unbounded row set, and a cap would be dead weight over a sequence that
+ * cannot grow.
  *
- * It lives here rather than in each template because it was written into
- * three of them independently once, which is how the three drifted.
+ * They live here rather than in each template because a stagger was written
+ * into three of them independently once, which is how the three drifted —
+ * and because the token gate holds every other duration to the theme's
+ * vocabulary, so a duration family with one writer each would be exactly the
+ * second home for a visual decision the law exists to prevent.
  */
 export const LIST_STAGGER_STEP_MS = 24;
 export const LIST_STAGGER_CAP = 5;
+export const EMPTY_STATE_STAGGER_STEP_MS = 60;
+
+/** The inline `animation-delay` for the i-th element of a `step`-staggered sequence. */
+export function staggerDelay(i: number, step: number): string {
+  return `${String(i * step)}ms`;
+}
 
 /** The inline `animation-delay` for the i-th revealed row. */
 export function listStaggerDelay(i: number): string {
-  return `${String(Math.min(i, LIST_STAGGER_CAP) * LIST_STAGGER_STEP_MS)}ms`;
+  return staggerDelay(Math.min(i, LIST_STAGGER_CAP), LIST_STAGGER_STEP_MS);
 }
 
 /**

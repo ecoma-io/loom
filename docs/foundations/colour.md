@@ -5,7 +5,11 @@ component is a literal hex or `hsl()` — every fill, border and text colour a
 component renders is one of the custom properties below, reached through a
 Tailwind utility (`bg-primary`, `text-muted-foreground`, `border-border`).
 That single source is what the table below reads at build time, so it can
-never say something `theme.css` does not.
+never say something `theme.css` does not — and since the token-allowlist gate
+(`tools/check-token-allowlist.ts`, run in `pnpm lint` and CI) the claim is
+held to components, not just stated: a colour literal, or any style-bearing
+value that is not token-anchored, fails the build unless it is one of the
+values recorded — with its reason — in the gate's exception register.
 
 <!-- @tokens color -->
 

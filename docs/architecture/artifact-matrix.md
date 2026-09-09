@@ -161,6 +161,33 @@ Drift after this recount lands on
 [issue #277](https://github.com/ecoma-io/loom/issues/277), this
 phase's ledger; the gate's summary is always the number of record.
 
+## The component token surface — Phase 3E
+
+The law `theme.css` states — "everything a consumer can theme lives here and
+nowhere else" — is now held to components the way 3A holds the accessibility
+claims: `tools/check-token-allowlist.ts` judges every style-bearing value a
+component writes — class strings wherever the literal sits, inline motion
+declarations, template colour literals — and fails any that is not
+token-anchored. The law lives as data in `packages/core/src/theme-contract.ts`
+(the allowed value shapes plus the exception register), the gate parses it
+rather than importing it, and the gate's own fixtures prove every register
+entry fires by removing it over the real tree one entry at a time. Recounted
+(2026-09-09), directly from the gate's output rather than this prose:
+
+```text
+Token allowlist clean: 118 .vue file(s) scanned, 69 style-bearing value(s) judged, 116 token(s) in the source; 27 recorded exception(s) across 14 file(s) shrink as tokens land.
+```
+
+The 27 exceptions are the overlay size scales (Dialog, Drawer, Toast,
+ToastStack, AlertDialog), the per-surface menu and popover floors (Popover,
+Tooltip, ContextMenu, DropdownMenu, Menubar, NavigationMenu, Command),
+TitleBar's macOS chrome constants and Switch's anisotropic press pair — each
+carrying the reason it stands rather than a token, in one register a review
+reads whole. The register is the shrinking end of the law: an entry the tree
+no longer produces is itself a failure, so it can only shrink deliberately.
+As with 3A's recount, this section is dated, not living: after this PR, the
+gate's output is the number of record.
+
 ## Templates (3)
 
 | Artifact                              | Current layer     | Intended type              | Public?                  | Evidence                                                                                                         | Gap                                                                            | Action                                                   |

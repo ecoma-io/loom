@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { EMPTY_STATE_STAGGER_STEP_MS, staggerDelay } from "@ecoma-io/loom-core";
+
 /**
  * EmptyState — the shape of "nothing here yet": icon → title → optional
  * description → at most ONE call-to-action, centered in the empty region. An
@@ -7,12 +9,16 @@
  * *result* renders this).
  *
  * The entrance is a staggered fade-rise film (icon, title, description,
- * action — 60ms apart): this is content appearing, not action feedback, so
- * it budgets like a panel rather than against the interaction-feedback
- * ceiling, all token-tier CSS. Purely presentational: the icon comes via the
- * `icon` slot (decorative, hidden from assistive tech), the CTA via the
- * `action` slot — the host owns behavior and wording, and no fallback copy
- * ships with the component.
+ * action — one 60ms step apart): this is content appearing, not action
+ * feedback, so it budgets like a panel rather than against the
+ * interaction-feedback ceiling, all token-tier CSS. The step is the
+ * empty-state family's own (`EMPTY_STATE_STAGGER_STEP_MS` in core's motion
+ * vocabulary) and the delays are computed, not inlined — a stagger the
+ * pattern decided alone is a duration family of one, which is how the list
+ * staggers drifted before core took them. Purely presentational: the icon
+ * comes via the `icon` slot (decorative, hidden from assistive tech), the
+ * CTA via the `action` slot — the host owns behavior and wording, and no
+ * fallback copy ships with the component.
  *
  * The icon sits in a hairline medallion — a `bg-subtle` disc with a `border`
  * ring — rather than floating bare. Two reasons: the glyph itself is sized
@@ -52,19 +58,23 @@ defineProps<{
     <p>
       <span
         class="block animate-fade-rise text-title text-foreground"
-        :style="{ animationDelay: '60ms' }"
+        :style="{ animationDelay: staggerDelay(1, EMPTY_STATE_STAGGER_STEP_MS) }"
       >
         {{ title }}
       </span>
       <span
         v-if="description"
         class="mt-1.5 block animate-fade-rise max-w-sm text-balance text-small text-muted-foreground"
-        :style="{ animationDelay: '120ms' }"
+        :style="{ animationDelay: staggerDelay(2, EMPTY_STATE_STAGGER_STEP_MS) }"
       >
         {{ description }}
       </span>
     </p>
-    <div v-if="$slots.action" class="animate-fade-rise mt-4" :style="{ animationDelay: '180ms' }">
+    <div
+      v-if="$slots.action"
+      class="animate-fade-rise mt-4"
+      :style="{ animationDelay: staggerDelay(3, EMPTY_STATE_STAGGER_STEP_MS) }"
+    >
       <slot name="action" />
     </div>
   </div>
