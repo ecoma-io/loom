@@ -51,3 +51,19 @@ test("the side panel stacks above the content when collapsed, beside it when the
   const contentWideBox = await boxOf(contentWide);
   expect(contentWideBox.x).toBeGreaterThanOrEqual(sideWideBox.x + sideWideBox.width - 1);
 });
+
+test("the row's gap steps with the sm band", async ({ page }) => {
+  // The row carries `gap-3 sm:gap-4` while the gap prop is on (the demo's
+  // first instance turns it on): 12px below `sm`, 16px at or above it.
+  await page.setViewportSize({ width: 360, height: 900 });
+  const narrowGap = await row(page).evaluate((el) =>
+    Number.parseFloat(getComputedStyle(el).columnGap),
+  );
+  expect(narrowGap).toBe(12);
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  const midGap = await row(page).evaluate((el) =>
+    Number.parseFloat(getComputedStyle(el).columnGap),
+  );
+  expect(midGap).toBe(16);
+});

@@ -35,7 +35,9 @@ async function boxOf(locator: Locator) {
 test("right-side variant stacks content above the panel when collapsed, and keeps the panel on the right when wide", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 320, height: 900 });
+  // The responsive contract's narrow band: the demo's 14rem panel plus the
+  // content's 50% floor cannot share it.
+  await page.setViewportSize({ width: 360, height: 900 });
   const row = rightRow(page);
   // Document order for `side="right"`: content first, panel second — the
   // order that makes the wrap produce content-above-panel.
@@ -47,7 +49,8 @@ test("right-side variant stacks content above the panel when collapsed, and keep
   // for sub-pixel rounding at fractional viewport widths).
   expect(contentBox.y + contentBox.height).toBeLessThanOrEqual(panelBox.y + 1);
 
-  await page.setViewportSize({ width: 1024, height: 900 });
+  // The mid band: comfortably past the collapse, so the row is one line.
+  await page.setViewportSize({ width: 800, height: 900 });
   const rowWide = rightRow(page);
   const contentWide = rowWide.locator("> div").first();
   const panelWide = rowWide.locator("> div").nth(1);
@@ -55,6 +58,22 @@ test("right-side variant stacks content above the panel when collapsed, and keep
   const panelWideBox = await boxOf(panelWide);
   // Side by side: the panel sits to the right of the content.
   expect(panelWideBox.x).toBeGreaterThan(contentWideBox.x + contentWideBox.width - 1);
+});
+
+test("the row's gap steps with the sm band", async ({ page }) => {
+  // The default `gap="md"` resolves to `gap-3 sm:gap-4`: 12px below `sm`,
+  // 16px at or above it — the band-scale word on the composition's claim.
+  await page.setViewportSize({ width: 360, height: 900 });
+  const narrowGap = await rightRow(page).evaluate((el) =>
+    Number.parseFloat(getComputedStyle(el).columnGap),
+  );
+  expect(narrowGap).toBe(12);
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  const midGap = await rightRow(page).evaluate((el) =>
+    Number.parseFloat(getComputedStyle(el).columnGap),
+  );
+  expect(midGap).toBe(16);
 });
 
 test("the intrinsic collapse lands between the contract's narrow and mid bands", async ({

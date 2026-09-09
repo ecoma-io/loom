@@ -21,10 +21,11 @@ import { test, expect } from "@playwright/test";
 // can no longer fit alongside the side panel. For a side panel with
 // flex-shrink: 0 and a basis of N rem, the flex container wraps when its width
 // falls below 2 × N (the side panel won't shrink, so the 50% content minimum
-// can't be satisfied). At 320px viewport, after VitePress page margins and the
-// Demo figure's border + padding, the figure inner width is roughly 220px —
-// well below the collapse thresholds for all sidebar sizes.
-const NARROW = 320;
+// can't be satisfied). At the law's 360px narrow band (packages/core/src/
+// responsive-contract.ts), after VitePress page margins and the Demo figure's
+// border + padding, the figure inner width is roughly 260px — well below the
+// collapse thresholds for all sidebar sizes.
+const NARROW = 360;
 
 // Layout panels carry distinctive inline styles set by the component. The
 // flex-wrap container that holds both panels uses an inline `flex-wrap:wrap`
@@ -200,8 +201,9 @@ test("Dashboard sidebar stacks below collapse width and splits above", async ({ 
   expect(gridAreaBox).toBeTruthy();
   expect(gridAreaBox!.y).toBeGreaterThanOrEqual(sidebarBox!.y + sidebarBox!.height - 1);
 
-  // Wide: side by side, sidebar on the left.
-  await page.setViewportSize({ width: 1024, height: 800 });
+  // Wide: side by side, sidebar on the left — the law's mid band (800), past
+  // every collapse threshold in this file's NARROW comment.
+  await page.setViewportSize({ width: 800, height: 800 });
   await page.goto("layouts/dashboard");
 
   const layoutWide = page.locator("figure").first().locator(FLEX_WRAP).first();
@@ -231,7 +233,7 @@ test("Settings nav stacks below collapse width and splits above", async ({ page 
   expect(contentBox).toBeTruthy();
   expect(contentBox!.y).toBeGreaterThanOrEqual(navBox!.y + navBox!.height - 1);
 
-  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.setViewportSize({ width: 800, height: 800 });
   await page.goto("layouts/settings");
 
   const layoutWide = page.locator("figure").first().locator(FLEX_WRAP).first();
@@ -266,8 +268,9 @@ test("DesktopAppShell rail stacks below md and keeps its declared width above it
 
   // Past md the row has direction and the rail stops negotiating:
   // flex-basis 16rem with shrink-0/grow-0 is a settled width, so this —
-  // unlike a wrapped panel (ecoma-io/loom#275) — is pinnable.
-  await page.setViewportSize({ width: 1024, height: 800 });
+  // unlike a wrapped panel (ecoma-io/loom#275) — is pinnable. The law's mid
+  // band (800) is above the md switch (768) the assertion reasons about.
+  await page.setViewportSize({ width: 800, height: 800 });
   await page.goto("layouts/desktop-app-shell");
 
   const railWide = page.locator("figure").first().locator("aside").first();

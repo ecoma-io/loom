@@ -1,12 +1,13 @@
 import { expect, test, type Locator } from "@playwright/test";
 
-// PageHeader's browser-only facts are the two width behaviours of its own
+// PageHeader's browser-only facts are the three width behaviours of its own
 // docblock: the actions wrap under the title once the title block cannot
-// hold its `basis-56` (the wrap threshold — basis, not a width), and the
+// hold its `basis-56` (the wrap threshold — basis, not a width), the
 // description is capped at `max-w-prose` so a one-line orientation never
-// stretches across an ultrawide canvas (the bound). jsdom can pin the
-// classes; only a real layout can say which line the actions land on and
-// whether the cap actually binds.
+// stretches across an ultrawide canvas (the bound), and the gutters step
+// `px-4 sm:px-6 3xl:px-8` on the shared scale (band-scale). jsdom can pin
+// the classes; only a real layout can say which line the actions land on,
+// whether the cap actually binds, and what a gutter resolved to.
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/?component=page-header");
@@ -53,7 +54,24 @@ test("the description holds reading measure while the band grows around it", asy
   expect(wideBlock.width).toBeGreaterThan(1000);
   expect(wideMeasure.width).toBeLessThan(700);
   expect(wideMeasure.width).toBeLessThanOrEqual(measure.width + 1);
+});
 
-  // The band-scale half of the claim — the stepped gutters — is witnessed by
-  // the root sweep, which walks every layout at the canonical bands.
+test("the gutters step on the shared scale at the canonical bands", async ({ page }) => {
+  // PageHeader pads on the same px-4 / sm:px-6 / 3xl:px-8 scale the root
+  // sweep walks the layouts on — witnessed here on the pattern's own demo,
+  // which the sweep never loads (it walks layouts, not patterns).
+  const bar = page.locator("#app header").first();
+  const bands = [
+    { width: 360, padding: 16 },
+    { width: 800, padding: 24 },
+    { width: 2000, padding: 32 },
+  ] as const;
+  for (const band of bands) {
+    await page.setViewportSize({ width: band.width, height: 900 });
+    const padding = await bar.evaluate((el) => Number.parseFloat(getComputedStyle(el).paddingLeft));
+    expect(
+      padding,
+      `PageHeader must pad ${String(band.padding)}px at a ${String(band.width)}px viewport`,
+    ).toBe(band.padding);
+  }
 });
