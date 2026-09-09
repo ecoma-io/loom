@@ -254,8 +254,18 @@ library exports to every consumer at once:
   whose handle is discarded, an observer or socket created without keeping the
   reference that closes it, a reactive effect created outside any scope that
   disposes it.
+- **Workflow supply-chain** (`.github/semgrep/workflows.yaml`) — every `uses:` in
+  `.github/workflows/` pinned to a full commit SHA. A tag is a pointer its owner
+  can repoint at any commit, and a `uses:` line decides whose code runs with this
+  repository's token and LLM keys; renovate.json5's digest-pinning preset owns
+  the bumps, and the rule makes a hand-edited tag fail the pull request that
+  introduced it instead of waiting for Renovate to reconcile it. It mirrors
+  action-agents' rule of the same name: a full SHA and a `./local` path are the
+  two accepted shapes, and an expression ref is refused with the tags, because
+  the runner never evaluates expressions in `uses`.
 
-Every rule has fixtures beside it — `xss.ts`, `memory-leaks.ts` — where each line
+Every rule has fixtures beside it — `xss.ts`, `memory-leaks.ts`,
+`workflows.test.yaml` — where each line
 is marked `ruleid:` (must be reported) or `ok:` (must not be). That suite is what
 stops a rule from being quietly widened or narrowed, and CI runs it before it
 runs the scan.

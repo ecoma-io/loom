@@ -5,8 +5,8 @@ name: Triage
 # destination is a comment and the run therefore writes nothing. Dry-run is
 # the posture, and the full decision plan lands in the machine-readable run
 # record uploaded below. The flip to live is a deliberate one-line step with
-# its own checklist, and the ref is the released exact tag — adopting a later
-# fix is a re-pin, never an accident of a moving tag.
+# its own checklist, and the ref is the released tag's exact commit —
+# adopting a later fix is a re-pin, never an accident of a moving tag.
 #
 # A fork's pull request carries neither org secret nor a write token, so the
 # run fails at startup (the required `api-url` input is empty) and writes
@@ -45,7 +45,7 @@ jobs:
       # No checkout step: a target references the released action by ref, and
       # triage reads everything through the API — one less thing in the
       # workspace.
-      - uses: ecoma-io/action-agents/triage@v0.11.2
+      - uses: ecoma-io/action-agents/triage@605c38f60a26b7bcc56e9cd24852d5b38babbe70 # v0.11.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
