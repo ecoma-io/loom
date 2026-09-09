@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders a native <header> landmark (aria-label when named) around slotted content — the landmark is the contract.",
+  "responsive": {
+    "behaviour": ["wrap-threshold", "band-scale"],
+    "basis": "the search slot is basis-full order-last below sm — its own row — and sm:flex-nowrap sm:basis-auto above it; the header height steps min-h-14 sm:h-14 3xl:h-16.",
+    "evidence": {
+      "harness": ["packages/patterns/app-header/e2e/app-header.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/AppHeaderDemo.vue",

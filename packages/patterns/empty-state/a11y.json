@@ -1,6 +1,10 @@
 {
   "role": "none",
   "basis": "renders flow content — aria-hidden glyph, heading and copy — no role asserted.",
+  "responsive": {
+    "contract": "none",
+    "basis": "one centred column whose geometry is content-driven at every width. The vertical padding does step py-10 sm:py-14, but that is breathing room, not layout contract — nothing about the state's shape turns on it."
+  },
   "evidence": {
     "browserless": [
       "docs/demos/EmptyStateDemo.vue",

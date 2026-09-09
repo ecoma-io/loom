@@ -1,6 +1,13 @@
 {
   "role": "region",
   "basis": "renders Reka's role=\"region\" toast viewport holding each toast's role=\"alert\" announce region — the stack's contract is the announcements.",
+  "responsive": {
+    "behaviour": ["device-media"],
+    "basis": "the stack is w-[min(92vw,24rem)] — a viewport-relative width with a hard cap — inside max-h-dvh, and pads past the safe-area inset on notched devices; the viewport-relative half is witnessed at the narrow and mid bands.",
+    "evidence": {
+      "harness": ["packages/patterns/toast-stack/e2e/toast-stack.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/ToastStackDemo.vue",

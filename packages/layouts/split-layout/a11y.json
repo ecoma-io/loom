@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "a <header> slot over split geometry — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["intrinsic-collapse", "band-scale"],
+    "basis": "the panel row is flex-wrap with min-width: 50% per panel, so panels stack in slot order with no media query (#158 is the doc-order case); every panel gutters step px-4 sm:px-6 3xl:px-8.",
+    "evidence": {
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/SplitLayoutDemo.vue",

@@ -1,6 +1,10 @@
 {
   "role": "none",
   "basis": "renders Spinner and Skeleton over copy — no role asserted; the announcement is the Spinner's own role=\"status\".",
+  "responsive": {
+    "contract": "none",
+    "basis": "one centred column whose geometry is content-driven at every width. The vertical padding does step py-10 sm:py-14, but that is breathing room, not layout contract — nothing about the state's shape turns on it."
+  },
   "evidence": {
     "browserless": [
       "docs/demos/LoadingStateDemo.vue",

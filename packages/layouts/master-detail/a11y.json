@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "bare <div> master/detail geometry — no role of its own; the panes' semantics belong to their content.",
+  "responsive": {
+    "behaviour": ["intrinsic-collapse", "band-scale"],
+    "basis": "the master+detail row is flex-wrap with min-width: 50% on the detail pane, so it stacks with no media query; the detail pane gutters step px-4 sm:px-6 3xl:px-8.",
+    "evidence": {
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/MasterDetailDemo.vue",

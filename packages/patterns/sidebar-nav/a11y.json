@@ -1,6 +1,10 @@
 {
   "role": "navigation",
   "basis": "renders a native <nav aria-label> over <ul>/<li> of <a> items with aria-current=\"page\" — the navigation landmark is the contract.",
+  "responsive": {
+    "contract": "none",
+    "basis": "a nav list — collapsing it into a rail is the host's decision (the collapsed prop), not a viewport behaviour of the pattern's own; at any fixed width its geometry is content-driven."
+  },
   "evidence": {
     "browserless": [
       "docs/demos/SidebarNavDemo.vue",

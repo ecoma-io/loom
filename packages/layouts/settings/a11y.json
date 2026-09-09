@@ -1,6 +1,14 @@
 {
   "role": "none",
   "basis": "<header> and <nav> landmarks around the settings sections — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["intrinsic-collapse", "band-scale"],
+    "basis": "the nav+content row is flex-wrap with min-width floors, so it stacks with no media query; the content pane gutters step px-4 sm:px-6 3xl:px-8.",
+    "evidence": {
+      "harness": ["packages/layouts/settings/e2e/settings.e2e.ts"],
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/SettingsDemo.vue",

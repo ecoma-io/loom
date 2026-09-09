@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders a native <header> holding the <h1> and context slots — the heading structure is the contract.",
+  "responsive": {
+    "behaviour": ["wrap-threshold", "bound"],
+    "basis": "the title block's basis-56 is the wrap threshold — actions drop below the title past it — and the description is capped at max-w-prose instead of spanning the canvas.",
+    "evidence": {
+      "harness": ["packages/patterns/page-header/e2e/page-header.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/PageHeaderDemo.vue",

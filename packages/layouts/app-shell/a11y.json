@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders <header>, <aside> and main-content landmarks around slots — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["intrinsic-collapse", "band-scale"],
+    "basis": "the sidebar+content row is flex-wrap with a min-width floor on the content pane, so it stacks with no media query; the content gutters step px-4 sm:px-6 3xl:px-8.",
+    "evidence": {
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/AppShellDemo.vue",

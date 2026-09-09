@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "a <div> shell with native <header>/<footer> landmark slots — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["bound", "band-scale"],
+    "basis": "the column is capped by maxWidth (mx-auto) and never driven wider; gutters step px-4 sm:px-6 3xl:px-8 when the gutter prop is on.",
+    "evidence": {
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/CenteredDemo.vue",

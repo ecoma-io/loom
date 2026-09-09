@@ -1,6 +1,13 @@
 {
   "role": "group",
   "basis": "renders the Fieldset primitive — a native <fieldset><legend> group naming the section.",
+  "responsive": {
+    "behaviour": ["band-scale"],
+    "basis": "the field grid's gap scale steps at Tailwind's sm (gap-2 sm:gap-3 and up) — the spacing between fields is the contract, witnessed at both bands.",
+    "evidence": {
+      "harness": ["packages/patterns/form-section/e2e/form-section.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/FormSectionDemo.vue",

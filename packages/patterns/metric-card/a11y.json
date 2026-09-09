@@ -1,6 +1,10 @@
 {
   "role": "none",
   "basis": "renders flow content carrying aria-busy while its value loads — no role asserted.",
+  "responsive": {
+    "contract": "none",
+    "basis": "a single tile: its width is whatever the containing grid hands it (the grid owns the reflow) and its interior is one flow column at every width."
+  },
   "evidence": {
     "browserless": [
       "docs/demos/MetricCardDemo.vue",

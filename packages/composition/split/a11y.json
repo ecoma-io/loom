@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders a bare <div> — split geometry only, no semantics of its own.",
+  "responsive": {
+    "behaviour": ["intrinsic-collapse"],
+    "basis": "the panel row is flex-wrap with min-width floors on both panels, so it collapses on the container's own width with no media query; doc-order semantics hold for side=\"right\" (#158). #275 keeps the wrapped panels' widths unpinned.",
+    "evidence": {
+      "harness": ["packages/composition/split/e2e/split.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": ["docs/demos/SplitDemo.vue", "packages/composition/split/tests/Split.test.ts"],
     "harness": [
