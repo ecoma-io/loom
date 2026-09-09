@@ -333,6 +333,27 @@ describe("checkResponsiveEvidence", () => {
     ]);
   });
 
+  it("keys the population on the leg cited, not the tier label — a relabelled sweep citation answers nothing", () => {
+    // The tier key is the claim's own word; the sweep file is the one sweep
+    // runtime there is. Citing that file under `harness` must not lift the
+    // population obligation, or a claim could refile its sweep citation one
+    // key over and read as witnessed.
+    const relabelled = makeTree();
+    writeSidecar(relabelled, completeSidecar());
+    const stack = completeSidecar();
+    (stack.responsive as Record<string, unknown>).evidence = {
+      harness: [{ path: SWEEP_SUITE_PATH }],
+    };
+    writeSidecar(relabelled, stack, "stack");
+    // Two failures, and the second is the point: once the population fault
+    // voids the citation, the behaviour it was filed under is unanswered —
+    // the relabel bought nothing at all.
+    expect(checkResponsiveEvidence(relabelled, contract)).toEqual([
+      'Stack: responsive evidence.harness entry "e2e/layout-responsive.e2e.ts" — the responsive sweep does not reach this component\'s page (e2e/layout-responsive.e2e.ts never loads it)',
+      "Stack: behaviour intrinsic-collapse has no viewport-bearing evidence and no exception recorded",
+    ]);
+  });
+
   it("stops at a sweep leg it cannot read, never mistaking it for an empty one", () => {
     const root = makeTree();
     writeSidecar(root, completeSidecar());

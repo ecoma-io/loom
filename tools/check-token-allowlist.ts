@@ -30,7 +30,8 @@
 //
 //   - arbitrary Tailwind values whose utility is style-bearing — the colour
 //     families (including the directional borders and dividers), radius,
-//     elevation, the filter weights (blur, brightness), motion, transforms,
+//     elevation, the filter weights (the whole family, each with its backdrop
+//     twin), motion, transforms,
 //     box dimension, spacing (axis pairs and child-flow margins included),
 //     inset positioning, stacking, translucency and typographic rhythm — are
 //     judged against the contract's value shapes. A value that references a
@@ -405,6 +406,14 @@ function lineCounter(text: string): (offset: number) => number {
  * theme namespaces carry. A bracket value on any other utility is layout
  * structure, not a themable decision, and is out of scope by the header's
  * statement.
+ *
+ * The filter functions are enumerated as a whole family, every weight with its
+ * `backdrop-*` twin, because a member left out is not a blind spot but a
+ * laundering path: `blur-[…]` judged while `backdrop-blur-[…]` passed unjudged
+ * would move a decision to the spelling the gate does not read, and the same
+ * holds between a weight and its sibling (`saturate` next to `brightness`).
+ * `text-shadow` is here for the same reason `shadow` and `drop-shadow` are —
+ * it paints, so its radius and colour are themable quantities.
  */
 const STYLE_BEARING = new Set([
   // Colour.
@@ -440,11 +449,29 @@ const STYLE_BEARING = new Set([
   "rounded",
   "shadow",
   "drop-shadow",
-  // A blur radius is a themable quantity; brightness is a filter weight.
+  // Paints, so its blur radius and colour are themable quantities like the
+  // box shadows' are.
+  "text-shadow",
+  "indent",
+  // The filter weights, each with its backdrop twin — a blur radius is a
+  // themable quantity, and the weights are steps on the same ladder.
   "blur",
+  "backdrop-blur",
   "brightness",
   "backdrop-brightness",
-  "indent",
+  "contrast",
+  "backdrop-contrast",
+  "saturate",
+  "backdrop-saturate",
+  "hue-rotate",
+  "backdrop-hue-rotate",
+  "grayscale",
+  "backdrop-grayscale",
+  "invert",
+  "backdrop-invert",
+  "sepia",
+  "backdrop-sepia",
+  "backdrop-opacity",
   // Motion.
   "animate",
   "duration",
@@ -923,11 +950,17 @@ const CSS_NAMED_COLOURS = [
  * anything a colour word is glued into (`text-red-500` stays the named-
  * utility blind spot, not a colour literal; `whitesmoke` is one colour, not
  * `white` inside a word).
+ *
+ * Case-insensitive, the way the `<style` matcher below already is: CSS is not
+ * case-sensitive — `HSL(…)` parses as the same declaration `hsl(…)` does — so
+ * a literal is a literal in any casing, and the hex alternation has read
+ * `#DEADBEEF` and `#deadbeef` alike from the start. A case-sensitive read
+ * makes the escape a matter of reaching for the shift key.
  */
 const COLOUR_LITERAL = new RegExp(
   "#[0-9a-fA-F]{3,8}\\b|\\brgba?\\(|\\bhsla?\\(|\\boklch\\(|\\boklab\\(|\\bcolor\\(|\\bcolor-mix\\(" +
     `|(?<![\\w-])(?:${CSS_NAMED_COLOURS.join("|")})(?![\\w-])`,
-  "g",
+  "gi",
 );
 
 interface RawFinding {

@@ -14,7 +14,7 @@
 // zero violations, so a future over-eager rule fails loudly rather than
 // quietly blocking every component.
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -922,6 +922,47 @@ describe("runChecks", () => {
       );
       const failures = runChecks(root);
       expect(failures.some((f) => f.includes("theme.ts: destructuring export"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags an export line no known shape matches, instead of reading it as nothing", () => {
+    const root = makeRoot();
+    try {
+      // `export` with its clause brace on the next line matches no shape the
+      // parser knows. The silent fall-through this replaced read the module
+      // as exporting nothing while the file shipped real surface — exactly
+      // the hole the parser's own contract says is closed.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "theme.ts"),
+        ["export", "{ useTheme };", ""].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("theme.ts: unreadable export form"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("fails named on a dotted exports stem instead of passing it unread", () => {
+    const root = makeRoot();
+    try {
+      // Every reader this surface is judged against — the vite entry map, the
+      // declaration stems, the tsconfig paths, the docs aliases — matches a
+      // bare identifier, so "./theme.js" could never be judged by any leg,
+      // only skipped. Skipping reads as green; the gate says so instead.
+      const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
+        exports: Record<string, unknown>;
+      };
+      manifest.exports["./theme.js"] = "./dist/theme.js";
+      writeFileSync(join(root, "package.json"), JSON.stringify(manifest));
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) => f.includes('"./theme.js"') && f.includes("a dotted stem is not a unit name"),
+        ),
+      ).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

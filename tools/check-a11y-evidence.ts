@@ -49,6 +49,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 
 import { TIERS } from "./architecture/graph.ts";
+import { runnableSpecText } from "./spec-source.ts";
 
 /** The law, parsed out of the contract module's source text. */
 export interface ParsedA11yContract {
@@ -218,14 +219,18 @@ export function readA11yContract(root: string): ParsedA11yContract {
 /**
  * The population a bespoke suite actually sweeps, read out of the suite's own
  * `page.goto("…/<page>")` targets — a tree fact, not a sidecar's prose. The
- * failure modes are deliberately loud: a suite that is missing, unreadable or
- * names no page stops the gate, because an unreadable suite must never be
- * mistaken for an empty one.
+ * read goes through the shared spec reader, because the suite's population is
+ * what the suite RUNS: a goto that lives in a comment loads no page, and a
+ * goto inside a `test.fixme`/`test.skip` body belongs to a test Playwright
+ * never executes. Either shape written here would answer a suite-judged
+ * requirement the tree never witnesses. The failure modes are deliberately
+ * loud: a suite that is missing, unreadable or names no page stops the gate,
+ * because an unreadable suite must never be mistaken for an empty one.
  */
 export function readSuitePopulation(root: string, suite: string): Set<string> {
   let text: string;
   try {
-    text = readFileSync(join(root, ...suite.split("/")), "utf8");
+    text = runnableSpecText(readFileSync(join(root, ...suite.split("/")), "utf8"));
   } catch {
     throw new Error(
       `the bespoke suite ${suite} is unreadable, and its population is a tree fact the gate will not guess`,
@@ -382,6 +387,17 @@ function parseSidecar(
       if (typeof requirement !== "string" || !requirementIds.has(requirement)) {
         failures.push(
           `${component}: ${relSidecar} records an exception for ${JSON.stringify(requirement ?? null)} — no such requirement`,
+        );
+        continue;
+      }
+      if (exceptions.some((recorded) => recorded.requirement === requirement)) {
+        // One requirement, one exception row — the same rule the responsive
+        // and interaction claims carry on their own exception arrays: a
+        // repeated row would double-count in the summary, the number the
+        // shrinking gap is read off, while saying nothing the first row did
+        // not.
+        failures.push(
+          `${component}: exceptions name ${requirement} twice — one requirement, one exception row`,
         );
         continue;
       }
@@ -560,8 +576,19 @@ export function exceptionSummary(
       const role = record.role;
       const exceptions = record.exceptions;
       if (typeof role !== "string" || !rowByRole.has(role) || !Array.isArray(exceptions)) continue;
-      count += exceptions.length;
-      if (exceptions.length > 0) components++;
+      // One requirement, one row: the verdict fails a repeated exception row,
+      // and the summary — the number of record — must agree with the verdict
+      // rather than with the raw text, so a duplicate is never tallied twice.
+      const seen = new Set<string>();
+      let named = 0;
+      for (const exception of exceptions) {
+        const requirement = (exception as Record<string, unknown>).requirement;
+        if (typeof requirement !== "string" || seen.has(requirement)) continue;
+        seen.add(requirement);
+        named++;
+      }
+      count += named;
+      if (named > 0) components++;
     }
   }
   return { count, components };

@@ -136,20 +136,25 @@ export function parseCaseModule(
 ): ParsedCaseModule | null {
   const text = stripComments(source);
 
+  // Whole-token matches, not substrings: the includes() this replaced read
+  // `export const componentAlias = …` as an intake of `component` — a module
+  // could satisfy the four-name contract on paper while exporting none of the
+  // four names, and the closing `\b` is what makes an extended identifier a
+  // different name rather than a longer spelling of this one.
   for (const name of ["component", "adapter", "cases"] as const) {
-    if (!text.includes(`export const ${name}`)) {
+    if (!new RegExp(`export\\s+const\\s+${name}\\b`).test(text)) {
       failures.push(
         `${composition}: ${relPath} exports no \`const ${name}\` — the route's module contract is component, adapter, layout and cases`,
       );
     }
   }
-  if (!text.includes("export { layout }")) {
+  if (!/export\s*\{\s*layout\s*\}/.test(text)) {
     failures.push(
       `${composition}: ${relPath} does not re-export \`layout\` — the engine is reached only through the package's own module, never past the e2e boundary`,
     );
   }
 
-  const declared = text.indexOf("export const cases");
+  const declared = text.search(/export\s+const\s+cases\b/);
   const assign = declared === -1 ? -1 : text.indexOf("= [", declared);
   const block = assign === -1 ? null : bracketBlock(text, assign + 2);
   if (block === null) {

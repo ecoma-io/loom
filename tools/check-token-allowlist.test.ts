@@ -482,6 +482,44 @@ describe("scanVueFile", () => {
     }
   });
 
+  it("judges the whole filter family — every weight and its backdrop twin", () => {
+    // A member left out is a laundering path, not a blind spot: the decision
+    // would simply move to the spelling the gate does not read, as it would
+    // if `blur` were judged while its backdrop twin passed. `text-shadow`
+    // paints, so its radius and colour are judged like the box shadows' are.
+    const tokens = [
+      "backdrop-blur-[4px]",
+      "contrast-[1.2]",
+      "backdrop-contrast-[1.2]",
+      "saturate-[1.5]",
+      "backdrop-saturate-[1.5]",
+      "hue-rotate-[30deg]",
+      "backdrop-hue-rotate-[30deg]",
+      "grayscale-[50%]",
+      "invert-[20%]",
+      "sepia-[40%]",
+      "backdrop-opacity-[60%]",
+      "text-shadow-[0_1px_2px_black]",
+    ];
+    for (const token of tokens) {
+      const scan = scanVueFile(sfc(`<span class="${token}">x</span>`), law());
+      expect(scan.findings, token).toEqual([{ line: 6, value: token }]);
+    }
+  });
+
+  it("judges a colour literal whatever its case — CSS is not case-sensitive", () => {
+    // The `/i` this matcher now carries is the one the `<style` matcher
+    // already did: `HSL(…)` parses as the same declaration `hsl(…)` does, so
+    // a literal is a literal in any casing — and the hex alternation has read
+    // `#DEADBEEF` and `#deadbeef` alike from the start.
+    const fn = scanVueFile(sfc(`<span style="background: HSL(0 100% 50%)">x</span>`), law());
+    expect(fn.findings).toEqual([{ line: 6, value: "HSL(" }]);
+    const named = scanVueFile(sfc(`<span style="color: OLIVE">x</span>`), law());
+    expect(named.findings).toEqual([{ line: 6, value: "OLIVE" }]);
+    const hex = scanVueFile(sfc(`<span style="color: #DEADBEEF">x</span>`), law());
+    expect(hex.findings).toEqual([{ line: 6, value: "#DEADBEEF" }]);
+  });
+
   it("passes a token reference on the newly judged families", () => {
     const scan = scanVueFile(
       sfc(`<span class="border-t-[var(--x)] blur-[var(--x)]">x</span>`),
