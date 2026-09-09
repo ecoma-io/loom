@@ -55,9 +55,37 @@ function writeFixture(root: string): void {
     ].join("\n"),
   );
   mkdirSync(join(root, "packages", "loom", "src"), { recursive: true });
-  writeFileSync(join(root, "packages", "loom", "src", "index.ts"), "export {};\n");
+  writeFileSync(
+    join(root, "packages", "loom", "src", "index.ts"),
+    [
+      "// The facade surface, plus the register the parity gate parses. Every",
+      "// name re-exported here must be mentioned in a docs/ page, and every",
+      "// barrel export withheld here must carry one of the records below.",
+      'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+      "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+      "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+      "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+      "",
+    ].join("\n"),
+  );
   writeFileSync(join(root, "packages", "loom", "src", "a11y.ts"), "export {};\n");
   writeFileSync(join(root, "packages", "loom", "src", "theme.ts"), "export {};\n");
+  // The facade manifest and the tsconfig paths: the two extra copies of the
+  // subpath set that the mirror leg holds to the root exports map.
+  writeFacadeManifest(root, ["a11y", "theme"]);
+  writeTsconfigPaths(root, ["a11y", "theme"]);
+  // A sibling barrel with the export shapes the identifier legs judge: a
+  // default binding, a named clause, and a star the gate must expand.
+  mkdirSync(join(root, "packages", "primitives", "stub", "src"), { recursive: true });
+  writeFileSync(
+    join(root, "packages", "primitives", "stub", "package.json"),
+    JSON.stringify({ name: "@ecoma-io/loom-stub" }),
+  );
+  writeStubBarrel(root);
+  writeFileSync(
+    join(root, "packages", "primitives", "stub", "src", "more.ts"),
+    "export const stubExtra = 1;\n",
+  );
   mkdirSync(join(root, "packages", "theme-core", "src"), { recursive: true });
   writeFileSync(join(root, "packages", "theme-core", "src", "global.css"), "");
   writeFileSync(join(root, "packages", "theme-core", "src", "theme.css"), "");
@@ -90,6 +118,60 @@ function writeFixture(root: string): void {
       'import { WCAG_TAGS } from "@ecoma-io/loom/a11y";',
       "",
     ].join("\n"),
+  );
+  writeFileSync(
+    join(root, "docs", "components", "stub.md"),
+    [
+      "`Stub` renders with `useStubTheme`; the barrel's default binding ships",
+      "through the facade as `StubDefault`.",
+      "",
+      "<!-- @api Stub -->",
+      "<!-- @api StubNode -->",
+      "",
+    ].join("\n"),
+  );
+}
+
+/** The barrel every identifier case starts from — rewritten whole by the mutations. */
+function writeStubBarrel(root: string, extra: string[] = []): void {
+  writeFileSync(
+    join(root, "packages", "primitives", "stub", "src", "index.ts"),
+    [
+      'export { default } from "./Stub.vue";',
+      'export { default as Stub } from "./Stub.vue";',
+      'export { useStubTheme, stubInternal } from "./helpers.ts";',
+      'export * from "./more.ts";',
+      ...extra,
+      "",
+    ].join("\n"),
+  );
+}
+
+/** The facade manifest's `exports` map: the bare entry plus the given subpaths. */
+function writeFacadeManifest(root: string, subpaths: string[]): void {
+  const exports: Record<string, unknown> = {
+    ".": { types: "./dist/index.d.ts", default: "./dist/index.js" },
+  };
+  for (const name of subpaths) {
+    exports[`./${name}`] = { types: `./dist/${name}.d.ts`, default: `./dist/${name}.js` };
+  }
+  writeFileSync(
+    join(root, "packages", "loom", "package.json"),
+    JSON.stringify({ name: "@ecoma-io/loom-facade", exports }),
+  );
+}
+
+/** The tsconfig `paths` table: the bare facade key plus the given subpaths. */
+function writeTsconfigPaths(root: string, subpaths: string[]): void {
+  const paths: Record<string, string[]> = {
+    "@ecoma-io/loom": ["./packages/loom/src/index.ts"],
+  };
+  for (const name of subpaths) {
+    paths[`@ecoma-io/loom/${name}`] = [`./packages/loom/src/${name}.ts`];
+  }
+  writeFileSync(
+    join(root, "tsconfig.base.json"),
+    JSON.stringify({ compilerOptions: { paths } }, null, 2),
   );
 }
 
@@ -401,11 +483,235 @@ describe("runChecks", () => {
           "})",
         ].join("\n"),
       );
+      // The two mirror files the subpath leg reads have to drop the subpath
+      // with the exports map — that is the leg's own rule.
+      writeFacadeManifest(root, ["a11y"]);
+      writeTsconfigPaths(root, ["a11y"]);
       const failures = runChecks(root);
       // The exports map, build, declarations, styles and consumer docs all
       // agree; the only mention of the removed subpath lives in
       // docs/architecture/baseline.md, which must not resurrect it.
       expect(failures).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a barrel export no facade entry re-exports and no record withholds", () => {
+    const root = makeRoot();
+    try {
+      // A new export appears in the barrel and nowhere else — exactly the
+      // silent-public-surface growth the identifier legs exist to catch.
+      writeStubBarrel(root, ["export const stubSurprise = 1;"]);
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) =>
+            f.includes('exports "stubSurprise"') && f.includes("no facade entry re-exports it"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a register record whose identifier a facade entry re-exports", () => {
+    const root = makeRoot();
+    try {
+      // The other direction: the record survives a re-export that resolved it.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal Stub — recorded before the facade started re-exporting it",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) =>
+            f.includes("@internal Stub") &&
+            f.includes("records a withheld identifier, but a facade entry exports it"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a withheld-default record once the facade re-exports that default", () => {
+    const root = makeRoot();
+    try {
+      // The facade now re-exports the stub's default, so the scoped record
+      // describes a decision that was unmade.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal stub:default — recorded before the facade named the default",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) =>
+            f.includes("@internal stub:default") &&
+            f.includes(
+              "records a withheld default, but a facade entry re-exports that package's default",
+            ),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a register record no barrel export justifies any more", () => {
+    const root = makeRoot();
+    try {
+      // A record for a name nothing exports: stale prose reading as deliberate.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal ghostExport — withheld from a barrel that no longer exports it",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) => f.includes("@internal ghostExport") && f.includes("no package barrel exports it"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags an @api marker naming a component no consumer can import", () => {
+    const root = makeRoot();
+    try {
+      // The generated-table leg, unrecorded direction: a marker whose table
+      // promises props for surface the facade never shipped.
+      writeFileSync(
+        join(root, "docs", "components", "stub.md"),
+        [
+          "`Stub` renders with `useStubTheme`; the barrel's default binding ships",
+          "through the facade as `StubDefault`.",
+          "",
+          "<!-- @api Stub -->",
+          "<!-- @api StubNode -->",
+          "<!-- @api StubUnimported -->",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) =>
+            f.includes("docs/components/stub.md") && f.includes('@api marker for "StubUnimported"'),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags an @internal-doc record whose name the facade exports", () => {
+    const root = makeRoot();
+    try {
+      // The recorded direction of the marker leg: the exception outlived the
+      // withholding it justified.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "// @internal-doc Stub — recorded before Stub became importable",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) => f.includes("@internal-doc Stub ") && f.includes("but the facade exports it"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a facade export no docs page mentions", () => {
+    const root = makeRoot();
+    try {
+      // The docs-coverage leg: surface reached the facade without a word of
+      // consumer-facing documentation.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "export const stubOrphan = 1;",
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) => f.includes('"stubOrphan"') && f.includes("mentioned in no docs/ page"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a subpath the facade manifest drops while the other copies keep it", () => {
+    const root = makeRoot();
+    try {
+      // Workspace resolution breaks on the manifest alone; the published
+      // files, the build and the type-checker all still agree.
+      writeFacadeManifest(root, ["a11y"]);
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) => f.includes("./theme") && f.includes("missing from packages/loom/package.json"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a tsconfig paths entry mirroring no exported subpath", () => {
+    const root = makeRoot();
+    try {
+      // The type-checker can resolve a subpath the package never exports —
+      // the one copy of the surface the published files cannot see.
+      writeTsconfigPaths(root, ["a11y", "theme", "markdown"]);
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) => f.includes("./markdown") && f.includes("carried by tsconfig.base.json"),
+        ),
+      ).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
