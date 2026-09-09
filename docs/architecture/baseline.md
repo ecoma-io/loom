@@ -128,6 +128,9 @@ Re-exports `useTheme`, `themeScript`, `ThemePreference`, `ResolvedTheme` from `s
 
 All 8 compositions and all 8 layouts import **only `cn` from `lib/cn`**.
 No composition imports another composition. No layout imports a primitive.
+(The snapshot's whole story — today's tree carries more, all of it landed
+after this snapshot: the adapters' engine edge, the responsive-band imports,
+scroll-reel's labels.)
 
 ### External dependency usage
 

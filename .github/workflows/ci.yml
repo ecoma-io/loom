@@ -253,6 +253,16 @@ jobs:
       - name: Check responsive evidence
         run: node --experimental-strip-types tools/check-responsive-evidence.ts
 
+      # The same lint-only class once more: `check-composition-conformance.ts`
+      # (Phase 3C, the composition contract's evidence-or-exception gate) has
+      # run only inside root `pnpm lint` since it landed, and the verify job's
+      # affected-moon ESLint path never chains the root script — without a
+      # step it is a gate no pull request ever executes. It reads the
+      # composition tree plus its exception rows and nothing else, so it needs
+      # no build and no browser.
+      - name: Check composition conformance
+        run: node --experimental-strip-types tools/check-composition-conformance.ts
+
       # `check-doc-claims.ts` is the same lint-only class once more: it recounts
       # the artifact matrix's count sentence against the tracked directories and
       # requires every architecture document to open by naming the
