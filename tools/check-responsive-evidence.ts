@@ -18,8 +18,8 @@
 // without a claim. Primitives are outside this gate deliberately: their
 // sizing is set by the host that composes them (an overlay's max-width is a
 // fact about the overlay context, not about the button inside it), and the
-// per-primitive viewport obligation is Phase 3C/3D design space, recorded
-// here rather than silently implied.
+// per-primitive viewport obligation is tracked as ecoma-io/loom#308 rather
+// than silently implied here.
 //
 // What is asserted per component, in the a11y gate's failure style:
 //
@@ -68,6 +68,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 
 import { TIERS } from "./architecture/graph.ts";
+import { runnableSpecText } from "./spec-source.ts";
 
 /** The tiers this gate enumerates — the component tiers minus the primitives. */
 const SCOPED_TIERS = TIERS.filter((tier) => tier !== "primitives");
@@ -198,15 +199,17 @@ export function readResponsiveContract(root: string): ParsedResponsiveContract {
 /**
  * The population the root responsive leg actually sweeps, read out of its own
  * `page.goto("…/<page>")` targets — a tree fact, not a sidecar's prose, and
- * the same discipline the a11y gate applies to its bespoke suite. The read is
- * comment-blind: a goto that lives in a comment is a page the leg never
- * loads, and a population read out of remarks would answer citations the
- * tree never runs.
+ * the same shared spec reader the a11y gate applies to its bespoke suite. The
+ * read is comment-blind (a goto that lives in a comment is a page the leg
+ * never loads) and skips the tests that never run: a goto inside a
+ * `test.fixme`/`test.skip` body belongs to a test Playwright never executes,
+ * and a population read out of either would answer citations the tree never
+ * witnesses.
  */
 export function readSuitePopulation(root: string, suite: string): Set<string> {
   let text: string;
   try {
-    text = stripComments(readFileSync(join(root, ...suite.split("/")), "utf8"));
+    text = runnableSpecText(readFileSync(join(root, ...suite.split("/")), "utf8"));
   } catch {
     throw new Error(
       `the responsive sweep ${suite} is unreadable, and its population is a tree fact the gate will not guess`,
@@ -571,7 +574,15 @@ export function checkResponsiveEvidence(
         for (const entry of entries) {
           const where = `responsive evidence.${entryTier} entry`;
           const holds = viewportBearing(component, where, entry.path);
-          if (holds && entryTier === "sweep" && !population.has(name)) {
+          // The population obligation belongs to the sweep's coverage, not to
+          // the tier label the claim filed the citation under. The sweep leg is
+          // the one sweep runtime there is, so a citation OF that file answers
+          // nothing for a page it never loads even when relabelled "harness" —
+          // the label is the claim's own word, and this check exists because a
+          // tree fact is not one — and a citation under the sweep key answers
+          // nothing for a page the leg never loads, whatever file it names.
+          const citesSweepLeg = entry.path.split(/[\\/]/).join("/") === SWEEP_SUITE;
+          if (holds && (entryTier === "sweep" || citesSweepLeg) && !population.has(name)) {
             failures.push(
               `${component}: ${where} "${entry.path}" — the responsive sweep does not reach this component's page (${SWEEP_SUITE} never loads it)`,
             );

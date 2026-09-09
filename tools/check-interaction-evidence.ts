@@ -72,6 +72,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 
 import { TIERS } from "./architecture/graph.ts";
+import { runnableSpecText } from "./spec-source.ts";
 
 /** The law, parsed out of the contract module's source text. */
 export interface ParsedInteractionContract {
@@ -251,71 +252,18 @@ export function readInteractionContract(root: string): ParsedInteractionContract
 
 /**
  * Whether a spec file performs a keyboard gesture at all — the tree fact a
- * keyboard-operate answer rests on. Comment-blind, like every reader here: a
- * remarked keypress is not one the spec performs, so coverage must not be
- * writable as a comment — and that holds for a trailing remark exactly as for
- * a whole-line one, which is why the strip below is line-aware rather than
- * line-anchored. `.press(` is Playwright's keyboard action on a locator as
- * well as on `page.keyboard`; `keyboard.down/up/type/insertText` cover the
- * held-key and typing forms.
+ * keyboard-operate answer rests on. Read through the shared spec reader, so
+ * the gesture is one the spec RUNS: a remarked keypress is not one (comments
+ * are inert, a trailing remark exactly as much as a whole-line one), and a
+ * keypress inside a `test.fixme`/`test.skip` body is not either — Playwright
+ * never executes those tests. `.press(` is Playwright's keyboard action on a
+ * locator as well as on `page.keyboard`; `keyboard.down/up/type/insertText`
+ * cover the held-key and typing forms.
  */
 export function namesAKeyboardGesture(content: string): boolean {
   return /\bkeyboard\s*\.\s*(press|down|up|type|insertText)\b|\.press\s*\(/.test(
-    stripLineAwareComments(content),
+    runnableSpecText(content),
   );
-}
-
-/**
- * Remove `//` comments wherever they sit on a line and `/* … *&#47;` blocks,
- * quote-aware: the whole-line-only strip this used let
- * `click(); // retired: await page.keyboard.press("Enter")` count as a
- * gesture — a retired keypress is as inert as a remarked one, and the
- * trailing shape is where retired code actually lives. Quoted spans pass
- * through byte for byte, so a URL's `//` can neither start nor swallow a
- * comment; the scanner's residuals (a regex literal masquerading as a
- * comment) fail toward finding no gesture, never toward finding one.
- */
-function stripLineAwareComments(text: string): string {
-  let out = "";
-  let quote: string | null = null;
-  let i = 0;
-  while (i < text.length) {
-    const ch = text[i];
-    if (ch === undefined) break;
-    if (quote !== null) {
-      out += ch;
-      // An escaped quote is data, not the end of the literal.
-      if (ch === "\\") {
-        out += text[i + 1] ?? "";
-        i += 2;
-        continue;
-      }
-      if (ch === quote) quote = null;
-      i += 1;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      quote = ch;
-      out += ch;
-      i += 1;
-      continue;
-    }
-    if (ch === "/" && text[i + 1] === "*") {
-      const end = text.indexOf("*/", i + 2);
-      i = end === -1 ? text.length : end + 2;
-      continue;
-    }
-    if (ch === "/" && text[i + 1] === "/") {
-      // The newline itself survives, so code on the following line is still
-      // read on its own line.
-      const end = text.indexOf("\n", i);
-      i = end === -1 ? text.length : end;
-      continue;
-    }
-    out += ch;
-    i += 1;
-  }
-  return out;
 }
 
 interface EvidenceEntry {

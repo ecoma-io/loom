@@ -81,7 +81,7 @@ export function runChecks(root: string): string[] {
   }
 
   const exportsMap = readRootExports(root);
-  const surface = exportsSurface(exportsMap);
+  const surface = exportsSurface(exportsMap, fail);
   const libEntries = viteEntryKeys(root);
   const declarations = declarationStems(root);
   const styles = styleExports(exportsMap);
@@ -346,7 +346,7 @@ export function runChecks(root: string): string[] {
   // two workspace files are seen by no leg above. A subpath any one of the
   // three drops breaks workspace resolution or the type-checker while the
   // published files still agree, so the three must be one set.
-  const mirror = subpathMirror(root, surface);
+  const mirror = subpathMirror(root, surface, fail);
   for (const state of mirror) {
     fail(
       `${state.label} is carried by ${state.carried.join(" and ")}, but missing from ${state.missing.join(" and ")}`,
@@ -389,20 +389,29 @@ function readRootExports(root: string): Record<string, unknown> {
 /**
  * The JS unit names an exports map declares. The root `.` is the facade's
  * bare entry (built from `index.ts`); each `./<name>` subpath is its own unit.
- * `./package.json` and the stylesheets are not JS units of the facade.
+ * `./package.json` and the stylesheets are not JS units of the facade. A
+ * dotted stem (`./a11y.js`) is fail-named through `fail`, never skipped: every
+ * reader this surface is judged against — the vite entry map, the declaration
+ * stems, the tsconfig paths, the docs aliases — matches a bare identifier, so
+ * a dotted key could not be judged by any leg, only passed over, and a gate
+ * that cannot judge a key has to say so rather than read as green.
  */
-function exportsSurface(exportsMap: Record<string, unknown>): Map<string, true> {
+function exportsSurface(
+  exportsMap: Record<string, unknown>,
+  fail: (message: string) => void,
+): Map<string, true> {
   const surface = new Map<string, true>();
   if (exportsMap["."]) surface.set("index", true);
   for (const key of Object.keys(exportsMap)) {
     if (!key.startsWith("./")) continue;
     const stem = key.slice(2);
-    if (
-      stem === "" ||
-      stem === "package.json" ||
-      stem.startsWith("styles/") ||
-      stem.includes(".")
-    ) {
+    if (stem === "" || stem === "package.json" || stem.startsWith("styles/")) {
+      continue;
+    }
+    if (stem.includes(".")) {
+      fail(
+        `exports map carries "./${stem}" — a dotted stem is not a unit name this gate can judge against the build entries, declarations or tsconfig paths; name the unit without the extension`,
+      );
       continue;
     }
     surface.set(stem, true);
@@ -676,6 +685,18 @@ function parseModuleExports(text: string): ParsedModule {
     }
     if (EXPORT_DEFAULT.test(line)) {
       declarations.push("default");
+      continue;
+    }
+    // The fall-through is the last branch, not a quiet one. An `export` line
+    // no shape above matched — the `export` and its clause brace split across
+    // lines (`export\n{ a, b };`), an `export let`, anything else — is a form
+    // this parser cannot read, and its contract is that an unread form errors
+    // named rather than reads as a module exporting nothing. Silently skipping
+    // it here would be exactly the hole the docblock promises is closed.
+    if (/^export\b/.test(line)) {
+      errors.push(
+        `unreadable export form "${line.trim()}" — the parser reads clause, star, declaration and default shapes`,
+      );
     }
   }
   return { bindings, starSources, declarations, errors };
@@ -1050,6 +1071,9 @@ function docsIdentifierTokens(docsFiles: DocsFile[]): Set<string> {
  * package (`@ecoma-io/loom-core` has no `/` after `loom`), which is what
  * keeps the internal workspace mappings out of the comparison.
  *
+ * `fail` reaches the manifest read too: the facade copy goes through the same
+ * `exportsSurface`, whose dotted-stem ruling is the gate's, not one copy's.
+ *
  * The mirror compares keys, never values: it verifies each subpath's presence
  * across the three copies, and whether an entry points at the right file
  * stays with the build and the type-checker.
@@ -1057,6 +1081,7 @@ function docsIdentifierTokens(docsFiles: DocsFile[]): Set<string> {
 function subpathMirror(
   root: string,
   surface: Map<string, true>,
+  fail: (message: string) => void,
 ): { label: string; carried: string[]; missing: string[] }[] {
   const sources: { label: string; names: Set<string> }[] = [
     { label: "the root exports map", names: new Set(surface.keys()) },
@@ -1068,7 +1093,7 @@ function subpathMirror(
     const manifest = readManifest(facadeManifestPath) as {
       exports?: Record<string, unknown>;
     };
-    facadeManifest = exportsSurface(manifest.exports ?? {});
+    facadeManifest = exportsSurface(manifest.exports ?? {}, fail);
   }
   sources.push({ label: "packages/loom/package.json", names: new Set(facadeManifest.keys()) });
 

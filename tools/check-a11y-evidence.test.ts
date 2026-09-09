@@ -211,6 +211,69 @@ describe("checkA11yEvidence", () => {
     expect(() => checkA11yEvidence(root, contract)).toThrow(/unreadable/);
   });
 
+  it("is blind to a commented-out goto — a remark does not put a page in the population", () => {
+    // The population read shares the spec reader, so a coverage claim written
+    // as a remark — the shape retired code actually takes — answers nothing,
+    // exactly as it does for the interaction gate's gesture read.
+    const root = makeTree();
+    writeSidecar(root, completeSidecar());
+    writeFileSync(
+      join(root, ...FNOB_SUITE_PATH.split("/")),
+      [
+        'import { test } from "@playwright/test";',
+        "",
+        'test("focus is not obscured on the button page", async ({ page }) => {',
+        '  // retired with the sweep rewrite: await page.goto("components/button");',
+        '  await page.goto("components/icon-button");',
+        "});",
+      ].join("\n"),
+    );
+    expect(checkA11yEvidence(root, contract)).toEqual([
+      "Button: role button requires focus-not-obscured (sweep tier) — no evidence declared and no exception recorded",
+    ]);
+  });
+
+  it("is blind to a goto inside a test.fixme body — Playwright never runs that test", () => {
+    const root = makeTree();
+    writeSidecar(root, completeSidecar());
+    writeFileSync(
+      join(root, ...FNOB_SUITE_PATH.split("/")),
+      [
+        'import { test } from "@playwright/test";',
+        "",
+        'test.fixme("focus is not obscured on the button page", async ({ page }) => {',
+        '  await page.goto("components/button");',
+        "});",
+        "",
+        'test("focus is not obscured on the icon-button page", async ({ page }) => {',
+        '  await page.goto("components/icon-button");',
+        "});",
+      ].join("\n"),
+    );
+    expect(checkA11yEvidence(root, contract)).toEqual([
+      "Button: role button requires focus-not-obscured (sweep tier) — no evidence declared and no exception recorded",
+    ]);
+  });
+
+  it("reads a suite whose every goto is suppressed as naming no population", () => {
+    // The residual failing toward nothing: a suite whose only gotos sit in
+    // never-running tests has no population, and an unreadable population
+    // stops the gate rather than reading as an empty one.
+    const root = makeTree();
+    writeSidecar(root, completeSidecar());
+    writeFileSync(
+      join(root, ...FNOB_SUITE_PATH.split("/")),
+      [
+        'import { test } from "@playwright/test";',
+        "",
+        'test.fixme("focus is not obscured on the button page", async ({ page }) => {',
+        '  await page.goto("components/button");',
+        "});",
+      ].join("\n"),
+    );
+    expect(() => checkA11yEvidence(root, contract)).toThrow(/names no page\.goto population/);
+  });
+
   it("stops at a bespoke suite whose source names no page.goto population", () => {
     const root = makeTree();
     writeSidecar(root, completeSidecar());
@@ -512,6 +575,39 @@ describe("checkA11yEvidence", () => {
     expect(failures).toContain(
       'Button: packages/primitives/button/a11y.json records an exception for "vibes" — no such requirement',
     );
+  });
+
+  it("fails an exception recorded twice for one requirement — one requirement, one row", () => {
+    // The same rule the responsive and interaction exception arrays carry: a
+    // repeated row would double-count in the summary while saying nothing the
+    // first row did not.
+    const root = makeTree();
+    writeSidecar(root, {
+      ...completeSidecar(),
+      evidence: { ...completeSidecar().evidence, harness: [] },
+      exceptions: [
+        { requirement: "keyboard", because: "no spec yet" },
+        { requirement: "keyboard", because: "still no spec yet" },
+      ],
+    });
+    expect(checkA11yEvidence(root, contract)).toEqual([
+      "Button: exceptions name keyboard twice — one requirement, one exception row",
+    ]);
+  });
+
+  it("counts a requirement's repeated exception rows once in the summary", () => {
+    // The summary is the number the shrinking gap is read off, so a sidecar
+    // restating one exception must not inflate it.
+    const root = makeTree();
+    writeSidecar(root, {
+      ...completeSidecar(),
+      evidence: { ...completeSidecar().evidence, harness: [] },
+      exceptions: [
+        { requirement: "keyboard", because: "no spec yet" },
+        { requirement: "keyboard", because: "still no spec yet" },
+      ],
+    });
+    expect(exceptionSummary(root, contract)).toEqual({ count: 1, components: 1 });
   });
 
   it("counts exceptions per component, skipping sidecars it cannot parse", () => {

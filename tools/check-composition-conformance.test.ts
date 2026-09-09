@@ -267,6 +267,25 @@ describe("checkCompositionConformance", () => {
     );
   });
 
+  it("does not read an extended identifier as the contract name — `componentAlias` is a different export", () => {
+    // The substring read this replaced took `export const componentAlias` as
+    // an intake of `component`, so a module could satisfy the four-name
+    // contract on paper while exporting none of the four. The whole-token
+    // match is what keeps the rename a failure.
+    const root = makeRoot();
+    writeComposition(root, "demo", {
+      cases: casesSource("demo").replace(
+        "export const component: Component = Demo;",
+        "export const componentAlias: Component = Demo;",
+      ),
+    });
+    expect(checkCompositionConformance(root, [])).toEqual(
+      owed([
+        "demo: packages/composition/demo/e2e/conformance.cases.ts exports no `const component` — the route's module contract is component, adapter, layout and cases",
+      ]),
+    );
+  });
+
   it("fails a cases module that does not re-export `layout` — the engine stays behind the package edge", () => {
     const root = makeRoot();
     writeComposition(root, "demo", {

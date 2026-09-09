@@ -87,6 +87,30 @@ const CLICK_SPEC_WITH_TRAILING_RETIRED_KEYBOARD = [
 ].join("\n");
 
 /**
+ * The lie that runs nowhere: a `test.fixme` body. Playwright reports the test
+ * skipped and executes nothing inside it, so the keypress is a fact about a
+ * spec that does not exist.
+ */
+const CLICK_SPEC_WITH_FIXME_KEYBOARD = [
+  ...CLICK_SPEC.split("\n").slice(0, -1),
+  "});",
+  "",
+  'test.fixme("Enter activates", async ({ page }) => {',
+  '  await page.keyboard.press("Enter");',
+  "});",
+].join("\n");
+
+/** The capability form — `test.skip(condition, reason, body)` — suppresses the same way. */
+const CLICK_SPEC_WITH_CONDITIONAL_SKIP_KEYBOARD = [
+  ...CLICK_SPEC.split("\n").slice(0, -1),
+  "});",
+  "",
+  'test.skip(process.env.CI, "flaky in CI", async ({ page }) => {',
+  '  await page.keyboard.press("Enter");',
+  "});",
+].join("\n");
+
+/**
  * The keyboard lie the placement rule exists for: a browserless unit test
  * carrying the gesture's WORDS — as a string literal, where no scanner's
  * comment strip can reach — under the one tier whose directory the harness
@@ -247,6 +271,28 @@ describe("checkInteractionEvidence", () => {
       // Both comment shapes, whole-line and trailing: the trailing one is
       // where retired code actually lives, and the strip used to be
       // line-anchored enough to count it as a gesture.
+      const root = makeTree();
+      writeFileSync(join(root, ...CLICK_SPEC_PATH.split("/")), spec);
+      writeSidecar(root, {
+        interaction: {
+          ...completeSidecar().interaction,
+          evidence: { browserless: [UNIT_TEST_PATH], harness: [CLICK_SPEC_PATH] },
+        },
+      });
+      expect(checkInteractionEvidence(root, contract)).toEqual([
+        "Button: class interactive requires keyboard-operate (harness tier) — no evidence declared and no exception recorded",
+      ]);
+    }
+  });
+
+  it("is blind to tests Playwright never runs — a keypress inside test.fixme/test.skip witnesses nothing", () => {
+    for (const spec of [
+      CLICK_SPEC_WITH_FIXME_KEYBOARD,
+      CLICK_SPEC_WITH_CONDITIONAL_SKIP_KEYBOARD,
+    ]) {
+      // Both suppression shapes, the body form and the capability form: a
+      // skipped test is reported skipped and nothing inside it executes, so
+      // the gesture is a fact about a spec that does not exist.
       const root = makeTree();
       writeFileSync(join(root, ...CLICK_SPEC_PATH.split("/")), spec);
       writeSidecar(root, {
@@ -748,5 +794,49 @@ describe("namesAKeyboardGesture", () => {
     ]) {
       expect(namesAKeyboardGesture(notAGesture), notAGesture).toBe(false);
     }
+  });
+
+  it("never reads a gesture out of a test Playwright never runs", () => {
+    for (const notAGesture of [
+      // The body form: the whole never-executing test is inert, comment or not.
+      [
+        'test.fixme("Enter activates", async ({ page }) => {',
+        '  await page.keyboard.press("Enter");',
+        "});",
+      ].join("\n"),
+      // The capability form, with the condition and reason taking parens of
+      // their own on the way to the body.
+      [
+        'test.skip(process.env.CI, "flaky in CI", async ({ page }) => {',
+        '  await page.keyboard.press("Enter");',
+        "});",
+      ].join("\n"),
+    ]) {
+      expect(namesAKeyboardGesture(notAGesture), notAGesture).toBe(false);
+    }
+    // The call must be Playwright's own: `mytest.skip(` is not a name this
+    // reader treats as a suppression, so the body's keypress still reads —
+    // the strict direction, found rather than missed.
+    expect(
+      namesAKeyboardGesture(
+        [
+          'mytest.skip("not a suppression", async ({ page }) => {',
+          '  await page.keyboard.press("Enter");',
+          "});",
+        ].join("\n"),
+      ),
+    ).toBe(true);
+    // And the boundary sits at the call: a `test.skip` INSIDE a live test
+    // suppresses only its own call, so the live body's gesture still reads.
+    expect(
+      namesAKeyboardGesture(
+        [
+          'test("Enter activates", async ({ page }) => {',
+          "  if (!supported) test.skip();",
+          '  await page.keyboard.press("Enter");',
+          "});",
+        ].join("\n"),
+      ),
+    ).toBe(true);
   });
 });
