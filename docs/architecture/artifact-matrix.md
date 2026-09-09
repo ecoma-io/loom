@@ -127,7 +127,8 @@ dialog, drawer — and a component answers by its page sitting in the suite's
 `page.goto` population, which is why button and drawer carry a keyboard
 exception and no focus-not-obscured one. The section is a dated recount, not
 the ledger itself: drift after #273 lands on
-[issue #272](https://github.com/ecoma-io/loom/issues/272), this phase's ledger,
+[issue #308](https://github.com/ecoma-io/loom/issues/308), the registers' live
+tracker since #272 closed with 3A,
 and the gate's output is always the number of record. Every exception names its
 reason in the sidecar, so 3B/3D's work list is that output, not an audit
 opinion.
