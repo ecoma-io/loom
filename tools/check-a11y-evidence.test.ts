@@ -423,6 +423,28 @@ describe("checkA11yEvidence", () => {
     ]);
   });
 
+  it("tolerates the responsive axis — the second claim in the same sidecar, judged by its own gate", () => {
+    // Phase 3B added `responsive` beside `role`; the a11y gate neither reads
+    // nor judges it (the vocabulary is tools/check-responsive-evidence.ts's),
+    // but a typo'd spelling must still fail HERE — a key this gate has not
+    // been told about is a claim it would silently drop.
+    const told = makeTree();
+    writeSidecar(told, {
+      ...completeSidecar(),
+      responsive: { contract: "none", basis: "aspect-ratio is width-relative" },
+    });
+    expect(checkA11yEvidence(told, contract)).toEqual([]);
+
+    const typo = makeTree();
+    writeSidecar(typo, {
+      ...completeSidecar(),
+      responsve: { contract: "none", basis: "aspect-ratio is width-relative" },
+    });
+    expect(checkA11yEvidence(typo, contract)).toEqual([
+      'Button: packages/primitives/button/a11y.json carries unknown key "responsve" — extend the contract and this gate together',
+    ]);
+  });
+
   it("fails evidence declared under a tier the contract does not name", () => {
     const root = makeTree();
     writeSidecar(root, {
