@@ -716,4 +716,109 @@ describe("runChecks", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  it("flags a facade entry whose export clause does not parse", () => {
+    const root = makeRoot();
+    try {
+      // The facade-side parser must honour the same fail-closed contract the
+      // barrel side does: a clause it cannot read fails by file and clause,
+      // it does not silently contribute nothing.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "theme.ts"),
+        'export { useTheme as } from "@ecoma-io/loom-core";\n',
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("theme.ts: unparseable export specifier"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a destructuring export in a facade entry", () => {
+    const root = makeRoot();
+    try {
+      // `export const { a, b } = …` publishes names no clause-shaped reader
+      // can see; the parser records it as unread instead of letting both
+      // names walk past every identifier leg.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "theme.ts"),
+        [
+          "const probeSource = { GhostA: 1, GhostB: 2 };",
+          "export const { GhostA, GhostB } = probeSource;",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes("theme.ts: destructuring export"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("expands a relative star export in a facade entry into the surface it publishes", () => {
+    const root = makeRoot();
+    try {
+      // A star re-export is real surface: a11y.ts's export reaches consumers
+      // through theme.ts's star, so it joins the facade names and falls under
+      // the docs-coverage leg like any other export.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "a11y.ts"),
+        "export const stubA11y = 1;\n",
+      );
+      writeFileSync(
+        join(root, "packages", "loom", "src", "theme.ts"),
+        ['export * from "./a11y.ts";', ""].join("\n"),
+      );
+      // Undocumented, the expanded name fails exactly like a named one.
+      const undocumented = runChecks(root);
+      expect(
+        undocumented.some(
+          (f) => f.includes('"stubA11y"') && f.includes("mentioned in no docs/ page"),
+        ),
+      ).toBe(true);
+      // Documented, the same tree is clean — expansion, not exemption.
+      writeFileSync(
+        join(root, "docs", "components", "stub.md"),
+        [
+          "`Stub` renders with `useStubTheme`; the barrel's default binding ships",
+          "through the facade as `StubDefault`. The a11y entry's own export is",
+          "`stubA11y`.",
+          "",
+          "<!-- @api Stub -->",
+          "<!-- @api StubNode -->",
+          "",
+        ].join("\n"),
+      );
+      expect(runChecks(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a facade star re-export the gate cannot expand", () => {
+    const root = makeRoot();
+    try {
+      // A star of a bare package specifier publishes whatever the source
+      // exports today; the gate cannot read that surface, so it fails named
+      // instead of waving the entry through.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "theme.ts"),
+        [
+          'export { useTheme, themeScript } from "@ecoma-io/loom-core";',
+          'export * from "@ecoma-io/loom-core";',
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) =>
+            f.includes('re-exports * from "@ecoma-io/loom-core"') &&
+            f.includes("expands relative star exports only"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

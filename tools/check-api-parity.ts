@@ -88,7 +88,7 @@ export function runChecks(root: string): string[] {
   const docsFiles = collectMarkdown(root);
   const documented = documentedSubpaths(docsFiles);
   const docsAliasOrder = docsAliasEntries(root);
-  const facade = facadeSurface(root);
+  const facade = facadeSurface(root, fail);
   const barrels = packageBarrels(root);
   const register = internalRegister(root, fail);
 
@@ -570,6 +570,7 @@ interface ParsedModule {
 
 const CLAUSE_START = /^export\s+(type\s+)?\{/;
 const STAR_EXPORT = /^export\s+\*\s*(?:as\s+([A-Za-z_$][\w$]*))?\s*(?:from\s*["']([^"']+)["'])?/;
+const DESTRUCTURING_EXPORT = /^export\s+(?:const|let|var)\s*[{[]/;
 const EXPORT_DECLARATION =
   /^export\s+(?:declare\s+)?(?:async\s+)?(?:const|function\s*\*?|class|enum|interface|type)\s+([A-Za-z_$][\w$]*)/;
 const EXPORT_DEFAULT = /^export\s+default\b/;
@@ -583,9 +584,11 @@ const CLAUSE_FROM = /from\s*["']([^"']+)["']/;
  * is deliberately line-anchored and brace-collecting rather than a full
  * JavaScript grammar: it covers the export forms this repository's barrels
  * and facade entries use (clause, `export *`, const/function/class/enum/
- * interface/type, `export default`) and reports anything it cannot read as
- * an error instead of guessing, so a form the parser does not know fails the
- * gate rather than silently passing it.
+ * interface/type, `export default`) and reports anything it cannot read —
+ * a malformed clause, a destructuring export, a sourceless star — as an
+ * error instead of guessing, so a form the parser does not know fails the
+ * gate rather than silently passing it. Both callers share that contract:
+ * the barrel leg surfaces `errors` by name, and the facade leg must too.
  */
 function parseModuleExports(text: string): ParsedModule {
   const bindings: ExportedBinding[] = [];
@@ -641,6 +644,15 @@ function parseModuleExports(text: string): ParsedModule {
       continue;
     }
     const declaration = EXPORT_DECLARATION.exec(line);
+    // `export const { a, b } = …` publishes names through a destructuring
+    // pattern no clause-shaped reader can see — record it as unread rather
+    // than let both names walk past every identifier leg.
+    if (!declaration && DESTRUCTURING_EXPORT.test(line)) {
+      errors.push(
+        `destructuring export "${line.trim()}" — name the exported bindings in an export clause`,
+      );
+      continue;
+    }
     if (declaration) {
       const name = declaration[1];
       if (name !== undefined) declarations.push(name);
@@ -659,6 +671,11 @@ function parseModuleExports(text: string): ParsedModule {
  * `default` binding a facade entry re-exports. Parsed from the same files the
  * declaration leg counts as the type side of the surface, so a facade entry
  * added for a new subpath joins this set automatically.
+ *
+ * The parser's own contract is honoured here, not just in the barrel leg: an
+ * export form it cannot read fails named, and a star re-export is expanded
+ * into the surface it actually publishes — a star the gate cannot see is
+ * precisely how an undocumented export would slip past every identifier leg.
  */
 interface FacadeSurface {
   names: Set<string>;
@@ -666,27 +683,50 @@ interface FacadeSurface {
   defaults: Set<string>;
 }
 
-function facadeSurface(root: string): FacadeSurface {
+function facadeSurface(root: string, fail: (message: string) => void): FacadeSurface {
   const names = new Set<string>();
   const defaults = new Set<string>();
   const dir = join(root, "packages", "loom", "src");
   if (!existsSync(dir)) return { names, defaults };
   const pkgNameToDir = workspacePackageNames(root);
   for (const file of readdirSync(dir).filter((f) => f.endsWith(".ts"))) {
-    const parsed = parseModuleExports(readFileSync(join(dir, file), "utf8"));
-    for (const binding of parsed.bindings) {
-      if (binding.exported !== "default") names.add(binding.exported);
-      // `default as Table` from a sibling package: the package's default
-      // binding is reachable through the facade, under the exported name.
-      // The specifier is stored (not the resolved directory) so the barrel
-      // side compares package name to package name.
-      if (binding.local === "default" && binding.from) {
-        if (pkgNameToDir.has(binding.from)) defaults.add(binding.from);
+    const seen = new Set<string>([join(dir, file)]);
+    const visit = (path: string): void => {
+      const relPath = relative(root, path);
+      const parsed = parseModuleExports(readFileSync(path, "utf8"));
+      for (const error of parsed.errors) fail(`${relPath}: ${error}`);
+      for (const binding of parsed.bindings) {
+        if (binding.exported !== "default") names.add(binding.exported);
+        // `default as Table` from a sibling package: the package's default
+        // binding is reachable through the facade, under the exported name.
+        // The specifier is stored (not the resolved directory) so the barrel
+        // side compares package name to package name.
+        if (binding.local === "default" && binding.from) {
+          if (pkgNameToDir.has(binding.from)) defaults.add(binding.from);
+        }
       }
-    }
-    for (const declaration of parsed.declarations) {
-      if (declaration !== "default") names.add(declaration);
-    }
+      for (const declaration of parsed.declarations) {
+        if (declaration !== "default") names.add(declaration);
+      }
+      for (const source of parsed.starSources) {
+        if (!source.startsWith(".")) {
+          fail(
+            `${relPath} re-exports * from "${source}" — the parity gate expands relative star exports only, so a facade star must be written as named re-exports for the surface it publishes to be visible`,
+          );
+          continue;
+        }
+        const target = join(dirname(path), source.endsWith(".ts") ? source : `${source}.ts`);
+        if (!existsSync(target) || seen.has(target)) {
+          fail(
+            `${relPath} re-exports * from "${source}", which does not resolve to a .ts file beside it`,
+          );
+          continue;
+        }
+        seen.add(target);
+        visit(target);
+      }
+    };
+    visit(join(dir, file));
   }
   return { names, defaults };
 }
