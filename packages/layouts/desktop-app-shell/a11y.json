@@ -1,6 +1,14 @@
 {
   "role": "none",
   "basis": "renders the TitleBar pattern, <aside> and <main> landmarks — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["device-media", "band-scale"],
+    "basis": "the rail+main row is flex-col md:flex-row — a media query, not intrinsic wrap, so the collapse point is the md band itself; main gutters step px-4 sm:px-6 3xl:px-8. #275: the rail's declared width after a wrap is unpinned, so nothing here pins it.",
+    "evidence": {
+      "harness": ["packages/layouts/desktop-app-shell/e2e/desktop-app-shell.e2e.ts"],
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/DesktopAppShellDemo.vue",

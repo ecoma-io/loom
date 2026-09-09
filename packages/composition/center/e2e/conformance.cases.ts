@@ -25,7 +25,9 @@ export interface ConformanceCase {
   /**
    * Viewport widths (px) the case is meaningful at; the spec navigates the
    * route once per viewport. Center's gutter is the one scale that steps at
-   * `3xl`, so its cases carry all three bands: 360, 800 and 2000.
+   * `3xl`, so its cases carry all three bands: 360, 800 and 2000 — the
+   * responsive contract's `narrow`, `mid` and `ultrawide`
+   * (packages/core/src/responsive-contract.ts owns the numbers).
    */
   viewports: readonly number[];
   /** A known divergence, rendered as a visible skip with the reason — never deleted. */

@@ -1,4 +1,4 @@
-tags: ["layer-patterns"]
+tags: ["layer-patterns", "e2e"]
 project:
   name: "page-header"
   description: "Migrated block component"

@@ -27,7 +27,9 @@ export interface ConformanceCase {
   /**
    * Viewport widths (px) the case is meaningful at; the spec navigates the
    * route once per viewport. The three bands the slice's scales distinguish
-   * are below `sm` (360), `sm`–`3xl` (800) and at/above `3xl` (2000).
+   * are below `sm` (360), `sm`–`3xl` (800) and at/above `3xl` (2000) — the
+   * responsive contract's `narrow`, `mid` and `ultrawide` bands
+   * (packages/core/src/responsive-contract.ts owns the numbers).
    */
   viewports: readonly number[];
   /** A known divergence, rendered as a visible skip with the reason — never deleted. */

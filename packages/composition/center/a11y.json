@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders a bare <div> — pure geometry from the layout engine, no semantics of its own.",
+  "responsive": {
+    "behaviour": ["bound", "band-scale"],
+    "basis": "the column is capped by maxWidth (mx-auto) and never driven wider; the gutter steps 16→24→32 px at the law's sm and wide bands, and the conformance route holds the rendered gutter to CENTER_GUTTER_STEPS at all three bands.",
+    "evidence": {
+      "harness": ["packages/composition/center/e2e/layout-conformance.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/CenterDemo.vue",

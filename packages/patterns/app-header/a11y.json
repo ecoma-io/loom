@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders a native <header> landmark (aria-label when named) around slotted content — the landmark is the contract.",
+  "responsive": {
+    "behaviour": ["device-media", "band-scale"],
+    "basis": "the search slot drops to a full-width second row below the sm media query (basis-full order-last; sm:order-none sm:basis-auto and sm:flex-nowrap put it back on the brand line above) and the header height steps min-h-14 sm:h-14 3xl:h-16 — both switches answer the viewport, not the slotted content.",
+    "evidence": {
+      "harness": ["packages/patterns/app-header/e2e/app-header.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/AppHeaderDemo.vue",

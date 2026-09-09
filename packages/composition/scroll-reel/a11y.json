@@ -1,6 +1,13 @@
 {
   "role": "region",
   "basis": "renders role=\"region\" aria-label around the snap-scrolling reel — a named scroll region.",
+  "responsive": {
+    "behaviour": ["overflow-reel", "band-scale"],
+    "basis": "the strip stays one line (flex-row) and overflow-x-auto + scroll-snap turn the overflow into a reel instead of a wrap; the gap scale steps at Tailwind's sm.",
+    "evidence": {
+      "harness": ["packages/composition/scroll-reel/e2e/scroll-reel.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/ScrollReelDemo.vue",

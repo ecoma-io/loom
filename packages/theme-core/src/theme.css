@@ -236,10 +236,20 @@
    * 1536px, short of the desktop reality these products run on; `@theme`
    * merges, so sm…2xl stay intact. Width only — there is deliberately no
    * height vocabulary. Snap a window's minimum width to one of these names,
-   * never to an arbitrary pixel count. ----------------------------------- */
-  --breakpoint-3xl: 1920px; /* FHD desktop, maximized on one monitor */
-  --breakpoint-4xl: 2560px; /* QHD */
-  --breakpoint-5xl: 3440px; /* 21:9 ultra-wide */
+   * never to an arbitrary pixel count.
+   *
+   * Declared in rem, not px, and that is load-bearing: the compiler orders
+   * breakpoint media blocks by comparing the unit string before the number,
+   * so a px value sorts before every rem value at ANY magnitude and the
+   * 3xl–5xl blocks would be emitted ahead of the sm–2xl ones — at ≥1920px
+   * every default-breakpoint utility would then override its 3xl
+   * counterpart (ecoma-io/loom#282). In the built-in scale's own unit the
+   * order is numeric and ascending. A media query's rem resolves against
+   * the initial font size, so these are the same 1920/2560/3440px widths a
+   * px spelling would produce. ------------------------------------------ */
+  --breakpoint-3xl: 120rem; /* FHD desktop, maximized on one monitor */
+  --breakpoint-4xl: 160rem; /* QHD */
+  --breakpoint-5xl: 215rem; /* 21:9 ultra-wide */
 
   /* ---- Safe areas. Mobile webviews (notch, home indicator) and PWA title-bar
    * overlays both reserve space the layout must not paint into. The fallback is
@@ -411,7 +421,17 @@
    * a dark surface lands around 4:1, below the AA floor. Components that
    * use a functional colour as text should use the `-text` variant instead
    * (e.g. `text-primary-text` rather than `text-primary`). */
-  --color-primary-text: hsl(211 45% 65%); /* 5.38:1 on sunken, 4.50:1 on popover */
+  /* The HoverCard demo's trigger links carried `text-primary` — the fill role —
+   * as text (3.13:1 on dark card, 2.84:1 on popover), and #284's harness scan
+   * was the first run to render that honestly (ecoma-io/loom#288). Text stays
+   * a separate role on purpose: lightening the fill would break the white
+   * `--color-primary-foreground` button pair, so the dark text step carries
+   * the AA floor instead. Ratios measured against the current surfaces; the
+   * older numbers this line carried (5.38 sunken, 4.50 popover) do not
+   * reproduce against today's popover token. */
+  --color-primary-text: hsl(
+    211 45% 65%
+  ); /* 7.29:1 sunken · 6.84:1 background · 6.12:1 card · 5.55:1 popover */
   --color-accent-text: hsl(18 55% 62%); /* 5.77:1 on accent-muted, 6.01:1 on popover */
   --color-destructive-text: hsl(356 55% 70%); /* 7.04:1 on sunken, 4.63:1 on popover */
   --color-success-text: hsl(152 38% 55%); /* 7.43:1 on sunken, 4.88:1 on popover */

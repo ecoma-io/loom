@@ -66,16 +66,15 @@ extra element and no extra width.
 
 ## Below `sm` the bar is two rows
 
-A brand, a real search field, and an organization + notifications + account
-cluster do not fit on one row at 390px: measured against the demo's own
-content, the search field is left about 60px and renders as a magnifier
-glyph pressed against the organization name — present, and unusable.
-
-So below `sm` the search field takes a full-width second row instead, and
-the bar's height goes from fixed to a floor of 56px; from `sm` up it snaps
-back to one row. It wraps rather than hides: a host slots a search field
-because its users need one, and a pattern does not get to decide they need it
-less on a phone.
+Below `sm` the search field takes a full-width second row instead of
+squeezing between brand and cluster, and the bar's height goes from fixed to
+a floor of 56px; from `sm` up it snaps back to one row. The switch is a
+literal `sm:` media query — `basis-full order-last` below it,
+`sm:order-none sm:basis-auto` on a `sm:flex-nowrap` strip above — not a
+measurement of the slotted content, so the threshold is the same 640px for
+every host, whatever the regions hold. It wraps rather than hides: a host
+slots a search field because its users need one, and a pattern does not get
+to decide they need it less on a phone.
 
 One thing to keep in mind if this ever changes: the search row is moved
 visually below the trailing cluster while staying before it in the DOM, so

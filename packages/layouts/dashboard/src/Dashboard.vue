@@ -128,9 +128,7 @@ withDefaults(
             `minTileWidth` itself.
           -->
           <div
-            :class="
-              cn('grid', gapClass[gap], $slots.aside ? 'flex-grow-[999] flex-shrink-1' : undefined)
-            "
+            :class="cn('grid', gapClass[gap], $slots.aside ? 'grow-[999] shrink-1' : undefined)"
             :style="{
               gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${minTileWidth}), 1fr))`,
               ...($slots.aside ? { flexBasis: 0, minWidth: '60%' } : {}),

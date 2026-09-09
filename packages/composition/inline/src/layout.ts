@@ -8,6 +8,8 @@
  * import path reaches the engine.
  */
 import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+// The band value is the law, not a restated number — see stack's layout.ts.
+import { RESPONSIVE_VIEWPORT_BANDS } from "@ecoma-io/loom-core";
 import type { InlineAlign, InlineGap } from "./Inline.vue";
 
 // The engine's entry point, re-exported so the conformance route reaches it
@@ -41,7 +43,7 @@ export const INLINE_GAP_STEPS: Record<InlineGap, readonly [number, number]> = {
 };
 
 /** Tailwind's `sm`, in px — the one breakpoint the gap scale steps at. */
-export const INLINE_GAP_BREAKPOINT = 640;
+export const INLINE_GAP_BREAKPOINT = RESPONSIVE_VIEWPORT_BANDS.sm;
 
 /**
  * Map Inline's props onto a layout tree. Two of the component's values are

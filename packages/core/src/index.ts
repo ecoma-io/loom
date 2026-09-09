@@ -43,6 +43,22 @@ export type {
   A11yEvidenceEntry,
 } from "./a11y-contract";
 
+// The behavioural viewport contract — the bands the composition adapters
+// build their steps on. Not re-exported from the public @ecoma-io/loom entry:
+// nothing outside the gate, the pin test and the adapters reads it yet.
+export {
+  RESPONSIVE_BEHAVIOURS,
+  RESPONSIVE_EVIDENCE_TIERS,
+  RESPONSIVE_VIEWPORT_BANDS,
+} from "./responsive-contract";
+export type {
+  ResponsiveBehaviour,
+  ResponsiveEvidenceTier,
+  ResponsiveViewportBand,
+  ResponsiveEvidenceEntry,
+  ResponsiveContract,
+} from "./responsive-contract";
+
 // Theme switching (also re-exported from the public @ecoma-io/loom entry).
 export { useTheme, themeScript } from "./theme";
 export type { ThemePreference, ResolvedTheme } from "./theme";

@@ -10,7 +10,7 @@ import { HoverCard } from "@ecoma-io/loom";
       <p class="text-small mb-3">Hover the link to see a preview card.</p>
       <HoverCard>
         <template #trigger>
-          <a href="#" class="text-primary underline">@chelsea</a>
+          <a href="#" class="text-primary-text underline">@chelsea</a>
         </template>
         <div class="flex flex-col gap-3">
           <div class="flex items-center gap-3">
@@ -80,7 +80,7 @@ import { HoverCard } from "@ecoma-io/loom";
       </p>
       <HoverCard :open-delay="100" :close-delay="400">
         <template #trigger>
-          <a href="#" class="text-primary underline">View profile</a>
+          <a href="#" class="text-primary-text underline">View profile</a>
         </template>
         <div class="flex flex-col gap-2">
           <p class="text-small font-medium">Chelsea Arryn</p>

@@ -1,6 +1,10 @@
 {
   "role": "none",
   "basis": "renders a bare <div> — frame geometry only, no semantics of its own.",
+  "responsive": {
+    "contract": "none",
+    "basis": "one child, w-full with a locked aspect-ratio — every dimension derives from the width it is given, so no band, wrap or breakpoint changes its geometry."
+  },
   "evidence": {
     "browserless": ["docs/demos/FrameDemo.vue", "packages/composition/frame/tests/Frame.test.ts"],
     "harness": [

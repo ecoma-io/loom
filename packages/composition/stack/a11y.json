@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders a bare <div> over slotted content — stack geometry only; any Separator inside carries the primitive's own semantics.",
+  "responsive": {
+    "behaviour": ["band-scale"],
+    "basis": "the gap scale steps at Tailwind's sm (8→12, 12→16, 16→24) — the law's sm band; the adapter reads RESPONSIVE_VIEWPORT_BANDS.sm, and the conformance route holds the rendered gap to the engine's step at both bands.",
+    "evidence": {
+      "harness": ["packages/composition/stack/e2e/layout-conformance.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": ["docs/demos/StackDemo.vue", "packages/composition/stack/tests/Stack.test.ts"],
     "harness": [

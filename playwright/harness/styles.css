@@ -17,6 +17,14 @@
 
 @source "../../packages/";
 
+/* The harness mounts `docs/demos/*Demo.vue`, which sit outside this Vite
+ * root, so the automatic scan never reaches them and every demo-authored
+ * utility is dropped from the build (ecoma-io/loom#284 — measured: the
+ * `.h-80` on AppHeaderDemo's scroll frame was absent here while it rendered
+ * on the docs site). The components themselves are covered by the rule
+ * above for the same out-of-root reason. */
+@source "../../docs/demos/";
+
 /* The bare element the theme's `body` styling expects. */
 body {
   min-height: 100dvh;

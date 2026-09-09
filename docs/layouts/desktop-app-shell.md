@@ -68,12 +68,15 @@ the traffic-light buttons, and WindowControls renders nothing. See
 
 ## Responsive collapse
 
-Below the `md` breakpoint the sidebar stacks above the content instead of
-sitting beside it. This mirrors SidebarNav's own intrinsic collapse pattern:
-the nav drops to icon-only at narrow widths, and the shell narrows its rail to
-match. Below tablet the rail needs no width at all — nav items stack vertically
-over the content, which is the same thing a mobile user sees in any desktop app
-that has a sidebar.
+Below the `md` breakpoint (768px) the sidebar stacks above the content
+instead of sitting beside it. The switch is a literal `md:flex-row` media
+query on the shell's own row — it answers the viewport, not a measurement of
+the content, so no amount of narrow content holds the row open past 768px.
+
+The rail's width is never negotiated: `sidebarWidth` fixes its basis below
+the switch and `md:shrink-0 md:grow-0` settles it above. SidebarNav has no
+viewport behaviour for the shell to mirror — its icon-only mode is a prop
+the host sets, not a width the nav measures.
 
 ## Sidebar width
 

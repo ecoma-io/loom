@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "renders a bare <div> of slotted action controls — no role asserted.",
+  "responsive": {
+    "behaviour": ["wrap-threshold", "band-scale"],
+    "basis": "the action row is flex-wrap with gap-2 sm:gap-3 (#276 decided wrap; #278 landed it): actions drop to their own line rather than scroll or shrink — the one overflow the interface contract names outright — and only the band where the row actually wraps tightens the gap.",
+    "evidence": {
+      "harness": ["packages/patterns/form-actions/e2e/form-actions.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/FormActionsDemo.vue",

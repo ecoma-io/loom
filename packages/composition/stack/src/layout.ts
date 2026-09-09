@@ -9,6 +9,10 @@
  * published build carries zero engine bytes.
  */
 import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+// The band value is the law, not a restated number: the responsive contract
+// owns the viewport bands, and an adapter that keeps its own 640 could drift
+// from the contract its sidecar claim is judged against.
+import { RESPONSIVE_VIEWPORT_BANDS } from "@ecoma-io/loom-core";
 import type { StackAlign, StackGap } from "./Stack.vue";
 
 // The engine's entry point, re-exported so the conformance route reaches it
@@ -57,7 +61,7 @@ export const STACK_GAP_STEPS: Record<StackGap, readonly [number, number]> = {
 };
 
 /** Tailwind's `sm`, in px — the one breakpoint the gap scale steps at. */
-export const STACK_GAP_BREAKPOINT = 640;
+export const STACK_GAP_BREAKPOINT = RESPONSIVE_VIEWPORT_BANDS.sm;
 
 /**
  * Map Stack's props onto a layout tree. Pure: same props and context, same

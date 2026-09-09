@@ -61,10 +61,12 @@ yourself bumping it by hand, that is the reason not to.
 knowing about. After ESLint it runs `tools/check-component-artifacts.ts` (the
 five-artifacts-per-component gate), `tools/check-a11y-evidence.ts` (the sixth
 artifact — the per-component accessibility claim, held to the law in
-`packages/core/src/a11y-contract.ts`), `tools/check-architecture.ts` (the layer
-order, matched against specifier text) and `archkeep check` (the same layer
-order, judged against what each specifier _resolves to_). Two commands expose
-the last one on its own:
+`packages/core/src/a11y-contract.ts`), `tools/check-responsive-evidence.ts`
+(the second axis of that same sidecar — the viewport claim, held to the law in
+`packages/core/src/responsive-contract.ts`), `tools/check-architecture.ts` (the
+layer order, matched against specifier text) and `archkeep check` (the same
+layer order, judged against what each specifier _resolves to_). Two commands
+expose the last one on its own:
 
 | Command                   | What it does                                                                                                                                                                                                                       |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -240,6 +240,19 @@ jobs:
       - name: Check skills
         run: node tools/check-skills.ts
 
+      # Two more members of the lint-only class, and the reason they arrive
+      # together: `check-a11y-evidence.ts` has run only inside root `pnpm lint`
+      # since Phase 3A — no pull-request leg ever executed it, the exact gap
+      # the lint-only class exists for — and `check-responsive-evidence.ts`
+      # (Phase 3B, the second axis of the same sidecar) inherits the same
+      # shape by construction. Both read the component tree plus their law
+      # module and nothing else, so they need no build and no browser.
+      - name: Check a11y evidence
+        run: node --experimental-strip-types tools/check-a11y-evidence.ts
+
+      - name: Check responsive evidence
+        run: node --experimental-strip-types tools/check-responsive-evidence.ts
+
       # `check-doc-claims.ts` is the same lint-only class once more: it recounts
       # the artifact matrix's count sentence against the tracked directories and
       # requires every architecture document to open by naming the

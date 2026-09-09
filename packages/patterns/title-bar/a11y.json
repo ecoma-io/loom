@@ -1,6 +1,10 @@
 {
   "role": "none",
   "basis": "renders a native <header> wrapping the Menubar and WindowControls patterns — the landmark is the contract and the controls' roles are their own.",
+  "responsive": {
+    "contract": "none",
+    "basis": "one fixed-height drag-strip row of icons; nothing in it scales, wraps or reflows with the viewport."
+  },
   "evidence": {
     "browserless": [
       "docs/demos/TitleBarDemo.vue",

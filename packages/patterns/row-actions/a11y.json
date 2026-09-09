@@ -1,6 +1,17 @@
 {
   "role": "none",
   "basis": "renders a bare <div> of slotted row controls — no role asserted.",
+  "responsive": {
+    "behaviour": ["device-media"],
+    "basis": "the actions translate into view on hover/focus and sit permanently in view under pointer-coarse.",
+    "evidence": {},
+    "exceptions": [
+      {
+        "behaviour": "device-media",
+        "because": "the pointer media the pattern answers has no cross-engine witness: Playwright's emulateMedia carries no pointer feature, so the coarse-pointer reveal cannot be exercised outside a real device. The underlying translate-x-0/opacity-100 rules are visible in the source; the engine-scoped gap stands until Playwright ships pointer emulation."
+      }
+    ]
+  },
   "evidence": {
     "browserless": [
       "docs/demos/RowActionsDemo.vue",

@@ -1,6 +1,14 @@
 {
   "role": "none",
   "basis": "renders <header>/<aside> landmarks in a grid shell — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["intrinsic-collapse", "reflow-grid", "band-scale", "device-media"],
+    "basis": "the sidebar+grid row is flex-wrap with min-width: 50% on the grid area; the tile grid is repeat(auto-fit, minmax(min(100%, minTileWidth), 1fr)); gutters step px-4 sm:px-6 3xl:px-8; the aside slot is hidden w-full 2xl:block — visible only past 2xl.",
+    "evidence": {
+      "harness": ["packages/layouts/dashboard/e2e/dashboard.e2e.ts"],
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/DashboardDemo.vue",

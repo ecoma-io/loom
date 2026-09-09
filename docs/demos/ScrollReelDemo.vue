@@ -15,7 +15,7 @@ import { ScrollReel as ScrollReelComponent } from "@ecoma-io/loom";
       <div
         v-for="i in 8"
         :key="i"
-        class="w-40 flex-shrink-0 rounded border border-border bg-card p-4 text-xs snap-start"
+        class="w-40 shrink-0 rounded border border-border bg-card p-4 text-xs snap-start"
       >
         Item {{ i }}
       </div>
@@ -30,7 +30,7 @@ import { ScrollReel as ScrollReelComponent } from "@ecoma-io/loom";
       <div
         v-for="i in 8"
         :key="i"
-        class="w-40 flex-shrink-0 rounded border border-border bg-card p-4 text-xs snap-center"
+        class="w-40 shrink-0 rounded border border-border bg-card p-4 text-xs snap-center"
       >
         Item {{ i }}
       </div>
@@ -47,7 +47,7 @@ import { ScrollReel as ScrollReelComponent } from "@ecoma-io/loom";
       <div
         v-for="i in 8"
         :key="i"
-        class="w-40 flex-shrink-0 rounded border border-border bg-card p-4 text-xs"
+        class="w-40 shrink-0 rounded border border-border bg-card p-4 text-xs"
       >
         Item {{ i }}
       </div>

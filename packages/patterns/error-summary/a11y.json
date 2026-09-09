@@ -1,6 +1,10 @@
 {
   "role": "alert",
   "basis": "renders a live region that becomes role=\"alert\" once when the errors change, listing <a> links to the failing fields.",
+  "responsive": {
+    "contract": "none",
+    "basis": "a boxed list that fills the width its form column gives it; the column's cap is FormLayout's bound, not the summary's own behaviour."
+  },
   "evidence": {
     "browserless": [
       "docs/demos/ErrorSummaryDemo.vue",

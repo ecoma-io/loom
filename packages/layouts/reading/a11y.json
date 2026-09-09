@@ -1,6 +1,13 @@
 {
   "role": "none",
   "basis": "native <header>/<footer> around a measured reading column — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["bound", "band-scale"],
+    "basis": "the measure is capped (max-w-prose measure, mx-auto) and never driven wider; gutters step px-4 sm:px-6 3xl:px-8 when the gutter prop is on, and the shell's own vertical padding steps py-8 sm:py-12.",
+    "evidence": {
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": ["docs/demos/ReadingDemo.vue", "packages/layouts/reading/tests/Reading.test.ts"],
     "harness": [],

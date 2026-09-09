@@ -1,6 +1,14 @@
 {
   "role": "none",
   "basis": "a <div> shell with a <header> slot — the shell asserts no role of its own.",
+  "responsive": {
+    "behaviour": ["bound", "band-scale"],
+    "basis": "the form column is capped by max-width (max-w-md default) and never driven wider; header and content gutters step px-4 sm:px-6 3xl:px-8.",
+    "evidence": {
+      "harness": ["packages/layouts/form-layout/e2e/form-layout.e2e.ts"],
+      "sweep": ["e2e/layout-responsive.e2e.ts"]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/FormLayoutDemo.vue",

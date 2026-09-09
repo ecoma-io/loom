@@ -1,6 +1,16 @@
 {
   "role": "none",
   "basis": "renders a bare <div> — inline-flow geometry only, no semantics of its own.",
+  "responsive": {
+    "behaviour": ["band-scale", "wrap-threshold"],
+    "basis": "the gap scale steps at Tailwind's sm (8→12, 12→16, 16→24); with wrap the line breaks onto a second row once children stop fitting, with nowrap the row stays one line and overflows — both witnessed by the component's own harness spec.",
+    "evidence": {
+      "harness": [
+        "packages/composition/inline/e2e/layout-conformance.e2e.ts",
+        "packages/composition/inline/e2e/inline.e2e.ts"
+      ]
+    }
+  },
   "evidence": {
     "browserless": [
       "docs/demos/InlineDemo.vue",
