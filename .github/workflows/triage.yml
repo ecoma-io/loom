@@ -17,7 +17,6 @@ on:
     types: [opened, edited, reopened, labeled]
   pull_request:
     types: [opened, edited, synchronize, ready_for_review, reopened, labeled]
-  workflow_dispatch:
 
 permissions: read-all
 
