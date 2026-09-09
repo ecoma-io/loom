@@ -40,8 +40,12 @@ FormActions is a layout decision, not a button factory. It does not render,
 label, or wire up any button — it only places the slots. The host decides
 what "Save" and "Cancel" say, what variant each button carries, and what
 happens when they are clicked. The pattern's job is to guarantee that the
-resulting row is always `gap-3`, always separated by a `border-t`, and always
-aligned the same way every other form in the product is aligned.
+resulting row is always separated by a `border-t`, always aligned the same
+way every other form in the product is aligned, and always wraps onto
+further lines when the actions outgrow the available width — a cancel slot
+plus several actions at phone width — instead of pushing past the viewport.
+The gap between actions follows FormSection's `sm` band: tighter below the
+`sm` breakpoint, where the wrapping happens, and `gap-3` at and above it.
 
 ## Alignment modes
 

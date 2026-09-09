@@ -70,4 +70,35 @@ describe("FormActions", () => {
 
     expect(wrapper.find("div").classes()).toContain("justify-between");
   });
+
+  it("wraps instead of overflowing, using FormSection's sm gap band", () => {
+    const wrapper = mount(FormActions, {
+      slots: {
+        default: '<button type="submit">Save</button><button type="button">Save and close</button>',
+        cancel: '<button type="button">Cancel</button>',
+      },
+    });
+
+    const root = wrapper.find("div");
+    expect(root.classes()).toContain("flex-wrap");
+    // The sm band, not the md band: sm:gap-3 is the gap the row has always
+    // rendered at and above `sm`, so the phone band — the band where the row
+    // actually wraps — is the only thing that tightened.
+    expect(root.classes()).toContain("gap-2");
+    expect(root.classes()).toContain("sm:gap-3");
+  });
+
+  it("keeps the cancel slot ahead of the default slot once the row wraps", () => {
+    const wrapper = mount(FormActions, {
+      slots: {
+        default: '<button type="submit">Save</button><button type="button">Save and close</button>',
+        cancel: '<button type="button">Cancel</button>',
+      },
+    });
+
+    const buttons = wrapper.findAll("button");
+    expect(buttons[0]!.text()).toBe("Cancel");
+    expect(buttons[1]!.text()).toBe("Save");
+    expect(buttons[2]!.text()).toBe("Save and close");
+  });
 });
