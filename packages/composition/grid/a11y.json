@@ -3,14 +3,22 @@
   "basis": "renders a bare <div> — column geometry only, no semantics of its own.",
   "responsive": {
     "behaviour": ["reflow-grid", "band-scale"],
-    "basis": "repeat(auto-fit, minmax(min(100%, minTileWidth), 1fr)) recomputes the column count from the container width; the gap scale steps at Tailwind's sm.",
+    "basis": "repeat(auto-fit, minmax(min(100%, minColWidth), 1fr)) recomputes the column count from the container width; the gap scale steps at Tailwind's sm.",
     "evidence": {
-      "harness": ["packages/composition/grid/e2e/grid.e2e.ts"]
+      "harness": [
+        "packages/composition/grid/e2e/grid.e2e.ts",
+        "packages/composition/grid/e2e/layout-conformance.e2e.ts"
+      ]
     }
   },
   "evidence": {
     "browserless": ["docs/demos/GridDemo.vue", "packages/composition/grid/tests/Grid.test.ts"],
-    "harness": [],
+    "harness": [
+      {
+        "path": "packages/composition/grid/e2e/layout-conformance.e2e.ts",
+        "because": "layout-conformance proves the engine twin's derived track arithmetic against the mounted grid — the reflow boundaries pinned as engine-vs-browser equality, geometry evidence beyond the none row"
+      }
+    ],
     "sweep": ["docs/composition/grid.md"]
   },
   "interaction": {

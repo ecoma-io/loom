@@ -35,13 +35,6 @@ export const COMPOSITION_CONFORMANCE_EXCEPTIONS: readonly CompositionConformance
       "Phase 4A — the pull request that lands dashboard-grid's adapter and cases deletes this row.",
   },
   {
-    composition: "grid",
-    reason:
-      "No part of the evidence set exists — no adapter, cases, spec or floor; one behavioural e2e holds the auto-fit reflow and jsdom pins the classes, and no engine twin stands beside either (gap P1's no-computable-twin list).",
-    owner: "Phase 4A (composition twins)",
-    removal: "Phase 4A — the pull request that lands grid's adapter and cases deletes this row.",
-  },
-  {
     composition: "scroll-reel",
     reason:
       "Declared CSS-only by design — ADR-002 (docs/architecture/decisions/0002-scroll-reel-css-only-by-design.md) resolves the question this row carried. The arrangement's essence — the scroll container, the overflowing strip and scroll-snap alignment — has no static-geometry footprint in the engine's single-line flexbox IR, and the component's DOM ships CSS-default flex-shrink, so no adapter tree both models the real DOM and reaches the reel's operating point: the route's fixed-box fixtures shrink to fit, and a flexShrink: 0 claim would be contradicted at any overflowing case and never exercised at a fitting one. The substrate the IR could map is already held by the jsdom class pins, Stack's cases over the same gap utilities, and the 3B behavioural e2e, which is what holds the arrangement instead of an engine twin.",

@@ -3,16 +3,17 @@ import { createApp, defineComponent, h, type Component } from "vue";
 // reaches neither architecture reader can see. Each module brings its own
 // component and adapter with it (intra-package relatives, judged clean under
 // its own row), so the engine is reached transitively through judged edges.
-// These five relative imports are the one cross-library verdict the boundary
+// These relative imports are the one cross-library verdict the boundary
 // table's named suppression on this file accepts: the case files live in
 // their composition packages' e2e/ directories, which no specifier can name
 // — exports maps and tsconfig paths both point at src/index.ts only — and
 // giving test fixtures a package entry point would be restructuring the
-// package to suit a spelling. The fifth arrived with Phase 4A's sidebar
-// twin; the mutation row that fires on this verdict in every OTHER harness
-// file is what keeps this suppression named rather than silent.
+// package to suit a spelling. A further such import is covered the same way;
+// the mutation row that fires on this verdict in every OTHER harness file
+// is what keeps that residual named rather than silent.
 import * as centerCases from "../../packages/composition/center/e2e/conformance.cases";
 import * as frameCases from "../../packages/composition/frame/e2e/conformance.cases";
+import * as gridCases from "../../packages/composition/grid/e2e/conformance.cases";
 import * as inlineCases from "../../packages/composition/inline/e2e/conformance.cases";
 import * as sidebarCases from "../../packages/composition/sidebar/e2e/conformance.cases";
 import * as stackCases from "../../packages/composition/stack/e2e/conformance.cases";
@@ -85,6 +86,7 @@ const MODULES = {
   center: centerCases,
   frame: frameCases,
   sidebar: sidebarCases,
+  grid: gridCases,
 } as const;
 
 type ModuleName = keyof typeof MODULES;
