@@ -96,31 +96,40 @@ async function scan(page: Page, demo: string, theme: "light" | "dark"): Promise<
     const red = Number(match[1]);
     return theme === "dark" ? red < 50 : red > 200;
   }, theme);
-  // And the page's own entrance animations must have settled before axe
-  // reads it. Contrast is a steady-state property, but a mount entrance is
-  // not: the state demos fade-rise in, and axe analyzing a sub-second
-  // entrance frame reads the text colour mid-interpolation and reports a
-  // violation the settled page does not have (ecoma-io/loom#287 — the
-  // empty-state demo failed light AND dark on a pair that statically
-  // computes to 5.76:1). Every animation must be either infinite — spinners
-  // and indeterminate progress never settle, BY DESIGN, and their opacity is
-  // steady, so there is no mid-flight frame to misread — or not running.
-  // This is a wait, not an exclusion: no axe rule is turned off, the sweep
-  // simply looks at the page after its entrance. Fail-closed on purpose: if
-  // animations never settle, the spec fails here rather than sweeping a
-  // frame that lies.
-  await page.waitForFunction(
-    () =>
-      document
-        .getAnimations()
-        .every(
-          (animation) =>
-            (animation.effect?.getTiming().iterations ?? 1) === Infinity ||
-            animation.playState !== "running",
-        ),
-    undefined,
-    { timeout: 5_000 },
-  );
+  // And axe must read the settled frame, not a mount entrance. Contrast is a
+  // steady-state property, but a mount entrance is not: the state demos
+  // fade-rise in, and axe analyzing a sub-second entrance frame reads the
+  // text colour mid-interpolation and reports a violation the settled page
+  // does not have (ecoma-io/loom#287 — the empty-state demo failed light AND
+  // dark on a pair that statically computes to 5.76:1). This is a wait, not
+  // an exclusion: no axe rule is turned off, the sweep simply looks at the
+  // page after its entrance.
+  //
+  // The margin is elapsed time, not an animation-state predicate, and that is
+  // a correction, not a preference. The first attempt polled
+  // `document.getAnimations()` until none was `running` (4c218dc) and hung
+  // Firefox on the collapse demo: `@keyframes collapse` interpolates
+  // `var(--reka-collapsible-content-height)` — a custom property Reka writes
+  // only when it measures an opening panel — and on a never-opened panel
+  // Firefox reports that unresolved-var animation as running forever, the
+  // timeline progressing while the Animation never reaches `finished`. A
+  // state predicate cannot say "settled" portably; an elapsed margin can,
+  // because the token system caps what any entrance can cost: every finite
+  // `--animate-*` token runs over a `var(--duration-*)` step whose longest is
+  // `--duration-normal`, 200ms — the "feedback ceiling" theme.css names — so
+  // 400ms is 2× over the ceiling the theme itself enforces. The root sweep
+  // gets the same margin implicitly from its slower load path. That the
+  // tokens keep holding this ceiling is pinned by
+  // packages/theme-core/tests/theme.animation-ceiling.test.ts; a longer
+  // entrance must revisit this margin in the same change.
+  //
+  // The no-wait-for-timeout rule exists because a fixed wait usually papers
+  // over a condition the page should announce. This is the one wait that is
+  // the condition itself — an elapsed margin, not a stand-in for one — and
+  // Firefox's unresolved-var animation states are exactly the announcement
+  // that cannot be trusted (above), so the rule's premise does not hold here.
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(400);
 
   const { violations } = await new AxeBuilder({ page })
     .withRules([...(BROWSER_REQUIRED_RULES as readonly string[])] as string[])
