@@ -1,0 +1,40 @@
+# A semgrep --test fixture for workflows.yaml, not a workflow — nothing under
+# .github/semgrep ever runs as one. The top-level `rules: []` key exists only
+# so `semgrep --config .github/semgrep`, which loads every `.yml`/`.yaml` file
+# in that directory as a candidate rule config, sees a valid (empty) config
+# here instead of aborting with exit 7; the fake workflow below is ordinary
+# fixture data. The `.test.` infix in this file's name is what makes semgrep
+# treat it as a test target rather than only a config candidate — both
+# mechanics are recorded in workflows.yaml's header comment.
+rules: []
+
+name: fake workflow, fixture only
+on:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # ruleid: workflow-action-not-pinned-to-sha
+      - uses: actions/checkout@v4
+      # ok: workflow-action-not-pinned-to-sha
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # An expression ref is not a pin: the runner does not evaluate
+      # expressions in uses (actions/runner#895) and GitHub rejects the
+      # workflow outright.
+      # ruleid: workflow-action-not-pinned-to-sha
+      - uses: ecoma-io/action-agents/triage@${{ github.sha }}
+      # The dogfood bug this rule exists to keep closed: an org action on a
+      # moving tag, the shape the v0.11.2 enrollment shipped with.
+      # ruleid: workflow-action-not-pinned-to-sha
+      - uses: ecoma-io/action-agents/triage@v0.11.2
+      # The other accepted shape: this repository's own bytes, reviewed in
+      # the diff that changes them — no upstream to repoint.
+      # ok: workflow-action-not-pinned-to-sha
+      - uses: ./.github/actions/local
+
+      # ok: workflow-action-not-pinned-to-sha
+      # A comment containing the literal text `uses: actions/checkout@v4`
+      # must not match: the structural rule parses YAML nodes and sees
+      # comments as data, where a regex over the raw file would flag prose.

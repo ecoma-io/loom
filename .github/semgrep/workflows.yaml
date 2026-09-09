@@ -1,0 +1,55 @@
+# Loom's workflows hold this repository's secrets — LLM keys and a token that
+# can write to issues and pull requests — and every `uses:` line decides whose
+# code runs with them. A tag ref is a pointer its owner can repoint at any
+# commit, so the convention is a full commit SHA with a `# vX.Y.Z` comment for
+# the human: renovate.json5's digest-pinning preset owns every bump, and this
+# rule makes a hand-edited tag fail the pull request that introduced it rather
+# than wait for Renovate or CodeQL's slower `actions` query to reconcile it.
+#
+# The Analysis job needs no new step for this: its scan already reads
+# `.github/workflows` — it simply had no YAML rule to match there until now.
+# `languages: [yaml]` also keeps the match structural: a comment that merely
+# contains the literal text `uses: …` (README guards, release notes) is data
+# to a parsed node, where a raw-file regex would flag prose.
+#
+# Two shapes are accepted, both for stated reasons: a literal full SHA — the
+# rule's whole point — and a `./local` path, whose bytes are reviewed in the
+# very diff that changes them, with no upstream owner who can repoint
+# anything. An expression ref (`@${{ github.sha }}`) looks like a pin and is
+# not: the runner does not evaluate expressions in `uses` (actions/runner#895)
+# and GitHub rejects the workflow outright, so expressions stay refused
+# alongside tags and branches. There is no org exemption — the rule mirrors
+# action-agents' own, where the two dogfood `uses:` lines this repo once ran
+# on bare tags were the defect it exists for.
+#
+# Fixtures live in workflows.test.yaml, exercised by `semgrep --test --config
+# .github/semgrep .github/semgrep`. That file needs a top-level `rules: []`
+# key even though it is not a rule config: `--config` loads every
+# `.yml`/`.yaml` file under `.github/semgrep` as a candidate rule file, and
+# one with no `rules:` key aborts the whole run with exit 7. Its `.test.`
+# infix is load-bearing too — a `.yml`/`.yaml`-suffixed file is otherwise only
+# a config candidate, and only `.test.` files are recognised as test targets.
+# Neither requirement is documented; both are confirmed against semgrep 1.x
+# by running it.
+rules:
+  - id: workflow-action-not-pinned-to-sha
+    languages: [yaml]
+    severity: ERROR
+    paths:
+      include:
+        - "/.github/workflows/**"
+    message: >-
+      This `uses:` is not pinned to a full commit SHA. A tag or branch is a
+      pointer the upstream owner can repoint at any commit — including one
+      that runs with this workflow's token and secrets without this
+      repository changing a byte. Pin to the SHA and keep the `# vX.Y.Z`
+      comment for a human; Renovate keeps both current.
+    metadata:
+      category: security
+      confidence: HIGH
+    patterns:
+      - pattern: "uses: $REF"
+      - metavariable-pattern:
+          metavariable: $REF
+          patterns:
+            - pattern-not-regex: '^(?:\./.*|.*@[0-9a-fA-F]{40})$'
