@@ -252,6 +252,38 @@ describe("checkResponsiveEvidence", () => {
     expect(checkResponsiveEvidence(root, contract)).toEqual([]);
   });
 
+  it("does not read coverage out of a comment — a remarked resize is not a viewport", () => {
+    const root = makeTree();
+    // The file talks the talk in remarks only: no live resize, no live band.
+    writeFileSync(
+      join(root, "packages/composition/grid/e2e/grid.e2e.ts"),
+      [
+        'import { test, expect } from "@playwright/test";',
+        "",
+        "// await page.setViewportSize({ width: 360, height: 800 }); — the 360 band",
+        'test("visible", async ({ page }) => {',
+        '  await expect(page.getByTestId("grid")).toBeVisible();',
+        "});",
+      ].join("\n"),
+    );
+    writeSidecar(root, completeSidecar());
+    expect(checkResponsiveEvidence(root, contract)).toEqual([
+      expect.stringContaining("names no viewport — evidence must size the page"),
+    ]);
+  });
+
+  it("still reads real code that carries band-bearing remarks", () => {
+    const root = makeTree();
+    // The opposite polarity: stripping comments must not eat the live code
+    // the remarks annotate.
+    writeFileSync(
+      join(root, "packages/composition/grid/e2e/grid.e2e.ts"),
+      `${HARNESS_SPEC}\n\n// The 360 above is the law's narrow band; a /* mid: 800 */ remark changes nothing.`,
+    );
+    writeSidecar(root, completeSidecar());
+    expect(checkResponsiveEvidence(root, contract)).toEqual([]);
+  });
+
   it("fails a dangling evidence path — declared-but-absent evidence is the fabricated kind", () => {
     const root = makeTree();
     const sidecar = completeSidecar() as { responsive: Record<string, unknown> };
@@ -318,6 +350,44 @@ describe("checkResponsiveEvidence", () => {
     expect(() => checkResponsiveEvidence(root, contract)).toThrow(/names no page\.goto population/);
   });
 
+  it("reads the sweep population comment-blind — a goto in a remark loads no page", () => {
+    const root = makeTree();
+    writeSidecar(root, completeSidecar());
+    // The leg's only goto lives in a comment: no population, so the run stops
+    // rather than reading the leg as an empty one.
+    writeFileSync(
+      join(root, ...SWEEP_SUITE_PATH.split("/")),
+      ['import { test } from "@playwright/test";', "", '// await page.goto("layouts/grid");'].join(
+        "\n",
+      ),
+    );
+    expect(() => checkResponsiveEvidence(root, contract)).toThrow(/names no page\.goto population/);
+
+    // And a remarked goto must not join a live population: stack's page is
+    // only ever a remark here, so its sweep citation stays unanswered while
+    // grid's is answered by the live goto.
+    const remarked = makeTree();
+    writeSidecar(remarked, completeSidecar());
+    writeSidecar(remarked, completeSidecar(), "stack");
+    writeFileSync(
+      join(remarked, ...SWEEP_SUITE_PATH.split("/")),
+      [
+        'import { test } from "@playwright/test";',
+        "",
+        "test.use({ viewport: { width: 360, height: 900 } });",
+        "",
+        'test("the grid holds together", async ({ page }) => {',
+        '  await page.goto("layouts/grid");',
+        "});",
+        "",
+        '// await page.goto("layouts/stack");',
+      ].join("\n"),
+    );
+    expect(checkResponsiveEvidence(remarked, contract)).toEqual([
+      expect.stringContaining("the responsive sweep does not reach this component's page"),
+    ]);
+  });
+
   it("takes an unqualified spec at its word, but a because-qualified one answers nothing", () => {
     const qualified = completeSidecar() as { responsive: Record<string, unknown> };
     qualified.responsive.evidence = {
@@ -344,6 +414,23 @@ describe("checkResponsiveEvidence", () => {
       },
     });
     expect(checkResponsiveEvidence(excepted, contract)).toEqual([]);
+  });
+
+  it("fails a because that is not a non-empty string, instead of silently widening the entry", () => {
+    // Dropped silently, a blank or non-string because would upgrade the entry
+    // to unqualified — answering every behaviour — the one direction a lie
+    // wants to go, so the shape fails closed instead.
+    for (const bad of ["", "   ", 42, null]) {
+      const root = makeTree();
+      const sidecar = completeSidecar() as { responsive: Record<string, unknown> };
+      sidecar.responsive.evidence = {
+        harness: [{ path: "packages/composition/grid/e2e/grid.e2e.ts", because: bad }],
+      };
+      writeSidecar(root, sidecar);
+      expect(checkResponsiveEvidence(root, contract)[0], `because: ${String(bad)}`).toContain(
+        "carries a because that is not a non-empty string",
+      );
+    }
   });
 
   it("fails an exception recorded for evidence that already answers the behaviour", () => {
@@ -377,6 +464,29 @@ describe("checkResponsiveEvidence", () => {
     expect(checkResponsiveEvidence(unknown, contract)[0]).toContain(
       'responsive exception names "magic" — no such behaviour',
     );
+  });
+
+  it("fails duplicate exception rows for one behaviour, and drops the repeat from the count", () => {
+    const root = makeTree();
+    const sidecar = completeSidecar() as { responsive: Record<string, unknown> };
+    sidecar.responsive.evidence = {};
+    sidecar.responsive.behaviour = ["intrinsic-collapse", "band-scale"];
+    sidecar.responsive.exceptions = [
+      { behaviour: "intrinsic-collapse", because: "no spec yet" },
+      { behaviour: "intrinsic-collapse", because: "still no spec" },
+      { behaviour: "band-scale", because: "no spec yet either" },
+    ];
+    writeSidecar(root, sidecar);
+    expect(checkResponsiveEvidence(root, contract)[0]).toContain(
+      "responsive exceptions name intrinsic-collapse twice",
+    );
+    // The duplicate is dropped, not tallied: the summary is the number of
+    // record, and a repeated row must not inflate it.
+    expect(responsiveExceptionSummary(root)).toEqual({
+      count: 2,
+      components: 1,
+      byBehaviour: { "intrinsic-collapse": 1, "band-scale": 1 },
+    });
   });
 
   it("fails each malformed claim shape instead of reading past it", () => {
@@ -539,6 +649,16 @@ describe("namesAViewport and namesABand", () => {
       false,
     );
     expect(namesABand("const W = 1024;", contract.bands)).toBe(false);
+  });
+
+  it("is comment-blind — coverage is not writable as a remark", () => {
+    expect(namesAViewport("// await page.setViewportSize({ width: 360, height: 800 });")).toBe(
+      false,
+    );
+    expect(namesAViewport("/* page.setViewportSize({ width: 360 }) */")).toBe(false);
+    expect(namesAViewport(HARNESS_SPEC)).toBe(true);
+    expect(namesABand("// we sweep the 360 band here", contract.bands)).toBe(false);
+    expect(namesABand(HARNESS_SPEC, contract.bands)).toBe(true);
   });
 });
 

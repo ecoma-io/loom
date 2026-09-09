@@ -32,15 +32,22 @@
 //      the file must size a viewport (`setViewportSize` / a `viewport:` or
 //      `viewport =` assignment) and must contain a band literal from the law.
 //      Declared-but-viewportless evidence is the fabricated kind — it reads
-//      as coverage while exercising one width only;
+//      as coverage while exercising one width only. Every read is
+//      comment-blind (the same stripComments the law's parse applies): a
+//      commented-out resize or a remarked band must not read as coverage;
 //   4. a sweep-tier citation is answered by a TREE FACT, not prose: the gate
 //      reads the root responsive leg's own `page.goto` population and checks
 //      this component's page is in it — fail-closed if the leg cannot be
-//      read, because an unreadable suite must never read as an empty one;
+//      read, because an unreadable suite must never read as an empty one.
+//      The population read is comment-blind too: a goto that lives in a
+//      comment is a page the leg never loads;
 //   5. every declared behaviour is answered by an unqualified evidence entry
-//      or carries a recorded exception — behaviour plus reason. Exceptions
-//      are counted and named, not failed on: the contract lands truthfully
-//      and shrinks as evidence grows;
+//      or carries a recorded exception — behaviour plus reason, one row per
+//      behaviour. Exceptions are counted and named, not failed on: the
+//      contract lands truthfully and shrinks as evidence grows; a malformed
+//      entry (a `because` that is not a non-empty string) fails closed,
+//      because silently upgrading it to unqualified would widen the claim in
+//      the one direction a lie wants to go;
 //   6. no exception for a behaviour the evidence already answers — a claim
 //      cannot both have and lack the same thing.
 //
@@ -191,12 +198,15 @@ export function readResponsiveContract(root: string): ParsedResponsiveContract {
 /**
  * The population the root responsive leg actually sweeps, read out of its own
  * `page.goto("…/<page>")` targets — a tree fact, not a sidecar's prose, and
- * the same discipline the a11y gate applies to its bespoke suite.
+ * the same discipline the a11y gate applies to its bespoke suite. The read is
+ * comment-blind: a goto that lives in a comment is a page the leg never
+ * loads, and a population read out of remarks would answer citations the
+ * tree never runs.
  */
 export function readSuitePopulation(root: string, suite: string): Set<string> {
   let text: string;
   try {
-    text = readFileSync(join(root, ...suite.split("/")), "utf8");
+    text = stripComments(readFileSync(join(root, ...suite.split("/")), "utf8"));
   } catch {
     throw new Error(
       `the responsive sweep ${suite} is unreadable, and its population is a tree fact the gate will not guess`,
@@ -225,20 +235,25 @@ interface ParsedResponsiveClaim {
   exceptions: { behaviour: string; because: string }[];
 }
 
-/** Whether a spec file sizes a viewport at all — the first half of rule 3. */
+/**
+ * Whether a spec file sizes a viewport at all — the first half of rule 3.
+ * Comment-blind, like every reader here: coverage must not be writable as a
+ * remark, so a commented-out resize is not a viewport the spec sizes.
+ */
 export function namesAViewport(content: string): boolean {
-  return /setViewportSize\s*\(|\bviewport\s*[:=]/.test(content);
+  return /setViewportSize\s*\(|\bviewport\s*[:=]/.test(stripComments(content));
 }
 
 /**
- * Whether a spec file names one of the law's canonical band widths. Height
- * values are stripped first: the band set is a set of WIDTHS, and the
+ * Whether a spec file names one of the law's canonical band widths. Comments
+ * are stripped before anything else (a remarked band is not a width the spec
+ * sizes to), then height values: the band set is a set of WIDTHS, and the
  * viewports' habitual 800-tall number must not stand in for a width the spec
  * never sizes to.
  */
 export function namesABand(content: string, bands: Record<string, number>): boolean {
   const literals = [...new Set(Object.values(bands).map(String))].join("|");
-  const widthTalk = content.replace(/[a-zA-Z]*[hH]eight\s*:\s*\d+/g, "");
+  const widthTalk = stripComments(content).replace(/[a-zA-Z]*[hH]eight\s*:\s*\d+/g, "");
   return new RegExp(`\\b(?:${literals})\\b`).test(widthTalk);
 }
 
@@ -367,11 +382,20 @@ function parseClaim(
           typeof (entry as Record<string, unknown>).path === "string"
         ) {
           const shaped = entry as Record<string, unknown>;
-          const evidence: { path: string; because?: string } = { path: shaped.path as string };
           const because = shaped.because;
           // exactOptionalPropertyTypes: the key is set or absent, never undefined.
-          if (typeof because === "string" && because.trim().length > 0) evidence.because = because;
-          parsed.push(evidence);
+          if (because === undefined) {
+            parsed.push({ path: shaped.path as string });
+          } else if (typeof because === "string" && because.trim().length > 0) {
+            parsed.push({ path: shaped.path as string, because });
+          } else {
+            // Fail closed: the old shape silently DROPPED a blank or non-string
+            // because, which upgraded the entry to unqualified — answering every
+            // behaviour — the one direction a lie wants to go.
+            failures.push(
+              `${component}: responsive evidence.${tier} entry "${shaped.path as string}" carries a because that is not a non-empty string — narrow it or drop the key`,
+            );
+          }
         } else {
           failures.push(
             `${component}: responsive evidence.${tier} carries an entry that is neither a path nor { path, because }`,
@@ -406,6 +430,15 @@ function parseClaim(
       if (!words.includes(behaviour)) {
         failures.push(
           `${component}: responsive exception names ${behaviour}, which the claim does not declare — an exception for an undeclared behaviour is noise in the record`,
+        );
+        continue;
+      }
+      if (exceptions.some((recorded) => recorded.behaviour === behaviour)) {
+        // One behaviour, one exception row: a repeated row would double-count
+        // in the summary — the number the work list is read off — while
+        // saying nothing the first row did not.
+        failures.push(
+          `${component}: responsive exceptions name ${behaviour} twice — one behaviour, one exception row`,
         );
         continue;
       }
@@ -611,13 +644,20 @@ export function responsiveExceptionSummary(root: string): {
       if (typeof claim !== "object" || claim === null) continue;
       const exceptions = (claim as Record<string, unknown>).exceptions;
       if (!Array.isArray(exceptions)) continue;
-      count += exceptions.length;
-      if (exceptions.length > 0) components++;
+      // One behaviour, one row: the verdict fails a repeated exception row,
+      // and the summary — the number of record — must agree with the verdict
+      // rather than with the raw text, so a duplicate is never tallied twice.
+      const seen = new Set<string>();
+      let named = 0;
       for (const exception of exceptions) {
         const behaviour = (exception as Record<string, unknown>).behaviour;
-        if (typeof behaviour !== "string") continue;
+        if (typeof behaviour !== "string" || seen.has(behaviour)) continue;
+        seen.add(behaviour);
+        named++;
         byBehaviour[behaviour] = (byBehaviour[behaviour] ?? 0) + 1;
       }
+      count += named;
+      if (named > 0) components++;
     }
   }
   return { count, components, byBehaviour };
