@@ -96,6 +96,31 @@ async function scan(page: Page, demo: string, theme: "light" | "dark"): Promise<
     const red = Number(match[1]);
     return theme === "dark" ? red < 50 : red > 200;
   }, theme);
+  // And the page's own entrance animations must have settled before axe
+  // reads it. Contrast is a steady-state property, but a mount entrance is
+  // not: the state demos fade-rise in, and axe analyzing a sub-second
+  // entrance frame reads the text colour mid-interpolation and reports a
+  // violation the settled page does not have (ecoma-io/loom#287 — the
+  // empty-state demo failed light AND dark on a pair that statically
+  // computes to 5.76:1). Every animation must be either infinite — spinners
+  // and indeterminate progress never settle, BY DESIGN, and their opacity is
+  // steady, so there is no mid-flight frame to misread — or not running.
+  // This is a wait, not an exclusion: no axe rule is turned off, the sweep
+  // simply looks at the page after its entrance. Fail-closed on purpose: if
+  // animations never settle, the spec fails here rather than sweeping a
+  // frame that lies.
+  await page.waitForFunction(
+    () =>
+      document
+        .getAnimations()
+        .every(
+          (animation) =>
+            (animation.effect?.getTiming().iterations ?? 1) === Infinity ||
+            animation.playState !== "running",
+        ),
+    undefined,
+    { timeout: 5_000 },
+  );
 
   const { violations } = await new AxeBuilder({ page })
     .withRules([...(BROWSER_REQUIRED_RULES as readonly string[])] as string[])
