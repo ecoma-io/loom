@@ -141,13 +141,14 @@ evidence or a named exception. Recounted 2026-09-09, from the gate's own
 summary line: all 31 tiered components carry a claim, and **one named exception
 stands** — `patterns/row-actions`' coarse-pointer reveal, which Playwright
 cannot witness (`emulateMedia` carries no pointer feature), an engine-scoped
-gap the sidecar records in place of a spec that would be a lie. Two gaps are
-deliberate and written where they sit: #275 (the width a wrapped panel keeps)
-is open, so no spec pins a wrapped panel's width; and `patterns/form-actions`
-claims `none` today — #276 decided wrap, and the landing of that fix retargets
-the claim. Drift after this recount lands on
-[issue #277](https://github.com/ecoma-io/loom/issues/277), this phase's ledger;
-the gate's summary is always the number of record.
+gap the sidecar records in place of a spec that would be a lie. One gap is
+deliberate and written where it sits: #275 (the width a wrapped panel keeps)
+is open, so no spec pins a wrapped panel's width — #278 landing #276's wrap
+decision does not change that, and `patterns/form-actions`, which now claims
+wrap-threshold and band-scale off that landed row, asserts the wrap itself and
+the gap band, never the width a wrapped action keeps. Drift after this recount
+lands on [issue #277](https://github.com/ecoma-io/loom/issues/277), this
+phase's ledger; the gate's summary is always the number of record.
 
 ## Templates (3)
 

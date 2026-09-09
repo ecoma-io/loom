@@ -2,8 +2,11 @@
   "role": "none",
   "basis": "renders a bare <div> of slotted action controls — no role asserted.",
   "responsive": {
-    "contract": "none",
-    "basis": "one non-wrapping flex row today — the component carries no responsive class. #276's decision is wrap (flex-wrap plus the sm gap band), landing on the form-actions PR that is ahead of this branch; when it lands this claim retargets to wrap-threshold and band-scale with a spec of its own."
+    "behaviour": ["wrap-threshold", "band-scale"],
+    "basis": "the action row is flex-wrap with gap-2 sm:gap-3 (#276 decided wrap; #278 landed it): actions drop to their own line rather than scroll or shrink — the one overflow the interface contract names outright — and only the band where the row actually wraps tightens the gap.",
+    "evidence": {
+      "harness": ["packages/patterns/form-actions/e2e/form-actions.e2e.ts"]
+    }
   },
   "evidence": {
     "browserless": [
