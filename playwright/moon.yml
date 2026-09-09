@@ -38,6 +38,8 @@ deps:
   - "frame"
   # preserved
   - "sidebar"
+  # preserved
+  - "grid"
 
 tasks:
   # Inherits lint and test from .moon/tasks/*.yml. The test task finds no
