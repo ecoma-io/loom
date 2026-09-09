@@ -87,6 +87,38 @@ const MODULES = {
 
 type ModuleName = keyof typeof MODULES;
 
+// The route locates a case by its `data-conformance-case` section, where the
+// first match in the document wins — so a case name repeated within one
+// module, or across two, would silently compare one section twice and report
+// agreement the second case never earned. The registry is built once, at
+// module scope, and refuses both. tools/check-composition-conformance.ts
+// holds the same uniqueness over the modules' source; this runtime check is
+// its twin, firing if a case module ever reaches the page through a path the
+// gate does not read.
+const CASE_OWNERS = new Map<string, ModuleName>();
+for (const [moduleName, moduleCases] of Object.entries(MODULES) as [ModuleName, CaseModule][]) {
+  for (const one of moduleCases.cases) {
+    const owner = CASE_OWNERS.get(one.name);
+    if (owner !== undefined) {
+      throw new Error(
+        `conformance registry: case "${one.name}" is declared by both ${owner} and ${moduleName} — the comparator would compare the first section twice`,
+      );
+    }
+    CASE_OWNERS.set(one.name, moduleName);
+  }
+}
+
+/** The module that owns a case name, throwing on a name no module declared. */
+function caseOwner(name: string): ModuleName {
+  const owner = CASE_OWNERS.get(name);
+  if (owner === undefined) {
+    throw new Error(
+      `conformance registry: no case named "${name}". Known: ${[...CASE_OWNERS.keys()].join(", ")}`,
+    );
+  }
+  return owner;
+}
+
 const wanted = new URLSearchParams(window.location.search).get("conformance");
 if (wanted === null || !(wanted in MODULES)) {
   const known = Object.keys(MODULES).join(", ");
@@ -163,6 +195,15 @@ interface ReportCase extends PublishedCase {
 }
 
 const reportCases: ReportCase[] = mod.cases.map((one) => {
+  // The comparator anchors every read on the case's own section, so the case
+  // being reported must be one this mounted module owns — a name that
+  // resolved to another module's section would compare the wrong geometry.
+  const owner = caseOwner(one.name);
+  if (owner !== wanted) {
+    throw new Error(
+      `conformance registry: case "${one.name}" is owned by ${owner} but mounted by ${wanted}`,
+    );
+  }
   const section = document.querySelector<HTMLElement>(
     `section[data-conformance-case="${CSS.escape(one.name)}"]`,
   );
