@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { componentApi } from "./plugins/component-api";
 import { designTokens } from "./plugins/design-tokens";
 import { wcagTags } from "./plugins/wcag-tags";
+import { interactionClasses } from "./plugins/interaction-classes";
 import { pagesIn } from "./sidebar";
 import { BASE } from "./base";
 
@@ -203,6 +204,7 @@ export default defineConfig({
       componentApi(),
       designTokens(),
       wcagTags(),
+      interactionClasses(),
       ...(tailwindcss() as unknown as VitePlugins),
     ],
     resolve: {
