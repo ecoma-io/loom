@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "repository": "ecoma-io/loom",
+  "commit": "4a0ee260f56d1f5f1c19ef4147a1515776e4b6a1",
+  "tool": {
+    "name": "@ecoma-io/archkeep",
+    "version": "0.24.0"
+  },
+  "gate": {
+    "command": "pnpm archkeep:check",
+    "blocking": true
+  },
+  "proof": {
+    "violationExitCode": 1,
+    "recoveryExitCode": 0
+  }
+}
