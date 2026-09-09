@@ -44,19 +44,22 @@ path is itself a tracked directory — the shape a tier keeps.
 
 ## Compositions (9)
 
-All `layer-composition`, all facade-exported. Adapters exist for exactly four.
+All `layer-composition`, all facade-exported. Adapters exist for exactly four;
+the conformance gate (`tools/check-composition-conformance.ts`, Phase 3C) holds
+the other five on named exception rows — in
+`tools/composition-conformance.exceptions.ts` — until 4A lands their twins.
 
-| Artifact      | Adapter (`src/layout.ts`) | Conformance evidence                          | Intended type | Gap                                               | Action                                           |
-| ------------- | ------------------------- | --------------------------------------------- | ------------- | ------------------------------------------------- | ------------------------------------------------ |
-| Stack         | yes                       | engine-vs-DOM conformance + browserless floor | Composition   | None                                              | —                                                |
-| Inline        | yes                       | conformance (wrap/baseline throw loudly)      | Composition   | None                                              | —                                                |
-| Frame         | yes                       | conformance                                   | Composition   | None                                              | —                                                |
-| Center        | yes                       | conformance                                   | Composition   | None                                              | —                                                |
-| Grid          | no                        | jsdom class pins only                         | Composition   | No computable twin; no browser geometry evidence  | Phase 2 adapter                                  |
-| Sidebar       | no                        | jsdom class pins only                         | Composition   | As Grid                                           | Phase 2 adapter (auditors' first-priority order) |
-| Split         | no                        | one behavioural e2e, no adapter               | Composition   | Percent-length boundary blocks the twin           | Phase 2 adapter after boundary decision          |
-| ScrollReel    | no                        | jsdom class pins only                         | Composition   | Scroll-snap may be CSS-only by design — undecided | Declare in writing either way                    |
-| DashboardGrid | no                        | jsdom class pins only                         | Composition   | No computable twin; no browser geometry evidence  | Phase 2 adapter                                  |
+| Artifact      | Adapter (`src/layout.ts`) | Conformance evidence                                  | Intended type | Gap                                                | Action                                                        |
+| ------------- | ------------------------- | ----------------------------------------------------- | ------------- | -------------------------------------------------- | ------------------------------------------------------------- |
+| Stack         | yes                       | engine-vs-DOM conformance + browserless floor         | Composition   | None                                               | —                                                             |
+| Inline        | yes                       | conformance (wrap/baseline throw loudly)              | Composition   | None                                               | —                                                             |
+| Frame         | yes                       | conformance                                           | Composition   | None                                               | —                                                             |
+| Center        | yes                       | conformance                                           | Composition   | None                                               | —                                                             |
+| Grid          | no                        | behavioural e2e (auto-fit reflow, 3B) + jsdom pins    | Composition   | No computable twin; no engine-conformance evidence | 4A twin; 3C exception row until then                          |
+| Sidebar       | no                        | behavioural e2e (intrinsic collapse, 3B) + jsdom pins | Composition   | As Grid                                            | 4A twin (auditors' first-priority order); 3C exception row    |
+| Split         | no                        | one behavioural e2e, no adapter                       | Composition   | Percent-length boundary blocks the twin            | 4A twin after the percent boundary decision; 3C exception row |
+| ScrollReel    | no                        | behavioural e2e (one-line overflow, 3B) + jsdom pins  | Composition   | Scroll-snap may be CSS-only by design — undecided  | Declare in writing either way (4A); 3C exception row          |
+| DashboardGrid | no                        | behavioural e2e (span + reflow, 3B) + jsdom pins      | Composition   | As Grid                                            | 4A twin; 3C exception row until then                          |
 
 ## Patterns (13) — the Blocks family after 2C's rename
 
