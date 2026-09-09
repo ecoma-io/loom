@@ -44,10 +44,11 @@ export const COMPOSITION_CONFORMANCE_EXCEPTIONS: readonly CompositionConformance
   {
     composition: "scroll-reel",
     reason:
-      "The scroll-snap arrangement may be CSS-only by design — whether an honest engine mapping exists is undecided (gap P1). The written declaration, either way, is the row's way out.",
-    owner: "Phase 4A (composition twins)",
+      "Declared CSS-only by design — ADR-002 (docs/architecture/decisions/0002-scroll-reel-css-only-by-design.md) resolves the question this row carried. The arrangement's essence — the scroll container, the overflowing strip and scroll-snap alignment — has no static-geometry footprint in the engine's single-line flexbox IR, and the component's DOM ships CSS-default flex-shrink, so no adapter tree both models the real DOM and reaches the reel's operating point: the route's fixed-box fixtures shrink to fit, and a flexShrink: 0 claim would be contradicted at any overflowing case and never exercised at a fitting one. The substrate the IR could map is already held by the jsdom class pins, Stack's cases over the same gap utilities, and the 3B behavioural e2e, which is what holds the arrangement instead of an engine twin.",
+    owner:
+      "Layout-engine boundary owner — the question reopens only where the engine changes, not the component (no phase currently owns scroll-container modelling).",
     removal:
-      "Phase 4A — replaced by scroll-reel's adapter and cases, or by the recorded CSS-only declaration.",
+      "No milestone: a by-design declaration, not debt. The row is deleted only if the engine's modelled subset ever admits scroll containers or snap points, or the component grows a static-geometry fact a plain one-line row does not carry.",
   },
   {
     composition: "sidebar",
