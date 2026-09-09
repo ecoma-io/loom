@@ -14,15 +14,26 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // cancel slot does; what it witnesses is still this pattern's classes
 // resolving in a real engine, and it fails if `flex-wrap` or the gap band
 // ever leaves the row.
+//
+// One measurement this suite deliberately does NOT take: the x-distance
+// between the two demo buttons. The demo's default instance is
+// align="between", whose `justify-between` distributes the row's FREE SPACE —
+// at any width past the phone band that distance is everything the row has
+// left, not the 12px gap the claim is about. The gap lives on the row, so it
+// is read off the row.
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/?component=form-actions");
   await expect(page.getByText("Between (default)")).toBeVisible();
 });
 
-/** The demo's first row — the default "between" instance. */
+/**
+ * The demo's first row — the default "between" instance — scoped under that
+ * instance's own wrapper so no other `div.flex-wrap` on the page (the
+ * right-aligned and left-aligned rows) can stand in for it.
+ */
 function row(page: Page): Locator {
-  return page.locator("div.flex-wrap").first();
+  return page.getByText("Between (default)").locator("..").locator("div.flex-wrap");
 }
 
 /** The rendered box, or a hard failure. */
@@ -60,11 +71,18 @@ test("the row wraps when the actions cannot share a line, and the gap follows th
   const wrappedGap = second.y - (first.y + first.height);
   expect(Math.abs(wrappedGap - 8)).toBeLessThanOrEqual(1);
 
-  // Mid band: past `sm` the same actions share the line, `sm:gap-3` apart.
+  // Mid band: a fresh demo — the wrap fixture above replaced the row's real
+  // buttons. Past `sm` the two actions share one line, held 12px apart by the
+  // row's own `sm:gap-3`: the band-scale witness read where it lives, on the
+  // row, for the reason the file header gives.
+  await page.reload();
   await page.setViewportSize({ width: 800, height: 900 });
-  const wideFirst = await boxOf(actions.locator("button").first());
-  const wideSecond = await boxOf(actions.locator("button").nth(1));
-  expect(Math.abs(wideSecond.y - wideFirst.y)).toBeLessThanOrEqual(2);
-  const inlineGap = wideSecond.x - (wideFirst.x + wideFirst.width);
-  expect(Math.abs(inlineGap - 12)).toBeLessThanOrEqual(1);
+  const freshRow = row(page);
+  const cancel = await boxOf(freshRow.getByRole("button", { name: "Cancel" }));
+  const save = await boxOf(freshRow.getByRole("button", { name: "Save changes" }));
+  expect(Math.abs(save.y - cancel.y)).toBeLessThanOrEqual(2);
+  const columnGap = await freshRow.evaluate((el) =>
+    Number.parseFloat(getComputedStyle(el).columnGap),
+  );
+  expect(columnGap).toBe(12);
 });

@@ -77,15 +77,42 @@ test("the stack's width tracks the viewport below 24rem and caps above it", asyn
   // halves are read off a real viewport.
   await page.getByRole("button", { name: "Toast success" }).click();
 
+  // The first CI run measured widths this clamp cannot produce (384 where
+  // 92vw of 360 says 331.2; 436.8 — exactly 24rem at an 18.2px root — where
+  // the cap says 384), and the sheet itself is right: `.w-[min(92vw,24rem)]`
+  // compiles to `width: min(92vw, 24rem)`. Rather than guess, every expect
+  // below drags the measurement's inputs along with it: how many `ol`s the
+  // page really holds, the box versus the COMPUTED width (a stale box with a
+  // current width is a resize race; agreement at a wrong value is a rem or
+  // transform fact), any transform on the element, and the root font-size
+  // the rem resolves against. A repeat failure decides itself.
+  async function attachViewportDebug(band: string): Promise<void> {
+    const ol = page.locator("ol").first();
+    await test.info().attach(`toast-viewport-debug (${band})`, {
+      body: JSON.stringify({
+        olCount: await page.locator("ol").count(),
+        boundingBox: await ol.boundingBox(),
+        computedWidth: await ol.evaluate((el) => getComputedStyle(el).width),
+        transform: await ol.evaluate((el) => getComputedStyle(el).transform),
+        rootFontSize: await page.evaluate(
+          () => getComputedStyle(document.documentElement).fontSize,
+        ),
+      }),
+      contentType: "application/json",
+    });
+  }
+
   await page.setViewportSize({ width: 360, height: 900 });
   const narrow = await page.locator("ol").boundingBox();
   if (!narrow) throw new Error("The stack must render once an entry is pushed.");
+  await attachViewportDebug("360");
   // 92vw of 360px — the viewport term wins below the cap.
   expect(Math.abs(narrow.width - 331.2)).toBeLessThanOrEqual(1);
 
   await page.setViewportSize({ width: 800, height: 900 });
   const wide = await page.locator("ol").boundingBox();
   if (!wide) throw new Error("The stack must render once an entry is pushed.");
+  await attachViewportDebug("800");
   // 24rem = 384px — the cap wins once 92vw outgrows it.
   expect(Math.abs(wide.width - 384)).toBeLessThanOrEqual(1);
 });

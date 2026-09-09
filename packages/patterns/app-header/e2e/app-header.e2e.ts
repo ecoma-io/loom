@@ -1,11 +1,12 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 // AppHeader's browser-only facts are the two rows of its own docblock:
-// below `sm` the search drops to a full-width second row (the wrap threshold
-// — hiding it would decide the host's users need it less on a phone), and
-// past `sm` the strip snaps back to one fixed-height row whose height steps
-// again at `3xl`. jsdom can pin the classes; only a real layout can say which
-// line the search actually lands on and how tall the strip resolved.
+// below the `sm` media query the search drops to a full-width second row (a
+// literal breakpoint switch, not a measurement of the slotted content — and
+// hiding it would decide the host's users need it less on a phone), and past
+// `sm` the strip snaps back to one fixed-height row whose height steps again
+// at `3xl`. jsdom can pin the classes; only a real layout can say which line
+// the search actually lands on and how tall the strip resolved.
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/?component=app-header");
@@ -45,11 +46,16 @@ test("below sm the search takes its own row above nothing; past sm it rejoins th
   expect(barBox.height).toBeGreaterThan(56);
 
   // Mid band: past `sm` the strip is `flex-nowrap` — brand and search share
-  // the one line.
+  // the one line. `items-center` aligns MIDDLES, not tops, and the brand text
+  // and the search field are unequal heights, so the shared line is the
+  // shared vertical center (a top comparison reads a constant few-pixel
+  // offset that is the alignment working, not breaking).
   await page.setViewportSize({ width: 800, height: 900 });
   const brandWideBox = await boxOf(brand);
   const searchWideBox = await boxOf(search(page));
-  expect(Math.abs(searchWideBox.y - brandWideBox.y)).toBeLessThanOrEqual(2);
+  const brandCenter = brandWideBox.y + brandWideBox.height / 2;
+  const searchCenter = searchWideBox.y + searchWideBox.height / 2;
+  expect(Math.abs(searchCenter - brandCenter)).toBeLessThanOrEqual(1);
   const barWideBox = await boxOf(bar(page));
   expect(Math.abs(barWideBox.height - 56)).toBeLessThanOrEqual(1);
 });
