@@ -1,3 +1,6 @@
+deps:
+  - "core"
+  - "layout-engine"
 tags: ["layer-composition", "e2e"]
 project:
   name: "dashboard-grid"
