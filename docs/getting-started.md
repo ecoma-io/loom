@@ -52,6 +52,13 @@ Every export lives in one place: `packages/loom/src/index.ts` is the complete
 list, and each [component page](/components/button) documents its control
 with an API table generated from the source rather than written beside it.
 
+A `class` you pass to a component merges with the component's own rather than
+replacing it. The merge is `cn` — exported from the same package, and
+Tailwind-aware, so your `px-4` resolves against the component's `px-6` instead
+of both classes shipping and stylesheet order deciding the winner. Loom's own
+named utilities (`text-body`, `duration-fast`, the rest) are registered in it,
+which is why overriding one of those from outside works too.
+
 ## Switch the theme
 
 Loom ships a light and a dark theme, selected by the `data-theme` attribute
@@ -72,6 +79,12 @@ const { resolvedTheme, toggleTheme } = useTheme();
 
 [Theming](/foundations/theming) carries the full story, including flash
 prevention for server-rendered pages.
+
+The composable's two types ship from the same `@ecoma-io/loom/theme` entry:
+`ThemePreference` is what was asked for — `"light"`, `"dark"` or `"system"` —
+and `ResolvedTheme` is what actually applies once `"system"` has been resolved
+against the OS setting. The button above renders `resolvedTheme` for exactly
+that reason: it is the only one of the two that is ever a real theme.
 
 ## Where next
 

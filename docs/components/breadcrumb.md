@@ -28,13 +28,15 @@ import { Breadcrumb } from "@ecoma-io/loom";
 
 The last item is always the current page — it renders as a span with
 `aria-current="page"`, never as a link, regardless of whether its `href`
-is set. Items before the last render as links.
+is set. Items before the last render as links. Each entry is a
+`BreadcrumbItem`: a `label`, and an `href` that means something on every
+entry but the current one, whose `href` — set or not — is dropped.
 
 ## Separators
 
-Five separator options: `/` (default), `\`, `>`, `→`, and `chevron` (an
-inline SVG). Separators are `aria-hidden` so they are spoken only as
-structural pauses, not as characters.
+Five separator options — the `BreadcrumbSeparator` union: `/` (default),
+`\`, `>`, `→`, and `chevron` (an inline SVG). Separators are `aria-hidden`
+so they are spoken only as structural pauses, not as characters.
 
 <Demo title="Separator options" :source="breadcrumbDemoSource">
   <BreadcrumbDemo />

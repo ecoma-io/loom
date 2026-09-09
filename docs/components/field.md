@@ -52,6 +52,20 @@ It reaches a Loom control, not an arbitrary one: the channel is
 third-party widget cannot pick it up. That case is what `for` is for, and it
 has not changed — see below.
 
+The channel itself is public, though, for the control that wants the row's
+wiring without being a Loom component. `provideFieldContext` is the call Field
+makes — handed a `FieldContextSource`, one getter per fact the row knows — and
+`useFieldControl` is the control side: give it your own props and it resolves
+them against the row under the precedence rule below, returning the attributes
+to spread onto your node (`FieldControlAttrs`) beside everything it read
+(`FieldControl`). The spread is purely additive — an attribute the row has no
+opinion on is absent, never present-and-empty — so a control that renders
+correctly unwrapped renders identically inside a row. `FieldControlProps` types
+what a control was told directly, and every key is `?: T | undefined` because
+an explicit `undefined` is exactly what a control passes when its own prop is
+unset. `useOuterFieldContext` reads the wrapper above a wrapper, which is how
+a Field inherits `readonly` from the Fieldset above it.
+
 ## Overruling the row
 
 Everything the row hands down is a default. A prop set on the control wins, in

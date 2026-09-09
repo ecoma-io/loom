@@ -147,6 +147,15 @@ page: ({ page }: { page: number }) => string;
 position: ({ page, pageCount }: { page: number; pageCount: number }) => string;
 ```
 
+That signature is a type, not a convention: a message is a `LabelOf<Args>` — a
+function from the message's raw arguments to the finished string — and every
+vocabulary in the registry is typed against it, which is why a key that takes a
+value cannot be supplied as a plain string. The read half of the seam is
+`useLabels`: the call every Loom component makes to resolve its slot against
+the chain above. It is exported for the same reason the write half is — a host
+composing its own control out of Loom parts resolves its words through the same
+seam rather than around it.
+
 The argument is always an object of raw values, never text Loom has already
 formatted. Handed the number, you can reach `Intl.NumberFormat` for Eastern
 Arabic digits and `Intl.PluralRules` for a category English does not have.

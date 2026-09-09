@@ -97,6 +97,13 @@ because nothing native reaches a `<span role="slider">`. Not one of the four was
 told by a prop, and the Slider's thumb is out of the tab order rather than merely
 dimmed — press Tab through the group and nothing inside it answers.
 
+That read is `useAncestorDisabled`, exported from the package: it walks the
+element's enclosing `<fieldset>`s, answers whether any of them is `disabled`,
+and re-answers through a `MutationObserver` filtered to that one attribute, so
+a group toggled after mount is picked up on the spot. It reads the element —
+never a wrapper's prop — which is why a raw `<fieldset disabled>` you wrote
+without Loom disables a Loom composite inside it exactly as one of ours would.
+
 Nothing in that group is disabled in its own right. A `div` with an ARIA role
 cannot do this: a wrapper cannot pass a `disabled` prop to a control it never
 rendered, so the alternative is asking every caller to thread the same flag

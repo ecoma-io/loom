@@ -91,6 +91,11 @@ provideLoomLabels(() => ({
 }));
 ```
 
+The English defaults are themselves exported as `COPY_BUTTON_LABELS`, so a
+partial vocabulary — yours or a translation's — is built against the real
+thing rather than a transcription of it, and a key nobody overrides is the
+key Loom actually renders.
+
 ## Do / Don't
 
 **Do** put a CopyButton beside the text it copies, close enough that the

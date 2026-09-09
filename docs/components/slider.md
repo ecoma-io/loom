@@ -100,6 +100,14 @@ describing the control, not the box around it. The row's `name` drives a hidden
 input, so the value posts under that name in a real `<form>` — as the scalar
 this control exposes, not as the `name[0]` an array-shaped slider would submit.
 
+The thumb is where _your_ fallthrough lands too. Slider opts out of Vue's
+single-root inheritance and splits the attributes itself, with the exported
+`useSplitAttrs()`: `class` merges onto the track, and everything else —
+`aria-labelledby` above all — goes to the element the name actually describes.
+NumberField's input and Select's trigger make the same split for the same
+reason, which is why `class` on a composite reliably styles the visible
+control rather than an arbitrary wrapper.
+
 ```vue
 <Field label="Volume" hint="Applies to every alert" name="volume">
   <Slider v-model="volume" aria-label="Volume" @commit="checkpoint" />
