@@ -243,11 +243,14 @@ const vocabulary: LoomLabelOverrides = bag; // compiles; `nxt` is silently ignor
 `satisfies` on the declaration closes it. That is the one place this contract
 asks you to remember something.
 
-Annotate with `LoomLabelOverrides` (or `LabelOverrides<PaginationLabels>` for a
-single component's bag) rather than with the bag interface itself. The override
-types are partial, so a key added to Loom in a later release is a key your
-vocabulary may ignore; the bag interfaces are total, and a bag typed with one
-would stop compiling the day the vocabulary grew.
+The bag interface itself is `LoomLabels` — the registry every component's
+vocabulary folds into, one key per speaking component, and the shape
+`provideLoomLabels` checks a partial against. Annotate with
+`LoomLabelOverrides` (or `LabelOverrides<PaginationLabels>` for a single
+component's bag) rather than with it. The override types are partial, so a key
+added to Loom in a later release is a key your vocabulary may ignore; the bag
+interfaces are total, and a bag typed with one would stop compiling the day the
+vocabulary grew.
 
 ## What it costs
 

@@ -74,7 +74,11 @@ sidecar's `role` field is held to. The types name the same things —
 `A11yRole`, `AriaRole`, `A11yEvidenceTier`, `A11yRequirementId` — and
 `A11yContract` is the sidecar shape itself: the claimed role, the rendered
 fact it rests on, the evidence that answers it, and every requirement not yet
-answered with its reason.
+answered with its reason. One piece of that evidence is an
+`A11yEvidenceEntry`: a plain string when the repository-root-relative path
+says everything, or that path plus the `because` a tier the role's matrix row
+does not demand must carry. Writing a component's `a11y.json` is the only
+time a consumer meets it.
 
 ## Focus rings are a promise
 

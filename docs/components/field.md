@@ -55,6 +55,8 @@ has not changed — see below.
 The channel itself is public, though, for the control that wants the row's
 wiring without being a Loom component. `provideFieldContext` is the call Field
 makes — handed a `FieldContextSource`, one getter per fact the row knows — and
+what it publishes is `FieldContext`, one `ComputedRef` per fact so the row's
+error arriving and clearing moves with the control instead of being read once.
 `useFieldControl` is the control side: give it your own props and it resolves
 them against the row under the precedence rule below, returning the attributes
 to spread onto your node (`FieldControlAttrs`) beside everything it read

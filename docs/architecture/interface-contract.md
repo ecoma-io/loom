@@ -164,7 +164,9 @@ the `./styles/*.css` sources, the docs' own `@ecoma-io/loom/<subpath>`
 references, every sibling barrel's parsed exports (an identifier no facade
 entry re-exports fails unless the register withholds it), the docs' `@api`
 markers (each must name a facade export or a recorded internal-doc
-exception), the docs coverage of every facade identifier, and the subpath
+exception), an identifier docs scan over every facade export — bounded by
+the register's declared generated-table classes, whose membership is a
+declared suffix rather than a per-identifier verification — and the subpath
 set as the facade manifest and the tsconfig `paths` mirror it. The
 deliberate withholds (the sibling indexes' `COPY_REVERT_MS`,
 `buttonVariantClasses`, `TableRowState`, `headAlignClass`, `nextSort`, the

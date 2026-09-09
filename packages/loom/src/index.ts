@@ -164,11 +164,13 @@ export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
 // site's generated API tables and the vocabulary shapes those tables and the
 // component pages print, not markdown prose naming each one. Membership is
 // the exact suffix (case included), proper — `Surface` the component is not a
-// member of the `Surface` class:
-// @generated-docs Size Variant Align Gap Side Orientation Elevation Pad Shape Thickness Direction Ratio Snap Width Status Density Sort State Mode Type Placement Tone Trend Resize Surface Context Element Entry Part Band Reason Politeness — prop, slot and vocabulary union types the component pages' generated API tables render beside their component
-// @generated-docs Labels — the label-vocabulary types rendered in their component's generated API table as the `labels` prop's type
-// @generated-docs LABELS — the English default vocabularies each component page documents through its `labels` prop, packaged so a host builds partial overrides against the real thing
-// @generated-docs Variants — the cva class tables behind the variant props the pages document, exported for composition in consumer code
+// member of the `Surface` class — and it is declared, not verified: the gate
+// holds the suffix claim, and each line states the mechanism actually behind
+// it, which is not the same strength for all four:
+// @generated-docs Size Variant Align Gap Side Orientation Elevation Pad Shape Thickness Direction Ratio Snap Width Status Density Sort State Mode Type Placement Tone Trend Resize Surface Context Element Entry Part Band Reason Politeness — the alias a component's generated API table renders for the prop that carries it: the Type cell prints the literal members a string-union alias names, or the alias itself where the type is not one
+// @generated-docs Labels — the per-component label-vocabulary interfaces, rendered as the generated API table's Type cell for their component's `labels` prop (LoomLabels itself is the registry those vocabularies fold into, not one component's prop type, and is documented in prose on the localisation page)
+// @generated-docs LABELS — declared class membership — grouped with the generated-table surface; not per-identifier documentation verification
+// @generated-docs Variants — declared class membership — grouped with the generated-table surface; not per-identifier documentation verification
 export { default as CopyButton, COPY_BUTTON_LABELS } from "@ecoma-io/loom-copy-button";
 export type {
   CopyButtonLabels,
