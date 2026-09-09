@@ -104,10 +104,16 @@ export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
 // "@internal <pkg>:default — <because>"     a barrel's default binding, re-exported under a name
 // "@internal-doc <Identifier> — <because>"  a docs @api marker for a component no consumer imports
 //
-// `<pkg>` is the package name without its `@ecoma-io/loom-` prefix. Both
-// directions are drift: an unrecorded export the facade withholds fails the
-// parity gate, and a recorded name a facade entry starts re-exporting fails
-// as a stale decision. The label and variant maps the same barrels export
+// `<pkg>` is the package name without its `@ecoma-io/loom-` prefix. A record
+// key is a bare identifier, not a package-scoped path, so a name two barrels
+// both export is withholdable only all-or-nothing — the staleness legs cannot
+// tell which barrel a key was written against, only whether some barrel still
+// exports it.
+//
+// Both directions are drift: an unrecorded export the facade withholds fails
+// the parity gate, and a recorded name a facade entry starts re-exporting
+// fails as a stale decision. The label and variant maps the same barrels
+// export
 // (COPY_BUTTON_LABELS, timelineMarkerVariants, and the per-component label
 // types) are public surface and are re-exported above and below; what
 // follows is what deliberately is not.

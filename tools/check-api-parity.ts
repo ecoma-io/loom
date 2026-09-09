@@ -357,6 +357,22 @@ export function runChecks(root: string): string[] {
 }
 
 /**
+ * Read one package manifest. A malformed one is a named failure, not a raw
+ * SyntaxError: JSON.parse's error carries no path, and in a tree of manifests
+ * an unnamed parse error is a hunt.
+ */
+function readManifest(manifestPath: string): Record<string, unknown> {
+  try {
+    return JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, unknown>;
+  } catch (error) {
+    throw new Error(
+      `api-parity: ${manifestPath} does not parse as JSON — ${(error as Error).message}`,
+      { cause: error },
+    );
+  }
+}
+
+/**
  * The root manifest's `exports` map.
  *
  * The published package is the root manifest — the `packages/loom/package.json`
@@ -364,7 +380,7 @@ export function runChecks(root: string): string[] {
  * that ships. `exports` is where the published surface is declared.
  */
 function readRootExports(root: string): Record<string, unknown> {
-  const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
+  const manifest = readManifest(join(root, "package.json")) as {
     exports?: Record<string, unknown>;
   };
   return manifest.exports ?? {};
@@ -768,7 +784,7 @@ function packageBarrels(root: string): Omit<PackageBarrel, "parsed">[] {
       ) {
         const manifestPath = join(dirname(path), "package.json");
         const pkgName = existsSync(manifestPath)
-          ? ((JSON.parse(readFileSync(manifestPath, "utf8")) as { name?: string }).name ?? "")
+          ? ((readManifest(manifestPath) as { name?: string }).name ?? "")
           : "";
         if (pkgName === "") {
           barrels.push({
@@ -811,7 +827,7 @@ function workspacePackageNames(root: string): Map<string, string> {
       const path = join(dir, entry.name);
       const manifestPath = join(path, "package.json");
       if (existsSync(manifestPath) && existsSync(join(path, "src"))) {
-        const name = (JSON.parse(readFileSync(manifestPath, "utf8")) as { name?: string }).name;
+        const name = (readManifest(manifestPath) as { name?: string }).name;
         if (name) names.set(name, path);
       }
       walk(path);
@@ -1033,6 +1049,10 @@ function docsIdentifierTokens(docsFiles: DocsFile[]): Set<string> {
  * read as text; the quoted-key pattern cannot reach a dash-form internal
  * package (`@ecoma-io/loom-core` has no `/` after `loom`), which is what
  * keeps the internal workspace mappings out of the comparison.
+ *
+ * The mirror compares keys, never values: it verifies each subpath's presence
+ * across the three copies, and whether an entry points at the right file
+ * stays with the build and the type-checker.
  */
 function subpathMirror(
   root: string,
@@ -1045,7 +1065,7 @@ function subpathMirror(
   const facadeManifestPath = join(root, "packages", "loom", "package.json");
   let facadeManifest = new Map<string, true>();
   if (existsSync(facadeManifestPath)) {
-    const manifest = JSON.parse(readFileSync(facadeManifestPath, "utf8")) as {
+    const manifest = readManifest(facadeManifestPath) as {
       exports?: Record<string, unknown>;
     };
     facadeManifest = exportsSurface(manifest.exports ?? {});

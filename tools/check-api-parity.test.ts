@@ -574,6 +574,123 @@ describe("runChecks", () => {
     }
   });
 
+  it("flags a withheld-default record once the barrel stops shipping a default", () => {
+    const root = makeRoot();
+    try {
+      // The record's other drift direction: the default binding is gone from
+      // the barrel, so the record withholds something that no longer exists.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal stub:default — recorded while the barrel still shipped one",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "",
+        ].join("\n"),
+      );
+      writeFileSync(
+        join(root, "packages", "primitives", "stub", "src", "index.ts"),
+        [
+          'export { default as Stub } from "./Stub.vue";',
+          'export { useStubTheme, stubInternal } from "./helpers.ts";',
+          'export * from "./more.ts";',
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) =>
+            f.includes("@internal stub:default") &&
+            f.includes(
+              "records a withheld default, but no barrel of @ecoma-io/loom-stub exports a default",
+            ),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a generated-docs class no facade identifier ends in any more", () => {
+    const root = makeRoot();
+    try {
+      // A class record is a claim about today's surface: with no member left,
+      // it reads as a standing exemption nothing justifies.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "// @generated-docs Ghost — a class the surface abandoned",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(
+        failures.some(
+          (f) => f.includes("@generated-docs Ghost") && f.includes("records a documented class"),
+        ),
+      ).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("holds a class member to its class record instead of per-identifier prose", () => {
+    const root = makeRoot();
+    try {
+      // The pass direction of the class channel: a member ending in a recorded
+      // suffix is covered with no page naming it — documented or not, the
+      // record is what carries it.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          'export type StubMode = "fixed" | "free";',
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "// @generated-docs Mode — the generated API table renders what this alias names",
+          "",
+        ].join("\n"),
+      );
+      writeFileSync(
+        join(root, "docs", "components", "stub.md"),
+        [
+          "`Stub` renders with `useStubTheme`; the barrel's default binding ships",
+          "through the facade as `StubDefault`. Its `mode` prop is typed",
+          "`StubMode`.",
+          "",
+          "<!-- @api Stub -->",
+          "<!-- @api StubNode -->",
+          "",
+        ].join("\n"),
+      );
+      expect(runChecks(root)).toEqual([]);
+      // Drop the prose and the tree is still clean — the exemption is the
+      // record's doing, not the mention's.
+      writeFileSync(
+        join(root, "docs", "components", "stub.md"),
+        [
+          "`Stub` renders with `useStubTheme`; the barrel's default binding ships",
+          "through the facade as `StubDefault`.",
+          "",
+          "<!-- @api Stub -->",
+          "<!-- @api StubNode -->",
+          "",
+        ].join("\n"),
+      );
+      expect(runChecks(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("flags a register record no barrel export justifies any more", () => {
     const root = makeRoot();
     try {
