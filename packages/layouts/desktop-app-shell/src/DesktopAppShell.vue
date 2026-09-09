@@ -5,13 +5,14 @@
  * single root so the host never hand-tunes the flex relationship between
  * window chrome and application body.
  *
- * The sidebar sits on the sunken plane (`bg-sunken`) and collapses below
- * tablet width, stacking above the content area instead of sitting beside it.
- * That mirrors SidebarNav's own intrinsic collapse: the nav drops to icon-only
- * at narrow widths, and the shell narrows its rail to match. Below tablet the
- * rail needs no width at all — the nav items stack vertically over the
- * content, which is the same thing a mobile user sees in any desktop app that
- * has a sidebar.
+ * The sidebar sits on the sunken plane (`bg-sunken`). The rail+main row is
+ * `flex-col` below the `md` media query and `md:flex-row` above it — the
+ * collapse is a literal breakpoint switch, not an intrinsic wrap, so it lands
+ * at the viewport's 768px whatever either pane holds. The rail's width is
+ * never negotiated either: `sidebarWidth` fixes its basis below the switch
+ * (12/16/20rem) and `md:shrink-0 md:grow-0` settles it above. SidebarNav has
+ * no viewport behaviour for the shell to mirror — its icon-only mode is a
+ * prop the host sets, not a width the nav measures.
  *
  * Content sits on `bg-background` with gutters that step open at `sm` and
  * `3xl`, matching the same step scale AppHeader uses — a 16px gutter beside a

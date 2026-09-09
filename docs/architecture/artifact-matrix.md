@@ -138,16 +138,24 @@ behaviours its layout answers from the closed vocabulary in
 that witness them. `tools/check-responsive-evidence.ts` (the second axis of the
 Phase 3A gate) reads the claims as data and fails any behaviour left without
 evidence or a named exception. Recounted 2026-09-09, from the gate's own
-summary line: all 31 tiered components carry a claim, and **one named exception
-stands** — `patterns/row-actions`' coarse-pointer reveal, which Playwright
-cannot witness (`emulateMedia` carries no pointer feature), an engine-scoped
-gap the sidecar records in place of a spec that would be a lie. One gap is
-deliberate and written where it sits: #275 (the width a wrapped panel keeps)
-is open, so no spec pins a wrapped panel's width — #278 landing #276's wrap
-decision does not change that, and `patterns/form-actions`, which now claims
-wrap-threshold and band-scale off that landed row, asserts the wrap itself and
-the gap band, never the width a wrapped action keeps. Drift after this recount
-lands on [issue #277](https://github.com/ecoma-io/loom/issues/277), this
+summary line: all 31 tiered components carry a claim, and **four named
+exceptions stand** — `patterns/row-actions`' coarse-pointer reveal, which
+Playwright cannot witness (`emulateMedia` carries no pointer feature), an
+engine-scoped gap the sidecar records in place of a spec that would be a lie;
+and the three state patterns — `empty-state`, `error-state`, `loading-state` —
+whose `py-10 sm:py-14` step is a band-scale fact the vocabulary names, while
+their content-driven columns leave a browser leg no pattern-owned geometry to
+witness. The same recount refiled two claims the first pass had misread:
+`patterns/app-header`'s two-row search drop is a literal `sm:` media query
+(`device-media`), not a content-fit wrap threshold, and the state patterns
+declare `band-scale` rather than `none` — a declared step is not the absence
+of behaviour. One gap is deliberate and written where it sits: #275 (the width
+a wrapped panel keeps) is open, so no spec pins a wrapped panel's width — #278
+landing #276's wrap decision does not change that, and `patterns/form-actions`,
+which now claims wrap-threshold and band-scale off that landed row, asserts
+the wrap itself and the gap band, never the width a wrapped action keeps.
+Drift after this recount lands on
+[issue #277](https://github.com/ecoma-io/loom/issues/277), this
 phase's ledger; the gate's summary is always the number of record.
 
 ## Templates (3)

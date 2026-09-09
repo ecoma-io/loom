@@ -2,8 +2,8 @@
   "role": "none",
   "basis": "renders a bare <div> — sidebar geometry only, no semantics of its own.",
   "responsive": {
-    "behaviour": ["intrinsic-collapse"],
-    "basis": "the sidebar+content row is flex-wrap with a min-width floor on the content pane, so it collapses on the container's own width with no media query; doc-order semantics put side=\"left\" first when stacked (#158). #275 keeps the wrapped sidebar's width unpinned.",
+    "behaviour": ["intrinsic-collapse", "band-scale"],
+    "basis": "the sidebar+content row is flex-wrap with a min-width floor on the content pane, so it collapses on the container's own width with no media query; doc-order semantics put side=\"left\" first when stacked (#158); and the row's own gap steps gap-3 sm:gap-4 (12 below sm, 16 at or above it) when the gap prop is on. #275 keeps the wrapped sidebar's width unpinned.",
     "evidence": {
       "harness": ["packages/composition/sidebar/e2e/sidebar.e2e.ts"]
     }

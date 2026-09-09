@@ -2,8 +2,15 @@
   "role": "none",
   "basis": "renders flow content — aria-hidden glyph, heading and copy — no role asserted.",
   "responsive": {
-    "contract": "none",
-    "basis": "one centred column whose geometry is content-driven at every width. The vertical padding does step py-10 sm:py-14, but that is breathing room, not layout contract — nothing about the state's shape turns on it."
+    "behaviour": ["band-scale"],
+    "basis": "one centred column whose geometry is content-driven at every width; the one viewport fact is the vertical padding step py-10 sm:py-14 — breathing room, but a stepped band value all the same, which is why the claim is band-scale and not none.",
+    "evidence": {},
+    "exceptions": [
+      {
+        "behaviour": "band-scale",
+        "because": "the step is one declared class pair (py-10 sm:py-14) on a column whose layout is content-driven at every width — no geometry fact turns on the padding, so a browser leg would witness Tailwind's sm breakpoint, not a pattern-owned fact. Recorded rather than hidden: if the state ever grows viewport-sensitive geometry, this exception is the reminder that the band-scale claim then owes a harness spec."
+      }
+    ]
   },
   "evidence": {
     "browserless": [
