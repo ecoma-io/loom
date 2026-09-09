@@ -2,13 +2,16 @@ import { test, expect } from "@playwright/test";
 
 // Layout components have intrinsic responsive behaviour driven by flex-wrap
 // and min-width constraints rather than viewport media queries. The suite
-// drives five layouts and pins two behaviours:
+// drives all nine layouts and pins three behaviours:
 //
-// 1. **Stack/split**: AppShell, MasterDetail and SplitLayout wrap their
-//    panels to full width below the collapse width and sit side by side
-//    above it.
-// 2. **Bound**: Centered and Reading cap content at a readable max-width on
-//    ultrawide viewports instead of stretching to the full viewport width.
+// 1. **Stack/split**: AppShell, MasterDetail, SplitLayout, Dashboard and
+//    Settings wrap their panels to full width below the collapse width and
+//    sit side by side above it.
+// 2. **Bound**: Centered, Reading and FormLayout cap content at a readable
+//    max-width on ultrawide viewports instead of stretching to the full
+//    viewport width.
+// 3. **Device media**: DesktopAppShell switches its row direction on a
+//    viewport media query — the one mechanism content alone cannot witness.
 //
 // Each test drives the layout's documentation demo. The selectors target
 // elements the demo is known to contain, so conditional guards are not needed.
@@ -179,4 +182,166 @@ test("SplitLayout stacks below collapse width and splits above", async ({ page }
   expect(sideRightWideBox).toBeTruthy();
   expect(mainRightWideBox).toBeTruthy();
   expect(sideRightWideBox!.x).toBeGreaterThan(mainRightWideBox!.x + mainRightWideBox!.width - 1);
+});
+
+test("Dashboard sidebar stacks below collapse width and splits above", async ({ page }) => {
+  // Narrow: the sidebar's 16rem basis cannot share a line with the grid
+  // area's min-width: 50%, so the row wraps — sidebar above, grid below.
+  await page.setViewportSize({ width: NARROW, height: 800 });
+  await page.goto("layouts/dashboard");
+
+  const layout = page.locator("figure").first().locator(FLEX_WRAP).first();
+  const sidebar = layout.locator("> aside").first();
+  const gridArea = layout.locator("> div").first();
+
+  const sidebarBox = await sidebar.boundingBox();
+  const gridAreaBox = await gridArea.boundingBox();
+  expect(sidebarBox).toBeTruthy();
+  expect(gridAreaBox).toBeTruthy();
+  expect(gridAreaBox!.y).toBeGreaterThanOrEqual(sidebarBox!.y + sidebarBox!.height - 1);
+
+  // Wide: side by side, sidebar on the left.
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto("layouts/dashboard");
+
+  const layoutWide = page.locator("figure").first().locator(FLEX_WRAP).first();
+  const sidebarWide = layoutWide.locator("> aside").first();
+  const gridAreaWide = layoutWide.locator("> div").first();
+
+  const sidebarWideBox = await sidebarWide.boundingBox();
+  const gridAreaWideBox = await gridAreaWide.boundingBox();
+  expect(sidebarWideBox).toBeTruthy();
+  expect(gridAreaWideBox).toBeTruthy();
+  expect(gridAreaWideBox!.x).toBeGreaterThan(sidebarWideBox!.x + sidebarWideBox!.width - 1);
+});
+
+test("Settings nav stacks below collapse width and splits above", async ({ page }) => {
+  await page.setViewportSize({ width: NARROW, height: 800 });
+  await page.goto("layouts/settings");
+
+  // The nav panel never shrinks (flex-shrink: 0), so the content's 50% floor
+  // forces the wrap at narrow widths — nav above, content below.
+  const layout = page.locator("figure").first().locator(FLEX_WRAP).first();
+  const nav = layout.locator("> nav").first();
+  const content = layout.locator("> div").last();
+
+  const navBox = await nav.boundingBox();
+  const contentBox = await content.boundingBox();
+  expect(navBox).toBeTruthy();
+  expect(contentBox).toBeTruthy();
+  expect(contentBox!.y).toBeGreaterThanOrEqual(navBox!.y + navBox!.height - 1);
+
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto("layouts/settings");
+
+  const layoutWide = page.locator("figure").first().locator(FLEX_WRAP).first();
+  const navWide = layoutWide.locator("> nav").first();
+  const contentWide = layoutWide.locator("> div").last();
+
+  const navWideBox = await navWide.boundingBox();
+  const contentWideBox = await contentWide.boundingBox();
+  expect(navWideBox).toBeTruthy();
+  expect(contentWideBox).toBeTruthy();
+  expect(contentWideBox!.x).toBeGreaterThan(navWideBox!.x + navWideBox!.width - 1);
+});
+
+test("DesktopAppShell rail stacks below md and keeps its declared width above it", async ({
+  page,
+}) => {
+  // Unlike the intrinsic layouts, this collapse is a viewport media query
+  // (`md:flex-row`) — the one mechanism content alone cannot witness, which
+  // is why this layout's leg exists at all.
+  await page.setViewportSize({ width: NARROW, height: 800 });
+  await page.goto("layouts/desktop-app-shell");
+
+  const demo = page.locator("figure").first();
+  const rail = demo.locator("aside").first();
+  const content = demo.locator("main").first();
+
+  const railBox = await rail.boundingBox();
+  const contentBox = await content.boundingBox();
+  expect(railBox).toBeTruthy();
+  expect(contentBox).toBeTruthy();
+  expect(contentBox!.y).toBeGreaterThanOrEqual(railBox!.y + railBox!.height - 1);
+
+  // Past md the row has direction and the rail stops negotiating:
+  // flex-basis 16rem with shrink-0/grow-0 is a settled width, so this —
+  // unlike a wrapped panel (ecoma-io/loom#275) — is pinnable.
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto("layouts/desktop-app-shell");
+
+  const railWide = page.locator("figure").first().locator("aside").first();
+  const contentWide = page.locator("figure").first().locator("main").first();
+
+  const railWideBox = await railWide.boundingBox();
+  const contentWideBox = await contentWide.boundingBox();
+  expect(railWideBox).toBeTruthy();
+  expect(contentWideBox).toBeTruthy();
+  expect(contentWideBox!.x).toBeGreaterThan(railWideBox!.x + railWideBox!.width - 1);
+  expect(Math.abs(railWideBox!.width - 256)).toBeLessThanOrEqual(1);
+});
+
+test("FormLayout caps the form column on ultrawide instead of stretching it", async ({ page }) => {
+  // The demo renders the sm/md/lg maxWidth steps; `.max-w-md` is the md
+  // column, and 28rem is the cap the ultrawide band must not break.
+  await page.setViewportSize({ width: 2000, height: 800 });
+  await page.goto("layouts/form-layout");
+
+  const capped = page.locator("figure").first().locator(".max-w-md").first();
+  const cappedBox = await capped.boundingBox();
+  expect(cappedBox).toBeTruthy();
+  expect(cappedBox!.width).toBeLessThanOrEqual(449);
+
+  // Below the cap the viewport, not the max-width, is the constraint: the
+  // same column fills the figure instead of centring under its cap.
+  await page.setViewportSize({ width: NARROW, height: 800 });
+  await page.goto("layouts/form-layout");
+
+  const filled = page.locator("figure").first().locator(".max-w-md").first();
+  const filledBox = await filled.boundingBox();
+  expect(filledBox).toBeTruthy();
+  expect(filledBox!.width).toBeLessThan(448);
+});
+
+// Every layout steps its gutters on the same scale — `px-4`, then `sm:px-6`,
+// then `3xl:px-8` at 1920 — so one walk covers the band-scale claim for all
+// nine at once. The band numbers are the responsive contract's canonical
+// bands (packages/core/src/responsive-contract.ts owns them); the expected
+// paddings are what that scale resolves to at each band.
+const GUTTER_BANDS = [
+  { width: 360, padding: 16 },
+  { width: 800, padding: 24 },
+  { width: 2000, padding: 32 },
+] as const;
+
+const ALL_LAYOUTS = [
+  "app-shell",
+  "master-detail",
+  "split-layout",
+  "centered",
+  "reading",
+  "dashboard",
+  "form-layout",
+  "settings",
+  "desktop-app-shell",
+] as const;
+
+test("every layout's gutters step on the shared scale at the canonical bands", async ({ page }) => {
+  for (const layout of ALL_LAYOUTS) {
+    // One navigation per layout; the media queries answer viewport resizes
+    // live, so the three bands ride on the same page.
+    await page.goto(`layouts/${layout}`);
+    const gutter = page.locator("figure").first().locator('[class*="3xl:px-8"]').first();
+
+    for (const band of GUTTER_BANDS) {
+      await page.setViewportSize({ width: band.width, height: 800 });
+      const padding = await gutter.evaluate((el) =>
+        Number.parseFloat(getComputedStyle(el).paddingLeft),
+      );
+      expect(
+        padding,
+        `${layout} must pad ${String(band.padding)}px at a ${String(band.width)}px viewport`,
+      ).toBe(band.padding);
+    }
+  }
 });
