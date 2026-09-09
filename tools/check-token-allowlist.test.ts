@@ -236,6 +236,22 @@ describe("isAllowedValue", () => {
     expect(isAllowedValue("4.5rem", parsed)).toBe(false);
   });
 
+  it("does not let a literal ride beside a token reference", () => {
+    // The laundering shape a substring test cannot see: the reference is
+    // real, but the quantity or the hex beside it is the decision.
+    expect(isAllowedValue("4px var(--color-x)", parsed)).toBe(false);
+    expect(isAllowedValue("#ff0000 var(--color-x)", parsed)).toBe(false);
+  });
+
+  it("keeps a reference's own composition arguments legal — the sheen's angle, the alpha weight", () => {
+    expect(
+      isAllowedValue(
+        "linear-gradient(110deg, transparent 35%, --alpha(var(--color-primary)/25%) 50%, transparent 65%)",
+        parsed,
+      ),
+    ).toBe(true);
+  });
+
   it("does not let env() carry a neighbouring literal", () => {
     // The composition that made ToastStack's padding a finding rather than a
     // pass: the env() atom is host geometry, the 1rem beside it is a decision.
@@ -393,6 +409,135 @@ describe("scanVueFile", () => {
     expect(scan.findings).toEqual([]);
   });
 
+  it("judges a static class behind a template-literal binding", () => {
+    // Where the literal sits must not decide whether it is judged: the
+    // backtick the binding puts in front of the class stripped like any
+    // other punctuation, or the script-side form is held and this one is not.
+    const scan = scanVueFile(sfc(`<span :class="\`w-[999px]\`">x</span>`), law());
+    expect(scan.findings).toEqual([{ line: 6, value: "w-[999px]" }]);
+    expect(scan.judged).toBe(1);
+    const anchored = scanVueFile(sfc(`<span :class="\`w-[var(--x)]\`">x</span>`), law());
+    expect(anchored.findings).toEqual([]);
+    expect(anchored.judged).toBe(1);
+  });
+
+  it("judges an important-marked bracket value from either end", () => {
+    const before = scanVueFile(sfc(`<span class="!w-[999px]">x</span>`), law());
+    expect(before.findings).toEqual([{ line: 6, value: "w-[999px]" }]);
+    const after = scanVueFile(sfc(`<span class="w-[999px]!">x</span>`), law());
+    expect(after.findings).toEqual([{ line: 6, value: "w-[999px]" }]);
+    const anchored = scanVueFile(sfc(`<span class="!w-[var(--x)]">x</span>`), law());
+    expect(anchored.findings).toEqual([]);
+    expect(anchored.judged).toBe(1);
+  });
+
+  it("judges a class attribute broken across lines", () => {
+    // A quoted attribute value may span lines — valid HTML, valid Vue — and
+    // the single-line literal pass cannot see it.
+    const file = [
+      `<template>`,
+      `  <span class="flex items-center`,
+      `       w-[999px]">x</span>`,
+      `</template>`,
+    ].join("\n");
+    const scan = scanVueFile(file, law());
+    expect(scan.findings).toEqual([{ line: 3, value: "w-[999px]" }]);
+    expect(scan.judged).toBe(1);
+  });
+
+  it("does not double-judge the quoted strings inside a multiline binding", () => {
+    // The multiline pass blanks what the literal pass already judged, so one
+    // value is one finding and one judged count.
+    const file = [
+      `<template>`,
+      `  <span :class="cn(`,
+      `    'w-[999px]',`,
+      `    cond`,
+      `  )">x</span>`,
+      `</template>`,
+    ].join("\n");
+    const scan = scanVueFile(file, law());
+    expect(scan.findings).toEqual([{ line: 3, value: "w-[999px]" }]);
+    expect(scan.judged).toBe(1);
+  });
+
+  it("judges the directional and axis spellings of the style-bearing families", () => {
+    // Same decisions, other spellings: a side border, a child-flow divider,
+    // a flow-direction gap, a child-flow margin, a blur radius, a filter
+    // weight, a text indent.
+    const tokens = [
+      "border-t-[3px]",
+      "border-e-[3px]",
+      "divide-x-[2px]",
+      "gap-x-[999px]",
+      "space-y-[999px]",
+      "blur-[2px]",
+      "backdrop-brightness-[1.4]",
+      "brightness-[1.4]",
+      "indent-[3rem]",
+    ];
+    for (const token of tokens) {
+      const scan = scanVueFile(sfc(`<span class="${token}">x</span>`), law());
+      expect(scan.findings, token).toEqual([{ line: 6, value: token }]);
+    }
+  });
+
+  it("passes a token reference on the newly judged families", () => {
+    const scan = scanVueFile(
+      sfc(`<span class="border-t-[var(--x)] blur-[var(--x)]">x</span>`),
+      law(),
+    );
+    expect(scan.findings).toEqual([]);
+    expect(scan.judged).toBe(2);
+  });
+
+  it("finds the CSS colour functions inline", () => {
+    const oklch = scanVueFile(sfc(`<span style="background: oklch(70% 0.1 200)">x</span>`), law());
+    expect(oklch.findings).toEqual([{ line: 6, value: "oklch(" }]);
+    const mix = scanVueFile(
+      sfc(`<span style="background: color-mix(in srgb, red 50%, white)">x</span>`),
+      law(),
+    );
+    // The function and both named stops are colour literals in one value.
+    expect(mix.findings).toEqual([
+      { line: 6, value: "color-mix(" },
+      { line: 6, value: "red" },
+      { line: 6, value: "white" },
+    ]);
+  });
+
+  it("finds a bare CSS colour name written as a style value", () => {
+    const scan = scanVueFile(sfc(`<span style="color: crimson">x</span>`), law());
+    expect(scan.findings).toEqual([{ line: 6, value: "crimson" }]);
+    expect(scan.judged).toBe(1);
+  });
+
+  it("does not judge a colour word in the prose a class binding carries", () => {
+    // The real shape: `//` comments live inside a multi-line attribute
+    // expression, where the comment stripper cannot reach (the attribute is a
+    // string to it), and they talk about colours in English. A bare name is
+    // judged only in a style value; hex and the function spellings need no
+    // such context.
+    const file = [
+      `<template>`,
+      `  <span :class="cn(`,
+      `    // it punches a grey hole through the fill`,
+      `    'bg-foreground/10',`,
+      `  )">x</span>`,
+      `</template>`,
+    ].join("\n");
+    const scan = scanVueFile(file, law());
+    expect(scan.findings).toEqual([]);
+  });
+
+  it("passes a colour function wrapping a token reference — the new functions too", () => {
+    const scan = scanVueFile(
+      sfc(`<span style="background: oklch(var(--color-x))">x</span>`),
+      law(),
+    );
+    expect(scan.findings).toEqual([]);
+  });
+
   it("stops at a style block, naming its line", () => {
     const file = [
       `<template><span>x</span></template>`,
@@ -403,6 +548,49 @@ describe("scanVueFile", () => {
     ].join("\n");
     const scan = scanVueFile(file, law());
     expect(scan.findings).toEqual([{ line: 3, value: "<style> block" }]);
+  });
+
+  it("stops at a style block whatever its case — HTML is not", () => {
+    const file = [
+      `<template><span>x</span></template>`,
+      ``,
+      `<STYLE>`,
+      `.x { color: #fff; }`,
+      `</STYLE>`,
+    ].join("\n");
+    const scan = scanVueFile(file, law());
+    expect(scan.findings).toEqual([{ line: 3, value: "<style> block" }]);
+  });
+
+  it("judges the shorthand bare properties — border, outline, text-shadow", () => {
+    // The shorthands write colour, width and style in one property; left
+    // unjudged they are the cheapest way around the longhands.
+    const tokens = [
+      "[border:1px_solid_red]",
+      "[outline:2px_solid_red]",
+      "[text-shadow:0_1px_2px_black]",
+    ];
+    for (const token of tokens) {
+      const scan = scanVueFile(sfc(`<span class="${token}">x</span>`), law());
+      expect(scan.findings, token).toEqual([{ line: 6, value: token }]);
+    }
+    // `none` is the removal of the effect — the keyword the law declares.
+    const withNone = parseThemeContract(
+      CONTRACT.replace(
+        "] as const;",
+        '  { shape: "none", because: "removal of the effect." },\n] as const;',
+      ),
+    );
+    const none = scanVueFile(sfc(`<span class="[text-shadow:none]">x</span>`), withNone);
+    expect(none.findings).toEqual([]);
+  });
+
+  it("refuses to narrow the colour net to an unterminated template", () => {
+    // With no end the in-template test fails for every offset, which would
+    // silently judge nothing — a gate narrowing itself without saying so.
+    expect(() => scanVueFile('<template><span style="color: #ff0000">x</span>', law())).toThrow(
+      /never closes/,
+    );
   });
 
   it("reports nothing for a file that writes only token-shaped values", () => {
@@ -456,6 +644,22 @@ describe("runScan", () => {
     const root = makeTree(CONTRACT, "@theme static {\n  --x: 1;\n");
     writeVue(root, DEMO, sfc("x"));
     expect(() => runScan(root)).toThrow(/never closed/);
+  });
+
+  it("refuses the vacuous green when the scope carries no file", () => {
+    // Law and token source in place, nothing scanned: every count of record
+    // would be zero, and zero must not print as clean.
+    const root = makeTree();
+    const { failures, stats } = runScan(root);
+    expect(stats.files).toBe(0);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain("the scan scope is empty");
+  });
+
+  it("fails closed, naming the file, when a template block never closes", () => {
+    const root = makeTree();
+    writeVue(root, DEMO, '<template><span style="color: #ff0000">x</span>');
+    expect(() => runScan(root)).toThrow(/Demo\.vue.*never closes/s);
   });
 
   it("collects component sources under each tier and the template roots", () => {

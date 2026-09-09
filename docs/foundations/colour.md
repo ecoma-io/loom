@@ -7,9 +7,15 @@ Tailwind utility (`bg-primary`, `text-muted-foreground`, `border-border`).
 That single source is what the table below reads at build time, so it can
 never say something `theme.css` does not — and since the token-allowlist gate
 (`tools/check-token-allowlist.ts`, run in `pnpm lint` and CI) the claim is
-held to components, not just stated: a colour literal, or any style-bearing
-value that is not token-anchored, fails the build unless it is one of the
-values recorded — with its reason — in the gate's exception register.
+held to components, not just stated: a colour literal in the spellings the
+gate reads — hex, the CSS colour functions, a bare CSS colour name written as
+a style value — or any style-bearing bracket value that is not
+token-anchored, fails the build unless it is one of the values recorded —
+with its reason — in the gate's exception register. One limit is known and
+tracked rather than hidden: the named-palette utility spelling
+(`text-red-500`) is not judged yet, and neither are the other named
+utilities — the interface contract's Theming row records that as the gate's
+stated blind spot.
 
 <!-- @tokens color -->
 

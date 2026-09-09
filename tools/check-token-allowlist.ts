@@ -1,5 +1,12 @@
-// The token allowlist gate: every style-bearing value a component writes is
-// token-anchored or a recorded exception.
+// The token allowlist gate: every style-bearing value a component writes in
+// the surface this scan reads — bracket arbitrary values, bare arbitrary
+// properties, inline motion declarations and template colour literals — is
+// token-anchored or a recorded exception. The named utility spellings are the
+// gate's stated blind spot, not a hidden one: `duration-100`, `z-50`,
+// `opacity-50` and a default-palette `bg-red-500` carry the same decisions and
+// pass unjudged, because widening to them is a new enforcement surface whose
+// in-tree migrations are their own change — until it lands, the interface
+// contract's Theming row reads PARTIALLY_ENFORCED and says so.
 //
 // The law is `theme.css`'s own docblock — "everything a consumer can theme
 // lives here and nowhere else: no colour, duration, easing, radius or shadow
@@ -22,7 +29,9 @@
 // literal read:
 //
 //   - arbitrary Tailwind values whose utility is style-bearing — the colour
-//     families, radius, elevation, motion, transforms, box dimension, spacing,
+//     families (including the directional borders and dividers), radius,
+//     elevation, the filter weights (blur, brightness), motion, transforms,
+//     box dimension, spacing (axis pairs and child-flow margins included),
 //     inset positioning, stacking, translucency and typographic rhythm — are
 //     judged against the contract's value shapes. A value that references a
 //     token (`var(--…`, `--alpha(var(…))`) or is entirely a declared keyword
@@ -52,11 +61,12 @@
 //     fail on a bare time literal. A bare ZERO is allowed — `0ms` is the
 //     absence of the decision, and the vocabulary carries no zero token to
 //     reach for.
-//   - colour literals (hex, `rgb(`, `hsl(`) fail in template positions, where
-//     the property context is unambiguous.
+//   - colour literals — hex, the CSS colour functions (`rgb(`, `hsl(`,
+//     `oklch(`, `oklab(`, `color(`, `color-mix(`) and the CSS named colours —
+//     fail in template positions, where the property context is unambiguous.
 //
-// THE ONE RESIDUAL LIMIT, stated rather than papered over: the dynamic half of
-// script-side styling stays review-held. A value the script COMPUTES
+// ONE RESIDUAL LIMIT INSIDE THAT SURFACE, stated rather than papered over:
+// the dynamic half of script-side styling stays review-held. A value the script COMPUTES
 // (concatenation, a template literal, a variable) is invisible to a scan of
 // string literals — a token containing `${` is skipped for exactly that
 // reason — and a colour literal in script is indistinguishable from domain
@@ -401,12 +411,26 @@ const STYLE_BEARING = new Set([
   "bg",
   "text",
   "border",
+  // The directional borders are the same width/colour decision split across
+  // sides — `border-t-[3px]` must not launder what `border-[3px]` is judged
+  // for. (`-s`/`-e` are the logical properties, `-x`/`-y` the axis pairs.)
+  "border-t",
+  "border-r",
+  "border-b",
+  "border-l",
+  "border-s",
+  "border-e",
+  "border-x",
+  "border-y",
   "ring",
   "fill",
   "stroke",
   "outline",
   "decoration",
   "divide",
+  // The directional dividers are border widths between children, not colour.
+  "divide-x",
+  "divide-y",
   "accent",
   "caret",
   "from",
@@ -416,6 +440,11 @@ const STYLE_BEARING = new Set([
   "rounded",
   "shadow",
   "drop-shadow",
+  // A blur radius is a themable quantity; brightness is a filter weight.
+  "blur",
+  "brightness",
+  "backdrop-brightness",
+  "indent",
   // Motion.
   "animate",
   "duration",
@@ -437,7 +466,8 @@ const STYLE_BEARING = new Set([
   "max-h",
   "size",
   "basis",
-  // Spacing.
+  // Spacing — the axis pairs and the child-flow spacings carry the same
+  // spacing decision their single-axis siblings do.
   "p",
   "px",
   "py",
@@ -457,6 +487,10 @@ const STYLE_BEARING = new Set([
   "ml",
   "mr",
   "gap",
+  "gap-x",
+  "gap-y",
+  "space-x",
+  "space-y",
   // Inset positioning.
   "inset",
   "inset-x",
@@ -506,9 +540,14 @@ const BARE_JUDGED = new Set([
   "stroke",
   "caret-color",
   "accent-color",
-  // Shape and elevation.
+  // Shape and elevation — the shorthand forms too: `[border:1px_solid_red]`
+  // writes colour, width and style in one property, and a shorthand that
+  // stayed unjudged would be the cheapest way around the longhands below.
+  "border",
+  "outline",
   "border-radius",
   "box-shadow",
+  "text-shadow",
   // Motion — the value-bearing longhands only; fill-mode and friends carry no
   // themable value.
   "transition",
@@ -581,25 +620,123 @@ function normalizeToken(raw: string): string {
       .slice(split)
       // The leading strip never takes `[`: the arbitrary-value form IS a bracket
       // token, and eating its opener would turn `[transition:transform_120ms]`
-      // into a token no rule below recognises — a silent pass.
-      .replace(/^["'(,]+/, "")
-      .replace(/["'`,;:.]+$/, "")
+      // into a token no rule below recognises — a silent pass. The backtick is
+      // here and not only in the trailing strip because a static class in a
+      // template-literal binding carries it in front — :class="`w-[999px]`" —
+      // the same literal the script-side backtick string is stripped from, so
+      // where the literal sits must not decide whether it is judged.
+      .replace(/^["'`(,!]+/, "")
+      // `!` marks an important on either side in Tailwind (`!w-[4px]`,
+      // `w-[4px]!`); the importance flag is not a themable decision, so it
+      // comes off rather than hiding the token from the bracket grammar.
+      .replace(/["'`,;:.!]+$/, "")
   );
 }
 
 /**
- * One judged value: is it made of the shapes the contract allows? A `var(--)`
- * reference anywhere in it passes — a fallback is part of the reference — and
- * so does a value that is entirely declared keywords and `env()` calls.
- * Anything carrying a bare quantity fails.
+ * Excise every whole `head(…)` call from `value` — balanced parens, so a
+ * fallback's own parens are part of what goes (`var(--x, 1rem)` leaves
+ * nothing behind, and a fallback cannot hide a rider outside the reference).
+ * A call that never closes is left in place for the walk below to judge as
+ * the fragments it is.
+ */
+function exciseCalls(value: string, head: string): string {
+  let out = "";
+  let i = 0;
+  while (i < value.length) {
+    const opensHere = value.startsWith(`${head}(`, i) && !/[\w$-]/.test(value[i - 1] ?? "");
+    if (!opensHere) {
+      out += value[i] ?? "";
+      i++;
+      continue;
+    }
+    let depth = 0;
+    let j = i + head.length;
+    for (; j < value.length; j++) {
+      const ch = value[j];
+      if (ch === "(") depth++;
+      else if (ch === ")") {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    if (j >= value.length) {
+      out += value[i] ?? "";
+      i++;
+      continue;
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
+/**
+ * A bare quantity — a number with an optional unit or percent — the atom a
+ * themable value is made of when it is not a token.
+ */
+const QUANTITY = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:%|[a-zA-Z]+)?$/;
+
+/**
+ * One judged value: is it made of the shapes the contract allows?
+ *
+ * The reference shapes are excised whole, and what may remain beside them is
+ * decided per shape, because the law gives them different company:
+ *
+ * - `env(…)` is an atom — host geometry handed over whole, carrying no
+ *   neighbour: after excision only declared keywords may remain.
+ * - a `var(…)`/`--alpha(…)` reference tolerates structure beside it — the
+ *   composition heads and property words of the declarations it rides in —
+ *   but never a free-standing quantity or a hex, which is the laundering
+ *   shape (`4px var(--x)`, `#ff0000 var(--x)`): a decision riding beside the
+ *   token instead of behind it. Quantities inside a composition's argument
+ *   list are that composition's own arguments — the sheen's angle, the alpha
+ *   weight — the compositions the law's shapes name.
+ * - with no reference at all, only the declared keywords stand.
  */
 export function isAllowedValue(value: string, law: ParsedThemeContract): boolean {
-  if (law.allowsTokenReference && value.includes("var(--")) return true;
-  if (law.allowsAlpha && value.includes("--alpha(")) return true;
+  const usesVar = law.allowsTokenReference && value.includes("var(--");
+  const usesAlpha = law.allowsAlpha && value.includes("--alpha(");
+  const usesEnv = law.allowsEnv && value.includes("env(");
+
   let rest = value;
-  if (law.allowsEnv) rest = rest.replace(/env\([^()]*\)/g, "");
+  if (usesAlpha) rest = exciseCalls(rest, "--alpha");
+  if (usesVar) rest = exciseCalls(rest, "var");
+  if (usesEnv) rest = exciseCalls(rest, "env");
+
   const atoms = rest.split(/[\s,/()[\]{}]+/).filter((atom) => atom.length > 0);
-  return atoms.every((atom) => law.keywords.includes(atom));
+  if (!usesVar && !usesAlpha && !usesEnv) {
+    return atoms.every((atom) => law.keywords.includes(atom));
+  }
+  // A hex is a colour decision in any position, not only beside a reference.
+  if (rest.includes("#")) return false;
+  if (usesEnv) {
+    return atoms.every((atom) => law.keywords.includes(atom));
+  }
+  let depth = 0;
+  let i = 0;
+  while (i < rest.length) {
+    const ch = rest[i];
+    if (ch === "(") {
+      depth++;
+      i++;
+      continue;
+    }
+    if (ch === ")") {
+      depth = Math.max(0, depth - 1);
+      i++;
+      continue;
+    }
+    if (/[\s,]/.test(ch ?? "")) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < rest.length && !/[\s,()]/.test(rest[j] ?? "")) j++;
+    const atom = rest.slice(i, j);
+    if (depth === 0 && QUANTITY.test(atom)) return false;
+    i = j;
+  }
+  return true;
 }
 
 /** A bare, non-zero time — the one literal an inline motion value may not carry. */
@@ -617,8 +754,178 @@ const ZERO_TIME = /^(?:0(?:\.0+)?(?:ms|s)?)$/;
 const MOTION_DECLARATION =
   /(?<![\w$-[])(?:transition|animation)[\w-]*\s*:\s*(?:"([^"\n]*)"|'([^'\n]*)'|([^;}"'`\n]+))/g;
 
-/** A colour written literally: hex, `rgb(`, `hsl(` — in a template position. */
-const COLOUR_LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/g;
+/**
+ * The CSS named colours — the closed set the platform itself defines (CSS
+ * Color 4's named colours: the X11 inheritance plus `rebeccapurple`), not a
+ * Tailwind palette. It is data, not regex text, because the set is closed by
+ * the CSS spec and moves only when CSS moves; a Tailwind colour name would be
+ * wrong here twice over, since a default-palette utility (`bg-red-500`) is a
+ * different spelling of the decision, tracked as the gate's named-utility
+ * blind spot rather than smuggled in through this list.
+ */
+const CSS_NAMED_COLOURS = [
+  "aliceblue",
+  "antiquewhite",
+  "aqua",
+  "aquamarine",
+  "azure",
+  "beige",
+  "bisque",
+  "black",
+  "blanchedalmond",
+  "blue",
+  "blueviolet",
+  "brown",
+  "burlywood",
+  "cadetblue",
+  "chartreuse",
+  "chocolate",
+  "coral",
+  "cornflowerblue",
+  "cornsilk",
+  "crimson",
+  "cyan",
+  "darkblue",
+  "darkcyan",
+  "darkgoldenrod",
+  "darkgray",
+  "darkgreen",
+  "darkgrey",
+  "darkkhaki",
+  "darkmagenta",
+  "darkolivegreen",
+  "darkorange",
+  "darkorchid",
+  "darkred",
+  "darksalmon",
+  "darkseagreen",
+  "darkslateblue",
+  "darkslategray",
+  "darkslategrey",
+  "darkturquoise",
+  "darkviolet",
+  "deeppink",
+  "deepskyblue",
+  "dimgray",
+  "dimgrey",
+  "dodgerblue",
+  "firebrick",
+  "floralwhite",
+  "forestgreen",
+  "fuchsia",
+  "gainsboro",
+  "ghostwhite",
+  "gold",
+  "goldenrod",
+  "gray",
+  "green",
+  "greenyellow",
+  "grey",
+  "honeydew",
+  "hotpink",
+  "indianred",
+  "indigo",
+  "ivory",
+  "khaki",
+  "lavender",
+  "lavenderblush",
+  "lawngreen",
+  "lemonchiffon",
+  "lightblue",
+  "lightcoral",
+  "lightcyan",
+  "lightgoldenrodyellow",
+  "lightgray",
+  "lightgreen",
+  "lightgrey",
+  "lightpink",
+  "lightsalmon",
+  "lightseagreen",
+  "lightskyblue",
+  "lightslategray",
+  "lightslategrey",
+  "lightsteelblue",
+  "lightyellow",
+  "lime",
+  "limegreen",
+  "linen",
+  "magenta",
+  "maroon",
+  "mediumaquamarine",
+  "mediumblue",
+  "mediumorchid",
+  "mediumpurple",
+  "mediumseagreen",
+  "mediumslateblue",
+  "mediumspringgreen",
+  "mediumturquoise",
+  "mediumvioletred",
+  "midnightblue",
+  "mintcream",
+  "mistyrose",
+  "moccasin",
+  "navajowhite",
+  "navy",
+  "oldlace",
+  "olive",
+  "olivedrab",
+  "orange",
+  "orangered",
+  "orchid",
+  "palegoldenrod",
+  "palegreen",
+  "paleturquoise",
+  "palevioletred",
+  "papayawhip",
+  "peachpuff",
+  "peru",
+  "pink",
+  "plum",
+  "powderblue",
+  "purple",
+  "rebeccapurple",
+  "red",
+  "rosybrown",
+  "royalblue",
+  "saddlebrown",
+  "salmon",
+  "sandybrown",
+  "seagreen",
+  "seashell",
+  "sienna",
+  "silver",
+  "skyblue",
+  "slateblue",
+  "slategray",
+  "slategrey",
+  "snow",
+  "springgreen",
+  "steelblue",
+  "tan",
+  "teal",
+  "thistle",
+  "tomato",
+  "turquoise",
+  "violet",
+  "wheat",
+  "white",
+  "whitesmoke",
+  "yellow",
+  "yellowgreen",
+];
+
+/**
+ * A colour written literally: hex, the CSS colour functions, or a bare CSS
+ * colour name — in a template position. The name guards keep the match off
+ * anything a colour word is glued into (`text-red-500` stays the named-
+ * utility blind spot, not a colour literal; `whitesmoke` is one colour, not
+ * `white` inside a word).
+ */
+const COLOUR_LITERAL = new RegExp(
+  "#[0-9a-fA-F]{3,8}\\b|\\brgba?\\(|\\bhsla?\\(|\\boklch\\(|\\boklab\\(|\\bcolor\\(|\\bcolor-mix\\(" +
+    `|(?<![\\w-])(?:${CSS_NAMED_COLOURS.join("|")})(?![\\w-])`,
+  "g",
+);
 
 interface RawFinding {
   offset: number;
@@ -690,10 +997,12 @@ function at(lines: (offset: number) => number, finding: RawFinding): Finding {
 
 /** One file's style-bearing violations, each on the line it is written on. */
 export function scanVueFile(text: string, law: ParsedThemeContract): FileScan {
-  if (/<style[\s>/]/.test(text)) {
+  // Case-insensitive on purpose: HTML is not, and `<STYLE>` is the same CSS
+  // outside the token source that a lowercase block would be stopped for.
+  if (/<style[\s>/]/i.test(text)) {
     // Reported at the block's own line: a style block is CSS outside the token
     // source, the law's most direct violation, and the scan stops there.
-    const match = /<style[\s>/]/.exec(text);
+    const match = /<style[\s>/]/i.exec(text);
     const line = match ? lineCounter(text)(match.index) : 1;
     return { findings: [{ line, value: "<style> block" }], judged: 0 };
   }
@@ -726,12 +1035,52 @@ export function scanVueFile(text: string, law: ParsedThemeContract): FileScan {
   const inTemplate = (offset: number): boolean =>
     templateStart !== -1 && templateEnd !== -1 && offset > templateStart && offset < templateEnd;
 
+  // Fail closed on the unclosed block: with no end the colour net would
+  // silently judge nothing (every offset fails the inTemplate test), and a
+  // gate that narrows itself without saying so is a gate pretending to have
+  // read a file it stopped reading half way.
+  if (templateStart !== -1 && templateEnd === -1) {
+    throw new Error(
+      "the top-level <template> block never closes — the scan cannot tell where the template ends, so it refuses to judge the file at all",
+    );
+  }
+
   // Class vocabulary, wherever the string literal sits — template attribute,
   // cva table, cn() map.
   const STRING_LITERAL = /"((?:[^"\\\n]|\\.)*)"|'((?:[^'\\\n]|\\.)*)'|`((?:[^`\\]|\\.)*)`/g;
+  const literalSpans: [number, number][] = [];
   for (const match of stripped.matchAll(STRING_LITERAL)) {
     const content = match[1] ?? match[2] ?? match[3] ?? "";
     const result = judgeClassTokens(content, match.index, law);
+    judged += result.judged;
+    raw.push(...result.findings);
+    literalSpans.push([match.index, match.index + match[0].length]);
+  }
+
+  // A quoted attribute value may span lines — valid HTML, valid Vue — and the
+  // single-line alternatives above are blind to it, so a class attribute
+  // broken across lines would read as no class attribute at all. Only values
+  // carrying a newline run here, and the spans the literal pass already
+  // judged are blanked first: a `:class="cn(…)"` expression carries its own
+  // quoted strings, and judging them twice would double the count of record
+  // and duplicate every finding they produce.
+  const CLASS_ATTRIBUTE = /\bclass(?:Name)?\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+  for (const match of stripped.matchAll(CLASS_ATTRIBUTE)) {
+    const content = match[1] ?? match[2] ?? "";
+    if (!content.includes("\n")) continue;
+    const start = match.index + match[0].length - content.length - 1;
+    const end = start + content.length;
+    // Blank the already-judged spans in place, keeping every other character
+    // and offset so the tokens that remain are the ones the literal pass
+    // could not see.
+    let masked = content;
+    for (const [from, to] of literalSpans) {
+      const lo = Math.max(from, start) - start;
+      const hi = Math.min(to, end) - start;
+      if (lo >= hi) continue;
+      masked = masked.slice(0, lo) + " ".repeat(hi - lo) + masked.slice(hi);
+    }
+    const result = judgeClassTokens(masked, start, law);
     judged += result.judged;
     raw.push(...result.findings);
   }
@@ -748,6 +1097,22 @@ export function scanVueFile(text: string, law: ParsedThemeContract): FileScan {
   }
 
   // Colour literals, template positions only.
+  //
+  // Hex and the colour-function spellings are unambiguous — they cannot be
+  // anything but a colour. A bare colour name is English until proven CSS:
+  // the class bindings in this very tree carry `//` comments inside the
+  // attribute expression ("punches a grey hole through the fill"), and the
+  // attribute-as-string shape is why the comment stripper cannot reach them.
+  // So a name is judged only inside a style attribute, where it can only be
+  // a value.
+  const styleRanges: [number, number][] = [];
+  for (const match of stripped.matchAll(/(?<![\w-]):?style\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) {
+    const content = match[1] ?? match[2] ?? "";
+    const start = match.index + match[0].length - content.length - 1;
+    styleRanges.push([start, start + content.length]);
+  }
+  const inStyleAttribute = (offset: number): boolean =>
+    styleRanges.some(([start, end]) => offset > start && offset < end);
   if (templateStart !== -1) {
     for (const match of stripped.matchAll(COLOUR_LITERAL)) {
       const offset = match.index;
@@ -755,6 +1120,10 @@ export function scanVueFile(text: string, law: ParsedThemeContract): FileScan {
       // `hsl(var(--…))` and `rgb(var(--…))` are token references wearing a
       // function; the literal is what wraps the reference, so they pass.
       if (stripped.slice(offset + match[0].length).startsWith("var(")) continue;
+      // A bare colour name needs the value position; the function and hex
+      // spellings do not.
+      const bareName = !match[0].startsWith("#") && !match[0].endsWith("(");
+      if (bareName && !inStyleAttribute(offset)) continue;
       judged++;
       raw.push({ offset, value: match[0] });
     }
@@ -824,8 +1193,25 @@ export function runScan(root: string, options: ScanOptions = {}): ScanResult {
   let judged = 0;
 
   const files = collectVueFiles(root);
+  if (files.length === 0) {
+    // The vacuous green: a scope with nothing in it has judged nothing, and a
+    // gate that prints a clean line over zero files is a gate whose counts of
+    // record are all zero — read as success by anyone joining the line.
+    failures.push(
+      `token-allowlist: the scan scope is empty — no .vue file under packages/{${TIERS.join(",")}}/**/src/ or templates/. ` +
+        "An empty scope is a verdict about a misdirected walk, not a clean tree; point the scan at the tree and run it again.",
+    );
+  }
   for (const rel of files) {
-    const scan = scanVueFile(readFileSync(join(root, rel), "utf8"), law);
+    let scan: FileScan;
+    try {
+      scan = scanVueFile(readFileSync(join(root, rel), "utf8"), law);
+    } catch (error) {
+      // The read and the scan both fail closed, and a verdict that cannot name
+      // the file it refused to judge is not a verdict.
+      const why = error instanceof Error ? error.message : String(error);
+      throw new Error(`${rel}: ${why}`, { cause: error });
+    }
     judged += scan.judged;
     for (const finding of scan.findings) {
       const key = `${rel}|${finding.value}`;

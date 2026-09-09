@@ -164,11 +164,19 @@ phase's ledger; the gate's summary is always the number of record.
 ## The component token surface — Phase 3E
 
 The law `theme.css` states — "everything a consumer can theme lives here and
-nowhere else" — is now held to components the way 3A holds the accessibility
-claims: `tools/check-token-allowlist.ts` judges every style-bearing value a
-component writes — class strings wherever the literal sits, inline motion
-declarations, template colour literals — and fails any that is not
-token-anchored. The law lives as data in `packages/core/src/theme-contract.ts`
+nowhere else" — is held to components the way 3A holds the accessibility
+claims, over the surface a literal read can see:
+`tools/check-token-allowlist.ts` judges the bracket spellings a component
+writes — arbitrary values on the style-bearing utilities, bare arbitrary
+properties on theme-owned CSS properties, class strings wherever the literal
+sits (template attribute, cva table, `cn()` map, a multi-line binding),
+inline motion declarations and template colour literals — and fails any that
+is not token-anchored. What it does not judge is stated beside what it does:
+the named utility spellings (`duration-100`, `z-50`, `opacity-50`, a
+default-palette `bg-red-500`) and the computed half of script-side styling
+are the gate's blind spots, recorded as such in the interface contract's
+Theming row (PARTIALLY_ENFORCED) rather than passed over silently. The law
+lives as data in `packages/core/src/theme-contract.ts`
 (the allowed value shapes plus the exception register), the gate parses it
 rather than importing it, and the gate's own fixtures prove every register
 entry fires by removing it over the real tree one entry at a time. Recounted

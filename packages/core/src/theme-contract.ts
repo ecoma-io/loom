@@ -36,13 +36,17 @@
  *   in one diff, each with the reason it stands — the central-table shape
  *   `tools/check-archkeep-mutations.ts` uses, not per-component prose.
  *
- * The gate's one stated limit, recorded here where the law lives: a value a
- * component COMPUTES — concatenation, a template literal, a variable — is
- * invisible to a scan of string literals, so the dynamic half of script-side
- * styling stays review-held. That is the semgrep precedent the leak rules
- * already accept (`interface-contract.md` records it): a parse-only reader
- * judges what a literal read can see, and never pretends to have executed the
- * module it reads.
+ * The gate's stated limits, recorded here where the law lives. First, the
+ * computed half: a value a component COMPUTES — concatenation, a template
+ * literal, a variable — is invisible to a scan of string literals, so the
+ * dynamic half of script-side styling stays review-held. Second, the spelling
+ * half: the scan reads the bracket spellings and inline literals, not the
+ * named utility forms — `duration-100`, `z-50`, `opacity-50`, a default-
+ * palette `bg-red-500` — which carry the same decisions and pass unjudged
+ * until their own migration lands. Both are the semgrep precedent the leak
+ * rules already accept (`interface-contract.md` records them): a parse-only
+ * reader judges what a literal read can see, and never pretends to have
+ * executed the module it reads.
  *
  * Every collection below is a flat `as const` array of brace-free records —
  * the shape the gate's parser and the pin test both rely on.
@@ -280,7 +284,7 @@ export const TOKEN_EXCEPTIONS = [
     path: "packages/patterns/title-bar/src/TitleBar.vue",
     value: "rounded-[5px]",
     because:
-      "the brand tile's corner, matched to the macOS window chrome it sits beside so the tile reads level with the traffic lights at 16px; a chrome alignment constant, not a step of the radius ladder.",
+      "judged out of the radius ladder deliberately: the brand tile is a 16px square (the `h-4 w-4` box it rounds), where the ladder's nearest step — `--radius-sm`, 4px — would read as the default control corner rather than the tile's own nearly-circular one; a component-local chrome radius, not a themable step.",
   },
   {
     path: "packages/primitives/switch/src/Switch.vue",
