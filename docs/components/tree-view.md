@@ -34,6 +34,10 @@ const chosen = ref<string | number>("index");
 </template>
 ```
 
+A `TreeNode` is a `value` — what `v-model` receives when the node is chosen —
+and the `label` the row renders, with optional `children` whose presence is
+what makes a row expandable, and an optional `disabled`.
+
 The tree names itself the way the APG example does: `aria-label` (or
 `aria-labelledby`) falls through to the `<ul role="tree">`, so an unnamed tree
 never leaves your call site.

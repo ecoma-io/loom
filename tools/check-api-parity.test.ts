@@ -683,6 +683,61 @@ describe("runChecks", () => {
     }
   });
 
+  it("does not count an HTML comment as documentation of an export", () => {
+    const root = makeRoot();
+    try {
+      // The coverage scan reads prose, not raw markdown: a comment is never
+      // rendered, so naming an export inside one documents nothing.
+      writeFileSync(
+        join(root, "packages", "loom", "src", "index.ts"),
+        [
+          'export { default as StubDefault, Stub, useStubTheme } from "@ecoma-io/loom-stub";',
+          "export type GhostWidget = string;",
+          "// @internal stubInternal — package-side helper; the facade ships the composed behaviour",
+          "// @internal stubExtra — star-expanded helper module the facade deliberately withholds",
+          "// @internal-doc StubNode — internal sub-component rendered by Stub; not independently importable",
+          "",
+        ].join("\n"),
+      );
+      writeFileSync(
+        join(root, "docs", "components", "stub.md"),
+        [
+          "`Stub` renders with `useStubTheme`; the barrel's default binding ships",
+          "through the facade as `StubDefault`.",
+          "",
+          "<!-- @api Stub -->",
+          "<!-- @api StubNode -->",
+          "<!-- GhostWidget -->",
+          "",
+        ].join("\n"),
+      );
+      const failures = runChecks(root);
+      expect(failures.some((f) => f.includes('"GhostWidget"'))).toBe(true);
+      // The same name in a rendered sentence is coverage — and a comment
+      // inside a fenced block is stripped with the block, not read as prose.
+      writeFileSync(
+        join(root, "docs", "components", "stub.md"),
+        [
+          "`Stub` renders with `useStubTheme`; the barrel's default binding ships",
+          "through the facade as `StubDefault`. A page that names `GhostWidget` in",
+          "a sentence documents it.",
+          "",
+          "```ts",
+          "// <!-- GhostWidget --> inside a fence is a sample, not documentation",
+          'import { Stub } from "@ecoma-io/loom";',
+          "```",
+          "",
+          "<!-- @api Stub -->",
+          "<!-- @api StubNode -->",
+          "",
+        ].join("\n"),
+      );
+      expect(runChecks(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("flags a subpath the facade manifest drops while the other copies keep it", () => {
     const root = makeRoot();
     try {

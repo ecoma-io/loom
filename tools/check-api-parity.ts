@@ -986,17 +986,38 @@ function docsApiMarkers(docsFiles: DocsFile[]): { file: string; name: string }[]
 }
 
 /**
- * Every identifier-shaped word used anywhere in docs/ markdown, as one set.
- * Tokenising (rather than searching per name) keeps the coverage leg linear
- * in the size of the docs tree, and for identifier-shaped names it answers
- * exactly what a word-boundary search would: `List` never matches inside
- * `ListItem`, because both readers stop at the character classes an
+ * The prose half of a markdown file: fenced code blocks and HTML comments
+ * removed, fences first so a marker inside a block leaves with the block.
+ * A fenced sample is a copy of the code a page demos — its identifiers can
+ * outlive the export they name, and a comment is not rendered at all — so
+ * neither is documentation. Inline code stays: a backticked name in a
+ * sentence is prose.
+ */
+function docsProse(text: string): string {
+  const kept: string[] = [];
+  let inFence = false;
+  for (const line of text.split("\n")) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (!inFence) kept.push(line);
+  }
+  return kept.join("\n").replace(/<!--[\s\S]*?-->/g, " ");
+}
+
+/**
+ * Every identifier-shaped word used anywhere in docs/ markdown prose, as one
+ * set. Tokenising (rather than searching per name) keeps the coverage leg
+ * linear in the size of the docs tree, and for identifier-shaped names it
+ * answers exactly what a word-boundary search would: `List` never matches
+ * inside `ListItem`, because both readers stop at the character classes an
  * identifier may contain.
  */
 function docsIdentifierTokens(docsFiles: DocsFile[]): Set<string> {
   const tokens = new Set<string>();
   for (const { text } of docsFiles) {
-    for (const match of text.matchAll(/[A-Za-z_$][A-Za-z0-9_$]*/g)) {
+    for (const match of docsProse(text).matchAll(/[A-Za-z_$][A-Za-z0-9_$]*/g)) {
       tokens.add(match[0]);
     }
   }

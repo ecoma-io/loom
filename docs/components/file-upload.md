@@ -55,6 +55,10 @@ function onReject(rejections: FileUploadRejection[]) {
 it unbound and the control keeps its own list, which is what makes a zone dropped
 into a page work before it is wired to anything.
 
+A file the rules turn away never enters that list. `@reject` hands you a
+`FileUploadRejection` per refusal — the `File` exactly as the browser handed it
+over, and the `reason` it was refused — so a host can say why, in its own words.
+
 ## One file or many
 
 `multiple` changes two things at once. It lets the file dialog return more than

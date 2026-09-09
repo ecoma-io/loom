@@ -40,6 +40,10 @@ const rows = [
 </template>
 ```
 
+A `DataGridColumn` describes one column: the row `key` it renders (and sorts
+by), the `header` text above it, and the optional `sortable`, `align` and
+`width`.
+
 ## A grid is not a big table
 
 The distinction the pattern draws is about focus, not density. In a table,

@@ -62,7 +62,8 @@ function onSelect(action: SpeedDialAction, index: number) {
 
 ## Actions
 
-An action is a `label`, an optional `icon` and an optional `disabled`. The label
+An action — the `SpeedDialAction` type — is a `label`, an optional `icon` and
+an optional `disabled`. The label
 is required and it is **visible text**, not a tooltip: it rides beside the glyph
 on the action itself. A vertical stack of unlabelled circles is the failure mode
 of this pattern — it reads only to whoever already knows the icons — and a

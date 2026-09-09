@@ -54,8 +54,9 @@ const assignees: AvatarGroupItem[] = [
 
 ## Members
 
-A member is `src`, `alt`, `fallback` and an optional `variant` — the same four
-things an `Avatar` takes, because that is what each one becomes.
+A member, typed as `AvatarGroupItem`, is `src`, `alt`, `fallback` and an
+optional `variant` — the same four things an `Avatar` takes, because that is
+what each one becomes.
 
 `alt` is the field to fill in even when there is no photo. It is what a screen
 reader reads for that member, whichever state the image is in: the portrait

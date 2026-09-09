@@ -58,9 +58,10 @@ The package's main entry re-exports every component, which makes it
 unresolvable for a tool that compiles no Vue single-file component at all —
 a CI script, an end-to-end runner driving a built page. `@ecoma-io/loom/a11y`
 is a second, narrow entry point: `WCAG_TAGS` and the browserless/browser
-partition (which rules a jsdom-tier test can answer, and which a browser gate
-cannot) — a consumer that needs only the WCAG scope, or that partition, can
-read them without pulling in the rest of the library.
+partition — `BROWSERLESS_RULES` and `BROWSER_REQUIRED_RULES`, the split over
+which rules a jsdom-tier test can answer and which need a real browser — so a
+consumer that needs only the WCAG scope, or that partition, can read them
+without pulling in the rest of the library.
 
 The same entry carries the role-aware evidence contract — what a component
 OWES, not what the library asserts. `A11Y_EVIDENCE_TIERS` names the three

@@ -55,6 +55,10 @@ function onReject(rejections: TagsInputRejection[]) {
 keeps its own list, which is what makes one dropped into a page work before it is
 wired to anything.
 
+A value the field refuses never commits. `@reject` hands you a
+`TagsInputRejection` — the value as it would have read, and the `reason`
+(`duplicate` or `max`) it was refused — so a host can say why in its own words.
+
 <Demo title="Keywords">
   <div class="w-full max-w-sm">
     <TagsInput :model-value="['design systems', 'accessibility']" aria-label="Keywords" placeholder="Add a keyword" />
