@@ -752,7 +752,10 @@ const ZERO_TIME = /^(?:0(?:\.0+)?(?:ms|s)?)$/;
  * the absence of a decision, not a step on the vocabulary.
  */
 const MOTION_DECLARATION =
-  /(?<![\w$-[])(?:transition|animation)[\w-]*\s*:\s*(?:"([^"\n]*)"|'([^'\n]*)'|([^;}"'`\n]+))/g;
+  // The lookbehind's class leads with the hyphen on purpose: `[\w$-[]` would
+  // parse `$` through `[` as a range (CodeQL js/overly-large-range), not as
+  // the four separate characters the boundary means.
+  /(?<![-\w$[])(?:transition|animation)[\w-]*\s*:\s*(?:"([^"\n]*)"|'([^'\n]*)'|([^;}"'`\n]+))/g;
 
 /**
  * The CSS named colours — the closed set the platform itself defines (CSS
