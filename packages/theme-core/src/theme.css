@@ -421,7 +421,17 @@
    * a dark surface lands around 4:1, below the AA floor. Components that
    * use a functional colour as text should use the `-text` variant instead
    * (e.g. `text-primary-text` rather than `text-primary`). */
-  --color-primary-text: hsl(211 45% 65%); /* 5.38:1 on sunken, 4.50:1 on popover */
+  /* The HoverCard demo's trigger links carried `text-primary` — the fill role —
+   * as text (3.13:1 on dark card, 2.84:1 on popover), and #284's harness scan
+   * was the first run to render that honestly (ecoma-io/loom#288). Text stays
+   * a separate role on purpose: lightening the fill would break the white
+   * `--color-primary-foreground` button pair, so the dark text step carries
+   * the AA floor instead. Ratios measured against the current surfaces; the
+   * older numbers this line carried (5.38 sunken, 4.50 popover) do not
+   * reproduce against today's popover token. */
+  --color-primary-text: hsl(
+    211 45% 65%
+  ); /* 7.29:1 sunken · 6.84:1 background · 6.12:1 card · 5.55:1 popover */
   --color-accent-text: hsl(18 55% 62%); /* 5.77:1 on accent-muted, 6.01:1 on popover */
   --color-destructive-text: hsl(356 55% 70%); /* 7.04:1 on sunken, 4.63:1 on popover */
   --color-success-text: hsl(152 38% 55%); /* 7.43:1 on sunken, 4.88:1 on popover */
