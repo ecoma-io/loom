@@ -110,9 +110,22 @@ test("the stack's width tracks the viewport below 24rem and caps above it", asyn
   expect(Math.abs(narrow.width - 331.2)).toBeLessThanOrEqual(1);
 
   await page.setViewportSize({ width: 800, height: 900 });
-  const wide = await page.locator("ol").boundingBox();
-  if (!wide) throw new Error("The stack must render once an entry is pushed.");
+  // Attached BEFORE the settled read: if the width below had raced the resize,
+  // this attachment is the record of what the stale box actually held (CI run
+  // 34311271063 measured |width − 384| = 52.8 — the 360 leg's 331.2 re-read
+  // after the resize, in all three engines).
   await attachViewportDebug("800");
-  // 24rem = 384px — the cap wins once 92vw outgrows it.
-  expect(Math.abs(wide.width - 384)).toBeLessThanOrEqual(1);
+  // 24rem = 384px — the cap wins once 92vw outgrows it. Read only once the
+  // box has SETTLED on the post-resize value: a single boundingBox read after
+  // setViewportSize raced the resize in CI, so the same ±1 tolerance the 360
+  // leg holds is reached by polling rather than by one read.
+  await expect
+    .poll(
+      async () => {
+        const box = await page.locator("ol").boundingBox();
+        return Math.abs((box?.width ?? 0) - 384);
+      },
+      { timeout: 5_000 },
+    )
+    .toBeLessThanOrEqual(1);
 });
