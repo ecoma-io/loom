@@ -103,11 +103,29 @@ test("the stack's width tracks the viewport below 24rem and caps above it", asyn
   }
 
   await page.setViewportSize({ width: 360, height: 900 });
-  const narrow = await page.locator("ol").boundingBox();
-  if (!narrow) throw new Error("The stack must render once an entry is pushed.");
+  // The stack must render once an entry is pushed — asserted before the width
+  // so a render failure reads as a render failure, not as a wrong number.
+  await expect(page.locator("ol")).toBeVisible();
+  // Attached BEFORE the settled read, same as the 800 leg below: if the width
+  // polled next had raced the resize, this attachment records what the stale
+  // box actually held. CI run 34317753866 measured the WIDE viewport's 384 cap
+  // at this 360 assertion in all three retries while the identical code passed
+  // the previous run — a single boundingBox read after setViewportSize is a
+  // race whichever direction the resize goes, so the box is only trustworthy
+  // once it has settled.
   await attachViewportDebug("360");
-  // 92vw of 360px — the viewport term wins below the cap.
-  expect(Math.abs(narrow.width - 331.2)).toBeLessThanOrEqual(1);
+  // 92vw of 360px — the viewport term wins below the cap. Settle by polling,
+  // for the same reason the 800 leg does: the two legs' races alternate
+  // depending on timing, and settling only one left the test flaky, not fixed.
+  await expect
+    .poll(
+      async () => {
+        const box = await page.locator("ol").boundingBox();
+        return Math.abs((box?.width ?? 0) - 331.2);
+      },
+      { timeout: 5_000 },
+    )
+    .toBeLessThanOrEqual(1);
 
   await page.setViewportSize({ width: 800, height: 900 });
   // Attached BEFORE the settled read: if the width below had raced the resize,
@@ -117,8 +135,8 @@ test("the stack's width tracks the viewport below 24rem and caps above it", asyn
   await attachViewportDebug("800");
   // 24rem = 384px — the cap wins once 92vw outgrows it. Read only once the
   // box has SETTLED on the post-resize value: a single boundingBox read after
-  // setViewportSize raced the resize in CI, so the same ±1 tolerance the 360
-  // leg holds is reached by polling rather than by one read.
+  // setViewportSize raced the resize in CI, so the same ±1 tolerance both legs
+  // hold is reached by polling rather than by one read.
   await expect
     .poll(
       async () => {
