@@ -16,5 +16,18 @@
       "requirement": "keyboard",
       "because": "activation is the native <button>'s own Space/Enter contract and button.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "interactive",
+    "basis": "one native activation target; disabled and loading are its own states.",
+    "evidence": {
+      "browserless": ["packages/primitives/button/tests/Button.test.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "button.e2e.ts exercises the pointer only — the native Space/Enter contract is unproven in browser"
+      }
+    ]
+  }
 }

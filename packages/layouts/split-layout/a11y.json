@@ -15,5 +15,15 @@
     ],
     "harness": [],
     "sweep": ["docs/layouts/split-layout.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a two-panel shell around slotted content that collapses intrinsically below the panels' combined minimum width — the layout boundary is its own; it operates nothing.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard resize between the panes is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

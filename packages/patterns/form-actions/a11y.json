@@ -15,5 +15,15 @@
     ],
     "harness": [],
     "sweep": ["docs/patterns/form-actions.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a pure row for slotted action buttons — nothing operates here.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

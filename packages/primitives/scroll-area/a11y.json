@@ -8,5 +8,15 @@
     ],
     "harness": [],
     "sweep": ["docs/components/scroll-area.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a scroll surface around content — the scrollbar and the scroll trap are its own contract.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage through the scrolled content is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

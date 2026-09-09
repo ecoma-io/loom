@@ -14,5 +14,13 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "input and listbox managed as one — popup control, arrow traversal, selection.",
+    "evidence": {
+      "harness": ["packages/primitives/combobox/e2e/combobox.e2e.ts"],
+      "browserless": ["packages/primitives/combobox/tests/Combobox.test.ts"]
+    }
+  }
 }

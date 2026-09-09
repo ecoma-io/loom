@@ -5,5 +5,15 @@
     "browserless": ["docs/demos/FieldDemo.vue", "packages/primitives/field/tests/Field.test.ts"],
     "harness": [],
     "sweep": ["docs/components/field.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "label, description and error wiring around a control it does not operate.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage through the wired control is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

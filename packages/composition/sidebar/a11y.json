@@ -15,5 +15,15 @@
     ],
     "harness": [],
     "sweep": ["docs/composition/sidebar.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a collapsible region around navigation — the collapse act is its own.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "sidebar.e2e.ts pins geometry only — the collapse control's keyboard contract is unproven in browser"
+      }
+    ]
   }
 }

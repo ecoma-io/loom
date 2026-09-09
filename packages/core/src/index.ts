@@ -61,6 +61,25 @@ export type {
   ResponsiveContract,
 } from "./responsive-contract";
 
+// The interaction axis of the same sidecar contract — the class of
+// interaction a component owns and the duties that class owes. Not
+// re-exported from the public @ecoma-io/loom/a11y entry yet: the gate parses
+// the law and the docs page renders it from source, so no consumer reader
+// exists to earn the subpath export.
+export {
+  INTERACTION_CLASSES,
+  INTERACTION_EVIDENCE_TIERS,
+  INTERACTION_REQUIREMENTS,
+  INTERACTION_MATRIX,
+} from "./a11y-contract";
+export type {
+  InteractionClass,
+  InteractionEvidenceTier,
+  InteractionRequirementId,
+  InteractionEvidenceEntry,
+  InteractionContract,
+} from "./a11y-contract";
+
 // Theme switching (also re-exported from the public @ecoma-io/loom entry).
 export { useTheme, themeScript } from "./theme";
 export type { ThemePreference, ResolvedTheme } from "./theme";

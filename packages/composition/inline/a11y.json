@@ -23,5 +23,15 @@
       }
     ],
     "sweep": ["docs/composition/inline.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a pure inline wrapper — nothing operates, nothing focuses.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

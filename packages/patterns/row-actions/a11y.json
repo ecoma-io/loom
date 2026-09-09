@@ -19,5 +19,15 @@
     ],
     "harness": [],
     "sweep": ["docs/patterns/row-actions.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a row surface hosting action buttons it does not operate.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage between the hosted actions is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

@@ -5,5 +5,18 @@
     "browserless": ["docs/demos/DialogDemo.vue", "packages/primitives/dialog/tests/Dialog.test.ts"],
     "harness": ["packages/primitives/dialog/e2e/dialog-keyboard.e2e.ts"],
     "sweep": ["docs/components/dialog.md"]
+  },
+  "interaction": {
+    "class": "composite",
+    "basis": "trigger, overlay and focus containment managed as one; Escape closes, focus routes on open and close.",
+    "evidence": {
+      "harness": ["packages/primitives/dialog/e2e/dialog-keyboard.e2e.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "state-report",
+        "because": "no unit-tier state pin yet — open/closed reporting is browser-witnessed in dialog-keyboard.e2e.ts and unpinned in the unit tier"
+      }
+    ]
   }
 }

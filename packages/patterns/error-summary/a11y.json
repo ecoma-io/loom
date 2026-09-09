@@ -12,5 +12,15 @@
     ],
     "harness": [],
     "sweep": ["docs/patterns/error-summary.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "an announced summary structuring links to the fields that failed.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage through the summary links is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

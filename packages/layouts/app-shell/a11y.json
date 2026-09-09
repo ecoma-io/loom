@@ -20,5 +20,15 @@
       }
     ],
     "sweep": ["docs/layouts/app-shell.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "the page's landmark skeleton — it hosts nav, aside and content, operating none.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "app-shell.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
+      }
+    ]
   }
 }

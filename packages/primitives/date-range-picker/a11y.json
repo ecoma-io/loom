@@ -14,5 +14,13 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "two bound field-day-grid pairs managed as one range.",
+    "evidence": {
+      "harness": ["packages/primitives/date-range-picker/e2e/date-range-picker.e2e.ts"],
+      "browserless": ["packages/primitives/date-range-picker/tests/DateRangePicker.test.ts"]
+    }
+  }
 }

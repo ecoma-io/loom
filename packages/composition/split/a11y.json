@@ -17,5 +17,15 @@
       }
     ],
     "sweep": ["docs/composition/split.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a two-pane shell around slotted content — side panel and content area separated by a gap, collapsing intrinsically when their widths no longer fit; it operates nothing, and the resize act belongs to a future composition, not this one.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "split.e2e.ts pins geometry only — keyboard resize is unproven in browser"
+      }
+    ]
   }
 }

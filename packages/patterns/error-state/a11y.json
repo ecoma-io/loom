@@ -19,5 +19,15 @@
     ],
     "harness": [],
     "sweep": ["docs/patterns/error-state.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a presented failure placeholder; its actions are slotted, none its own.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

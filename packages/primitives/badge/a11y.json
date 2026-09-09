@@ -5,5 +5,15 @@
     "browserless": ["docs/demos/BadgeDemo.vue", "packages/primitives/badge/tests/Badge.test.ts"],
     "harness": [],
     "sweep": ["docs/components/badge.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a status label — presence is the whole contract, nothing operates.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

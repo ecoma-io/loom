@@ -8,5 +8,15 @@
     ],
     "harness": [],
     "sweep": ["docs/components/avatar-group.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "stacks announced avatars behind an overflow count — no operable part of its own.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

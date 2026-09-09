@@ -18,5 +18,18 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "three native labelled <button>s (minimize, maximize/restore, close) managed as one labelled group — the traversal among them and the maximize/restore state are its contract.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage between the three controls is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ],
+    "evidence": {
+      "browserless": ["packages/primitives/window-controls/tests/WindowControls.test.ts"]
+    }
+  }
 }

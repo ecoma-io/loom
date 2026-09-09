@@ -13,5 +13,15 @@
       }
     ],
     "sweep": ["docs/components/timeline.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a structured container for slotted milestones — operates nothing.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "timeline.e2e.ts pins rendering only — keyboard passage is unproven in browser"
+      }
+    ]
   }
 }

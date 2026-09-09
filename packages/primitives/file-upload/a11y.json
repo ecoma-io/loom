@@ -23,5 +23,18 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "interactive",
+    "basis": "one drop-and-browse target with dragover and disabled states of its own.",
+    "evidence": {
+      "browserless": ["packages/primitives/file-upload/tests/FileUpload.test.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "file-upload.e2e.ts drives the file input directly — the browse control's keyboard contract is unproven in browser"
+      }
+    ]
+  }
 }

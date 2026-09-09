@@ -81,6 +81,32 @@ says everything, or that path plus the `because` a tier the role's matrix row
 does not demand must carry. Writing a component's `a11y.json` is the only
 time a consumer meets it.
 
+## The interaction classes
+
+Keyboard operability is not one claim. A button's keyboard story and a
+skeleton's are opposites, and holding both to the same sentence would make
+one of them a lie — so every sidecar's `interaction` claim names one class of
+a closed four-word vocabulary, declared in `packages/core/src/a11y-contract.ts`
+beside the role law: `interactive` (one operable target of its own),
+`composite` (several parts managed as one), `container` (a surface whose own
+act is passage or wiring around content it does not operate) and
+`visual-only` (presents; nothing operates, focuses or reports). Each class
+owes duties from the matrix below, generated from that file rather than
+transcribed:
+
+<!-- @interaction-classes -->
+
+`keyboard-operate` is harness-tier on purpose: a keyboard contract is a
+browser fact, so its citation must be the component's own Playwright spec
+and must itself carry a keyboard gesture — the gate reads the cited file for
+one, because a pointer-only spec citing itself as keyboard evidence is the
+one lie about interaction a prose claim can tell. Where a duty is not yet
+witnessed, the claim records a named exception with its `because` instead of
+going quiet: `tools/check-interaction-evidence.ts` counts the exceptions and
+fails on anything else, so the honest state of the library's interaction
+evidence is a number that shrinks as specs land, not a row of green checks
+that never moved.
+
 ## Focus rings are a promise
 
 ```css

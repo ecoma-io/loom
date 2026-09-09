@@ -13,5 +13,15 @@
       }
     ],
     "sweep": ["docs/components/surface.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a bare elevation surface — nothing operates, nothing focuses.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

@@ -16,5 +16,15 @@
     ],
     "harness": [],
     "sweep": ["docs/layouts/dashboard.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a landmark skeleton hosting panels it does not operate.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "dashboard.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
+      }
+    ]
   }
 }

@@ -18,5 +18,18 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "a group of single-character inputs managed as one — auto-advance, paste split, backtrack.",
+    "evidence": {
+      "browserless": ["packages/primitives/otp-input/tests/OtpInput.test.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — the auto-advance and backtrack keys is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
+  }
 }

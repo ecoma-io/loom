@@ -16,5 +16,15 @@
     ],
     "harness": [],
     "sweep": ["docs/layouts/form-layout.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a landmark skeleton arranging form regions it does not operate.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "form-layout.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
+      }
+    ]
   }
 }

@@ -11,16 +11,21 @@
  *
  * Three readers, one source:
  *
- * - `tools/check-a11y-evidence.ts`, the gate, reads this file AS DATA — parsed,
- *   never imported. The tooling layer's boundary row (layer-tooling) forbids
+ * - `tools/check-a11y-evidence.ts` and `tools/check-interaction-evidence.ts`,
+ *   the gates for the two axes, read this file AS DATA — parsed, never
+ *   imported. The tooling layer's boundary row (layer-tooling) forbids
  *   importing the library it checks, and a checker that executed its subject
- *   could not report on a tree that will not load. The parse is fail-closed:
- *   a contract this tool cannot read is a lint failure, not an empty verdict.
- * - `packages/loom/src/a11y.ts` re-exports the vocabulary and the type, so a
- *   consumer or a docs page reads the same law the gate enforces.
+ *   could not report on a tree that will not load. Each parse is fail-closed:
+ *   a contract a gate cannot read is a lint failure, not an empty verdict.
+ * - `packages/loom/src/a11y.ts` re-exports the role vocabulary and the type,
+ *   so a consumer or a docs page reads the same law the gate enforces. The
+ *   interaction vocabulary is not re-exported from the public surface yet —
+ *   its readers today are the gate, the pin test and the docs build, and an
+ *   export nobody consumes is a public promise with no reader.
  * - `packages/core/tests/a11y-contract.test.ts` pins the law's internal
- *   consistency: no matrix row for a role outside the vocabulary, no
- *   requirement id without a definition, no requirement in an unknown tier.
+ *   consistency on both axes: no matrix row for a role or class outside its
+ *   vocabulary, no requirement id without a definition, no requirement in an
+ *   unknown tier.
  *
  * The component's own declaration lives beside it, in
  * `packages/<tier>/<name>/a11y.json` — one sidecar per component, the sixth
@@ -33,15 +38,15 @@
  * counts and names those exceptions instead of failing the repository, so the
  * contract lands truthfully and the exception list shrinks as evidence grows.
  *
- * Phase 3D reserves room here, deliberately unused: an interaction class
- * (interactive / composite / container / visual-only) will extend the SAME
- * sidecar with a second axis, which is why `role` is held orthogonal to
- * evidence and exceptions rather than folded into them. Adding the axis is a
- * deliberate edit to the contract, the sidecars and this file's validator —
- * not a second file, and not a schema that must be broken to grow.
+ * The sidecar now carries a SECOND axis beside the role claim: the
+ * interaction class. Phase 3D reserved room here for exactly this — the same
+ * sidecar, a second axis, not a second file — which is why `role` was held
+ * orthogonal to evidence and exceptions rather than folded into them. The
+ * interaction half is defined at the bottom of this file, and
+ * `tools/check-interaction-evidence.ts` is its validator.
  *
  * Every collection below is a flat `as const` array of records — the shape the
- * gate's parser and the pin test both rely on. Keep new fields string- or
+ * gates' parsers and the pin test all rely on. Keep new fields string- or
  * array-valued and entry objects brace-free.
  */
 
@@ -527,4 +532,145 @@ export interface A11yContract {
   evidence: Partial<Record<A11yEvidenceTier, readonly A11yEvidenceEntry[]>>;
   /** Matrix requirements this component does not answer yet, each with its reason. */
   exceptions?: readonly { requirement: A11yRequirementId; because: string }[];
+}
+
+/**
+ * The closed interaction-class vocabulary — the second axis of the same
+ * sidecar, kept in this file so the two claims cannot drift apart. Each word
+ * names the interaction contract the component OWNS, which is a smaller thing
+ * than the interaction it makes possible: a layout slots buttons into itself,
+ * but it owns none of their contract.
+ *
+ * - `interactive` — ONE operable target of the component's own: activate,
+ *   adjust, type into. A button, a checkbox, a text field, a link.
+ * - `composite` — SEVERAL operable parts the component manages as one: the
+ *   traversal among them, the focus routing, the open/close state. A
+ *   combobox, a tablist, a menu, a dialog, a tree.
+ * - `container` — operates nothing itself; its own contract is the surface it
+ *   puts around operable content. Keyboard passage through it must not trap,
+ *   and its own scroll, collapse or resize behaviour must answer the keyboard
+ *   too. A card, a scroll area, an app shell, a fieldset.
+ * - `visual-only` — presents and wraps; nothing in it operates, takes focus
+ *   or reports an interactive state of its own, by design. A skeleton, a
+ *   badge, a meter, a flex wrapper.
+ *
+ * Two revealed surfaces that look like twins land in different classes on
+ * purpose: a hover-card is `container` and a tooltip is `visual-only`. The
+ * hover-card keeps a real, focusable, dismissible surface around content a
+ * reader operates into; the tooltip is an announcement with nothing inside
+ * it to operate. A component that could sit in either row takes the class
+ * that demands more — the conservative direction costs a duty, the lenient
+ * one forgives one.
+ *
+ * The class is declared, not derived, for the reason the role claim is: the
+ * class is a fact about the contract the component's source owns, and no
+ * reader can reconstruct it with confidence. Each sidecar's interaction claim
+ * carries a `basis` naming the fact that puts the component in its class —
+ * the reviewer's handle, the same one the role claim keeps.
+ */
+export const INTERACTION_CLASSES = [
+  "interactive",
+  "composite",
+  "container",
+  "visual-only",
+] as const;
+
+/**
+ * The two runtimes that can witness an interaction duty. Same tiers, same
+ * vocabulary, as {@link A11Y_EVIDENCE_TIERS} — a keypress is a browser fact
+ * and a rendered state is a jsdom fact, exactly as the role axis has it. The
+ * sweep tier is absent on purpose: no duty below is a page-geometry fact, so
+ * a sweep citation would be evidence by adjacency, which is the fabricated
+ * kind.
+ */
+export const INTERACTION_EVIDENCE_TIERS = ["browserless", "harness"] as const;
+
+/**
+ * The interaction duties — one row per family of interaction obligations,
+ * named for the obligation rather than the implementation. `tier` is where
+ * the duty must be ANSWERED; `answers` is prose rather than a rule list,
+ * because no axe rule judges an interaction contract — these duties are what
+ * the component's own specs exist to witness.
+ *
+ * Three duties, and no reduced-motion row — a deliberate absence, recorded
+ * rather than hidden. Animation is a per-component fact none of the four
+ * class words carries, and the root reduced-motion suite reaches four pages
+ * today (dialog, drawer, toast, skeleton), so a class row demanding it would
+ * be a duty nothing in the vocabulary could answer honestly. A per-component
+ * motion duty — a declared `animates` fact answered through that suite's
+ * growing population — is the tranche work this axis opens; it lands as a row
+ * edit plus suite growth in one PR, the way every other row change must.
+ */
+export const INTERACTION_REQUIREMENTS = [
+  {
+    id: "keyboard-operate",
+    tier: "harness",
+    answers: [
+      "the component's keyboard contract — its own keys, or keyboard passage through its surface — witnessed as gestures in a browser by its own harness spec (WCAG 2.1.1)",
+    ],
+  },
+  {
+    id: "state-report",
+    tier: "browserless",
+    answers: [
+      "the states a component renders — disabled, readonly, busy, expanded, selected — reaching the DOM where the unit tier can pin them (WCAG 4.1.2)",
+    ],
+  },
+  {
+    id: "keyboard-inert",
+    tier: "browserless",
+    answers: [
+      "the absence of an interaction surface: nothing in a visual-only component takes focus or a key (WCAG 2.1.1 vacuously, 2.4.3 actually) — a pin of absence, worthless asserted in prose",
+    ],
+  },
+] as const;
+
+/**
+ * The interaction matrix: the class's row is the claim it must satisfy, the
+ * role matrix's discipline on the second axis. `keyboard-inert` is
+ * visual-only's whole row because "nothing operates here" is itself a
+ * contract — the one an aria-hidden placeholder that steals a tab stop breaks
+ * — and an absence nobody pins is an absence nobody would notice breaking.
+ */
+export const INTERACTION_MATRIX = [
+  { class: "interactive", requirements: ["keyboard-operate", "state-report"] },
+  { class: "composite", requirements: ["keyboard-operate", "state-report"] },
+  { class: "container", requirements: ["keyboard-operate"] },
+  { class: "visual-only", requirements: ["keyboard-inert"] },
+] as const;
+
+/** A member of the closed interaction-class vocabulary. */
+export type InteractionClass = (typeof INTERACTION_CLASSES)[number];
+
+/** A runtime that can witness an interaction duty. */
+export type InteractionEvidenceTier = (typeof INTERACTION_EVIDENCE_TIERS)[number];
+
+/** A duty the interaction matrix can demand. */
+export type InteractionRequirementId = (typeof INTERACTION_REQUIREMENTS)[number]["id"];
+
+/**
+ * One declared piece of interaction evidence. A plain string is a
+ * repository-root-relative path the gate verifies exists; an object is the
+ * same path plus the `because` that narrows what the file witnesses — and a
+ * qualified entry answers no duty.
+ */
+export type InteractionEvidenceEntry = string | { path: string; because?: string };
+
+/**
+ * The `interaction` claim `packages/<tier>/<name>/a11y.json` carries beside
+ * its `role` claim — the second axis in the same sidecar, not a second file,
+ * the reservation at the top of this file kept. Same doctrine as the role
+ * claim: declared, cited where the evidence exists, and excepted with a
+ * reason where it does not, so the contract lands truthfully and shrinks as
+ * the harness-spec tranche lands.
+ */
+export interface InteractionContract {
+  /** The claimed interaction class, from {@link INTERACTION_CLASSES}. */
+  class: InteractionClass;
+  /** The fact the class claim rests on — what a reviewer checks. */
+  basis: string;
+  /** Evidence that exists today, by tier. Paths are repository-root-relative. */
+  evidence: Partial<Record<InteractionEvidenceTier, readonly InteractionEvidenceEntry[]>>;
+  /** Matrix duties this component does not answer yet, each with its reason. */
+  exceptions?: readonly { requirement: InteractionRequirementId; because: string }[];
 }

@@ -139,6 +139,20 @@ export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
 // @internal ResponsiveEvidenceEntry — one sidecar's responsive-claim shape, part of the withheld law
 // @internal ResponsiveContract — the whole-claim shape the law assembles, part of the withheld law
 //
+// Core — the interaction-evidence law, withheld for the same reason as the
+// responsive law above: the gate holds every sidecar's claim to it and the
+// docs page renders the matrix from the source file, so no consumer reader
+// exists to earn a re-export:
+// @internal INTERACTION_CLASSES — the closed four-word interaction-class vocabulary; the interaction gate reads it from the source file until a consumer reader exists
+// @internal INTERACTION_EVIDENCE_TIERS — the per-duty evidence tiers; the interaction gate reads them from the source file until a consumer reader exists
+// @internal INTERACTION_REQUIREMENTS — the per-class duty table; the interaction gate reads it from the source file until a consumer reader exists
+// @internal INTERACTION_MATRIX — the class→duties rows the docs page renders; read from the source file until a consumer reader exists
+// @internal InteractionClass — one member's shape in the withheld vocabulary
+// @internal InteractionEvidenceTier — one tier's shape in the withheld registry
+// @internal InteractionRequirementId — one duty's key in the withheld requirement table
+// @internal InteractionEvidenceEntry — one sidecar's interaction-claim shape, part of the withheld law
+// @internal InteractionContract — the whole-claim shape the law assembles, part of the withheld law
+//
 // Labels — the segmented date/time fields' aria plumbing. The label maps and
 // shapes are the public vocabulary; these helpers wire Reka's segments to it:
 // @internal emptySegmentValueText — the aria-valuetext override for an empty segment, bound by the five segmented controls
