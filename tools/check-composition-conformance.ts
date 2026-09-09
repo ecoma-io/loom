@@ -8,24 +8,30 @@
 // own, so a fifth composition landing with the full set is discovered, not
 // registered. For each composition directory the gate demands, all of:
 //
-//   1. `src/layout.ts` exporting an adapter and the engine re-export — the
-//      judged edge the route reaches the engine through;
-//   2. `e2e/conformance.cases.ts` exporting the four-name module contract
-//      (component, adapter, layout, cases) with at least one case, unique
-//      case names and at least one viewport per case — uniqueness across
+//   1. `src/layout.ts` exporting at least one `export function` — the
+//      adapter — plus the engine re-export spelled exactly
+//      `export { layout }`: the judged edge the route reaches the engine
+//      through;
+//   2. `e2e/conformance.cases.ts` exporting the four-name module contract,
+//      each name spelled exactly — `export const component`,
+//      `export const adapter`, `export const cases` and
+//      `export { layout }` — with at least one case in `cases`, unique case
+//      names and at least one viewport per case. Uniqueness holds across
 //      modules too, because the route locates a case by
 //      `section[data-conformance-case=…]`, where first match silently wins;
 //   3. `e2e/layout-conformance.e2e.ts` — the spec that compares engine to
 //      browser;
-//   4. `src/layout.test.ts` carrying the case-coverage-floor describe — the
-//      semantic floor stays in the vitest tier that can read the typed scale
-//      tables; this gate only requires a composition to carry one.
+//   4. `src/layout.test.ts` carrying the describe titled exactly
+//      `"case coverage floor"` — the semantic floor stays in the vitest tier
+//      that can read the typed scale tables; this gate only requires a
+//      composition to carry one.
 //
 // or an exception row in tools/composition-conformance.exceptions.ts, whose
 // reason, owner and removal milestone are mandatory and whose composition
 // must still lack the evidence set — a row naming a now-complete composition
 // is itself a failure, so exceptions shrink as the evidence lands instead of
-// reading as a second, quieter law.
+// reading as a second, quieter law. A row excuses ABSENCES only: an artifact
+// the composition owns that fails a rule above is charged even under a row.
 //
 // The gate is PARSE-ONLY, like its siblings: the tooling layer's boundary row
 // forbids importing the library it checks, and a checker that executed its
@@ -57,6 +63,14 @@ const FLOOR_PATH = ["src", "layout.test.ts"] as const;
 /** The describe block title the coverage floor carries — the file's law, not its name. */
 const FLOOR_TITLE = "case coverage floor";
 const FLOOR_DESCRIBE = `describe("${FLOOR_TITLE}"`;
+
+/**
+ * The one failure shape an exception row excuses: an artifact that is not
+ * there (`<composition>: missing <path>`). A present artifact that fails a
+ * rule never matches it, so a row cannot vouch for evidence it contradicts —
+ * the split the excusal below is drawn along.
+ */
+const ABSENCE = /^[^:]+: missing /;
 
 /** The case's name field, inside one flat record. */
 const NAME_FIELD = /\bname\s*:\s*"((?:[^"\\]|\\.)*)"/;
@@ -224,6 +238,15 @@ export function checkCompositionConformance(
   const compositions = componentPackages(root, TIER)
     .map((pkg) => pkg.name)
     .sort();
+  // The absent tier throws above; the emptied one fails here. A rename that
+  // moved the family away is a structural fault, not a family whose every
+  // member passed — "0 of 0 held" is the vacuous verdict this gate exists to
+  // refuse.
+  if (compositions.length === 0) {
+    throw new Error(
+      `packages/${TIER} enumerates no compositions — the gate will not read an empty family as a passing one`,
+    );
+  }
   const compositionNames = new Set(compositions);
 
   // The rows are resolved first, because what they excuse is the evidence
@@ -245,8 +268,9 @@ export function checkCompositionConformance(
   }
 
   // The evidence checks run for EVERY composition, excepted or not: an
-  // excepted composition's misses are excused at reporting time, and whether
-  // any miss exists is what the expiry rule judges the row against.
+  // excepted composition's absences are excused at reporting time, its rule
+  // faults are not, and whether any miss exists is what the expiry rule
+  // judges the row against.
   const evidenceFailures = new Map<string, string[]>();
   const namesByComposition = new Map<string, string[]>();
   for (const composition of compositions) {
@@ -291,7 +315,10 @@ export function checkCompositionConformance(
     const floorPath = join(dir, composition, ...FLOOR_PATH);
     if (!existsSync(floorPath)) {
       own.push(`${composition}: missing ${floorRel}`);
-    } else if (!readFileSync(floorPath, "utf8").includes(FLOOR_DESCRIBE)) {
+    } else if (!stripComments(readFileSync(floorPath, "utf8")).includes(FLOOR_DESCRIBE)) {
+      // Comments are stripped before the title match, or a commented-out
+      // floor — the describe deleted but its line left behind — would stand
+      // in for the floor it once was.
       own.push(
         `${composition}: ${floorRel} carries no "${FLOOR_TITLE}" describe — the case matrix has no coverage floor`,
       );
@@ -317,15 +344,21 @@ export function checkCompositionConformance(
     }
   }
 
-  // The verdict, in tree order: an excepted composition's evidence misses are
-  // excused; a composition with none is complete, which is the state the
-  // expiry rule judges rows against.
+  // The verdict, in tree order. The excusal is drawn along ABSENCE: a row
+  // stands in for evidence that does not exist, never for evidence the
+  // composition owns and that fails a rule — a repeated case name, a lost
+  // re-export — which is charged even under a row. A composition with no
+  // faults at all is complete, the state the expiry rule judges rows against.
   const complete = new Set<string>();
   for (const composition of compositions) {
     const own = evidenceFailures.get(composition) ?? [];
-    if (own.length === 0) complete.add(composition);
-    if (excepted.has(composition)) continue;
-    failures.push(...own);
+    if (own.length === 0) {
+      complete.add(composition);
+    } else if (excepted.has(composition)) {
+      failures.push(...own.filter((failure) => !ABSENCE.test(failure)));
+    } else {
+      failures.push(...own);
+    }
   }
 
   // The expiry rule: a row whose composition has since landed the full
