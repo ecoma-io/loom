@@ -124,6 +124,19 @@ export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
 // @internal LIST_STAGGER_CAP — the reveal cap behind listStaggerDelay; a tuning constant, not an API
 // @internal smoothScrollBehavior — reduced-motion scroll behaviour for ScrollReel's and Carousel's own scrollTo calls
 //
+// Core — the responsive-evidence law, deliberately unpublished: 3B recorded
+// that nothing re-exports the module yet because no consumer reader exists —
+// an export nobody consumes is a promise with no reader — and the gates read
+// the law straight from the source file:
+// @internal RESPONSIVE_BEHAVIOURS — the closed responsive-claim vocabulary; the responsive gate reads it from the source file until a consumer reader exists
+// @internal RESPONSIVE_EVIDENCE_TIERS — the per-artifact-class evidence tiers; the responsive gate reads them from the source file until a consumer reader exists
+// @internal RESPONSIVE_VIEWPORT_BANDS — the canonical viewport widths the adapters import from the source; the responsive gate reads them there until a consumer reader exists
+// @internal ResponsiveBehaviour — one member's shape in the withheld vocabulary
+// @internal ResponsiveEvidenceTier — one tier's shape in the withheld registry
+// @internal ResponsiveViewportBand — one band's shape in the withheld width table
+// @internal ResponsiveEvidenceEntry — one sidecar's responsive-claim shape, part of the withheld law
+// @internal ResponsiveContract — the whole-claim shape the law assembles, part of the withheld law
+//
 // Labels — the segmented date/time fields' aria plumbing. The label maps and
 // shapes are the public vocabulary; these helpers wire Reka's segments to it:
 // @internal emptySegmentValueText — the aria-valuetext override for an empty segment, bound by the five segmented controls
