@@ -72,6 +72,12 @@ pattern.
 
 ## Types
 
+The bar is described entirely by data. A `MenubarMenu` is one trigger — an
+`id` and the `label` that renders on it — holding the `MenubarItem`s beneath
+it: each a labelled row whose optional `command` id is what `@select` emits,
+with `shortcut`, `separator` and `disabled` covering the accelerator hint, the
+divider form and the inert row.
+
 ```ts
 interface MenubarItem {
   label: string;

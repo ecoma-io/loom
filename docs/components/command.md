@@ -65,9 +65,9 @@ interface CommandItem {
 
 ## Groups
 
-Group definitions provide section headings above runs of items that share a
-`group` key. Groups with no matching items are hidden automatically when the
-filter narrows the list.
+A `CommandGroup` is one section: its `heading` renders above the run of items
+whose `group` names it. Groups with no matching items are hidden automatically
+when the filter narrows the list.
 
 ```ts
 interface CommandGroup {

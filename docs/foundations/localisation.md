@@ -147,6 +147,15 @@ page: ({ page }: { page: number }) => string;
 position: ({ page, pageCount }: { page: number; pageCount: number }) => string;
 ```
 
+That signature is a type, not a convention: a message is a `LabelOf<Args>` — a
+function from the message's raw arguments to the finished string — and every
+vocabulary in the registry is typed against it, which is why a key that takes a
+value cannot be supplied as a plain string. The read half of the seam is
+`useLabels`: the call every Loom component makes to resolve its slot against
+the chain above. It is exported for the same reason the write half is — a host
+composing its own control out of Loom parts resolves its words through the same
+seam rather than around it.
+
 The argument is always an object of raw values, never text Loom has already
 formatted. Handed the number, you can reach `Intl.NumberFormat` for Eastern
 Arabic digits and `Intl.PluralRules` for a category English does not have.
@@ -234,11 +243,14 @@ const vocabulary: LoomLabelOverrides = bag; // compiles; `nxt` is silently ignor
 `satisfies` on the declaration closes it. That is the one place this contract
 asks you to remember something.
 
-Annotate with `LoomLabelOverrides` (or `LabelOverrides<PaginationLabels>` for a
-single component's bag) rather than with the bag interface itself. The override
-types are partial, so a key added to Loom in a later release is a key your
-vocabulary may ignore; the bag interfaces are total, and a bag typed with one
-would stop compiling the day the vocabulary grew.
+The bag interface itself is `LoomLabels` — the registry every component's
+vocabulary folds into, one key per speaking component, and the shape
+`provideLoomLabels` checks a partial against. Annotate with
+`LoomLabelOverrides` (or `LabelOverrides<PaginationLabels>` for a single
+component's bag) rather than with it. The override types are partial, so a key
+added to Loom in a later release is a key your vocabulary may ignore; the bag
+interfaces are total, and a bag typed with one would stop compiling the day the
+vocabulary grew.
 
 ## What it costs
 

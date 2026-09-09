@@ -35,9 +35,12 @@ const tabs: TabItem[] = [
 
 ## Panels through named slots
 
-Each entry in `tabs` needs a slot of the same name carrying that panel's
-content. A tab with no matching slot renders an empty panel rather than an
-error — worth checking for when a `tabs` array is built dynamically.
+A `TabItem` is a `value` and the `label` that renders on its trigger, plus an
+optional `disabled`. The `value` does double duty: it is what `v-model`
+carries and the name of the slot carrying that panel's content. Each entry in
+`tabs` needs a slot of the same name, and a tab with no matching slot renders
+an empty panel rather than an error — worth checking for when a `tabs` array
+is built dynamically.
 
 <Demo title="Every tab, including a disabled one" :source="tabsDemoSource">
   <TabsDemo />

@@ -40,6 +40,14 @@ const items = [
 Items with `children` render as trigger buttons that open a dropdown panel;
 items without them render as direct anchor links.
 
+The shapes behind that array are exported with the component. A
+`NavigationMenuItem` is a `label`, a unique `value`, and then one of two
+kinds of continuation: an `href`, which makes the item the link, or
+`children`. It also carries `active`, which becomes `aria-current` on the
+entry for the page the reader is on, and `disabled`. A child is a
+`NavigationMenuLink` — `label`, `href`, an optional `description` rendered
+below the label, and the same `active`.
+
 ## Dropdown vs. navigation
 
 `NavigationMenu` is a **navigation landmark** — its panels contain links, not

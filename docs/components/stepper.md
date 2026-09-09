@@ -69,6 +69,10 @@ const step = ref(1);
 </template>
 ```
 
+A `StepperStep` is a `title`, an optional `description`, and an optional
+`disabled` that leaves the step present but unreachable — the indicator greys
+and neither pointer nor keyboard can select it.
+
 `modelValue` is 1-based, so `step === 1` is the first step rather than the
 second. Leave it unset and the Stepper owns its own position, which is enough
 for a spine that only reports where a flow already is.

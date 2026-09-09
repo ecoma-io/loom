@@ -41,6 +41,10 @@ import { Reading } from "@ecoma-io/loom";
 The content wrapper is always `max-w-prose` with no prop to change it. This
 layout exists to enforce that cap: a reading layout that can go full-width is
 not a reading layout. The `gutter` prop controls horizontal padding, not width.
+It is a boolean — the exported `ReadingGutter` type — defaulting to `true`:
+padding steps up as the viewport widens (`px-4`, then `px-6`, then `px-8`
+past the widest breakpoint), and `:gutter="false"` removes it entirely, which
+is the flush edge a full-bleed hero above the article wants.
 
 ~65 characters per line is the measure research identifies as the fastest for
 sustained reading. Lines longer than that force the eye to work harder tracking

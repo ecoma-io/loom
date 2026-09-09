@@ -270,7 +270,11 @@ quarter of a short allowance or the last ten characters of a long one,
 whichever is smaller; ten characters is about a word, and a warning is only
 worth anything while there is still room to act on it. Because it is spoken
 at the crossing, its numbers are true at that moment and the visible counter
-carries them afterwards.
+carries them afterwards. That threshold is not private arithmetic: it is the
+exported `warningWindow(max)` — the last quarter of a short allowance, the
+last ten characters of a long one — and [Textarea](./textarea) announces over
+the very same window, so the two counters a page holds never disagree about
+what "close to the limit" means.
 
 ## Labels
 

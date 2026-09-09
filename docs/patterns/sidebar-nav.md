@@ -34,6 +34,10 @@ const sections: SidebarNavSection[] = [
 </template>
 ```
 
+A `SidebarNavSection` is an optional `label` and the items beneath it. Each
+item carries the `label` and `href` its row renders, an optional `icon`, and
+an `active` flag — the sole accent in the list, marking the current location.
+
 ## Why chrome, not content
 
 This is the **most recessed plane** in the shell's elevation rhythm: it

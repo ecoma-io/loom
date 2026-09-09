@@ -40,7 +40,10 @@ mounted, the message still lands: the first `useAnnounce()` call with no
 region in the tree mounts a polite/assertive pair on `document.body` and the
 message goes there. A region mounted in the tree always outranks the
 standalone pair, so an application that mounts its own regions near the shell
-owns its announcements completely.
+owns its announcements completely. That signature is the exported `Announce`
+type — the write half of the seam, handed to you as a value rather than
+re-derived — so a composable of your own can hold and forward one without
+re-stating the contract.
 
 ## Where to mount it
 

@@ -94,13 +94,102 @@ export type {
 } from "@ecoma-io/loom-breadcrumb";
 export { default as Button, buttonVariants } from "@ecoma-io/loom-button";
 export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
-// S5 trim decision: the sibling package indexes export a few things the
-// facade deliberately does not — internal helpers (COPY_REVERT_MS,
-// buttonVariantClasses, TableRowState, headAlignClass, nextSort). The label
-// and variant maps they also export (COPY_BUTTON_LABELS,
-// timelineMarkerVariants) are public surface and belong here; the helpers do
-// not, and this comment records which is which so the distinction stays a
-// decision rather than an accident.
+// The deliberate-internal register — machine-parsed by
+// tools/check-api-parity.ts's package-index↔facade leg. One record per
+// identifier a sibling package barrel exports that the facade withholds, so
+// the trim decisions stay decisions instead of drifting back into surface.
+// Three record forms, one line each, parsed out of these comments:
+//
+// "@internal <identifier> — <because>"      a barrel export the facade does not re-export
+// "@internal <pkg>:default — <because>"     a barrel's default binding, re-exported under a name
+// "@internal-doc <Identifier> — <because>"  a docs @api marker for a component no consumer imports
+//
+// `<pkg>` is the package name without its `@ecoma-io/loom-` prefix. A record
+// key is a bare identifier, not a package-scoped path, so a name two barrels
+// both export is withholdable only all-or-nothing — the staleness legs cannot
+// tell which barrel a key was written against, only whether some barrel still
+// exports it.
+//
+// Both directions are drift: an unrecorded export the facade withholds fails
+// the parity gate, and a recorded name a facade entry starts re-exporting
+// fails as a stale decision. The label and variant maps the same barrels
+// export
+// (COPY_BUTTON_LABELS, timelineMarkerVariants, and the per-component label
+// types) are public surface and are re-exported above and below; what
+// follows is what deliberately is not.
+//
+// Core — motion plumbing behind the facade-exported listStaggerDelay and the
+// scripted scrollers' reduced-motion contract:
+// @internal LIST_STAGGER_STEP_MS — the per-row step behind listStaggerDelay; the delay helper is the public vocabulary
+// @internal LIST_STAGGER_CAP — the reveal cap behind listStaggerDelay; a tuning constant, not an API
+// @internal smoothScrollBehavior — reduced-motion scroll behaviour for ScrollReel's and Carousel's own scrollTo calls
+//
+// Core — the responsive-evidence law, deliberately unpublished: 3B recorded
+// that nothing re-exports the module yet because no consumer reader exists —
+// an export nobody consumes is a promise with no reader — and the gates read
+// the law straight from the source file:
+// @internal RESPONSIVE_BEHAVIOURS — the closed responsive-claim vocabulary; the responsive gate reads it from the source file until a consumer reader exists
+// @internal RESPONSIVE_EVIDENCE_TIERS — the per-artifact-class evidence tiers; the responsive gate reads them from the source file until a consumer reader exists
+// @internal RESPONSIVE_VIEWPORT_BANDS — the canonical viewport widths the adapters import from the source; the responsive gate reads them there until a consumer reader exists
+// @internal ResponsiveBehaviour — one member's shape in the withheld vocabulary
+// @internal ResponsiveEvidenceTier — one tier's shape in the withheld registry
+// @internal ResponsiveViewportBand — one band's shape in the withheld width table
+// @internal ResponsiveEvidenceEntry — one sidecar's responsive-claim shape, part of the withheld law
+// @internal ResponsiveContract — the whole-claim shape the law assembles, part of the withheld law
+//
+// Labels — the segmented date/time fields' aria plumbing. The label maps and
+// shapes are the public vocabulary; these helpers wire Reka's segments to it:
+// @internal emptySegmentValueText — the aria-valuetext override for an empty segment, bound by the five segmented controls
+// @internal formatFullDay — the shared whole-day formatter behind the calendar grids' cell names; a host overriding labels never calls it
+// @internal isDateSegmentPart — narrows Reka's segments-slot parts to the date vocabulary's keys
+// @internal isTimeSegmentPart — narrows Reka's segments-slot parts to the time vocabulary's keys
+// @internal segmentAriaLabel — resolves one segment's accessible name from the vocabularies a control holds
+// @internal segmentAriaValueText — resolves one segment's aria-valuetext, composing the branches the controls used to carry
+// @internal DateSegmentName — the date segment key union the aria helpers narrow to
+// @internal TimeSegmentName — the time segment key union the aria helpers narrow to
+// @internal SegmentVocabularies — the date/time vocabulary pair the segment helpers resolve through
+// @internal SegmentAriaValueTextArgs — the argument shape of segmentAriaValueText
+//
+// Layout engine — deliberately unpublished: no consumer import path reaches
+// it (packages/layout-engine/src/index.ts records why); its only consumers
+// are the per-package adapters and the conformance route:
+// @internal layout — the engine's pure entry point, consumed by each composition adapter's src/layout.ts
+// @internal ComputedNode — the resolved output node the adapters read back
+// @internal Axis — the row/column direction a node's children line up in
+// @internal Align — cross-axis alignment of children in the style model
+// @internal Length — a resolved px length in the style model
+// @internal LayoutNode — the input tree an adapter hands the engine
+// @internal LayoutStyle — what one node asks of its container
+// @internal AvailableSpace — what a container offers the tree on both axes
+// @internal DimensionConstraint — the definite/max-content/fit-content sizing modes
+//
+// Component barrels — helpers the components consume in their own templates:
+// @internal buttonVariantClasses — Button.vue's own class table; buttonVariants is the published surface
+// @internal COPY_REVERT_MS — CopyButton's feedback-window length; a tuning constant its tests read from the component
+// @internal TableRowState — TableRow.vue's selected/interactive/disabled rendering state
+// @internal headAlignClass — maps TableAlign onto the classes TableHead and TableCell apply themselves
+// @internal nextSort — TableHead's sort-cycle transition, consumed by its own header logic
+//
+// Defaults kept package-local — the facade publishes these components under
+// their names, never as the barrel's default binding:
+// @internal list:default — List.vue ships as `List`; the facade re-exports the named form and no default
+// @internal toast:default — Toast.vue ships as `Toast`; the facade re-exports the named form and no default
+//
+// Docs markers for internal sub-components — a page may render the props
+// table, no consumer can import the component:
+// @internal-doc TreeViewNode — internal sub-component rendered by TreeView; not independently importable
+//
+// Generated-docs classes — facade identifiers whose documentation is the
+// site's generated API tables and the vocabulary shapes those tables and the
+// component pages print, not markdown prose naming each one. Membership is
+// the exact suffix (case included), proper — `Surface` the component is not a
+// member of the `Surface` class — and it is declared, not verified: the gate
+// holds the suffix claim, and each line states the mechanism actually behind
+// it, which is not the same strength for all four:
+// @generated-docs Size Variant Align Gap Side Orientation Elevation Pad Shape Thickness Direction Ratio Snap Width Status Density Sort State Mode Type Placement Tone Trend Resize Surface Context Element Entry Part Band Reason Politeness — the alias a component's generated API table renders for the prop that carries it: the Type cell prints the literal members a string-union alias names, or the alias itself where the type is not one
+// @generated-docs Labels — the per-component label-vocabulary interfaces, rendered as the generated API table's Type cell for their component's `labels` prop (LoomLabels itself is the registry those vocabularies fold into, not one component's prop type, and is documented in prose on the localisation page)
+// @generated-docs LABELS — declared class membership — grouped with the generated-table surface; not per-identifier documentation verification
+// @generated-docs Variants — declared class membership — grouped with the generated-table surface; not per-identifier documentation verification
 export { default as CopyButton, COPY_BUTTON_LABELS } from "@ecoma-io/loom-copy-button";
 export type {
   CopyButtonLabels,

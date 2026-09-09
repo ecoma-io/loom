@@ -43,6 +43,12 @@ pulse — so reduced-motion readers lose nothing.
   <TimelineDemo />
 </Demo>
 
+Both halves of that are public. The statuses are the exported `TimelineStatus`
+union, and the per-status marker styling is `timelineMarkerVariants` — the
+same variant function the built-in [TimelineItem](#timelineitem) applies — so a host
+drawing its own marker into the line resolves a status to exactly the fill
+the component would have rendered.
+
 ## Difference from Stepper
 
 Ordered stages a reader moves _through_, with reachability rules and

@@ -33,16 +33,53 @@ a Drawer), not every page.
 
 ```ts
 // packages/loom/src/a11y.ts
-export { WCAG_TAGS, BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "@ecoma-io/loom-core";
+export {
+  WCAG_TAGS,
+  BROWSERLESS_RULES,
+  BROWSER_REQUIRED_RULES,
+  // the role-aware evidence contract, below
+  A11Y_EVIDENCE_TIERS,
+  A11Y_EVIDENCE_REQUIREMENTS,
+  A11Y_EVIDENCE_MATRIX,
+  ARIA_ROLES,
+  NON_ROLE_MEMBERS,
+  A11Y_ROLES,
+} from "@ecoma-io/loom-core";
+export type {
+  A11yContract,
+  A11yRole,
+  AriaRole,
+  A11yEvidenceTier,
+  A11yRequirementId,
+} from "@ecoma-io/loom-core";
 ```
 
 The package's main entry re-exports every component, which makes it
 unresolvable for a tool that compiles no Vue single-file component at all —
 a CI script, an end-to-end runner driving a built page. `@ecoma-io/loom/a11y`
 is a second, narrow entry point: `WCAG_TAGS` and the browserless/browser
-partition (which rules a jsdom-tier test can answer, and which a browser gate
-cannot) — a consumer that needs only the WCAG scope, or that partition, can
-read them without pulling in the rest of the library.
+partition — `BROWSERLESS_RULES` and `BROWSER_REQUIRED_RULES`, the split over
+which rules a jsdom-tier test can answer and which need a real browser — so a
+consumer that needs only the WCAG scope, or that partition, can read them
+without pulling in the rest of the library.
+
+The same entry carries the role-aware evidence contract — what a component
+OWES, not what the library asserts. `A11Y_EVIDENCE_TIERS` names the three
+runtimes a claim must be answered in (`browserless`, `harness`, `sweep`);
+`A11Y_EVIDENCE_REQUIREMENTS` names the obligations, one row per family of
+WCAG-tagged rules; `A11Y_EVIDENCE_MATRIX` binds each role to the requirements
+its claim has to satisfy. The role vocabulary is closed: `ARIA_ROLES` is the
+real ARIA roles a component may claim, `NON_ROLE_MEMBERS` adds the two
+non-roles (`none` and `visual-only`), and `A11Y_ROLES` is the union a
+sidecar's `role` field is held to. The types name the same things —
+`A11yRole`, `AriaRole`, `A11yEvidenceTier`, `A11yRequirementId` — and
+`A11yContract` is the sidecar shape itself: the claimed role, the rendered
+fact it rests on, the evidence that answers it, and every requirement not yet
+answered with its reason. One piece of that evidence is an
+`A11yEvidenceEntry`: a plain string when the repository-root-relative path
+says everything, or that path plus the `because` a tier the role's matrix row
+does not demand must carry. Writing a component's `a11y.json` is the only
+time a consumer meets it.
 
 ## Focus rings are a promise
 
