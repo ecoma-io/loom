@@ -86,17 +86,17 @@ because 2C itself left this Phase-1 table untouched.
 
 All `layer-layouts`, all facade-exported, all shell-geometry by exports.
 
-| Artifact        | Browser evidence                           | Gap                 | Action                |
-| --------------- | ------------------------------------------ | ------------------- | --------------------- |
-| AppShell        | root responsive suite (320/1024/ultrawide) | None                | —                     |
-| MasterDetail    | root responsive suite                      | None                | —                     |
-| Centered        | root responsive suite                      | None                | —                     |
-| Reading         | root responsive suite                      | None                | —                     |
-| SplitLayout     | root responsive suite                      | None                | —                     |
-| Dashboard       | none                                       | Responsive gate gap | Phase 2 viewport spec |
-| FormLayout      | none                                       | Responsive gate gap | Phase 2 viewport spec |
-| Settings        | none                                       | Responsive gate gap | Phase 2 viewport spec |
-| DesktopAppShell | none                                       | Responsive gate gap | Phase 2 viewport spec |
+| Artifact        | Browser evidence                                                                   | Gap  | Action                                                          |
+| --------------- | ---------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| AppShell        | root responsive suite (320/1024/ultrawide)                                         | None | —                                                               |
+| MasterDetail    | root responsive suite                                                              | None | —                                                               |
+| Centered        | root responsive suite                                                              | None | —                                                               |
+| Reading         | root responsive suite                                                              | None | —                                                               |
+| SplitLayout     | root responsive suite                                                              | None | —                                                               |
+| Dashboard       | root responsive suite (320/1024) + harness spec (collapse, grid reflow, 2xl aside) | None | **Closed** — Phase 3B (#277): `responsive` claim in `a11y.json` |
+| FormLayout      | root responsive suite (ultrawide cap) + harness spec                               | None | **Closed** — Phase 3B (#277): `responsive` claim in `a11y.json` |
+| Settings        | root responsive suite + harness spec                                               | None | **Closed** — Phase 3B (#277): `responsive` claim in `a11y.json` |
+| DesktopAppShell | root responsive suite (`md` media query) + harness spec (rail width)               | None | **Closed** — Phase 3B (#277): `responsive` claim in `a11y.json` |
 
 ## Primitives (76)
 
@@ -128,6 +128,26 @@ the ledger itself: drift after #273 lands on
 and the gate's output is always the number of record. Every exception names its
 reason in the sidecar, so 3B/3D's work list is that output, not an audit
 opinion.
+
+## The responsive claims (31) — Phase 3B
+
+Phase 3A's sidecar grew a second axis: each tiered component's `a11y.json` may
+carry a `responsive` claim — either `{ contract: "none", basis }` or the
+behaviours its layout answers from the closed vocabulary in
+`packages/core/src/responsive-contract.ts`, with the harness and sweep specs
+that witness them. `tools/check-responsive-evidence.ts` (the second axis of the
+Phase 3A gate) reads the claims as data and fails any behaviour left without
+evidence or a named exception. Recounted 2026-09-09, from the gate's own
+summary line: all 31 tiered components carry a claim, and **one named exception
+stands** — `patterns/row-actions`' coarse-pointer reveal, which Playwright
+cannot witness (`emulateMedia` carries no pointer feature), an engine-scoped
+gap the sidecar records in place of a spec that would be a lie. Two gaps are
+deliberate and written where they sit: #275 (the width a wrapped panel keeps)
+is open, so no spec pins a wrapped panel's width; and `patterns/form-actions`
+claims `none` today — #276 decided wrap, and the landing of that fix retargets
+the claim. Drift after this recount lands on
+[issue #277](https://github.com/ecoma-io/loom/issues/277), this phase's ledger;
+the gate's summary is always the number of record.
 
 ## Templates (3)
 
