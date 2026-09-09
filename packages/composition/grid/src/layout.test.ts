@@ -75,13 +75,18 @@ describe("gridLayout", () => {
     ]);
   });
 
-  it("throws on a fixture that does not fill its cell — the cursor line only matches track starts then", () => {
-    expect(() =>
-      gridLayout({}, ctx(524), [
-        { w: 200, h: 40 },
-        { w: 200, h: 40 },
-      ]),
-    ).toThrow(/fill their cells exactly/);
+  it("lays a fixture narrower than its cell out as-is — the adapter is total at every width", () => {
+    // The route lays out EVERY case at EVERY viewport its page loads, so a
+    // width-conditional throw here would blind the whole report for one
+    // off-pin case — measured on CI, where exactly that took every viewport
+    // ≥ 332px down with it. The fill-the-cell law is pinned where the
+    // compared widths are known: in the coverage floor below.
+    const tree = gridLayout({}, ctx(524), [
+      { w: 200, h: 40 },
+      { w: 200, h: 40 },
+    ]);
+    expect(tree.style).toEqual({ axis: "row", gap: 12 });
+    expect(tree.children?.map((one) => one.style.width)).toEqual([200, 200]);
   });
 
   it("exempts the lone item, whose left is the track start whatever its width", () => {
@@ -196,6 +201,21 @@ describe("case coverage floor", () => {
     expect(uncounted).toEqual([]);
     expect(dusted).toEqual([]);
     expect(unfilled).toEqual([]);
+  });
+
+  it("lays every case out at every pinned viewport without throwing — the route's contract", () => {
+    // The shared route runs the adapter for the whole case set on one page
+    // load, whatever width that page is at; one width-conditional throw
+    // would blind the report for every case, not just the offending one.
+    const widths = [...new Set(cases.flatMap((c) => [...c.viewports]))].sort((a, b) => a - b);
+    for (const c of cases) {
+      for (const viewport of widths) {
+        expect(
+          () => gridLayout(c.props, ctx(viewport), c.children),
+          `${c.name} @${String(viewport)} must lay out`,
+        ).not.toThrow();
+      }
+    }
   });
 
   it("counts the row-banding absence: at least one case carries it, named and owned", () => {

@@ -85,7 +85,27 @@ interface DomNode {
 }
 
 async function readReport(page: Page): Promise<Report> {
-  await page.waitForSelector("#loom-conformance-report", { state: "attached" });
+  // The route lays out every case on one page load, so a single case whose
+  // adapter throws in-page leaves no report node at all — a bare selector
+  // timeout with no clue which case or width killed it (measured on CI).
+  // The page's own errors ride along on the timeout's message.
+  const crashes: string[] = [];
+  const onError = (error: Error): void => {
+    crashes.push(error.message);
+  };
+  page.on("pageerror", onError);
+  try {
+    await page.waitForSelector("#loom-conformance-report", { state: "attached" });
+  } catch (error) {
+    throw new Error(
+      `the conformance route published no report${
+        crashes.length > 0 ? `; the page threw: ${crashes.join(" | ")}` : ""
+      }`,
+      { cause: error },
+    );
+  } finally {
+    page.off("pageerror", onError);
+  }
   const text = await page.locator("#loom-conformance-report").textContent();
   if (text === null) throw new Error("the conformance route did not publish its report");
   return JSON.parse(text) as Report;

@@ -127,10 +127,15 @@ export function trackWidth(availableWidth: number, usedColumns: number, gap: num
  * IS one line — children ≤ the repetition count — and every fixture fills
  * its cell: the engine places children at cursor sums of (size + gap) and a
  * grid places items at track starts, and the two coincide only when item ==
- * track. That equality is validated, not assumed — a fixture narrower than
- * its cell has no engine reading in this slice, and a loud throw beats a
- * tree that quietly agrees with nothing. A lone item is exempt: its left is
- * the track start whatever its width.
+ * track. That equality is a case-file convention, not an adapter check: the
+ * conformance route lays out EVERY case at EVERY viewport its page loads, so
+ * a width-conditional throw here would take down the whole report for one
+ * off-pin case — the failure mode CI actually ran. The loud check lives
+ * where the compared widths are known: the coverage floor in
+ * src/layout.test.ts pins every compared case at its published viewports,
+ * and the spec's engine-vs-DOM table reddens on any arithmetic this module
+ * gets wrong. A lone item is exempt by nature: its left is the track start
+ * whatever its width.
  *
  * Beyond one row (children > the repetition count) there is no honest
  * single-line tree, and this adapter does not pretend to one: it returns the
@@ -148,7 +153,6 @@ export function gridLayout(
   const [belowSm, atSm] = GRID_GAP_STEPS[props.gap ?? "md"];
   const gap = ctx.viewportWidth >= GRID_GAP_BREAKPOINT ? atSm : belowSm;
   const columns = autoFitColumns(ctx.availableWidth, minTrackPx, gap);
-  const used = Math.min(children.length, columns);
 
   if (children.length > columns) {
     // Row banding: the first row only, and never compared — see the
@@ -161,21 +165,6 @@ export function gridLayout(
       // a comparison against this tree is exactly what the case declines.
       children: children.slice(0, columns).map(leaf),
     };
-  }
-
-  if (used >= 2) {
-    const track = trackWidth(ctx.availableWidth, used, gap);
-    for (const [i, child] of children.entries()) {
-      if (child.w !== track) {
-        throw new Error(
-          `gridLayout: fixture ${String(i)} is ${String(child.w)}px wide but its track is ${String(
-            track,
-          )}px (availableWidth ${String(ctx.availableWidth)}, columns ${String(used)}, gap ${String(
-            gap,
-          )}) — fixtures must fill their cells exactly, because the engine's cursor line only matches the grid's track starts then. Use an integral track width.`,
-        );
-      }
-    }
   }
 
   const leaves = children.map(leaf);
