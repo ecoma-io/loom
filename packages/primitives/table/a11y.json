@@ -11,5 +11,13 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "rows and sortable headers managed as one — sort state is the component's own.",
+    "evidence": {
+      "harness": ["packages/primitives/table/e2e/table.e2e.ts"],
+      "browserless": ["packages/primitives/table/tests/Table.test.ts"]
+    }
+  }
 }

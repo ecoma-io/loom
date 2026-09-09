@@ -18,5 +18,18 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "a hierarchy of expandable nodes managed as one — the richest traversal contract in the library.",
+    "evidence": {
+      "browserless": ["packages/primitives/tree-view/tests/TreeView.test.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — arrow traversal, expand/collapse and selection keys is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
+  }
 }

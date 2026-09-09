@@ -15,5 +15,15 @@
     ],
     "harness": [],
     "sweep": ["docs/patterns/page-header.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a title region hosting breadcrumb and actions it does not operate.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "page-header.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
+      }
+    ]
   }
 }

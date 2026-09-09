@@ -8,5 +8,15 @@
     ],
     "harness": [],
     "sweep": ["docs/components/indicator.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a status dot — presence is the whole contract.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

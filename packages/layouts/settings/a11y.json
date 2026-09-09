@@ -16,5 +16,15 @@
     ],
     "harness": [],
     "sweep": ["docs/layouts/settings.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a landmark skeleton of setting groups it does not operate.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "settings.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
+      }
+    ]
   }
 }

@@ -14,5 +14,13 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "field and day grid managed as one — popup, traversal, selection.",
+    "evidence": {
+      "harness": ["packages/primitives/date-picker/e2e/date-picker.e2e.ts"],
+      "browserless": ["packages/primitives/date-picker/tests/DatePicker.test.ts"]
+    }
+  }
 }

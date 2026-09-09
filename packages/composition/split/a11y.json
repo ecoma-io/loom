@@ -17,5 +17,15 @@
       }
     ],
     "sweep": ["docs/composition/split.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "two panes around a resize divider — the resize act is its own.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "split.e2e.ts pins geometry only — keyboard resize is unproven in browser"
+      }
+    ]
   }
 }

@@ -17,5 +17,15 @@
       }
     ],
     "sweep": ["docs/composition/stack.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a pure flex wrapper — nothing operates, nothing focuses.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

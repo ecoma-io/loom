@@ -282,14 +282,22 @@ function parseSidecar(
   }
   const record = json as Record<string, unknown>;
 
-  const knownKeys = new Set(["role", "basis", "evidence", "exceptions", "responsive"]);
+  const knownKeys = new Set([
+    "role",
+    "basis",
+    "evidence",
+    "exceptions",
+    "responsive",
+    "interaction",
+  ]);
   for (const key of Object.keys(record)) {
     if (!knownKeys.has(key)) {
       // Fail, not skip: a typo'd key would otherwise read as an absent one and
-      // the claim would quietly lose a field. A second axis (3D's interaction
-      // class) lands as a deliberate edit here and in the law, not as a silent
-      // extra; `responsive` is that edit having landed — its shape is judged
-      // by tools/check-responsive-evidence.ts, which owns the vocabulary.
+      // the claim would quietly lose a field. A further axis lands as a
+      // deliberate edit here and in the law, not as a silent extra;
+      // `responsive` (Phase 3B) and `interaction` (Phase 3D) are those edits
+      // having landed — each shape is judged by its own gate, which owns the
+      // vocabulary.
       failures.push(
         `${component}: ${relSidecar} carries unknown key "${key}" — extend the contract and this gate together`,
       );

@@ -18,5 +18,20 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "two bound date-time pairs managed as one range.",
+    "evidence": {
+      "browserless": [
+        "packages/primitives/date-time-range-picker/tests/DateTimeRangePicker.test.ts"
+      ]
+    },
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — the pair's popup traversal is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
+  }
 }

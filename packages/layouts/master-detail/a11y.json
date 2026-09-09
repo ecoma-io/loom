@@ -15,5 +15,15 @@
     ],
     "harness": [],
     "sweep": ["docs/layouts/master-detail.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "two panes around slotted lists and detail — operates none.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage between the panes is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

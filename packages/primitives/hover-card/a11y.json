@@ -8,5 +8,15 @@
     ],
     "harness": [],
     "sweep": ["docs/components/hover-card.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a revealed surface around content — the hover intent is its own act, nothing operates inside.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage through the revealed surface is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

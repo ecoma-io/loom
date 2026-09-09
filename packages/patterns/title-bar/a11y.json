@@ -12,5 +12,15 @@
     ],
     "harness": [],
     "sweep": ["docs/patterns/title-bar.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a bar hosting window controls it does not own.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard passage between the hosted controls is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

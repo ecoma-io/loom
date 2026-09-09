@@ -18,5 +18,18 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "interactive",
+    "basis": "one type target with disabled, readonly and invalid states of its own.",
+    "evidence": {
+      "browserless": ["packages/primitives/text-field/tests/TextField.test.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "typing is the native input's own contract; no component-owned harness spec exists — the component owns the naming and the state, the keystrokes are the platform's"
+      }
+    ]
+  }
 }

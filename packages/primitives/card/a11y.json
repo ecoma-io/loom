@@ -10,5 +10,12 @@
       }
     ],
     "sweep": ["docs/components/card.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a surface around slotted content whose interactive variant becomes one spanning anchor.",
+    "evidence": {
+      "harness": ["packages/primitives/card/e2e/card.e2e.ts"]
+    }
   }
 }

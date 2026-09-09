@@ -10,5 +10,19 @@
       }
     ],
     "sweep": ["docs/components/toast.md"]
+  },
+  "interaction": {
+    "class": "interactive",
+    "basis": "an announced notice carrying one dismiss target of its own.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "toast.e2e.ts dismisses by pointer only — the dismiss control's keyboard contract is unproven in browser"
+      },
+      {
+        "requirement": "state-report",
+        "because": "no unit-tier state pin yet — the dismissed state is browser-witnessed in toast.e2e.ts and unpinned in the unit tier"
+      }
+    ]
   }
 }

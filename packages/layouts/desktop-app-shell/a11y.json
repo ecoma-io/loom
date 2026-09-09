@@ -16,5 +16,15 @@
     ],
     "harness": [],
     "sweep": ["docs/layouts/desktop-app-shell.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a desktop landmark skeleton hosting panels it does not operate.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "desktop-app-shell.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
+      }
+    ]
   }
 }

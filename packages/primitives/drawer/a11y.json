@@ -16,5 +16,19 @@
       "requirement": "keyboard",
       "because": "the panel's focus-and-Escape contract is the wrapped Reka dialog's runtime behaviour and drawer.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "trigger, panel and focus containment managed as one; Escape closes, focus returns.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "drawer.e2e.ts closes by pointer only — the Escape contract is unproven in browser"
+      },
+      {
+        "requirement": "state-report",
+        "because": "no unit-tier state pin yet — open/closed reporting is browser-witnessed in drawer.e2e.ts and unpinned in the unit tier"
+      }
+    ]
+  }
 }

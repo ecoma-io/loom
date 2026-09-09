@@ -23,5 +23,18 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "interactive",
+    "basis": "one toggle target; expanded state is the component's own.",
+    "evidence": {
+      "browserless": ["packages/primitives/collapse/tests/Collapse.test.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "collapse.e2e.ts toggles by pointer only — the trigger's keyboard contract is unproven in browser"
+      }
+    ]
+  }
 }

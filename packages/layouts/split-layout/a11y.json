@@ -15,5 +15,15 @@
     ],
     "harness": [],
     "sweep": ["docs/layouts/split-layout.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "two resizable panes around slotted content.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "no harness spec yet — keyboard resize between the panes is unproven in browser; the spec lands with the interaction-evidence tranche"
+      }
+    ]
   }
 }

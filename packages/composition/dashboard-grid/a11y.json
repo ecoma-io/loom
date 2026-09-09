@@ -15,5 +15,15 @@
     ],
     "harness": [],
     "sweep": ["docs/composition/dashboard-grid.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a pure grid wrapper — nothing operates.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

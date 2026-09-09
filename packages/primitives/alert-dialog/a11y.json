@@ -14,5 +14,18 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "trigger, overlay and focus containment managed as one; Escape closes, focus routes on open and close.",
+    "evidence": {
+      "harness": ["packages/primitives/alert-dialog/e2e/alert-dialog.e2e.ts"]
+    },
+    "exceptions": [
+      {
+        "requirement": "state-report",
+        "because": "no unit-tier state pin yet — open/closed reporting is browser-witnessed in alert-dialog.e2e.ts and unpinned in the unit tier"
+      }
+    ]
+  }
 }

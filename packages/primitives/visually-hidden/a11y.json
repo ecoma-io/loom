@@ -8,5 +8,15 @@
     ],
     "harness": [],
     "sweep": ["docs/components/visually-hidden.md"]
+  },
+  "interaction": {
+    "class": "visual-only",
+    "basis": "a clipping wrapper for screen-reader-only content — nothing operates, nothing focuses.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-inert",
+        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
+      }
+    ]
   }
 }

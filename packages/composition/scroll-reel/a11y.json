@@ -25,5 +25,15 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "container",
+    "basis": "a snap-scrolling region whose script-driven stepping honours reduced motion.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "tests/ScrollReel.test.ts pins the Home/End/arrow stepping handler browserlessly; no harness spec witnesses the stepping in a browser yet"
+      }
+    ]
+  }
 }

@@ -10,5 +10,19 @@
       }
     ],
     "sweep": ["docs/components/alert.md"]
+  },
+  "interaction": {
+    "class": "interactive",
+    "basis": "a dismissible alert carries one operable part of its own — the close control.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "alert.e2e.ts dismisses by pointer only — the close control's keyboard contract is unproven in browser"
+      },
+      {
+        "requirement": "state-report",
+        "because": "no unit-tier state pin yet — the dismissed state is browser-witnessed in alert.e2e.ts and unpinned in the unit tier"
+      }
+    ]
   }
 }

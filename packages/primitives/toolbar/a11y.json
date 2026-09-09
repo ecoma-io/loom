@@ -14,5 +14,13 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "composite",
+    "basis": "controls along a bar managed as one — roving focus across the groups.",
+    "evidence": {
+      "harness": ["packages/primitives/toolbar/e2e/toolbar-keyboard.e2e.ts"],
+      "browserless": ["packages/primitives/toolbar/tests/Toolbar.test.ts"]
+    }
+  }
 }

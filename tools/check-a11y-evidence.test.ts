@@ -445,6 +445,29 @@ describe("checkA11yEvidence", () => {
     ]);
   });
 
+  it("tolerates the interaction axis — the third claim in the same sidecar, judged by its own gate", () => {
+    // Phase 3D added `interaction` beside `role` and `responsive`, fulfilling
+    // the contract's reservation comment; the a11y gate neither reads nor
+    // judges it (the vocabulary is tools/check-interaction-evidence.ts's), and
+    // the typo case is the same one the responsive axis carries: a key this
+    // gate has not been told about is a claim it would silently drop.
+    const told = makeTree();
+    writeSidecar(told, {
+      ...completeSidecar(),
+      interaction: { class: "interactive", basis: "one native activation target" },
+    });
+    expect(checkA11yEvidence(told, contract)).toEqual([]);
+
+    const typo = makeTree();
+    writeSidecar(typo, {
+      ...completeSidecar(),
+      interactin: { class: "interactive", basis: "one native activation target" },
+    });
+    expect(checkA11yEvidence(typo, contract)).toEqual([
+      'Button: packages/primitives/button/a11y.json carries unknown key "interactin" — extend the contract and this gate together',
+    ]);
+  });
+
   it("fails evidence declared under a tier the contract does not name", () => {
     const root = makeTree();
     writeSidecar(root, {

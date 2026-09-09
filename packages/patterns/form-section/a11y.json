@@ -25,5 +25,15 @@
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#272)"
     }
-  ]
+  ],
+  "interaction": {
+    "class": "container",
+    "basis": "a titled, described group around fields — the group's own acts are naming and wiring.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "form-section.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
+      }
+    ]
+  }
 }

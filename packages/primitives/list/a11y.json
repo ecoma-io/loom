@@ -10,5 +10,15 @@
       }
     ],
     "sweep": ["docs/components/list.md"]
+  },
+  "interaction": {
+    "class": "container",
+    "basis": "a structured container for slotted items — operates nothing.",
+    "exceptions": [
+      {
+        "requirement": "keyboard-operate",
+        "because": "list.e2e.ts pins rendering only — keyboard passage is unproven in browser"
+      }
+    ]
   }
 }

@@ -26,6 +26,10 @@ import {
   ARIA_ROLES,
   NON_ROLE_MEMBERS,
   A11Y_ROLES,
+  INTERACTION_CLASSES,
+  INTERACTION_EVIDENCE_TIERS,
+  INTERACTION_REQUIREMENTS,
+  INTERACTION_MATRIX,
 } from "../src/a11y-contract";
 import { BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "../src/a11y-scope";
 
@@ -299,5 +303,108 @@ describe("a11y evidence contract", () => {
         "th-has-data-cells",
       ].sort(),
     );
+  });
+});
+
+describe("interaction evidence contract", () => {
+  // The same doctrine as the role half above, on the second axis: the
+  // vocabulary, the tiers, the duties and the matrix are pinned verbatim,
+  // because a row edit that does not update this pin fails here, and a pin
+  // update that does not update the sidecars fails the gate.
+  it("the closed class vocabulary is exactly the four interaction classes", () => {
+    expect(INTERACTION_CLASSES).toEqual(["interactive", "composite", "container", "visual-only"]);
+    expect(new Set(INTERACTION_CLASSES).size).toBe(INTERACTION_CLASSES.length);
+  });
+
+  it("witnesses duties in the runtimes that can witness them — and no sweep tier", () => {
+    expect(INTERACTION_EVIDENCE_TIERS).toEqual(["browserless", "harness"]);
+    for (const requirement of INTERACTION_REQUIREMENTS) {
+      expect(
+        INTERACTION_EVIDENCE_TIERS.includes(requirement.tier),
+        `${requirement.id} demands evidence in "${requirement.tier}", which is no interaction tier`,
+      ).toBe(true);
+    }
+  });
+
+  it("every duty id is unique and carries at least one answered obligation", () => {
+    expect(new Set(INTERACTION_REQUIREMENTS.map((r) => r.id)).size).toBe(
+      INTERACTION_REQUIREMENTS.length,
+    );
+    for (const requirement of INTERACTION_REQUIREMENTS) {
+      expect(
+        requirement.answers.length,
+        `${requirement.id} answers nothing — a duty nothing names cannot be argued with`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("every class has exactly one matrix row, and no row exists for a class outside the vocabulary", () => {
+    const rows = new Map(INTERACTION_MATRIX.map((row) => [row.class, row.requirements]));
+    const missing = INTERACTION_CLASSES.filter((cls) => !rows.has(cls));
+    expect(missing, `vocabulary members with no matrix row: ${missing.join(", ")}`).toEqual([]);
+    const extra = [...rows.keys()].filter(
+      (cls) => !(INTERACTION_CLASSES as readonly string[]).includes(cls),
+    );
+    expect(extra, `matrix rows for classes outside the vocabulary: ${extra.join(", ")}`).toEqual(
+      [],
+    );
+    expect(rows.size).toBe(INTERACTION_CLASSES.length);
+  });
+
+  it("every matrix row names defined duties, once each, and never an empty row", () => {
+    const ids = INTERACTION_REQUIREMENTS.map((r) => r.id);
+    for (const row of INTERACTION_MATRIX) {
+      const unknown = row.requirements.filter((id) => !ids.includes(id));
+      expect(
+        unknown,
+        `${row.class} requires ${unknown.join(", ")}, which no definition supplies`,
+      ).toEqual([]);
+      expect(new Set(row.requirements).size, `${row.class} repeats a duty`).toBe(
+        row.requirements.length,
+      );
+      expect(
+        row.requirements.length,
+        `${row.class}'s row is empty — a class that owes nothing is not in the vocabulary`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("demands every defined duty of at least one class", () => {
+    // Dead law reads as an obligation while exempting every component from it.
+    const demanded = new Set(INTERACTION_MATRIX.flatMap((row) => row.requirements));
+    const orphaned = INTERACTION_REQUIREMENTS.filter((r) => !demanded.has(r.id));
+    expect(
+      orphaned.map((r) => r.id),
+      "duties no class row demands",
+    ).toEqual([]);
+  });
+
+  it("keyboard-operate is always harness-tier — a keyboard contract is a browser fact", () => {
+    const operate = INTERACTION_REQUIREMENTS.find((r) => r.id === "keyboard-operate");
+    expect(operate?.tier).toBe("harness");
+    // Filtered, not conditionally asserted: the pin is that every row except
+    // exactly visual-only carries the duty, so the set difference is what the
+    // expectations speak about.
+    const operating = INTERACTION_MATRIX.filter((row) => row.class !== "visual-only");
+    for (const row of operating) {
+      expect(
+        row.requirements.includes("keyboard-operate"),
+        `${row.class} omits keyboard-operate — every class but visual-only owes a keyboard contract`,
+      ).toBe(true);
+    }
+    expect(
+      operating.map((row) => row.class),
+      "the classes exempt from keyboard-operate are not exactly visual-only",
+    ).toEqual(INTERACTION_CLASSES.filter((cls) => cls !== "visual-only"));
+  });
+
+  it("the interaction matrix is the law it says it is — content pinned, whole", () => {
+    const expected: [string, string[]][] = [
+      ["interactive", ["keyboard-operate", "state-report"]],
+      ["composite", ["keyboard-operate", "state-report"]],
+      ["container", ["keyboard-operate"]],
+      ["visual-only", ["keyboard-inert"]],
+    ];
+    expect(INTERACTION_MATRIX.map((row) => [row.class, [...row.requirements]])).toEqual(expected);
   });
 });
