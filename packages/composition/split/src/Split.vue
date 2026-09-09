@@ -68,8 +68,9 @@ withDefaults(
     -->
     <template v-if="side === 'right'">
       <!-- Content area: fills remaining space, but demands at least 50% of
-           the container before wrapping. When collapsed it also takes full
-           width. -->
+           the container before wrapping. Wrapped onto a line of its own it
+           takes that whole line: flex-basis 0 starts from nothing and
+           flex-grow 999 absorbs every free pixel on the line. -->
       <div
         :style="{
           flexBasis: 0,
@@ -80,8 +81,10 @@ withDefaults(
       >
         <slot />
       </div>
-      <!-- Side panel: fixed minimum width, does not grow. When collapsed the
-           panel takes full width (flex-basis: 100%). -->
+      <!-- Side panel: fixed minimum width, does not grow. Wrapped onto a
+           line of its own it keeps exactly that declared width — flex-grow 0
+           with an explicit basis never widens, so the full-line stretch is
+           the content side's alone. -->
       <div
         :style="{
           flexBasis: minSideWidth,
@@ -94,8 +97,10 @@ withDefaults(
       </div>
     </template>
     <template v-else>
-      <!-- Side panel: fixed minimum width, does not grow. When collapsed the
-           panel takes full width (flex-basis: 100%). -->
+      <!-- Side panel: fixed minimum width, does not grow. Wrapped onto a
+           line of its own it keeps exactly that declared width — flex-grow 0
+           with an explicit basis never widens, so the full-line stretch is
+           the content side's alone. -->
       <div
         :style="{
           flexBasis: minSideWidth,
@@ -107,8 +112,9 @@ withDefaults(
         <slot name="side" />
       </div>
       <!-- Content area: fills remaining space, but demands at least 50% of
-           the container before wrapping. When collapsed it also takes full
-           width. -->
+           the container before wrapping. Wrapped onto a line of its own it
+           takes that whole line: flex-basis 0 starts from nothing and
+           flex-grow 999 absorbs every free pixel on the line. -->
       <div
         :style="{
           flexBasis: 0,
