@@ -126,7 +126,7 @@ Re-exports `useTheme`, `themeScript`, `ThemePreference`, `ResolvedTheme` from `s
 
 ### Composition & Layout dependencies
 
-All 8 compositions and all 8 layouts import **only `cn` from `lib/cn`**.
+Every composition and every layout imports **only `cn` from `lib/cn`**.
 No composition imports another composition. No layout imports a primitive.
 
 ### External dependency usage
