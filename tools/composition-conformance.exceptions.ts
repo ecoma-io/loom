@@ -51,13 +51,6 @@ export const COMPOSITION_CONFORMANCE_EXCEPTIONS: readonly CompositionConformance
       "No milestone: a by-design declaration, not debt. The row is deleted only if the engine's modelled subset ever admits scroll containers or snap points, or the component grows a static-geometry fact a plain one-line row does not carry.",
   },
   {
-    composition: "sidebar",
-    reason:
-      "No part of the evidence set exists — no adapter, cases, spec or floor; one behavioural e2e holds the intrinsic collapse and jsdom pins the classes, and no engine twin stands beside either. The auditors' first-priority twin (gap P1's risk order).",
-    owner: "Phase 4A (composition twins)",
-    removal: "Phase 4A — the pull request that lands sidebar's adapter and cases deletes this row.",
-  },
-  {
     composition: "split",
     reason:
       "Percent-length sizing sits outside the engine's modelled subset, so the twin waits on gap P1's boundary decision; one behavioural e2e exists and no adapter does.",
