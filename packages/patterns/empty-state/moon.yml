@@ -1,3 +1,5 @@
+deps:
+  - "core"
 tags: ["layer-patterns"]
 project:
   name: "empty-state"

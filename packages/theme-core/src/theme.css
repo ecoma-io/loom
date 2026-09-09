@@ -159,8 +159,12 @@
   --z-index-toast: 100; /* above every overlay, because a toast reports on the thing the overlay is doing */
 
   /* The press. One value, reached through `active:scale-press`, replacing six
-   * `scale-[0.97]` and three `scale-95` that meant the same thing. */
+   * `scale-[0.97]` and three `scale-95` that meant the same thing.
+   * `--scale-press-soft` is the deliberate second weight: the same feedback
+   * at a quarter of the travel, for list rows, where a full press on a
+   * full-width row reads as the page jolting rather than the row answering. */
   --scale-press: 0.97;
+  --scale-press-soft: 0.995;
 
   /* ---- Shape: small, even fillets — milled, never blobby.
    * Nesting law: inner radius = outer radius − padding, floor 2px. Pick the

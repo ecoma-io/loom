@@ -12,12 +12,14 @@ export { optional } from "./props";
 // Attribute splitting for inheritAttrs: false components.
 export { useSplitAttrs } from "./attrs";
 
-// The list-reveal stagger vocabulary.
+// The stagger vocabularies.
 export {
+  EMPTY_STATE_STAGGER_STEP_MS,
   LIST_STAGGER_CAP,
   LIST_STAGGER_STEP_MS,
   listStaggerDelay,
   smoothScrollBehavior,
+  staggerDelay,
 } from "./motion";
 
 // The WCAG scope the library holds itself to.

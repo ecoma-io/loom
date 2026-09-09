@@ -30,7 +30,11 @@ means every one of them can be overridden from outside the library, the
 ordinary CSS way — redeclaring the variable at a scope that wins the
 cascade. Nothing about a Loom component reaches past its own tokens to a
 literal value, so overriding the token is overriding the component; there is
-no second, more specific place a colour or a radius is hiding.
+no second, more specific place a colour or a radius is hiding. That "nothing
+reaches past the tokens" is not aspirational: the token-allowlist gate
+(`tools/check-token-allowlist.ts`) fails any component value that is not
+token-anchored and not one of the recorded exceptions, so an override point
+cannot silently grow a bypass beside it.
 
 ## Dual themes
 

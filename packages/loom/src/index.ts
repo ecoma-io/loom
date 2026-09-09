@@ -123,6 +123,8 @@ export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
 // @internal LIST_STAGGER_STEP_MS — the per-row step behind listStaggerDelay; the delay helper is the public vocabulary
 // @internal LIST_STAGGER_CAP — the reveal cap behind listStaggerDelay; a tuning constant, not an API
 // @internal smoothScrollBehavior — reduced-motion scroll behaviour for ScrollReel's and Carousel's own scrollTo calls
+// @internal EMPTY_STATE_STAGGER_STEP_MS — the per-row step behind EmptyState's reveal; a tuning constant, not an API
+// @internal staggerDelay — the shared step helper behind listStaggerDelay and EmptyState's reveal; the per-family wrappers are the public vocabulary
 //
 // Core — the responsive-evidence law, deliberately unpublished: 3B recorded
 // that nothing re-exports the module yet because no consumer reader exists —
