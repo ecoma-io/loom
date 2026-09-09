@@ -12,25 +12,27 @@
 # contains the literal text `uses: …` (README guards, release notes) is data
 # to a parsed node, where a raw-file regex would flag prose.
 #
-# Two shapes are accepted, both for stated reasons: a literal full SHA — the
-# rule's whole point — and a `./local` path, whose bytes are reviewed in the
-# very diff that changes them, with no upstream owner who can repoint
-# anything. An expression ref (`@${{ github.sha }}`) looks like a pin and is
-# not: the runner does not evaluate expressions in `uses` (actions/runner#895)
-# and GitHub rejects the workflow outright, so expressions stay refused
-# alongside tags and branches. There is no org exemption — the rule mirrors
+# Three shapes are accepted, each for a stated reason: a literal full SHA —
+# the rule's whole point; the same pin written as a quoted YAML scalar,
+# because GitHub takes it and the metavariable captures the quotes with the
+# value; and a `./local` path, whose bytes are reviewed in the very diff that
+# changes them, with no upstream owner who can repoint anything. An
+# expression ref (`@${{ github.sha }}`) looks like a pin and is not: the
+# runner does not evaluate expressions in `uses` (actions/runner#895) and
+# GitHub rejects the workflow outright, so expressions stay refused alongside
+# tags and branches. There is no org exemption — the rule mirrors
 # action-agents' own, where the two dogfood `uses:` lines this repo once ran
 # on bare tags were the defect it exists for.
 #
 # Fixtures live in workflows.test.yaml, exercised by `semgrep --test --config
-# .github/semgrep .github/semgrep`. That file needs a top-level `rules: []`
-# key even though it is not a rule config: `--config` loads every
-# `.yml`/`.yaml` file under `.github/semgrep` as a candidate rule file, and
-# one with no `rules:` key aborts the whole run with exit 7. Its `.test.`
-# infix is load-bearing too — a `.yml`/`.yaml`-suffixed file is otherwise only
-# a config candidate, and only `.test.` files are recognised as test targets.
-# Neither requirement is documented; both are confirmed against semgrep 1.x
-# by running it.
+# .github/semgrep .github/semgrep`. The fixture's `.test.` infix is
+# load-bearing: a `.yml`/`.yaml` file under `.github/semgrep` is otherwise
+# only a candidate rule config for `--config`, and renaming the fixture to
+# `workflows-test.yaml` silently drops it from the test run (verified —
+# 22/22 becomes 21/21). Its top-level `rules: []` makes that candidate load
+# as a valid empty config; some semgrep versions abort on a keyless one,
+# though the pinned 1.172.0 does not. Neither mechanic is documented by
+# semgrep; both are recorded here from running it.
 rules:
   - id: workflow-action-not-pinned-to-sha
     languages: [yaml]
@@ -52,4 +54,4 @@ rules:
       - metavariable-pattern:
           metavariable: $REF
           patterns:
-            - pattern-not-regex: '^(?:\./.*|.*@[0-9a-fA-F]{40})$'
+            - pattern-not-regex: '^(?:\./.*|.*@[0-9a-fA-F]{40}|"[^"]*@[0-9a-fA-F]{40}")$'

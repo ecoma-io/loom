@@ -1,11 +1,11 @@
 # A semgrep --test fixture for workflows.yaml, not a workflow — nothing under
-# .github/semgrep ever runs as one. The top-level `rules: []` key exists only
-# so `semgrep --config .github/semgrep`, which loads every `.yml`/`.yaml` file
-# in that directory as a candidate rule config, sees a valid (empty) config
-# here instead of aborting with exit 7; the fake workflow below is ordinary
-# fixture data. The `.test.` infix in this file's name is what makes semgrep
-# treat it as a test target rather than only a config candidate — both
-# mechanics are recorded in workflows.yaml's header comment.
+# .github/semgrep ever runs as one. The `.test.` infix in this file's name is
+# what makes semgrep treat it as a test target rather than only a config
+# candidate for `--config` — renaming the file drops these fixtures from the
+# run silently (verified). The top-level `rules: []` key makes that candidate
+# load as a valid empty config; some semgrep versions abort on a keyless one,
+# though the pinned 1.172.0 does not. The fake workflow below is ordinary
+# fixture data — the mechanics are recorded in workflows.yaml's header too.
 rules: []
 
 name: fake workflow, fixture only
@@ -20,6 +20,10 @@ jobs:
       - uses: actions/checkout@v4
       # ok: workflow-action-not-pinned-to-sha
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # A quoted pin is still a pin: GitHub accepts the quoted scalar, and the
+      # rule tolerates the quotes around a full SHA.
+      # ok: workflow-action-not-pinned-to-sha
+      - uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
       # An expression ref is not a pin: the runner does not evaluate
       # expressions in uses (actions/runner#895) and GitHub rejects the
       # workflow outright.
