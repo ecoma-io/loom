@@ -5,7 +5,9 @@
  * composition with neither the evidence set nor a row here fails the gate, and
  * a row whose composition has since landed the full set fails too — an
  * exception expires the day its evidence arrives, so 4A's landings delete
- * rows instead of letting them rot into a second silent allowance. The shape
+ * rows instead of letting them rot into a second silent allowance. A row
+ * excuses what is ABSENT only: evidence a composition owns that fails a rule
+ * fails the gate even under a row. The shape
  * is module-boundaries.config.mjs' suppression rows: every field mandatory,
  * an unexplained row indistinguishable from a forgotten one.
  *
@@ -27,7 +29,7 @@ export const COMPOSITION_CONFORMANCE_EXCEPTIONS: readonly CompositionConformance
   {
     composition: "dashboard-grid",
     reason:
-      "No adapter exists and the grid-template arrangement has no designed engine mapping yet. The composition joined the tier in 2C (ADR-001) and was named by no planning document until gap P1's census correction — the least-ready twin must still be a NAMED one.",
+      "No part of the evidence set exists — no adapter, cases, spec or floor — and its `repeat(auto-fit, minmax(…))` arrangement computes the column count in the browser from the container's width, outside the engine's modelled subset. The composition joined the tier in 2C (ADR-001) and was named by no planning document until gap P1's census correction — the least-ready twin must still be a NAMED one.",
     owner: "Phase 4A (composition twins)",
     removal:
       "Phase 4A — the pull request that lands dashboard-grid's adapter and cases deletes this row.",
@@ -35,7 +37,7 @@ export const COMPOSITION_CONFORMANCE_EXCEPTIONS: readonly CompositionConformance
   {
     composition: "grid",
     reason:
-      "No adapter exists; jsdom class pins are the only layout evidence (gap P1's no-computable-twin list).",
+      "No part of the evidence set exists — no adapter, cases, spec or floor; one behavioural e2e holds the auto-fit reflow and jsdom pins the classes, and no engine twin stands beside either (gap P1's no-computable-twin list).",
     owner: "Phase 4A (composition twins)",
     removal: "Phase 4A — the pull request that lands grid's adapter and cases deletes this row.",
   },
@@ -50,7 +52,7 @@ export const COMPOSITION_CONFORMANCE_EXCEPTIONS: readonly CompositionConformance
   {
     composition: "sidebar",
     reason:
-      "No adapter exists; jsdom class pins are the only layout evidence. The auditors' first-priority twin (gap P1's risk order).",
+      "No part of the evidence set exists — no adapter, cases, spec or floor; one behavioural e2e holds the intrinsic collapse and jsdom pins the classes, and no engine twin stands beside either. The auditors' first-priority twin (gap P1's risk order).",
     owner: "Phase 4A (composition twins)",
     removal: "Phase 4A — the pull request that lands sidebar's adapter and cases deletes this row.",
   },
