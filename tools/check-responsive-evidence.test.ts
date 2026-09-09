@@ -380,7 +380,7 @@ describe("checkResponsiveEvidence", () => {
   });
 
   it("fails each malformed claim shape instead of reading past it", () => {
-    const cases: { name: string; responsive: object; fragment: string }[] = [
+    const cases: { name: string; responsive: unknown; fragment: string }[] = [
       {
         name: "a blank basis",
         responsive: { behaviour: ["intrinsic-collapse"], basis: "   " },

@@ -532,7 +532,8 @@ export function checkResponsiveEvidence(
       // sweep citation is answered only by this component's page sitting in
       // the leg's population.
       const validTiers: string[] = [];
-      for (const [entryTier, entries] of Object.entries(claim.evidence)) {
+      for (const [entryTier, tierEntries] of Object.entries(claim.evidence)) {
+        const entries = tierEntries ?? [];
         let tierHolds = entries.length > 0;
         for (const entry of entries) {
           const where = `responsive evidence.${entryTier} entry`;

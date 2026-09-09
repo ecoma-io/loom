@@ -111,13 +111,12 @@ export type ResponsiveEvidenceTier = (typeof RESPONSIVE_EVIDENCE_TIERS)[number];
 export type ResponsiveViewportBand = keyof typeof RESPONSIVE_VIEWPORT_BANDS;
 
 /**
- * One declared piece of viewport evidence: a repository-root-relative path the
- * gate verifies exists and holds to the viewport rule.
+ * One declared piece of viewport evidence. A plain string is a
+ * repository-root-relative path the gate verifies exists and holds to the
+ * viewport rule; an object is the same path plus the `because` that narrows
+ * what the file witnesses — and a qualified entry answers no behaviour.
  */
-export interface ResponsiveEvidenceEntry {
-  path: string;
-  because?: string;
-}
+export type ResponsiveEvidenceEntry = string | { path: string; because?: string };
 
 /**
  * The two halves of the claim, separated so each can be an interface: a
