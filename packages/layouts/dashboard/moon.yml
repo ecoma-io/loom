@@ -1,5 +1,5 @@
 deps:
   - "core"
-tags: ["layer-layouts"]
+tags: ["layer-layouts", "e2e"]
 tasks:
   # Inherit lint and test from .moon/tasks/*.yml.

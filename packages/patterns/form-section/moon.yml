@@ -1,7 +1,7 @@
 deps:
   - "core"
   - "fieldset"
-tags: ["layer-patterns"]
+tags: ["layer-patterns", "e2e"]
 project:
   name: "form-section"
   description: "Migrated block component"

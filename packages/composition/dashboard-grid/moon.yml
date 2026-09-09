@@ -1,4 +1,4 @@
-tags: ["layer-composition"]
+tags: ["layer-composition", "e2e"]
 project:
   name: "dashboard-grid"
   description: "Migrated block component"

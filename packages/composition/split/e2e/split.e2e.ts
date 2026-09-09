@@ -56,3 +56,24 @@ test("right-side variant stacks content above the panel when collapsed, and keep
   // Side by side: the panel sits to the right of the content.
   expect(panelWideBox.x).toBeGreaterThan(contentWideBox.x + contentWideBox.width - 1);
 });
+
+test("the intrinsic collapse lands between the contract's narrow and mid bands", async ({
+  page,
+}) => {
+  // The same facts at the responsive contract's canonical bands: the demo's
+  // 14rem panel plus the content's 50% floor cannot share a 360px line but
+  // fits a 800px one, so the wrap falls between the two.
+  const row = rightRow(page);
+  const content = row.locator("> div").first();
+  const panel = row.locator("> div").nth(1);
+
+  await page.setViewportSize({ width: 360, height: 900 });
+  const contentBox = await boxOf(content);
+  const panelBox = await boxOf(panel);
+  expect(contentBox.y + contentBox.height).toBeLessThanOrEqual(panelBox.y + 1);
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  const contentWideBox = await boxOf(content);
+  const panelWideBox = await boxOf(panel);
+  expect(panelWideBox.x).toBeGreaterThan(contentWideBox.x + contentWideBox.width - 1);
+});

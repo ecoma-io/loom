@@ -70,3 +70,22 @@ test("under reduce, pushing past the queue's cap retires the oldest cards and ev
   await expect(stack.getByText("Member added")).toHaveCount(2);
   await expect(stack.getByText("Workflow updated")).toHaveCount(2);
 });
+
+test("the stack's width tracks the viewport below 24rem and caps above it", async ({ page }) => {
+  // A stack exists only once an entry is pushed; `w-[min(92vw,24rem)]` is an
+  // arbitrary value jsdom can carry but never resolve, so the clamp's two
+  // halves are read off a real viewport.
+  await page.getByRole("button", { name: "Toast success" }).click();
+
+  await page.setViewportSize({ width: 360, height: 900 });
+  const narrow = await page.locator("ol").boundingBox();
+  if (!narrow) throw new Error("The stack must render once an entry is pushed.");
+  // 92vw of 360px — the viewport term wins below the cap.
+  expect(Math.abs(narrow.width - 331.2)).toBeLessThanOrEqual(1);
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  const wide = await page.locator("ol").boundingBox();
+  if (!wide) throw new Error("The stack must render once an entry is pushed.");
+  // 24rem = 384px — the cap wins once 92vw outgrows it.
+  expect(Math.abs(wide.width - 384)).toBeLessThanOrEqual(1);
+});
