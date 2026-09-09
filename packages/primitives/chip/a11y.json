@@ -17,8 +17,8 @@
     }
   ],
   "interaction": {
-    "class": "interactive",
-    "basis": "a removable label — one activation or dismissal target per chip.",
+    "class": "composite",
+    "basis": "two sibling activation targets — the chip's own toggle and its remove button, never nested — managed as one labelled control.",
     "evidence": {
       "browserless": ["packages/primitives/chip/tests/Chip.test.ts"]
     },

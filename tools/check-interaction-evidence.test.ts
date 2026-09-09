@@ -79,6 +79,25 @@ const CLICK_SPEC_WITH_REMARKED_KEYBOARD = [
   "});",
 ].join("\n");
 
+/** The same lie in the shape retired code actually takes: a trailing comment. */
+const CLICK_SPEC_WITH_TRAILING_RETIRED_KEYBOARD = [
+  ...CLICK_SPEC.split("\n").slice(0, -1),
+  '  await page.locator("button").click(); // retired: await page.keyboard.press("Enter")',
+  "});",
+].join("\n");
+
+/**
+ * The keyboard lie the placement rule exists for: a browserless unit test
+ * carrying the gesture's WORDS — as a string literal, where no scanner's
+ * comment strip can reach — under the one tier whose directory the harness
+ * would never run it from.
+ */
+const UNIT_TEST_WITH_KEYBOARD_LITERAL = [
+  'test("renders disabled", () => {',
+  '  expect("page.keyboard.press is a harness fact").toBe("page.keyboard.press is a harness fact");',
+  "});",
+].join("\n");
+
 /** Every evidence file a satisfying sidecar may cite, created as files. */
 const EVIDENCE_FILES: [string, string][] = [
   [KEYBOARD_SPEC_PATH, KEYBOARD_SPEC],
@@ -221,16 +240,79 @@ describe("checkInteractionEvidence", () => {
   });
 
   it("is blind to remarks — a commented-out keypress witnesses no operability", () => {
+    for (const spec of [
+      CLICK_SPEC_WITH_REMARKED_KEYBOARD,
+      CLICK_SPEC_WITH_TRAILING_RETIRED_KEYBOARD,
+    ]) {
+      // Both comment shapes, whole-line and trailing: the trailing one is
+      // where retired code actually lives, and the strip used to be
+      // line-anchored enough to count it as a gesture.
+      const root = makeTree();
+      writeFileSync(join(root, ...CLICK_SPEC_PATH.split("/")), spec);
+      writeSidecar(root, {
+        interaction: {
+          ...completeSidecar().interaction,
+          evidence: { browserless: [UNIT_TEST_PATH], harness: [CLICK_SPEC_PATH] },
+        },
+      });
+      expect(checkInteractionEvidence(root, contract)).toEqual([
+        "Button: class interactive requires keyboard-operate (harness tier) — no evidence declared and no exception recorded",
+      ]);
+    }
+  });
+
+  it("confines harness evidence to the component's own e2e/ — the tier is the JSON key, never the file location", () => {
     const root = makeTree();
-    writeFileSync(join(root, ...CLICK_SPEC_PATH.split("/")), CLICK_SPEC_WITH_REMARKED_KEYBOARD);
+    writeFileSync(join(root, ...UNIT_TEST_PATH.split("/")), UNIT_TEST_WITH_KEYBOARD_LITERAL);
     writeSidecar(root, {
       interaction: {
         ...completeSidecar().interaction,
-        evidence: { browserless: [UNIT_TEST_PATH], harness: [CLICK_SPEC_PATH] },
+        evidence: { harness: [UNIT_TEST_PATH] },
+      },
+    });
+    // Two failures, and the duty is the load-bearing one: the placement fault
+    // is why the gesture words in the unit test's string literal bought
+    // nothing — a file the harness never runs cannot witness operability,
+    // whatever its text says.
+    expect(checkInteractionEvidence(root, contract)).toEqual([
+      `Button: interaction evidence.harness entry "${UNIT_TEST_PATH}" must live under packages/primitives/button/e2e/ — the evidence tier is the JSON key, never the file location`,
+      "Button: class interactive requires keyboard-operate (harness tier) — no evidence declared and no exception recorded",
+      // No browserless evidence is declared at all, so state-report is owed
+      // and unanswered on its own — listed because toEqual demands the whole
+      // verdict, not because placement caused it.
+      "Button: class interactive requires state-report (browserless tier) — no evidence declared and no exception recorded",
+    ]);
+  });
+
+  it("confines browserless evidence to the component's own tests/", () => {
+    const root = makeTree();
+    writeSidecar(root, {
+      interaction: {
+        ...completeSidecar().interaction,
+        evidence: { harness: [KEYBOARD_SPEC_PATH], browserless: [KEYBOARD_SPEC_PATH] },
       },
     });
     expect(checkInteractionEvidence(root, contract)).toEqual([
-      "Button: class interactive requires keyboard-operate (harness tier) — no evidence declared and no exception recorded",
+      `Button: interaction evidence.browserless entry "${KEYBOARD_SPEC_PATH}" must live under packages/primitives/button/tests/ — the evidence tier is the JSON key, never the file location`,
+      "Button: class interactive requires state-report (browserless tier) — no evidence declared and no exception recorded",
+    ]);
+  });
+
+  it("fails an unknown key inside an evidence entry instead of reading past it", () => {
+    const root = makeTree();
+    writeSidecar(root, {
+      interaction: {
+        ...completeSidecar().interaction,
+        evidence: {
+          browserless: [UNIT_TEST_PATH],
+          harness: [{ path: KEYBOARD_SPEC_PATH, becaus: "a typo, not a reason" }],
+        },
+      },
+    });
+    // The entry stays unqualified — the duty still answers — and the typo is
+    // named, the same rule one level up applied to the same surface there.
+    expect(checkInteractionEvidence(root, contract)).toEqual([
+      'Button: interaction evidence.harness entry "packages/primitives/button/e2e/button-keyboard.e2e.ts" carries unknown key "becaus" — extend the contract and this gate together',
     ]);
   });
 
@@ -547,6 +629,12 @@ describe("parseInteractionContract", () => {
     expect(parsed.matrix.map((row) => row.class)).toEqual(parsed.classes);
   });
 
+  it("fails closed against a tree with no law to read — the end of the path the CLI exits 1 on", () => {
+    // The CLI wraps this read in its fail-closed catch and exits 1; the unit
+    // surface of that contract is the throw itself.
+    expect(() => readInteractionContract(makeRoot())).toThrow(/ENOENT/);
+  });
+
   it("is blind to comments — a docblock may mention brackets without becoming law", () => {
     const parsed = parseInteractionContract(`${CONTRACT}
 /**
@@ -593,6 +681,25 @@ describe("parseInteractionContract", () => {
     expect(
       fault(CONTRACT.replace('["browserless", "harness"]', '["browserless", "sweep"]')),
     ).toThrow(/sweep cannot be an interaction tier/);
+    expect(
+      fault(
+        CONTRACT.replace(
+          /export const INTERACTION_CLASSES[\s\S]*?as const;/,
+          "export const INTERACTION_CLASSES = [] as const;",
+        ),
+      ),
+    ).toThrow(/INTERACTION_CLASSES is empty/);
+    expect(
+      fault(
+        CONTRACT.replace(
+          '["interactive", "container", "visual-only"]',
+          '["interactive", "interactive", "container", "visual-only"]',
+        ),
+      ),
+    ).toThrow(/vocabulary repeats a member/);
+    expect(
+      fault(CONTRACT.replace('["browserless", "harness"]', '["browserless", "browserless"]')),
+    ).toThrow(/tiers repeat a member/);
   });
 
   it("holds the matrix to parity with the vocabulary, both directions, before any sidecar is read", () => {
@@ -620,7 +727,9 @@ describe("namesAKeyboardGesture", () => {
     for (const gesture of [
       'await page.keyboard.press("Enter");',
       "await page.keyboard.down('Shift');",
+      'await page.keyboard.up("Shift");',
       "await page.keyboard.type('loom');",
+      'await page.keyboard.insertText("loom");',
       'await locator.press("ArrowRight");',
     ]) {
       expect(namesAKeyboardGesture(gesture), gesture).toBe(true);
@@ -632,6 +741,10 @@ describe("namesAKeyboardGesture", () => {
       "await locator.click();",
       "await expect(locator).toBeFocused();",
       "await page.pause();",
+      // The trailing shape retired code actually takes — the strip is
+      // line-aware, so the comment half of the line is as inert as a
+      // whole-line one.
+      'await locator.click(); // retired: await page.keyboard.press("Enter")',
     ]) {
       expect(namesAKeyboardGesture(notAGesture), notAGesture).toBe(false);
     }

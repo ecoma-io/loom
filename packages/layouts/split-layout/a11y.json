@@ -18,7 +18,7 @@
   },
   "interaction": {
     "class": "container",
-    "basis": "two resizable panes around slotted content.",
+    "basis": "a two-panel shell around slotted content that collapses intrinsically below the panels' combined minimum width — the layout boundary is its own; it operates nothing.",
     "exceptions": [
       {
         "requirement": "keyboard-operate",

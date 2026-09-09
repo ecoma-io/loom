@@ -20,8 +20,8 @@
     }
   ],
   "interaction": {
-    "class": "interactive",
-    "basis": "one adjust-and-type target with increment controls of its own.",
+    "class": "composite",
+    "basis": "an inner spinbutton <input> with increment and decrement steppers beside it — three targets managed as one field.",
     "evidence": {
       "browserless": ["packages/primitives/number-field/tests/NumberField.test.ts"]
     },

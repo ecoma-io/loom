@@ -554,6 +554,14 @@ export interface A11yContract {
  *   or reports an interactive state of its own, by design. A skeleton, a
  *   badge, a meter, a flex wrapper.
  *
+ * Two revealed surfaces that look like twins land in different classes on
+ * purpose: a hover-card is `container` and a tooltip is `visual-only`. The
+ * hover-card keeps a real, focusable, dismissible surface around content a
+ * reader operates into; the tooltip is an announcement with nothing inside
+ * it to operate. A component that could sit in either row takes the class
+ * that demands more — the conservative direction costs a duty, the lenient
+ * one forgives one.
+ *
  * The class is declared, not derived, for the reason the role claim is: the
  * class is a fact about the contract the component's source owns, and no
  * reader can reconstruct it with confidence. Each sidecar's interaction claim

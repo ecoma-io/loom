@@ -20,7 +20,7 @@
   },
   "interaction": {
     "class": "container",
-    "basis": "two panes around a resize divider — the resize act is its own.",
+    "basis": "a two-pane shell around slotted content — side panel and content area separated by a gap, collapsing intrinsically when their widths no longer fit; it operates nothing, and the resize act belongs to a future composition, not this one.",
     "exceptions": [
       {
         "requirement": "keyboard-operate",

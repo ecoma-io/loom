@@ -33,12 +33,14 @@
 //      contract lands truthfully and shrinks as the harness-spec tranche
 //      lands. Three refinements keep that honest:
 //        - keyboard-operate is answered by a TREE FACT, not prose: the gate
-//          reads the cited harness spec (comment-blind) for a keyboard
-//          gesture, because a spec that never presses a key cannot witness
-//          operability. This is the one lie about interaction evidence a
-//          file's own text can catch, and it is why button.e2e.ts — click
-//          and disabled evidence, no keypress — answers the duty for no
-//          component, however interactively it clicks;
+//          reads the cited harness spec (comment-blind, line-aware — a
+//          trailing `// retired:` keypress is as inert as a whole-line one)
+//          for a keyboard gesture, because a spec that never presses a key
+//          cannot witness operability. This is the one lie about interaction
+//          evidence a file's own text can catch, and it is why
+//          button.e2e.ts — click and disabled evidence, no keypress —
+//          answers the duty for no component, however interactively it
+//          clicks;
 //        - an unqualified browserless entry answers the duty its tier owes
 //          taken at its word (a unit test pinning disabled states, a pin of
 //          inertness); a because-qualified one declares it witnesses less
@@ -54,7 +56,12 @@
 //   4. no exception for a duty the evidence already answers, and none for a
 //      duty the class does not owe — a claim cannot both have and lack the
 //      same thing;
-//   5. every evidence path exists in the tree as a file. Declared-but-absent
+//   5. every evidence path exists in the tree as a file, and lives where its
+//      tier's evidence lives — harness citations under the component's own
+//      `e2e/`, browserless citations under its own `tests/`. The tier is the
+//      JSON key, never the file location; the placement rule also closes the
+//      string-literal hole for the harness tier, since a `tests/` file can no
+//      longer be cited there whatever its text contains. Declared-but-absent
 //      evidence is the fabricated kind, and fails outright;
 //   6. evidence in a tier the class's row does not demand carries a
 //      `because` — surplus without a recorded reason would let any component
@@ -246,14 +253,69 @@ export function readInteractionContract(root: string): ParsedInteractionContract
  * Whether a spec file performs a keyboard gesture at all — the tree fact a
  * keyboard-operate answer rests on. Comment-blind, like every reader here: a
  * remarked keypress is not one the spec performs, so coverage must not be
- * writable as a comment. `.press(` is Playwright's keyboard action on a
- * locator as well as on `page.keyboard`; `keyboard.down/up/type` cover the
+ * writable as a comment — and that holds for a trailing remark exactly as for
+ * a whole-line one, which is why the strip below is line-aware rather than
+ * line-anchored. `.press(` is Playwright's keyboard action on a locator as
+ * well as on `page.keyboard`; `keyboard.down/up/type/insertText` cover the
  * held-key and typing forms.
  */
 export function namesAKeyboardGesture(content: string): boolean {
   return /\bkeyboard\s*\.\s*(press|down|up|type|insertText)\b|\.press\s*\(/.test(
-    stripComments(content),
+    stripLineAwareComments(content),
   );
+}
+
+/**
+ * Remove `//` comments wherever they sit on a line and `/* … *&#47;` blocks,
+ * quote-aware: the whole-line-only strip this used let
+ * `click(); // retired: await page.keyboard.press("Enter")` count as a
+ * gesture — a retired keypress is as inert as a remarked one, and the
+ * trailing shape is where retired code actually lives. Quoted spans pass
+ * through byte for byte, so a URL's `//` can neither start nor swallow a
+ * comment; the scanner's residuals (a regex literal masquerading as a
+ * comment) fail toward finding no gesture, never toward finding one.
+ */
+function stripLineAwareComments(text: string): string {
+  let out = "";
+  let quote: string | null = null;
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === undefined) break;
+    if (quote !== null) {
+      out += ch;
+      // An escaped quote is data, not the end of the literal.
+      if (ch === "\\") {
+        out += text[i + 1] ?? "";
+        i += 2;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      i += 1;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      quote = ch;
+      out += ch;
+      i += 1;
+      continue;
+    }
+    if (ch === "/" && text[i + 1] === "*") {
+      const end = text.indexOf("*/", i + 2);
+      i = end === -1 ? text.length : end + 2;
+      continue;
+    }
+    if (ch === "/" && text[i + 1] === "/") {
+      // The newline itself survives, so code on the following line is still
+      // read on its own line.
+      const end = text.indexOf("\n", i);
+      i = end === -1 ? text.length : end;
+      continue;
+    }
+    out += ch;
+    i += 1;
+  }
+  return out;
 }
 
 interface EvidenceEntry {
@@ -347,6 +409,18 @@ function parseClaim(
           typeof (entry as Record<string, unknown>).path === "string"
         ) {
           const shaped = entry as Record<string, unknown>;
+          // The claim level rejects unknown keys; an entry is the same
+          // surface one level down, and `{ path, becaus: "…" }` must fail the
+          // same way — a typo'd because would otherwise read as an absent
+          // one and the citation would quietly lose its qualification.
+          const entryKeys = new Set(["path", "because"]);
+          for (const key of Object.keys(shaped)) {
+            if (!entryKeys.has(key)) {
+              failures.push(
+                `${component}: interaction evidence.${tier} entry "${shaped.path as string}" carries unknown key "${key}" — extend the contract and this gate together`,
+              );
+            }
+          }
           const because = shaped.because;
           // exactOptionalPropertyTypes: the key is set or absent, never
           // undefined — and a non-string or blank because fails closed, where
@@ -428,8 +502,27 @@ export function checkInteractionEvidence(
   const rowByClass = new Map(contract.matrix.map((row) => [row.class, row.requirements]));
   const tierOfDuty = new Map(contract.requirements.map((r) => [r.id, r.tier]));
 
+  /**
+   * Where each evidence tier's files live: the tier is the JSON key, never
+   * the file location. Harness duties are browser facts and their citations
+   * are the component's own Playwright specs; browserless duties are unit
+   * facts and their citations are its own tests. The tree already conformed
+   * 100% when the rule landed — the check pins the convention, it does not
+   * move files.
+   */
+  const TIER_DIRECTORIES: Record<string, "e2e" | "tests"> = {
+    harness: "e2e",
+    browserless: "tests",
+  };
+
   /** A declared path is repository-root-relative, and it exists as a file. */
-  function checkPath(component: string, where: string, raw: unknown): string | null {
+  function checkPath(
+    component: string,
+    where: string,
+    raw: unknown,
+    expectedPrefix: string | null,
+    tierKey: string,
+  ): string | null {
     if (typeof raw !== "string" || raw.length === 0) {
       failures.push(`${component}: ${where} is not a non-empty repository-relative path`);
       return null;
@@ -447,6 +540,27 @@ export function checkInteractionEvidence(
       // A directory is not evidence of anything — the harness reads specs, the
       // browserless tier reads tests, and neither is a directory.
       failures.push(`${component}: ${where} "${raw}" is not a file`);
+      return null;
+    }
+    if (expectedPrefix === null) {
+      // Fail closed on a tier the map does not know: a future tier with no
+      // directory convention would otherwise be an unjudged place to cite
+      // from until someone teaches this gate where its evidence lives.
+      failures.push(
+        `${component}: ${where} — the "${tierKey}" tier has no directory convention; teach this gate where its evidence lives`,
+      );
+      return null;
+    }
+    // Placement is checked against the citing component's own directory: a
+    // browserless unit test can no longer answer a harness duty by carrying
+    // the words `page.keyboard.press` in a string literal — the only file
+    // that can is one the harness would actually run. (A literal inside an
+    // e2e spec stays review-held: text matching is a floor, not a reader.)
+    if (!raw.startsWith(expectedPrefix)) {
+      failures.push(
+        `${component}: ${where} "${raw}" must live under ${expectedPrefix} — ` +
+          `the evidence tier is the JSON key, never the file location`,
+      );
       return null;
     }
     return resolved;
@@ -516,11 +630,20 @@ export function checkInteractionEvidence(
       // path failed the tree check pairs with null and can answer nothing.
       const entriesByTier = new Map<string, { entry: EvidenceEntry; resolved: string | null }[]>();
       for (const [entryTier, entries] of Object.entries(claim.evidence)) {
+        const dir = TIER_DIRECTORIES[entryTier];
+        const expectedPrefix =
+          dir === undefined ? null : ["packages", tier, name, dir, ""].join("/");
         entriesByTier.set(
           entryTier,
           (entries ?? []).map((entry) => ({
             entry,
-            resolved: checkPath(component, `interaction evidence.${entryTier} entry`, entry.path),
+            resolved: checkPath(
+              component,
+              `interaction evidence.${entryTier} entry`,
+              entry.path,
+              expectedPrefix,
+              entryTier,
+            ),
           })),
         );
       }
@@ -532,8 +655,14 @@ export function checkInteractionEvidence(
       const answered = new Set(
         row.filter((id) => {
           const tier = tierOfDuty.get(id) ?? "";
+          // A pair whose path failed any check (dangling, misplaced, a
+          // directory) resolves to null and answers nothing — for every
+          // duty, not only keyboard-operate: the gesture check used to be
+          // the one consumer of `resolved`, which let a failed browserless
+          // citation answer state-report at the very moment the gate
+          // reported the citation broken.
           const unqualified = (entriesByTier.get(tier) ?? []).filter(
-            (pair) => pair.entry.because === undefined,
+            (pair) => pair.entry.because === undefined && pair.resolved !== null,
           );
           if (unqualified.length === 0) return false;
           if (id !== "keyboard-operate") return true;
