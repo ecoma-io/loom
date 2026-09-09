@@ -8,6 +8,8 @@
  * reaches the engine.
  */
 import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+// The band values are the law, not restated numbers — see stack's layout.ts.
+import { RESPONSIVE_VIEWPORT_BANDS } from "@ecoma-io/loom-core";
 import type { CenterMaxWidth } from "./Center.vue";
 
 // The engine's entry point, re-exported so the conformance route reaches it
@@ -48,8 +50,8 @@ export const CENTER_MAX_WIDTH_PX: Record<Exclude<CenterMaxWidth, "prose">, numbe
  * the gap between content and screen edge stays proportional.
  */
 export const CENTER_GUTTER_STEPS: readonly { minWidth: number; px: number }[] = [
-  { minWidth: 1920, px: 32 },
-  { minWidth: 640, px: 24 },
+  { minWidth: RESPONSIVE_VIEWPORT_BANDS.wide, px: 32 },
+  { minWidth: RESPONSIVE_VIEWPORT_BANDS.sm, px: 24 },
   { minWidth: 0, px: 16 },
 ];
 
