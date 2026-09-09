@@ -54,7 +54,7 @@ export { layout };
 
 export const cases: readonly ConformanceCase[] = [
   {
-    name: "gap-sm-narrow-and-wide",
+    name: "no-wrap-gap-sm-narrow-and-wide",
     props: { gap: "sm", wrap: false },
     children: [
       { w: 120, h: 40 },
@@ -64,7 +64,7 @@ export const cases: readonly ConformanceCase[] = [
     viewports: [360, 800],
   },
   {
-    name: "gap-md-narrow-and-wide",
+    name: "no-wrap-gap-md-narrow-and-wide",
     props: { gap: "md", wrap: false },
     children: [
       { w: 120, h: 40 },
@@ -74,7 +74,7 @@ export const cases: readonly ConformanceCase[] = [
     viewports: [360, 800],
   },
   {
-    name: "gap-lg-narrow-and-wide",
+    name: "no-wrap-gap-lg-narrow-and-wide",
     props: { gap: "lg", wrap: false },
     children: [
       { w: 120, h: 40 },
@@ -84,7 +84,7 @@ export const cases: readonly ConformanceCase[] = [
     viewports: [360, 800],
   },
   {
-    name: "align-start",
+    name: "no-wrap-align-start",
     props: { align: "start", wrap: false },
     children: [
       { w: 120, h: 40 },
@@ -93,7 +93,7 @@ export const cases: readonly ConformanceCase[] = [
     viewports: [800],
   },
   {
-    name: "align-center",
+    name: "no-wrap-align-center",
     props: { align: "center", wrap: false },
     children: [
       { w: 120, h: 40 },
@@ -102,7 +102,7 @@ export const cases: readonly ConformanceCase[] = [
     viewports: [800],
   },
   {
-    name: "align-end",
+    name: "no-wrap-align-end",
     props: { align: "end", wrap: false },
     children: [
       { w: 120, h: 40 },
@@ -111,7 +111,7 @@ export const cases: readonly ConformanceCase[] = [
     viewports: [800],
   },
   {
-    name: "align-stretch",
+    name: "no-wrap-align-stretch",
     props: { align: "stretch", wrap: false },
     children: [
       { w: 120, h: 40 },
@@ -123,7 +123,7 @@ export const cases: readonly ConformanceCase[] = [
     // wrap: false alone — the component's defaults for everything else
     // (gap md, align stretch) against the browser, in both bands. The one
     // prop the case must state is the one the adapter throws without.
-    name: "component-defaults-gap-md-align-stretch",
+    name: "no-wrap-component-defaults-gap-md-align-stretch",
     props: { wrap: false },
     children: [
       { w: 140, h: 40 },
