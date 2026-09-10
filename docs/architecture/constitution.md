@@ -382,7 +382,7 @@ ls-files '*a11y.json' | wc -l`; `tools/check-a11y-evidence.ts`,
     resolves on the four surfaces that carry it — the README, the npm
     description, the docs landing, the templates landing — and the README
     stands in its authored section structure, ten H2s at this writing. Check:
-    `grep -l "An Application Interface System" README.md package.json
+    `grep -l "Application Interface System" README.md package.json
 docs/index.md docs/templates/index.md`; `grep -c "^## " README.md`.
 
 12. **Decisions are of record.** Every ADR under
