@@ -36,6 +36,16 @@ const TIER_GRAPH = fileURLToPath(new URL("../../../tools/architecture/graph.ts",
 
 const PAGE = "docs/layouts/app-shell.md";
 const SIDECAR = "packages/layouts/app-shell/a11y.json";
+// The real plugin resolves the component and its sidecar to absolute paths
+// (indexComponents walks an absolute packages root), so the expansion is
+// exercised with absolute paths too — a test run from another cwd must not
+// pass or fail on where it happens to sit.
+const COMPONENT = fileURLToPath(
+  new URL("../../../packages/layouts/app-shell/src/AppShell.vue", import.meta.url),
+);
+const SIDECAR_FILE = fileURLToPath(
+  new URL("../../../packages/layouts/app-shell/a11y.json", import.meta.url),
+);
 const MARKER = "<!-- @layout-obligations AppShell -->";
 
 const COMPOSITION =
@@ -75,7 +85,8 @@ function expand({
   a11yContractSource = readFileSync(A11Y_CONTRACT, "utf8"),
   responsiveContractSource = readFileSync(RESPONSIVE_CONTRACT, "utf8"),
   tierGraphSource = readFileSync(TIER_GRAPH, "utf8"),
-  componentFile = "packages/layouts/app-shell/src/AppShell.vue",
+  componentFile = COMPONENT,
+  sidecarPath = SIDECAR_FILE,
 }: {
   markdown?: string;
   sidecarSource?: string;
@@ -83,12 +94,13 @@ function expand({
   responsiveContractSource?: string;
   tierGraphSource?: string;
   componentFile?: string;
+  sidecarPath?: string;
 } = {}): Promise<string | null> {
   return expandLayoutObligations({
     markdown,
     id: PAGE,
     componentFile,
-    sidecarPath: SIDECAR,
+    sidecarPath,
     sidecarSource,
     a11yContractSource,
     responsiveContractSource,
