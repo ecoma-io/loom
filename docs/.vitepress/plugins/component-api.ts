@@ -24,8 +24,13 @@ const PACKAGES = fileURLToPath(new URL("../../../packages/", import.meta.url));
 
 const MARKER = /^[ \t]*<!--[ \t]*@api[ \t]+([A-Za-z][A-Za-z0-9]*)[ \t]*-->[ \t]*$/gm;
 
-/** Every `.vue` under `packages/`, indexed by component name. Built once per run. */
-async function indexComponents(): Promise<Map<string, string>> {
+/**
+ * Every `.vue` under `packages/`, indexed by component name. Built once per
+ * run. Shared with the pattern-record plugin, which resolves names to files
+ * the same way — one index, because a second copy could disagree about where
+ * a component lives while both plugins claim to read the tree.
+ */
+export async function indexComponents(): Promise<Map<string, string>> {
   const index = new Map<string, string>();
   const entries = await readdir(PACKAGES, { recursive: true, withFileTypes: true });
   for (const entry of entries) {

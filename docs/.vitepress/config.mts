@@ -5,6 +5,7 @@ import { componentApi } from "./plugins/component-api";
 import { designTokens } from "./plugins/design-tokens";
 import { wcagTags } from "./plugins/wcag-tags";
 import { interactionClasses } from "./plugins/interaction-classes";
+import { patternRecord } from "./plugins/pattern-record";
 import { pagesIn } from "./sidebar";
 import { BASE } from "./base";
 
@@ -47,9 +48,11 @@ const COMPOSITION = pagesIn("composition", [
 // shipped Pattern kind and the #216/#218 consumer vocabulary (artifact-model
 // §Relationship). A reader looking for a pattern knows the shape of the
 // screen they are building, not what it is called here; the worked examples
-// (Forms, Menus) are ranked first, and the reference pages follow
+// (Forms, Menus) are ranked first, then the kind's own contract — the intake
+// law every shipped entry was held to (docs/patterns/contract.md), read
+// before the entries it governs — and the reference pages follow
 // alphabetically.
-const PATTERNS = pagesIn("patterns", ["forms", "menus"]);
+const PATTERNS = pagesIn("patterns", ["forms", "menus", "contract"]);
 
 // Layouts compose composition primitives into ready-made responsive
 // application shells — the "flagship" tier. A curated order puts the
@@ -205,6 +208,7 @@ export default defineConfig({
       designTokens(),
       wcagTags(),
       interactionClasses(),
+      patternRecord(),
       ...(tailwindcss() as unknown as VitePlugins),
     ],
     resolve: {
