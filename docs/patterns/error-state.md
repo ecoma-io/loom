@@ -1,3 +1,7 @@
+---
+intent: "A region whose content failed: icon, title, optional description and at most one recovery action, centered — EmptyState's arrangement facing the failure case."
+---
+
 # ErrorState
 
 The shape of "something went wrong": icon → title → optional description →
@@ -65,6 +69,10 @@ with a `border-destructive/30` ring — the colour alone signals alarm, so the
 neutral `bg-subtle` backing EmptyState uses is replaced with one that matches
 the urgency. The icon is decorative and `aria-hidden`; the title already
 carries the meaning.
+
+## Canonical record
+
+<!-- @pattern-record ErrorState -->
 
 ## API
 

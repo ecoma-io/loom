@@ -1,3 +1,7 @@
+---
+intent: "An application shell's primary navigation rail: a nav landmark of stacked sections and destinations, with an icon-only collapsed mode."
+---
+
 # SidebarNav
 
 The primary **navigation** chrome of a workspace: a `<nav>` landmark of
@@ -143,6 +147,10 @@ conventions.
 - Don't paint the active item with the accent variant colour even when it leads to a
   specialised surface — the accent colour signals a distinct category, and
   "which page is current" is a navigation choice.
+
+## Canonical record
+
+<!-- @pattern-record SidebarNav -->
 
 ## API
 

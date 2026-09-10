@@ -1,3 +1,7 @@
+---
+intent: "One labelled value with its optional trend, set in a compact surface sized to scan in a row of peers."
+---
+
 # MetricCard
 
 A single KPI stat card — a compact surface showing one metric, its label,
@@ -63,6 +67,10 @@ The `value` prop is a string or number the host has already formatted
 ("1,234", "98.5%", "$42k"). Raw numbers are not formatted by the card so
 the same value can be "$42k" in one place and "42,000" in another. The
 `trendValue` follows the same rule.
+
+## Canonical record
+
+<!-- @pattern-record MetricCard -->
 
 ## API
 

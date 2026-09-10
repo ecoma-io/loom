@@ -1,3 +1,7 @@
+---
+intent: "A row's action group, quiet at rest, revealed on hover or focus-within, permanently in view under pointer-coarse — revealed by opacity, so it never leaves the tab order."
+---
+
 # RowActions
 
 The action group belonging to one row of a dense list: quiet at rest,
@@ -69,6 +73,10 @@ The reveal itself rides a 4px inward slide alongside the fade, so it reads
 as the actions arriving rather than a panel blinking on. Both are
 token-tier, `duration-fast`, and flattened together by the global
 reduced-motion rule.
+
+## Canonical record
+
+<!-- @pattern-record RowActions -->
 
 ## API
 

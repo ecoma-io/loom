@@ -1,3 +1,7 @@
+---
+intent: "The chrome strip of a frameless desktop window: menu, title and window controls as one band that re-emits what the menu and the window controls report."
+---
+
 # TitleBar
 
 Custom window chrome for a frameless desktop app. It is a pattern: composed
@@ -140,6 +144,10 @@ multi-window editor's window switcher needs to:
   the chrome inside the window and never touches the OS title itself.
 - With no project open, pass an empty `title` and let `appName` alone carry
   the app's identity.
+
+## Canonical record
+
+<!-- @pattern-record TitleBar -->
 
 ## API
 

@@ -1,3 +1,7 @@
+---
+intent: "One shared viewport for a host-owned queue of transient notifications — toasts stack with a gap and retire in order instead of mounting as overlapping islands."
+---
+
 # ToastStack
 
 Renders a host-owned toast queue through **one** shared provider/viewport, so
@@ -81,6 +85,10 @@ announces politely — an ordinary notification never interrupts. Same rule as
 | ------------ | ----------------------------------------------------------- |
 | `Toast`      | one transient notice, self-managing its own `open`          |
 | `ToastStack` | the host keeps a queue — several toasts can be live at once |
+
+## Canonical record
+
+<!-- @pattern-record ToastStack -->
 
 ## API
 
