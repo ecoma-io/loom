@@ -1,25 +1,23 @@
-import { createApp, defineComponent, h, type Component } from "vue";
-// The eight case modules, imported statically — never import.meta.glob, whose
-// reaches neither architecture reader can see. Each module brings its own
-// component and adapter with it (intra-package relatives, judged clean under
-// its own row), so the engine is reached transitively through judged edges.
-// These eight relative imports are the one cross-library verdict the boundary
-// table's named suppression on this file accepts: the case files live in
-// their composition packages' e2e/ directories, which no specifier can name
-// — exports maps and tsconfig paths both point at src/index.ts only — and
-// giving test fixtures a package entry point would be restructuring the
-// package to suit a spelling. Phase 4A's twins brought the latest of them; a
-// further such import is covered the same way, and the mutation row that
-// fires on this verdict in every OTHER harness file is what keeps this
-// suppression named rather than silent.
-import * as centerCases from "../../packages/composition/center/e2e/conformance.cases";
-import * as dashboardGridCases from "../../packages/composition/dashboard-grid/e2e/conformance.cases";
-import * as frameCases from "../../packages/composition/frame/e2e/conformance.cases";
-import * as gridCases from "../../packages/composition/grid/e2e/conformance.cases";
-import * as inlineCases from "../../packages/composition/inline/e2e/conformance.cases";
-import * as sidebarCases from "../../packages/composition/sidebar/e2e/conformance.cases";
-import * as splitCases from "../../packages/composition/split/e2e/conformance.cases";
-import * as stackCases from "../../packages/composition/stack/e2e/conformance.cases";
+import { createApp, defineComponent, h } from "vue";
+import {
+  buildConformanceRegistry,
+  caseOwnerOrThrow,
+  type CaseModule,
+  type LayoutConstraint,
+  type PublishedCase,
+} from "./conformance-registry";
+
+// The registry is derived from the tree, not enumerated here: one glob loads
+// every composition's e2e/conformance.cases.ts. The literal is the route's
+// own spelling of the pattern `./conformance-registry` exports as
+// CONFORMANCE_CASES_GLOB — `import.meta.glob` accepts only a literal, and
+// conformance-registry.test.ts fails if the two spellings drift apart. The
+// reaches this glob draws are invisible to both architecture readers, which
+// is why playwright/moon.yml declares them as `# preserved` deps and why the
+// fixture that checks the derivation exists at all.
+const matched = import.meta.glob("../../packages/composition/*/e2e/conformance.cases.ts", {
+  eager: true,
+});
 
 /**
  * The conformance route: the one place engine and component meet at runtime.
@@ -32,117 +30,115 @@ import * as stackCases from "../../packages/composition/stack/e2e/conformance.ca
  * bare imports and Node cannot execute the workspace package's exports), and
  * publishes both sides for the spec to compare: the live DOM is the oracle,
  * and one JSON block carries the engine's computed trees plus the inputs
- * they were computed from.
+ * they were computed from. The comparator itself lives in each package's e2e
+ * spec, which walks this page's DOM and the published trees together,
+ * anchors on the `id: "root"` node, and applies the policy below.
  *
- * The comparator itself lives in each package's e2e spec, which walks this
- * page's DOM and the published trees together, anchors on the `id: "root"`
- * node (skipping synthetic wrappers like Center's centering row), and
- * applies Yoga's two-edge integer rounding to browser reads with an epsilon
- * of at most 0.5px against engine floats.
+ * ## The tolerance policy
+ *
+ * The comparison's law, stated once in the code that enforces its page-side
+ * half. Each spec pins `EPSILON = 0.5` and compares engine floats to DOM
+ * reads at that bound; this is what the bound means and what must hold for
+ * it to be the right one.
+ *
+ * - **The epsilon is the read's rounding bound, not slack.** The DOM read
+ *   rounds each edge to the integer grid and takes differences (the two-edge
+ *   technique Yoga uses), so a rounded edge sits within half a pixel of the
+ *   fractional position CSS computed. Comparing the rounded read to the
+ *   engine's float at exactly half a pixel tolerates precisely that rounding
+ *   and nothing else — anything past it is the engine and the browser
+ *   disagreeing about geometry, which no rounding can explain.
+ * - **Rounding and subpixel accumulation.** `getBoundingClientRect` returns
+ *   fractional px, and a page can place an edge on any fraction. The
+ *   fixtures' arithmetic is what keeps the accumulation inside the bound —
+ *   fixed-px child boxes, px gutters, rem scales resolved at the pinned 16px
+ *   root — so box origins land whole and each read errs by at most one
+ *   rounding step. A fixture family whose arithmetic accumulated past that
+ *   bound would be a finding about the fixture, never a reason to widen the
+ *   epsilon.
+ * - **DPR and font raster are held out, not modeled.** The comparison runs
+ *   at deviceScaleFactor 1, asserted below and thrown on otherwise, because
+ *   pixel-snap decisions are engine facts a geometry comparison must not
+ *   depend on — the webkit project carries Desktop Safari's 2, so the specs
+ *   declare 1 per navigation rather than inherit it from the profile. Fonts
+ *   are held out by construction: the fixtures are text-free fixed boxes, so
+ *   no font metric ever enters a compared box and font readiness cannot race
+ *   a measurement that needs no text. Both exclusions are why the engine can
+ *   answer at all — it has neither text metrics nor a raster.
+ * - **Nesting: the compared tree is the flat leaf tree.** The compared
+ *   geometry is the component root (the element carrying
+ *   `data-conformance-role="root"`, matched to the engine node `id: "root"`)
+ *   and its descendants, walked positionally in document order. Synthetic
+ *   wrappers the adapter does not model — Center's centering row — are
+ *   descended through, never compared. The case section is the fixture
+ *   container whose content box is the width the engine was offered; it is
+ *   the frame of the comparison, not part of the compared tree.
+ * - **Viewport bands.** A case declares the widths it is meaningful at (the
+ *   responsive contract's narrow/mid/ultrawide bands), its spec navigates
+ *   the route once per band, and each spec asserts its own band list equals
+ *   the union the report publishes — a band a case file gains reddens in the
+ *   spec instead of silently running nowhere. The viewport height is fixed
+ *   in the specs (900px) so no case stacks past the fold and pulls in a
+ *   scrollbar; the measured-container discipline below would keep the
+ *   engine's input honest even then, and the fixture discipline is not to
+ *   conjure one at all.
+ *
+ * ## The determinism quintet (design D5)
+ *
+ * The eight layout-conformance specs cite "design D5"; this is its
+ * definition, derived from the preconditions they actually assert. Nothing
+ * here is assumed: the page-side facts are published in the report and
+ * asserted from outside, and a violated one throws on this page rather than
+ * flaking a comparison downstream.
+ *
+ * 1. **Chromium is the normative engine.** Every pull request gates on the
+ *    browser the component ships under. Other engines compare too, and a
+ *    case known to diverge on one is skipped through its `engines` field —
+ *    an annotated skip that names the engine, never a silent narrowing of
+ *    the case set.
+ * 2. **The comparison runs at DPR 1**, declared per navigation and
+ *    re-asserted by the page: a profile change fails here, loudly, instead
+ *    of shifting every read by a scale nobody compared.
+ * 3. **The root font-size is pinned to 16px**, set by the page and asserted
+ *    from the published report: the rem-based gap and space scales become
+ *    exact px arithmetic, which the tolerance bound above presumes.
+ * 4. **The fixtures are text-free fixed boxes** — children are fixed-px
+ *    `div`s. The engine has no text metrics, and CSS's content-based
+ *    automatic minimum size needs them; text-free construction is what keeps
+ *    that divergence out of every comparison rather than modeling it.
+ * 5. **The engine's input width is measured, not assumed.** Each case's
+ *    `availableWidth` is the measured content box of its rendered fixture
+ *    container, not `window.innerWidth` — a classic scrollbar consumes
+ *    15-17px of layout width at 360px in some engines, and measuring makes
+ *    the engine's input and the oracle's output the same quantity by
+ *    construction.
+ *
+ * ## Route totality
+ *
+ * An adapter is total at this route's edge, refusal is prop-level, and a
+ * comparison a case declines is a `knownDivergence` — declining to compare
+ * is not failing to compute. That law is stated once, with its measured
+ * motivation, in `packages/layout-engine/src/modelled-subset.ts`; this route
+ * is where it bites and that record is its home, so nothing here restates it.
+ *
+ * ## The registry
+ *
+ * The modules are not enumerated by hand. The glob above loads every
+ * composition's cases module, and `./conformance-registry` derives the
+ * composition names, refuses a case name declared by two modules, and
+ * refuses a name no module declared. `conformance-registry.test.ts` holds
+ * that derivation against the tree — the literal, what it would load, and
+ * the refusals — because the failure no other gate covers is a cases file
+ * the harness never picks up (`tools/check-composition-conformance.ts`
+ * already fails a missing one). The declared graph that makes an engine or
+ * case-file change re-run this project's gates stays hand-kept in
+ * `playwright/moon.yml`'s `# preserved` deps: the glob's reaches are the one
+ * reach neither architecture reader can see, the trade this registry
+ * accepted on purpose (ecoma-io/loom#322), and the fixture is what keeps it
+ * honest.
  */
 
-/** A fixture child, as the case modules carry it. */
-interface ChildBox {
-  w: number;
-  h: number;
-}
-
-/** What the route needs of a case; each case module satisfies it structurally. */
-interface PublishedCase {
-  name: string;
-  props: Record<string, unknown>;
-  viewports: readonly number[];
-  knownDivergence?: { reason: string; owner: string };
-  engines?: readonly string[];
-}
-
-/**
- * A case module as the route consumes it. Every adapter types its props
- * parameter as its own component's props, and such a function is assignable
- * to one taking `never` (nothing is required of the argument) — so the
- * uniform shape takes `never` and each call narrows back with a cast on
- * data that came from the module itself.
- */
-// The route reaches the engine ONLY through the case modules — their
-// packages re-export the engine's entry point, a judged composition edge —
-// so its types are inferred from those modules rather than imported: an
-// engine signature change still reddens this file, without one specifier
-// crossing the e2e layer's boundary.
-type RunLayout = (typeof stackCases)["layout"];
-type LayoutTree = Parameters<RunLayout>[0];
-type ComputedTree = ReturnType<RunLayout>;
-
-interface CaseModule {
-  component: Component;
-  adapter: (
-    props: never,
-    ctx: { viewportWidth: number; availableWidth: number },
-    children: readonly ChildBox[],
-  ) => LayoutTree;
-  layout: RunLayout;
-  cases: readonly (PublishedCase & { children: readonly ChildBox[] })[];
-}
-
-const MODULES = {
-  stack: stackCases,
-  inline: inlineCases,
-  center: centerCases,
-  frame: frameCases,
-  sidebar: sidebarCases,
-  grid: gridCases,
-  "dashboard-grid": dashboardGridCases,
-  split: splitCases,
-} as const;
-
-type ModuleName = keyof typeof MODULES;
-
-// The route locates a case by its `data-conformance-case` section, where the
-// first match in the document wins — so a case name repeated within one
-// module, or across two, would silently compare one section twice and report
-// agreement the second case never earned. The registry is built once, at
-// module scope, and refuses both. tools/check-composition-conformance.ts
-// holds the same uniqueness over the modules' source; this runtime check is
-// its twin, firing if a case module ever reaches the page through a path the
-// gate does not read.
-const CASE_OWNERS = new Map<string, ModuleName>();
-for (const [moduleName, moduleCases] of Object.entries(MODULES) as [ModuleName, CaseModule][]) {
-  for (const one of moduleCases.cases) {
-    const owner = CASE_OWNERS.get(one.name);
-    if (owner !== undefined) {
-      throw new Error(
-        `conformance registry: case "${one.name}" is declared by both ${owner} and ${moduleName} — the comparator would compare the first section twice`,
-      );
-    }
-    CASE_OWNERS.set(one.name, moduleName);
-  }
-}
-
-/** The module that owns a case name, throwing on a name no module declared. */
-function caseOwner(name: string): ModuleName {
-  const owner = CASE_OWNERS.get(name);
-  if (owner === undefined) {
-    throw new Error(
-      `conformance registry: no case named "${name}". Known: ${[...CASE_OWNERS.keys()].join(", ")}`,
-    );
-  }
-  return owner;
-}
-
-const wanted = new URLSearchParams(window.location.search).get("conformance");
-if (wanted === null || !(wanted in MODULES)) {
-  const known = Object.keys(MODULES).join(", ");
-  document.body.textContent = `Unknown or missing ?conformance= parameter "${wanted ?? ""}". Known: ${known}`;
-  throw new Error(`conformance route requires ?conformance=<${known}>`);
-}
-
-// Determinism, pinned rather than assumed. DPR 1 is Playwright's default and
-// is asserted so a profile change fails loudly here instead of flaking
-// everywhere downstream; the root font-size is pinned to 16px so the rem
-// based scales are exact; fixtures are text-free by construction; and the
-// engine's available width is the MEASURED content box of each fixture, not
-// the viewport size — a classic scrollbar consumes 15-17px of layout width
-// at 360px in some engines, and measuring makes the engine's input and the
-// oracle's output the same quantity by construction.
+/** Determinism, pinned rather than assumed — see the quintet in the module docblock. */
 if (window.devicePixelRatio !== 1) {
   throw new Error(
     `conformance route requires deviceScaleFactor 1, got ${String(window.devicePixelRatio)}`,
@@ -151,7 +147,22 @@ if (window.devicePixelRatio !== 1) {
 document.documentElement.style.fontSize = "16px";
 const viewportWidth = window.innerWidth;
 
-const mod: CaseModule = MODULES[wanted as ModuleName];
+const registry = buildConformanceRegistry(matched);
+const known = Object.keys(registry.modules);
+
+const wanted = new URLSearchParams(window.location.search).get("conformance");
+if (wanted === null || !(wanted in registry.modules)) {
+  document.body.textContent = `Unknown or missing ?conformance= parameter "${wanted ?? ""}". Known: ${known.join(", ")}`;
+  throw new Error(`conformance route requires ?conformance=<${known.join(", ")}>`);
+}
+
+// The `in` guard above guarantees the key exists; the undefined check is the
+// type-level residue of that guarantee, not a second validation — the same
+// shape the harness entry's demo allow-list uses.
+const mod: CaseModule | undefined = registry.modules[wanted];
+if (mod === undefined) {
+  throw new Error(`conformance route requires ?conformance=<${known.join(", ")}>`);
+}
 
 /** Content-box width of an element: border-box rect minus padding and border. */
 function contentBoxWidth(el: HTMLElement): number {
@@ -200,14 +211,14 @@ interface ReportCase extends PublishedCase {
   /** The measured content-box width the engine was fed for this case. */
   availableWidth: number;
   /** The engine's computed tree for this case, parent-relative positions. */
-  tree: ComputedTree;
+  tree: unknown;
 }
 
 const reportCases: ReportCase[] = mod.cases.map((one) => {
   // The comparator anchors every read on the case's own section, so the case
   // being reported must be one this mounted module owns — a name that
   // resolved to another module's section would compare the wrong geometry.
-  const owner = caseOwner(one.name);
+  const owner = caseOwnerOrThrow(registry, one.name);
   if (owner !== wanted) {
     throw new Error(
       `conformance registry: case "${one.name}" is owned by ${owner} but mounted by ${wanted}`,
@@ -225,9 +236,16 @@ const reportCases: ReportCase[] = mod.cases.map((one) => {
   // is given — the same pixels the browser laid the component out in.
   const availableWidth = contentBoxWidth(section);
   const { knownDivergence, engines } = one;
-  const tree: ComputedTree = mod.layout(
-    mod.adapter(one.props as never, { viewportWidth, availableWidth }, one.children),
-    { width: { mode: "definite", size: availableWidth }, height: { mode: "max-content" } },
+  const constraint: LayoutConstraint = {
+    width: { mode: "definite", size: availableWidth },
+    height: { mode: "max-content" },
+  };
+  // The `never` casts narrow back what the module itself carries: the props
+  // are the module's own case's props, the tree is what its own adapter
+  // returned, and neither can be wrong by construction (see CaseModule).
+  const tree = mod.layout(
+    mod.adapter(one.props as never, { viewportWidth, availableWidth }, one.children) as never,
+    constraint,
   );
   return {
     name: one.name,

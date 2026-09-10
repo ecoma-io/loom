@@ -14,8 +14,8 @@ import "./styles.css";
  * `?conformance=<name>` is the second thing this page can mount: the
  * layout-conformance route, which owns the page entirely and self-dispatches
  * (it validates its own parameter and throws on anything it does not know).
- * The import is dynamic so a demo load never pulls the route — and its four
- * case modules plus the engine — into the page.
+ * The import is dynamic so a demo load never pulls the route — and its
+ * glob-derived case modules plus the engine — into the page.
  */
 const conformance = new URLSearchParams(window.location.search).get("conformance");
 if (conformance !== null) {
