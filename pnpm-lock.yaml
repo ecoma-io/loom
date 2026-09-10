@@ -157,6 +157,12 @@ importers:
 
   packages/composition/dashboard-grid:
     dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@ecoma-io/loom-layout-engine':
+        specifier: workspace:*
+        version: link:../../layout-engine
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)

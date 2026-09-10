@@ -1,3 +1,8 @@
+<script lang="ts">
+/** The gutter step — the same scale Stack's gap steps mirror. */
+export type DashboardGridGap = "sm" | "md" | "lg";
+</script>
+
 <script setup lang="ts">
 /**
  * DashboardGrid — the reflowing tile grid a dashboard's panels sit in: a CSS
@@ -33,7 +38,7 @@ withDefaults(
 // tiles buys no separation the tile borders do not already give, it just
 // pushes the second tile off screen. From `sm` up each step is its
 // documented value.
-const gapClass = {
+const gapClass: Record<DashboardGridGap, string> = {
   sm: "gap-2 sm:gap-3",
   md: "gap-3 sm:gap-4",
   lg: "gap-4 sm:gap-6",
