@@ -1,3 +1,7 @@
+---
+composition: "A master list panel beside a detail pane that fills the rest; pick from the list, read the detail, stack when narrow."
+---
+
 # MasterDetail
 
 A master list panel and a detail panel side by side, collapsing to a stacked
@@ -31,15 +35,16 @@ import { MasterDetail } from "@ecoma-io/loom";
   <MasterDetailDemo />
 </Demo>
 
-## Responsive behavior
+## Master width
 
-- **Narrow container:** master and detail stack vertically — master on top at its declared width, detail below
-- **Wide enough container:** master sits alongside detail; detail fills remaining space
-- **Ultrawide:** detail gutters widen (`3xl`), extra viewport goes to whitespace
+The `minMasterWidth` prop sets the master panel's minimum. Where the stack
+happens is intrinsic, not a fixed breakpoint: the pair gives up on one line
+when the container can no longer fit the master panel plus the detail's half
+— roughly twice `minMasterWidth` (28rem at the default).
 
-Where the stack happens is intrinsic, not a fixed breakpoint: the pair gives
-up on one line when the container can no longer fit the master panel plus the
-detail's half — roughly twice `minMasterWidth` (28rem at the default).
+## Obligations
+
+<!-- @layout-obligations MasterDetail -->
 
 ## API
 

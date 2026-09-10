@@ -112,7 +112,7 @@ describe("expandLayoutObligations", () => {
     // The a11y obligations name the duties the real matrices demand, and the
     // named exception with its reason.
     expect(result).toContain("The role's matrix row owes `semantic-aria`, `name`, `contrast`");
-    expect(result).toContain("whose row owes `keyboard-operate`");
+    expect(result).toContain("its matrix row owes `keyboard-operate`");
     expect(result).toContain("`keyboard-operate` — _geometry only — keyboard passage unproven_");
     // The composition model is the authored claim, and the position is the
     // graph's tier order.

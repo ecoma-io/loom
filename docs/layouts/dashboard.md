@@ -1,7 +1,14 @@
+---
+composition: "A header band, an optional navigation sidebar and an auto-reflowing tile grid, with an optional aside reserved for the widest tier."
+---
+
 # Dashboard
 
 A dashboard shell: optional sidebar + auto-reflowing tile grid for panels,
-with an optional aside for supplementary metrics on ultrawide viewports.
+with an optional aside for supplementary metrics on ultrawide viewports. The
+aside slot is gated behind the `2xl` breakpoint — supplementary metrics are a
+luxury that only wide desktops can afford, and below that width the grid takes
+the full width, preventing a cramped two-panel layout.
 
 The layout composes three patterns into a single responsive shell. The
 innermost is the auto-fit tile grid — the column count derives from the
@@ -42,24 +49,6 @@ import { Dashboard } from "@ecoma-io/loom";
 </template>
 ```
 
-## Responsive behaviour
-
-| Viewport | Sidebar                  | Grid                         | Aside              |
-| -------- | ------------------------ | ---------------------------- | ------------------ |
-| Mobile   | Stacks above grid        | Single column                | Hidden             |
-| Tablet   | Stacks above grid        | 2 columns                    | Hidden             |
-| Desktop  | Side-by-side (flex-wrap) | Auto-fit from `minTileWidth` | Hidden             |
-| 2xl+     | Side-by-side             | Auto-fit, wider tiles        | Side metrics panel |
-
-The sidebar collapses intrinsically via flex-wrap — no media query or
-JavaScript. When the grid area cannot honour its `min-width: 50%`, the pair
-wraps onto separate lines and the sidebar stacks above the grid at its
-declared width.
-
-The aside slot is gated behind the `2xl` breakpoint: supplementary metrics
-are a luxury that only wide desktops can afford. Below that width the grid
-takes the full width, preventing a cramped two-panel layout.
-
 ## Min tile width
 
 The narrowest a tile may get before the grid drops to fewer columns. Any
@@ -79,18 +68,13 @@ The same scale Grid and DashboardGrid use:
 | `md` | `gap-3`    | `gap-4`      |
 | `lg` | `gap-4`    | `gap-6`      |
 
-## Slots
-
-| Slot      | Purpose                                         |
-| --------- | ----------------------------------------------- |
-| `header`  | Full-width top bar, above the sidebar+grid row  |
-| `sidebar` | Side navigation (optional, intrinsically wraps) |
-| default   | Tile grid content                               |
-| `aside`   | Supplementary metrics, visible from `2xl` up    |
-
 <Demo title="Dashboard" :source="dashboardDemoSource">
   <DashboardDemo />
 </Demo>
+
+## Obligations
+
+<!-- @layout-obligations Dashboard -->
 
 ## API
 

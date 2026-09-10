@@ -611,7 +611,7 @@ export async function expandLayoutObligations({
     evidenceTable(sidecar, "responsive", responsiveTiers) +
     `\n**Accessibility obligations.** Role \`${sidecar.role}\` — _${cell(sidecar.basis)}_ ` +
     `The role's matrix row owes ${roleDuties.map((duty) => `\`${duty}\``).join(", ")}. ` +
-    `The interaction claim declares \`${sidecar.interaction.class}\`${interactionBasis}, whose row owes ` +
+    `The interaction claim declares \`${sidecar.interaction.class}\`${interactionBasis}; its matrix row owes ` +
     `${interactionDuties.map((duty) => `\`${duty}\``).join(", ")}.${exceptionLine}\n\n` +
     evidenceTable(sidecar, "evidence", a11yTiers) +
     `\n**Composition model.** ${composition} ${position}\n`;

@@ -1,3 +1,7 @@
+---
+composition: "A page header, one width-capped form column and an action row; the cap is the layout's, the fields are the host's."
+---
+
 # FormLayout
 
 A centered form page with constrained width for readability. Forms are narrower
@@ -47,14 +51,9 @@ content because the eye should not have to travel between label and input:
 | `lg`  | `max-w-lg` | Wider forms with longer inputs |
 | `xl`  | `max-w-xl` | Forms with side-by-side fields |
 
-## Responsive behavior
+## Obligations
 
-- **Mobile:** single column, full-width — the constrained max-width is wider
-  than the viewport so the form fills the screen naturally
-- **Tablet:** mixed columns possible within the capped width
-- **Desktop:** form centres within the viewport at the chosen max-width
-- **Wide / Ultrawide:** gutters widen (`3xl`), extra viewport goes to
-  intentional whitespace rather than stretching the form
+<!-- @layout-obligations FormLayout -->
 
 ## API
 
