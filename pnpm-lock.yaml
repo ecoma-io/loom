@@ -41,8 +41,8 @@ importers:
         specifier: ^21.2.2
         version: 21.2.2
       '@ecoma-io/archkeep':
-        specifier: 0.24.0
-        version: 0.24.0(typescript@5.9.3)(vue@3.5.42(typescript@5.9.3))
+        specifier: 0.28.0
+        version: 0.28.0(typescript@5.9.3)(vue@3.5.42(typescript@5.9.3))
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))
@@ -2355,8 +2355,8 @@ packages:
       search-insights:
         optional: true
 
-  '@ecoma-io/archkeep@0.24.0':
-    resolution: {integrity: sha512-VynG7Sy5KtIcGfjc+bi/Ar4SUQr762JQVdDrhVuSih+x4Dm0PbG00rv3C5BqFMN+h255IED92Y8Frk/d2Zjzyg==}
+  '@ecoma-io/archkeep@0.28.0':
+    resolution: {integrity: sha512-81hpiZ/YDBJBKiq8ObvXiqfqhjEu4XtuRsiJUj5vH/v5WLZjiVferOovW8pie4EGuESobrf+fb78GfGRSppRUA==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -5733,7 +5733,7 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@ecoma-io/archkeep@0.24.0(typescript@5.9.3)(vue@3.5.42(typescript@5.9.3))':
+  '@ecoma-io/archkeep@0.28.0(typescript@5.9.3)(vue@3.5.42(typescript@5.9.3))':
     dependencies:
       smol-toml: 1.8.0
       typescript: 5.9.3

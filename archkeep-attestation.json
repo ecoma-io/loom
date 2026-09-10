@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "repository": "ecoma-io/loom",
-  "commit": "4a0ee260f56d1f5f1c19ef4147a1515776e4b6a1",
+  "commit": "ef79c561623b1d75704bb62a2c4296e0310ef450",
   "tool": {
     "name": "@ecoma-io/archkeep",
-    "version": "0.24.0"
+    "version": "0.28.0"
   },
   "gate": {
     "command": "pnpm archkeep:check",
