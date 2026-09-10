@@ -86,16 +86,23 @@ export interface SfcSections {
  * from the first `<template` to the last `</template>`: the root template
  * legitimately contains nested `<template #slot>` elements, so a
  * first-close-tag read would measure half a page.
+ *
+ * Block tags match case-insensitively — HTML element names are
+ * case-insensitive and an SFC block spelled `<SCRIPT>` is the same block.
+ * The root-template read is the deliberate exception: `indexOf` has no
+ * case-insensitive form, and a template spelled in exotic casing fails
+ * loudly by name one line below instead of measuring a file without its
+ * markup.
  */
 export function readSfcSections(source: string): SfcSections | null {
-  const script = /<script\b[^>]*>([\s\S]*?)<\/script>/.exec(source)?.[1];
+  const script = /<script\b[^>]*>([\s\S]*?)<\/script>/i.exec(source)?.[1];
   const templateStart = source.indexOf("<template");
   const templateEnd = source.lastIndexOf("</template>");
   if (script === undefined || templateStart < 0 || templateEnd < templateStart) return null;
   return {
     script,
     template: source.slice(templateStart, templateEnd + "</template>".length),
-    styleBlocks: [...source.matchAll(/<style\b/g)].length,
+    styleBlocks: [...source.matchAll(/<style\b/gi)].length,
   };
 }
 

@@ -114,9 +114,16 @@ describe("readSfcSections", () => {
     expect(sections?.styleBlocks).toBe(0);
   });
 
-  it("counts every style block in the file", () => {
-    const source = `${sfc("<main></main>")}\n<style scoped>\n.a { color: red; }\n</style>\n<style>\n.b { color: blue; }\n</style>\n`;
+  it("counts every style block in the file, however the tag is cased", () => {
+    const source = `${sfc("<main></main>")}\n<style scoped>\n.a { color: red; }\n</style>\n<STYLE>\n.b { color: blue; }\n</STYLE>\n`;
     expect(readSfcSections(source)?.styleBlocks).toBe(2);
+  });
+
+  it("reads a script block spelled in upper case — block tags are case-insensitive", () => {
+    const source = `<SCRIPT setup lang="ts">\nimport { Button } from "@ecoma-io/loom";\n</SCRIPT>\n\n<template>\n<Button/>\n</template>\n`;
+    const sections = readSfcSections(source);
+    expect(sections?.script).toContain("@ecoma-io/loom");
+    expect(sections?.template).toContain("<Button/>");
   });
 
   it("refuses a file with no template block — there is nothing to measure", () => {
