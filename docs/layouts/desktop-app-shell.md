@@ -1,3 +1,7 @@
+---
+composition: "Desktop window chrome over a navigation rail and a filling content area, composed into one root the host wires its own platform bridge around."
+---
+
 # DesktopAppShell
 
 The ready-made layout a desktop (Electron/Tauri) app reaches for. It composes
@@ -98,6 +102,10 @@ always gets at least half the available space.
 Every TitleBar event is re-emitted so the host wires its own platform bridge.
 The shell itself owns no IPC — see TitleBar's documentation for the wiring
 pattern.
+
+## Obligations
+
+<!-- @layout-obligations DesktopAppShell -->
 
 ## API
 

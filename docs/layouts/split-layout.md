@@ -1,3 +1,7 @@
+---
+composition: "A side panel and a content area split at a declared minimum, stacked in slot order when narrow, under an optional full-width header."
+---
+
 # SplitLayout
 
 Full-page two-panel layout with intrinsic collapse. SplitLayout places a side
@@ -68,12 +72,9 @@ The `#header` slot spans the full width of the layout, above the split row.
 It renders a `<header>` element only when the slot is provided. Use it for
 application header bars that must remain visible regardless of collapse state.
 
-## Responsive behavior
+## Obligations
 
-- **Narrow container:** side and content stack vertically — side on top when `side="left"`, content on top when `side="right"`
-- **Container wide enough:** compact split — side panel sits alongside content; content fills remaining space
-- **Desktop:** wider gutters at `sm` breakpoint
-- **Ultrawide (`3xl`):** panel gutters widen further, extra viewport goes to whitespace rails rather than stretching lines of text
+<!-- @layout-obligations SplitLayout -->
 
 ## API
 

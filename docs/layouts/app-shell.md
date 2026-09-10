@@ -1,3 +1,7 @@
+---
+composition: "One shell owning a navigation rail, a header band and a filling content area; the host supplies region content, the shell owns the reflow."
+---
+
 # AppShell
 
 The universal application shell: a sidebar, a header, and a content area that
@@ -44,16 +48,14 @@ The `sidebarWidth` prop controls the sidebar panel width:
 | `md`  | `16rem` | Standard navigation (default) |
 | `lg`  | `20rem` | Wide sidebar with details     |
 
-## Responsive behavior
-
-- **Narrow container:** sidebar and content stack vertically — sidebar on top at its declared width, content below
-- **Wide enough container:** sidebar sits alongside content; content fills remaining space
-- **Ultrawide:** content gutters widen (`3xl`), extra viewport goes to whitespace
-
 Where the stack happens is intrinsic, not a fixed breakpoint: the pair gives
 up on one line when the container can no longer fit the sidebar plus the
 content's half — roughly twice `sidebarWidth`, so a wider sidebar holds the
 side-by-side layout longer.
+
+## Obligations
+
+<!-- @layout-obligations AppShell -->
 
 ## API
 

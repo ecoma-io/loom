@@ -6,6 +6,7 @@ import { designTokens } from "./plugins/design-tokens";
 import { wcagTags } from "./plugins/wcag-tags";
 import { interactionClasses } from "./plugins/interaction-classes";
 import { patternRecord } from "./plugins/pattern-record";
+import { layoutObligations } from "./plugins/layout-obligations";
 import { pagesIn } from "./sidebar";
 import { BASE } from "./base";
 
@@ -57,7 +58,10 @@ const PATTERNS = pagesIn("patterns", ["forms", "menus", "contract"]);
 // Layouts compose composition primitives into ready-made responsive
 // application shells — the "flagship" tier. A curated order puts the
 // most universal shells first: the app shell every product starts from,
-// then the specialised patterns.
+// then the specialised patterns. The tier's census is nine — the plan's
+// Phase 5 prose predates ADR-001, which moved DesktopAppShell into this
+// tier from the Blocks family; it is named here rather than left to the
+// alphabetical fallback it silently sorted by (Phase 5B, #337).
 const LAYOUTS = pagesIn("layouts", [
   "app-shell",
   "master-detail",
@@ -67,6 +71,7 @@ const LAYOUTS = pagesIn("layouts", [
   "split-layout",
   "form-layout",
   "reading",
+  "desktop-app-shell",
 ]);
 
 // Foundations have a genuine reading order — colour and type before the
@@ -209,6 +214,7 @@ export default defineConfig({
       wcagTags(),
       interactionClasses(),
       patternRecord(),
+      layoutObligations(),
       ...(tailwindcss() as unknown as VitePlugins),
     ],
     resolve: {

@@ -1,3 +1,7 @@
+---
+composition: "A full-width header and footer band around one centered, width-capped content column."
+---
+
 # Centered
 
 The simplest application shell: a header, a centered content column with a
@@ -44,16 +48,13 @@ Names readable intent rather than a pixel value:
 | `xl`    | `36rem` | Wider content panels            |
 | `prose` | ~65ch   | Long-form readable text         |
 
-## Responsive behavior
-
-- **Below sm:** full-width with `px-4` gutters — the viewport itself is margin
-- **sm and up:** gutters widen to `px-6` — content breathes as the screen grows
-- **3xl (ultrawide):** gutters widen to `px-8` — extra viewport goes to whitespace
-- **Header and footer** always span the full viewport width and are never centered
-
 <Demo title="Centered" :source="centeredDemoSource">
   <CenteredDemo />
 </Demo>
+
+## Obligations
+
+<!-- @layout-obligations Centered -->
 
 ## API
 

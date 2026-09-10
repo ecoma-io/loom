@@ -1,10 +1,16 @@
+---
+composition: "Optional full-width header and footer bands around one measured reading column that never widens."
+---
+
 # Reading
 
 A long-form reading layout: capped line-length for comfortable reading, with
 optional full-width header and footer bands. The content area is always
 constrained to ~65ch — the width research identifies as the fastest for
 sustained reading — and extra viewport on ultrawide monitors goes to
-intentional whitespace, never to stretching lines.
+intentional whitespace, never to stretching lines. The bands span the full
+viewport width and are never constrained to the prose measure: they carry
+site chrome, navigation, and copyright that should reach across the page.
 
 <script setup lang="ts">
 import { Reading } from "@ecoma-io/loom";
@@ -53,16 +59,9 @@ mid-phrase and interrupt comprehension. Both slow the reader down, and both
 grow worse on ultrawide monitors — which is exactly where this layout holds the
 line while the extra viewport becomes whitespace.
 
-## Responsive behavior
+## Obligations
 
-- **Mobile:** full-width content with comfortable padding (`px-4`)
-- **Tablet (`sm`):** wider gutters (`px-6`), more vertical breathing room
-- **Desktop+:** content stays capped at `max-w-prose`, centered with `mx-auto`
-- **Wide/Ultrawide (`3xl`):** gutters widen again (`px-8`), extra viewport goes to whitespace
-
-Header and footer bands span the full width of the viewport and are not
-constrained to the prose measure — they carry site chrome, navigation, and
-copyright that should reach across the page.
+<!-- @layout-obligations Reading -->
 
 ## API
 

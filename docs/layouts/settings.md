@@ -1,3 +1,7 @@
+---
+composition: "A section navigation beside an independently scrolling content area, with an optional header above both."
+---
+
 # Settings
 
 A settings/preferences page layout: a navigation sidebar for sections and a
@@ -42,12 +46,9 @@ does not shrink — when the container is too narrow for both panels, the nav
 wraps onto its own line at this width above the content instead of
 compressing.
 
-## Responsive behavior
+## Obligations
 
-- **Narrow container:** nav and content stack vertically — nav on top at its declared width, content below
-- **Wide enough container:** nav sits alongside content; content fills remaining space
-- **Desktop:** wider content gutters
-- **Ultrawide:** gutters widen further (`3xl`), extra viewport goes to whitespace
+<!-- @layout-obligations Settings -->
 
 ## API
 
