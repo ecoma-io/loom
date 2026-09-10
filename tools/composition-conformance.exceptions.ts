@@ -4,8 +4,12 @@
  * yet. `tools/check-composition-conformance.ts` reads this file as data: a
  * composition with neither the evidence set nor a row here fails the gate, and
  * a row whose composition has since landed the full set fails too — an
- * exception expires the day its evidence arrives, so 4A's landings delete
- * rows instead of letting them rot into a second silent allowance. A row
+ * exception expires the day its evidence arrives: 4A's four twin landings
+ * deleted their rows instead of letting them rot into a second silent
+ * allowance, while a row whose question is answered in writing is rewritten,
+ * not deleted — scroll-reel's row became ADR-002's by-design declaration
+ * (docs/architecture/decisions/0002-scroll-reel-css-only-by-design.md), and
+ * its `removal` field names the only condition that deletes it. A row
  * excuses what is ABSENT only: evidence a composition owns that fails a rule
  * fails the gate even under a row. The shape
  * is module-boundaries.config.mjs' suppression rows: every field mandatory,

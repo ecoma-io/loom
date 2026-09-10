@@ -7,7 +7,9 @@
  * adapters that refuse on them threw free-text messages, and nothing held
  * the two together. Now the record is one export the adapters re-export
  * beside the judged `layout` edge (the conformance gate requires that
- * re-export), each refusal names the absence entry it refuses on, and the
+ * re-export), a refusal of an unmodelled capacity names the absence entry
+ * it refuses on — a malformed prop value refuses on the prop's own grammar
+ * and names no entry (frame's ratio throw is that shape) — and the
  * artifact model cites this file instead of restating the list. Nothing
  * reads the entries programmatically yet; their law is the gate plus the
  * floor tests, which is enough to make a silently widened subset impossible.
