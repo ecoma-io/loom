@@ -35,11 +35,4 @@ export const COMPOSITION_CONFORMANCE_EXCEPTIONS: readonly CompositionConformance
     removal:
       "No milestone: a by-design declaration, not debt. The row is deleted only if the engine's modelled subset ever admits scroll containers or snap points, or the component grows a static-geometry fact a plain one-line row does not carry.",
   },
-  {
-    composition: "split",
-    reason:
-      "Percent-length sizing sits outside the engine's modelled subset, so the twin waits on gap P1's boundary decision; one behavioural e2e exists and no adapter does.",
-    owner: "Phase 4A (composition twins)",
-    removal: "Phase 4A — the pull request that lands split's adapter and cases deletes this row.",
-  },
 ];
