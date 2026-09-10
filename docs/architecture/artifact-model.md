@@ -77,7 +77,9 @@ every behaviour it deliberately does not, each absence with its reason,
 owner and reopen condition. This document cites that record and never
 restates it; the composition adapters re-export the constant beside their
 `layout` edge, and a refusal in an adapter names the absence entry it
-refuses on.
+refuses on. The record's written half — the use-case-gated decision on each
+candidate expansion — is
+[ADR-003](./decisions/0003-engine-modelled-subset-boundary.md).
 
 Constitutional facts and limits, until a decision changes them:
 
