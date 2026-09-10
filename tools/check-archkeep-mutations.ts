@@ -200,11 +200,13 @@ export const MUTATIONS: Mutation[] = [
     name: "relative-climb-in-the-harness-outside-the-suppressed-route",
     attack:
       "a relative cross-library import lands in a harness file other than the one named suppression",
-    // The conformance route (playwright/harness/conformance.ts) carries a
-    // single named suppression for exactly this verdict — the four case-file
-    // imports it needs and no specifier can name. This row is what keeps
-    // that suppression an exception rather than a blanket: the same import
-    // shape in any other harness file must still redden.
+    // The harness directory is judged with no suppression at all: the one
+    // the conformance route used to carry — its case-file imports no
+    // specifier could name — was removed when the route's registry went
+    // glob-derived (Phase 4D, ecoma-io/loom#322), so no harness file accepts
+    // this verdict any more. The row now proves the whole directory reddens,
+    // and the reach the suppression used to argue is declared where the
+    // graph can still see it, playwright/moon.yml's `# preserved` deps.
     expect: ["noRelativeOrAbsoluteImportsAcrossLibraries"],
     edits: [
       {
@@ -217,7 +219,7 @@ export const MUTATIONS: Mutation[] = [
     name: "harness-reaches-past-the-compositions-it-proves",
     attack: "the harness imports a primitive directly, past the composition reach its row names",
     // The layer-e2e row admits layer-composition for exactly one reason: the
-    // conformance route mounts the four composition packages whose case files
+    // conformance route mounts the composition packages whose case files
     // it drives. This row is what keeps that admission a named reach rather
     // than a raised ceiling — anything beneath the compositions, reached from
     // any harness file, must still redden.

@@ -231,7 +231,17 @@ export default defineConfig({
     // `packages/` is included so that Moon can run `vitest run` against
     // individual foundation packages (core, labels, theme-core) and find their
     // tests. The legacy `src/` tree is gone; coverage now guards the packages.
-    include: ["packages/**/*.test.ts", "docs/**/*.test.ts", "tools/**/*.test.ts"],
+    include: [
+      "packages/**/*.test.ts",
+      "docs/**/*.test.ts",
+      "tools/**/*.test.ts",
+      // The conformance harness's registry check (playwright/harness/
+      // conformance-registry.test.ts) lives beside the route it checks, so a
+      // harness edit re-runs it through the playwright project's own test
+      // task; the glob include is what lets both the root run and moon's
+      // project-scoped filter find it.
+      "playwright/**/*.test.ts",
+    ],
     setupFiles: ["./vitest.setup.ts"],
     // One worker, deliberately. Creating a jsdom per isolated file dominates
     // the run, so several at once oversubscribe the machine and turn

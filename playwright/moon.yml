@@ -23,11 +23,16 @@ project:
 deps:
   # preserved
   - "loom"
-  # The conformance route statically imports the eight composition packages'
-  # e2e/conformance.cases.ts files, which no specifier can name (their exports
-  # maps point at src/index.ts only), so the edge is hand-declared here the
-  # same way: this is what makes an engine or case-file change re-run this
-  # project's own lint and analysis.
+  # The conformance route loads the compositions' e2e/conformance.cases.ts
+  # files through a glob (playwright/harness/conformance.ts) — since Phase 4D
+  # (ecoma-io/loom#322) no specifier names that reach, and a glob's edges are
+  # exactly what neither architecture reader can see, so the edges stay
+  # hand-declared here: this is what makes an engine or case-file change
+  # re-run this project's own lint, tests and analysis. The set is held
+  # against the tree by playwright/harness/conformance-registry.test.ts,
+  # which fails if the glob stops reaching a composition that owns cases —
+  # and a composition landing here needs its `# preserved` line added by
+  # hand, because no tool can derive an edge nothing resolves.
   # preserved
   - "stack"
   # preserved
@@ -46,5 +51,8 @@ deps:
   - "split"
 
 tasks:
-  # Inherits lint and test from .moon/tasks/*.yml. The test task finds no
-  # `*.test.ts` here and passes with none; the lint task is the point.
+  # Inherits lint and test from .moon/tasks/*.yml. The test task runs exactly
+  # one file here — conformance-registry.test.ts, the harness's registry
+  # derivation held against the tree — so a harness edit re-runs the
+  # registry law in this project's own affected closure; the lint task is
+  # the other point.
