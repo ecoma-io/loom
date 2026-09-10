@@ -18,9 +18,10 @@
  * refused one: `staysOnOneLine` is the breakpoint, the case set and the
  * coverage floor hold every compared case on the fitting side of it, and
  * SPLIT_UNMODELLED records what the far side would have needed. Phase 4B's
- * modelled-subset record owns the collapse.
+ * modelled-subset record owns the collapse — now landed as
+ * MODELLED_SUBSET.absences.WRAP and SPLIT_UNMODELLED below.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 // The band value is the law, not a restated number — see stack's layout.ts.
 import { RESPONSIVE_VIEWPORT_BANDS } from "@ecoma-io/loom-core";
 import type { SplitGap, SplitSide } from "./Split.vue";
@@ -29,8 +30,9 @@ import type { SplitGap, SplitSide } from "./Split.vue";
 // through this package's own module rather than importing it past the
 // e2e layer's boundary — the route's only cross-library reaches are the
 // case files, and everything else arrives transitively through this judged
-// edge.
+// edge. The declared scope rides beside it — see stack's layout.ts.
 export { layout };
+export { MODELLED_SUBSET };
 
 /** See stack's layout.ts — the two inputs and why there are two. */
 export interface LayoutContext {
@@ -94,8 +96,8 @@ export function resolveMinSideWidth(minSideWidth: string): number {
     throw new Error(
       `resolveMinSideWidth: "${minSideWidth}" is not a px or rem length — those are the units ` +
         "the adapter resolves (rem at the conformance route's pinned 16px root), and an unresolvable " +
-        "unit must fail loudly, never become a guessed width. Phase 4B's modelled-subset record " +
-        "owns the rest of the length grammar.",
+        "unit must fail loudly, never become a guessed width. The length grammar the engine keeps " +
+        "is recorded as MODELLED_SUBSET.absences.PERCENT.",
     );
   }
   return unit === "rem" ? value * ROOT_FONT_PX : value;
@@ -163,9 +165,10 @@ export const SPLIT_UNMODELLED: readonly UnmodeledBehaviour[] = [
       "the collapsed state — the side panel wrapped onto a line of its own at its declared width, the content stacked on the line below",
     reason:
       "the collapse is flex-wrap line breaking and the engine's IR is one line. The breakpoint resolves adapter-side (staysOnOneLine), but the wrapped boxes have no honest engine geometry: across the deficit the browser puts the panel alone on a full line and gives the content the next one, while the engine's row keeps both on one line and overflows — no tree this engine can produce states the wrapped boxes.",
-    owner: "Phase 4B (the modelled-subset record)",
+    owner:
+      "closed by Phase 4B: the modelled-subset record carries the wrap absence (MODELLED_SUBSET.absences.WRAP) and this row names its Split face",
     removal:
-      "the engine growing line collection, or the 4B record declaring the collapse CSS-only with the behavioural e2e as its evidence.",
+      "the engine growing line collection; the record's wrap declaration has landed, so the collapse is recorded scope, and what would replace the row is only a pinned wrapped geometry.",
   },
 ];
 

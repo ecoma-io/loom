@@ -8,7 +8,7 @@
  * reaches the engine — the component keeps rendering pure CSS, and the
  * published build carries zero engine bytes.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 // The band value is the law, not a restated number: the responsive contract
 // owns the viewport bands, and an adapter that keeps its own 640 could drift
 // from the contract its sidecar claim is judged against.
@@ -21,6 +21,13 @@ import type { StackAlign, StackGap } from "./Stack.vue";
 // four case files, and everything else arrives transitively through
 // this judged edge.
 export { layout };
+
+// The engine's declared scope rides the same edge: what the IR models and
+// what it refuses, as data, so a reader of any adapter sees the subset it
+// maps onto without reaching past the adapter's module. The conformance gate
+// requires the pairing; the refusals in the other adapters name the absence
+// entries this constant carries.
+export { MODELLED_SUBSET };
 
 /**
  * What every adapter is told about the host it is mapping for.

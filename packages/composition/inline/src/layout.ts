@@ -7,7 +7,7 @@
  * imports this and the package barrel does not re-export it, so no consumer
  * import path reaches the engine.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 // The band value is the law, not a restated number — see stack's layout.ts.
 import { RESPONSIVE_VIEWPORT_BANDS } from "@ecoma-io/loom-core";
 import type { InlineAlign, InlineGap } from "./Inline.vue";
@@ -16,8 +16,10 @@ import type { InlineAlign, InlineGap } from "./Inline.vue";
 // through this package's own module rather than importing it past the
 // e2e layer's boundary — the route's only cross-library reaches are the
 // four case files, and everything else arrives transitively through
-// this judged edge.
+// this judged edge. The declared scope rides beside it — see stack's
+// layout.ts.
 export { layout };
+export { MODELLED_SUBSET };
 
 /** See stack's layout.ts — the two inputs and why there are two. */
 export interface LayoutContext {
@@ -58,12 +60,12 @@ export function inlineLayout(
 ): LayoutNode {
   if (props.wrap !== false) {
     throw new Error(
-      `inlineLayout: wrap: ${props.wrap === undefined ? "unset (the component default is true)" : String(props.wrap)} is CSS-only in this slice — the browser renders wrapping today, and the engine models line collection in phase 2. Pass wrap: false.`,
+      `inlineLayout: wrap: ${props.wrap === undefined ? "unset (the component default is true)" : String(props.wrap)} is CSS-only in this slice — the browser renders wrapping today, and the engine models line collection in phase 2. Pass wrap: false. Recorded as MODELLED_SUBSET.absences.WRAP.`,
     );
   }
   if (props.align === "baseline") {
     throw new Error(
-      'inlineLayout: align: "baseline" is CSS-only — baseline alignment is decided by text metrics, which a text-free geometry engine does not have. Use start, center, end or stretch.',
+      'inlineLayout: align: "baseline" is CSS-only — baseline alignment is decided by text metrics, which a text-free geometry engine does not have. Use start, center, end or stretch. Recorded as MODELLED_SUBSET.absences.BASELINE.',
     );
   }
   const [belowSm, atSm] = INLINE_GAP_STEPS[props.gap ?? "md"];

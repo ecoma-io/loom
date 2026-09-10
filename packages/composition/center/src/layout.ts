@@ -7,7 +7,7 @@
  * and the package barrel does not re-export it, so no consumer import path
  * reaches the engine.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 // The band values are the law, not restated numbers — see stack's layout.ts.
 import { RESPONSIVE_VIEWPORT_BANDS } from "@ecoma-io/loom-core";
 import type { CenterMaxWidth } from "./Center.vue";
@@ -16,8 +16,10 @@ import type { CenterMaxWidth } from "./Center.vue";
 // through this package's own module rather than importing it past the
 // e2e layer's boundary — the route's only cross-library reaches are the
 // four case files, and everything else arrives transitively through
-// this judged edge.
+// this judged edge. The declared scope rides beside it — see stack's
+// layout.ts.
 export { layout };
+export { MODELLED_SUBSET };
 
 /** See stack's layout.ts — the two inputs and why there are two. */
 export interface LayoutContext {
@@ -70,7 +72,7 @@ export function centerLayout(
 ): LayoutNode {
   if (props.maxWidth === "prose") {
     throw new Error(
-      'centerLayout: maxWidth: "prose" is CSS-only — 65ch is a font-relative unit and the engine speaks px. Use sm, md, lg or xl.',
+      'centerLayout: maxWidth: "prose" is CSS-only — 65ch is a font-relative unit and the engine speaks px. Use sm, md, lg or xl. Recorded as MODELLED_SUBSET.absences.TEXT_METRICS.',
     );
   }
   const maxWidth = CENTER_MAX_WIDTH_PX[props.maxWidth ?? "lg"];
