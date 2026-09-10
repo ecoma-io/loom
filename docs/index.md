@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Loom
   text: An Application Interface System for Vue
-  tagline: Primitives, tokens, composition and responsive layouts for cross-platform web applications — accessible by construction, desktop-aware by design.
+  tagline: Primitives, tokens, composition and responsive layouts — accessible by construction, desktop-aware by design.
   actions:
     - theme: brand
       text: Get started
@@ -26,8 +26,6 @@ hero:
       link: https://github.com/ecoma-io/loom
 
 features:
-  - title: Cross-platform, not just browser
-    details: Window-chrome awareness for Electron and Tauri, PWA overlay support, safe-area insets for mobile webviews — the same components work on every surface.
   - title: Responsive by design
     details: Composition primitives and layouts that collapse intrinsically, without a media query per breakpoint. Content is bounded at readable widths on ultrawide monitors.
   - title: Accessible by construction
@@ -38,6 +36,8 @@ features:
     linkText: Browse layouts
   - title: Tokens, not hex codes
     details: One theme layer in Tailwind's CSS-first syntax. Colour, radius, easing, duration, shadow, type scale and breakpoints are declared once and consumed as utilities.
+  - title: The host decides the platform
+    details: Window chrome, safe-area insets and PWA overlays are boundary conditions the host passes in, not behaviours Loom sniffs at runtime. Cross-platform is a design constraint, not the product category.
   - title: Documented from source
     details: The API tables on this site are generated from the components themselves, and every example is the demo's real file. Neither can drift from the code it describes.
 ---
