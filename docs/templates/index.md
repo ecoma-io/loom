@@ -14,9 +14,10 @@ The sentence that keeps the layers apart:
 > copied.
 
 Templates consume the public `@ecoma-io/loom` package exactly as an external
-consumer would. No internal imports, no source aliases, nothing the published
-package does not have. If a template cannot build against the published
-surface, that is a defect in the surface, and it is filed as one.
+consumer of Loom — an Application Interface System for Vue — would. No
+internal imports, no source aliases, nothing the published package does not
+have. If a template cannot build against the published surface, that is a
+defect in the surface, and it is filed as one.
 
 ## What belongs here
 
