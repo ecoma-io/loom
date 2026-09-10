@@ -41,7 +41,8 @@ import type { Axis, LayoutNode, LayoutStyle } from "./style";
 //
 // History: the first revision of this suite carried three generator-level
 // exclusions, each holding it clear of a then-live engine defect (findings
-// 1, 3 and 4 in /tmp/shipworm-reports/05-test-engineer-findings.md). All
+// 1, 3 and 4 — the shrunk inputs frozen, finding number and all, in the
+// "regression pins" test at the foot of this file). All
 // three were removed when the engine was fixed — justify center/end now runs
 // against max-content main constraints, min>max bounds stay in the adjacency
 // and line-fit walks, and main-axis clamps stay in the line-fit walk — and
@@ -994,9 +995,9 @@ describe("layout invariants", () => {
 
   it("regression pins: the four shrunk inputs that found the engine's defects, frozen with their CSS-expected geometry", () => {
     // The Yoga discipline: a counterexample that revealed a real defect
-    // becomes a committed fixture. Each pin below is the minimal input from
-    // the findings doc (/tmp/shipworm-reports/05-test-engineer-findings.md),
-    // reshaped by hand rather than copied, asserting the geometry CSS would
+    // becomes a committed fixture. Each pin below is the minimal input that
+    // found its defect, headed by the finding number it froze and reshaped
+    // by hand rather than copied, asserting the geometry CSS would
     // produce — never the engine's accident. A fix that regresses any of
     // these reddens the suite even if the property that found it shrinks
     // differently next time.

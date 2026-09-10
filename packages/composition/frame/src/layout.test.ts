@@ -39,7 +39,9 @@ describe("frameLayout", () => {
 
   it("throws on anything it cannot divide into a ratio", () => {
     for (const bad of ["golden", "16:9 4:3", "0 / 4", "4 / 0", ""]) {
-      expect(() => frameLayout({ ratio: bad }, ctx(800), [])).toThrow(/is not modeled/);
+      expect(() => frameLayout({ ratio: bad }, ctx(800), [])).toThrow(
+        /does not parse to a usable ratio/,
+      );
     }
   });
 

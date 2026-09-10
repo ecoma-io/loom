@@ -68,7 +68,7 @@ export function frameLayout(
   const ratio = named ?? parsed;
   if (ratio === undefined || !Number.isFinite(ratio) || ratio <= 0) {
     throw new Error(
-      `frameLayout: ratio ${JSON.stringify(value)} is not modeled — pass a named ratio ("16:9", "4:3", "1:1", "3:4") or an "a / b" string the engine can divide.`,
+      `frameLayout: ratio ${JSON.stringify(value)} does not parse to a usable ratio — pass a named ratio ("16:9", "4:3", "1:1", "3:4") or an "a / b" string the engine can divide.`,
     );
   }
   return {

@@ -76,8 +76,9 @@ carries `MODELLED_SUBSET` — the capabilities the single-line IR models and
 every behaviour it deliberately does not, each absence with its reason,
 owner and reopen condition. This document cites that record and never
 restates it; the composition adapters re-export the constant beside their
-`layout` edge, and a refusal in an adapter names the absence entry it
-refuses on. The record's written half — the use-case-gated decision on each
+`layout` edge, and a refusal of an unmodelled capacity names the absence
+entry it refuses on — a malformed prop value refuses on the prop's own
+grammar instead (frame's ratio throw). The record's written half — the use-case-gated decision on each
 candidate expansion — is
 [ADR-003](./decisions/0003-engine-modelled-subset-boundary.md).
 

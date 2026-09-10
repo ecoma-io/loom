@@ -9,7 +9,9 @@ Phase 4B landed the engine's scope as data:
 carries the capabilities the single-line IR models and every behaviour it
 deliberately does not, each absence with its reason, owner and reopen
 condition; the adapters re-export the record beside their `layout` edge, a
-refusal names the entry it refuses on, and the
+refusal of an unmodelled capacity names the entry it refuses on (a
+malformed prop value refuses on the prop contract itself — frame's ratio
+throw is that shape), and the
 [artifact model](../artifact-model.md) cites the file instead of restating
 the list. What the record deliberately does not carry is the reasoning this
 document adds: for each candidate expansion — what CSS does, what the engine
@@ -161,9 +163,10 @@ one line; no adapter calls another, and the route conforms each composition
 in isolation at its own measured section.
 
 The composed surface, meanwhile, already exists in the product:
-`templates/analytics/src/App.vue` nests a `Grid` inside a `Stack` inside a
-`Stack`. The browser resolves that
-nesting at runtime and nothing asserts the composed geometry — each
+`templates/analytics/src/App.vue` nests a `Grid` inside an outer `Stack`,
+sibling to a second `Stack` whose own children — a `DataGrid`, a
+primitive, among them — sit two `Stack` levels deep. The browser resolves
+that nesting at runtime and nothing asserts the composed geometry — each
 composition is conformed alone. A real nested use case is a conformance
 case for the composed artifact, and what it would demand is constraint
 propagation across adapter calls: the outer adapter's resolved content box
