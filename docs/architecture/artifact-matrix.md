@@ -44,22 +44,26 @@ path is itself a tracked directory — the shape a tier keeps.
 
 ## Compositions (9)
 
-All `layer-composition`, all facade-exported. Adapters exist for exactly four;
-the conformance gate (`tools/check-composition-conformance.ts`, Phase 3C) holds
-the other five on named exception rows — in
-`tools/composition-conformance.exceptions.ts` — until 4A lands their twins.
+All `layer-composition`, all facade-exported. Eight own an adapter with the
+full evidence set, registered in the conformance harness; the conformance gate
+(`tools/check-composition-conformance.ts`, Phase 3C) reads the census from the
+tree. ScrollReel is the one exception row remaining in
+`tools/composition-conformance.exceptions.ts` — a by-design declaration
+([ADR-002](./decisions/0002-scroll-reel-css-only-by-design.md)), not debt: 4A
+landed the other twins (#313–#317) and its row's
+question was resolved in writing.
 
-| Artifact      | Adapter (`src/layout.ts`) | Conformance evidence                                  | Intended type | Gap                                                | Action                                                        |
-| ------------- | ------------------------- | ----------------------------------------------------- | ------------- | -------------------------------------------------- | ------------------------------------------------------------- |
-| Stack         | yes                       | engine-vs-DOM conformance + browserless floor         | Composition   | None                                               | —                                                             |
-| Inline        | yes                       | conformance (wrap/baseline throw loudly)              | Composition   | None                                               | —                                                             |
-| Frame         | yes                       | conformance                                           | Composition   | None                                               | —                                                             |
-| Center        | yes                       | conformance                                           | Composition   | None                                               | —                                                             |
-| Grid          | no                        | behavioural e2e (auto-fit reflow, 3B) + jsdom pins    | Composition   | No computable twin; no engine-conformance evidence | 4A twin; 3C exception row until then                          |
-| Sidebar       | no                        | behavioural e2e (intrinsic collapse, 3B) + jsdom pins | Composition   | As Grid                                            | 4A twin (auditors' first-priority order); 3C exception row    |
-| Split         | no                        | one behavioural e2e, no adapter                       | Composition   | Percent-length boundary blocks the twin            | 4A twin after the percent boundary decision; 3C exception row |
-| ScrollReel    | no                        | behavioural e2e (one-line overflow, 3B) + jsdom pins  | Composition   | Scroll-snap may be CSS-only by design — undecided  | Declare in writing either way (4A); 3C exception row          |
-| DashboardGrid | no                        | behavioural e2e (span + reflow, 3B) + jsdom pins      | Composition   | As Grid                                            | 4A twin; 3C exception row until then                          |
+| Artifact      | Adapter (`src/layout.ts`) | Conformance evidence                                                       | Intended type | Gap                                                                                        | Action                                                                              |
+| ------------- | ------------------------- | -------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Stack         | yes                       | engine-vs-DOM conformance + browserless floor                              | Composition   | None                                                                                       | —                                                                                   |
+| Inline        | yes                       | conformance (wrap/baseline throw loudly)                                   | Composition   | None                                                                                       | —                                                                                   |
+| Frame         | yes                       | conformance                                                                | Composition   | None                                                                                       | —                                                                                   |
+| Center        | yes                       | conformance                                                                | Composition   | None                                                                                       | —                                                                                   |
+| Grid          | yes                       | engine-vs-DOM conformance (#317): reflow boundaries pinned as equality     | Composition   | Row banding outside the single-line IR — counted `knownDivergence`, owner Phase 4B         | Landed (4A)                                                                         |
+| Sidebar       | yes                       | engine-vs-DOM conformance (#314): collapse regime + percent adapter-side   | Composition   | The wrapped panel's unpinned width — recorded `SIDEBAR_UNMODELLED`, owner Phase 4B         | Landed (4A); relates to #275, which stays open                                      |
+| Split         | yes                       | engine-vs-DOM conformance (#316): min-side percent + gap adapter-side      | Composition   | The collapse outside the single-line IR — recorded `SPLIT_UNMODELLED`, owner Phase 4B      | Landed (4A); fixed #300's stale collapse comments                                   |
+| ScrollReel    | no — by design            | behavioural e2e (3B) + jsdom pins; ADR-002 is the record                   | Composition   | None — the arrangement's essence (scroll container, snap) has no static-geometry footprint | Declared CSS-only in writing (ADR-002, #313); reopens only where the engine changes |
+| DashboardGrid | yes                       | engine-vs-DOM conformance (#315): span resolves adapter-side to area width | Composition   | Row auto-placement / implicit tracks outside the IR — counted absence, owner Phase 4B      | Landed (4A)                                                                         |
 
 ## Patterns (13) — the Blocks family after 2C's rename
 
