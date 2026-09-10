@@ -88,6 +88,7 @@
     "docs:stage": "node tools/stage-docs.ts",
     "docs:check-route": "node tools/stage-docs.ts --check",
     "docs:preview": "vitepress preview docs",
+    "escape-rate": "node --experimental-strip-types tools/measure-escape-rate.ts",
     "moon": "MOON_CONCURRENCY=${MOON_CONCURRENCY:-4} exec moon"
   },
   "devDependencies": {
