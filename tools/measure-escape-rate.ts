@@ -87,16 +87,23 @@ export interface SfcSections {
  * legitimately contains nested `<template #slot>` elements, so a
  * first-close-tag read would measure half a page.
  *
- * Block tags match case-insensitively — HTML element names are
- * case-insensitive and an SFC block spelled `<SCRIPT>` is the same block —
- * and the script end tag tolerates whitespace before its `>` (`</script >`),
- * which is legal tag grammar, not the byte spelling. The root-template read
- * is the deliberate exception: `indexOf` has no case-insensitive form, and a
+ * The script block's open and end tags are matched the way an HTML tokenizer
+ * reads them: case-insensitively (`<SCRIPT>` is the same element), the junk
+ * between the tag name and its `>` consumed one attribute at a time —
+ * whitespace, bare words, and quoted values that may themselves carry `>`
+ * (`</script bar=">">` closes the block; `</script \t\n bar>` closes it too).
+ * A tag-shaped pattern that assumed the bare `<script>…</script>` spelling
+ * would read a block that never ends, which is the defect class CodeQL's
+ * bad-HTML-filtering-regexp rule exists for. The root-template read is the
+ * deliberate exception: `indexOf` has no case-insensitive form, and a
  * template spelled in exotic casing fails loudly by name one line below
  * instead of measuring a file without its markup.
  */
 export function readSfcSections(source: string): SfcSections | null {
-  const script = /<script\b[^>]*>([\s\S]*?)<\/script\s*>/i.exec(source)?.[1];
+  const script =
+    /<script\b(?:"[^"]*"|'[^']*'|[^>])*>([\s\S]*?)<\/script(?:"[^"]*"|'[^']*'|[^>])*>/i.exec(
+      source,
+    )?.[1];
   const templateStart = source.indexOf("<template");
   const templateEnd = source.lastIndexOf("</template>");
   if (script === undefined || templateStart < 0 || templateEnd < templateStart) return null;

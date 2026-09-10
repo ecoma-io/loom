@@ -131,6 +131,13 @@ describe("readSfcSections", () => {
     expect(readSfcSections(source)?.script).toContain("@ecoma-io/loom");
   });
 
+  it("reads a script whose end tag carries attributes, quoted arrows included", () => {
+    const source = `<script setup lang="ts">\nimport { Button } from "@ecoma-io/loom";\n</script \t\n bar>\n\n<template>\n<Button/>\n</template>\n`;
+    expect(readSfcSections(source)?.script).toContain("@ecoma-io/loom");
+    const quoted = `<script setup lang="ts">\nimport { Button } from "@ecoma-io/loom";\n</script bar=">">\n\n<template>\n<Button/>\n</template>\n`;
+    expect(readSfcSections(quoted)?.script).toContain("@ecoma-io/loom");
+  });
+
   it("refuses a file with no template block — there is nothing to measure", () => {
     expect(readSfcSections(`<script setup lang="ts"></script>\n`)).toBeNull();
   });
