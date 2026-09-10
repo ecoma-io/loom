@@ -92,16 +92,20 @@ export interface SfcSections {
  * between the tag name and its `>` consumed one attribute at a time —
  * whitespace, bare words, and quoted values that may themselves carry `>`
  * (`</script bar=">">` closes the block; `</script \t\n bar>` closes it too).
- * A tag-shaped pattern that assumed the bare `<script>…</script>` spelling
- * would read a block that never ends, which is the defect class CodeQL's
- * bad-HTML-filtering-regexp rule exists for. The root-template read is the
- * deliberate exception: `indexOf` has no case-insensitive form, and a
- * template spelled in exotic casing fails loudly by name one line below
- * instead of measuring a file without its markup.
+ * The three alternatives never overlap — the catch-all excludes both quote
+ * characters, so a given position can only ever enter one branch and the
+ * match cannot blow up on repeated `""` — the same shape the tag scanner
+ * below scans markup with. A tag-shaped pattern that assumed the bare
+ * `<script>…</script>` spelling would read a block that never ends, which is
+ * the defect class CodeQL's bad-HTML-filtering-regexp rule exists for. The
+ * root-template read is the deliberate exception: `indexOf` has no
+ * case-insensitive form, and a template spelled in exotic casing fails
+ * loudly by name one line below instead of measuring a file without its
+ * markup.
  */
 export function readSfcSections(source: string): SfcSections | null {
   const script =
-    /<script\b(?:"[^"]*"|'[^']*'|[^>])*>([\s\S]*?)<\/script(?:"[^"]*"|'[^']*'|[^>])*>/i.exec(
+    /<script\b(?:"[^"]*"|'[^']*'|[^>"'])*>([\s\S]*?)<\/script(?:"[^"]*"|'[^']*'|[^>"'])*>/i.exec(
       source,
     )?.[1];
   const templateStart = source.indexOf("<template");
