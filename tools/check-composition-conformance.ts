@@ -1,6 +1,8 @@
 // Every composition owns an engine adapter plus conformance evidence, or a
-// named exception that expires — this is the gate that holds that contract
-// (Phase 3C, ecoma-io/loom#280).
+// named exception on the register — this is the gate that holds that
+// contract (Phase 3C, ecoma-io/loom#280). An exception row's removal text
+// says what would end it: most expired as Phase 4A landed the twins; the
+// one that survives is a by-design declaration (ADR-002), not debt.
 //
 // The evidence set is the four artifacts the conformance route rides on, and
 // the compositions are enumerated from the tree through the single package
@@ -445,6 +447,6 @@ if (import.meta.url === `file://${process.argv[1] ?? ""}`) {
   console.log(
     `Composition conformance contract held: ${String(summary.complete)} of ` +
       `${String(summary.total)} compositions own the full evidence set; ` +
-      `${String(summary.excepted)} named exception(s) expire as Phase 4A lands the twins.`,
+      `${String(summary.excepted)} named exception(s) on the register.`,
   );
 }

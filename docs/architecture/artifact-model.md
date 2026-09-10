@@ -93,7 +93,7 @@ directly.
 Generic spatial/interface composition with no domain meaning.
 
 - **Purpose.** Own spatial relationships and responsive composition: how things are arranged when the arrangement itself is the decision.
-- **May own.** Spatial relationships (stacking, splitting, gridding, inlining); intrinsic responsive collapse; container behaviour; layout semantics rendered as CSS and declared as data (the `src/layout.ts` adapter over the layout engine, where one exists — stack, inline, frame, center today).
+- **May own.** Spatial relationships (stacking, splitting, gridding, inlining); intrinsic responsive collapse; container behaviour; layout semantics rendered as CSS and declared as data (the `src/layout.ts` adapter over the layout engine, where one exists — eight of nine compositions own one today; the census lives in the [artifact matrix](./artifact-matrix.md#compositions-9), and the one absence is the recorded by-design exception, [ADR-002](./decisions/0002-scroll-reel-css-only-by-design.md)).
 - **Must not own.** Domain meaning; content semantics; interaction semantics beyond arrangement (a Split has no opinion about what is split); imports from Pattern or above.
 - **Expected dependencies.** Foundation; the layout engine through its adapter where one exists; Primitives where an arrangement embeds controls. Never Pattern, Layout or above.
 - **Examples.** Stack, Inline, Grid, Split, Sidebar, Center, Frame, ScrollReel, DashboardGrid.
