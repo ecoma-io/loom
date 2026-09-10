@@ -1,3 +1,7 @@
+---
+intent: "A placeholder carrying the expected shape of pending content — spinner for short indeterminate waits, skeleton lines for content-shaped waits — so a loading region never reads as an empty one."
+---
+
 # LoadingState
 
 A skeleton-based loading placeholder that shows the expected shape of content
@@ -64,6 +68,10 @@ varying width). Hosts that know their own layout provide a default slot with the
 Skeleton arrangement that matches their real content — a heading row plus two
 lines, a card grid, a table — so the placeholder and the loaded result occupy
 the same space and the transition is a swap, not a layout shift.
+
+## Canonical record
+
+<!-- @pattern-record LoadingState -->
 
 ## API
 

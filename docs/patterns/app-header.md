@@ -1,3 +1,7 @@
+---
+intent: "The application shell's pinned top strip: three named slot regions over a fixed height and elevation, present once above every surface and collapsing responsively when it cannot hold them."
+---
+
 # AppHeader
 
 The web app's shell-level top bar: the strip that stays pinned above every
@@ -107,6 +111,10 @@ platform's inset to the bar's own top padding automatically (through the
 `global.css`), so the first row never paints under the system layer. A host
 that needs the raw value elsewhere reads `var(--safe-area-top)` directly;
 the token falls back to `0px` on devices without an inset.
+
+## Canonical record
+
+<!-- @pattern-record AppHeader -->
 
 ## API
 

@@ -1,3 +1,7 @@
+---
+intent: "The title band pinned to the top of one surface: the surface's name, its live count, one line of orientation and its actions, with the pinning, plane and wrap rules fixed once."
+---
+
 # PageHeader
 
 The title band **pinned to the top** of one surface: the surface's name, its
@@ -103,6 +107,10 @@ surface below uses, not to this band.
   identity plus action; a filter belongs to the work area right below it.
 - Don't reach for this for a heading _inside_ a section, and don't reach for
   it as a dialog title — both have their own, more specific components.
+
+## Canonical record
+
+<!-- @pattern-record PageHeader -->
 
 ## API
 

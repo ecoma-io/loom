@@ -1,3 +1,7 @@
+---
+intent: "A titled group of related fields with an optional description and fixed vertical rhythm — one fieldset wrapper a form page reaches for repeatedly."
+---
+
 # FormSection
 
 A labeled group of form fields with an optional description — the
@@ -52,6 +56,10 @@ be present at once.
 The other addition is `gap`, which applies Stack's responsive gap scale
 between the fields — tighter below the `sm` breakpoint where stacked items
 have no room to waste on air.
+
+## Canonical record
+
+<!-- @pattern-record FormSection -->
 
 ## API
 

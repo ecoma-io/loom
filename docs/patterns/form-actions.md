@@ -1,3 +1,7 @@
+---
+intent: "The action row that closes a form: primary action right, cancel left, divided from the content above by a rule, wrapping responsively on narrow viewports."
+---
+
 # FormActions
 
 The submit/cancel button row at the bottom of a form. It owns the layout so
@@ -57,6 +61,10 @@ The gap between actions follows FormSection's `sm` band: tighter below the
   a single CTA where a left-side cancel would leave half the row empty.
 - **`left`**: All actions pushed to the left edge. Use for right-to-left
   locales, or when the surrounding layout calls for it.
+
+## Canonical record
+
+<!-- @pattern-record FormActions -->
 
 ## API
 

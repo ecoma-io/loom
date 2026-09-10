@@ -1,3 +1,7 @@
+---
+intent: "A region with nothing to show: icon, title, optional description and at most one call to action, centered — the region explains itself and offers exactly one next step."
+---
+
 # EmptyState
 
 The shape of "nothing here yet": icon → title → optional description → at
@@ -67,6 +71,10 @@ medallion (a `bg-subtle` disc with a hairline `border`) gives it a shape to
 sit against without adding a shadow: it is a surface plus a hairline, never
 a float. `bg-subtle` rather than `bg-card` keeps the disc visible whether
 the pattern is dropped onto `bg-card` or `bg-background` — it is used on both.
+
+## Canonical record
+
+<!-- @pattern-record EmptyState -->
 
 ## API
 

@@ -1,3 +1,7 @@
+---
+intent: "On a failed submit, focus moves to one summary listing every invalid field, each entry a link that returns focus to that field — orientation across the whole form instead of one field at a time."
+---
+
 # ErrorSummary
 
 The GOV.UK Design System error-summary pattern: on submit-failure, focus
@@ -63,6 +67,10 @@ InlineErrors at the fields.
 <Demo title="Focus jumps to the problem, then back to the field" :source="errorSummaryDemoSource">
   <ErrorSummaryDemo />
 </Demo>
+
+## Canonical record
+
+<!-- @pattern-record ErrorSummary -->
 
 ## API
 
