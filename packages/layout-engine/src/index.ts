@@ -12,6 +12,12 @@
 // The single entry point.
 export { layout, type ComputedNode } from "./layout";
 
+// The declared scope: what the IR models and what it deliberately does not.
+// The composition adapters re-export it beside the `layout` edge — the
+// conformance gate requires that pairing — so a reader of any adapter sees
+// the subset it maps onto without reaching past that adapter's module.
+export { MODELLED_SUBSET, type ModelledAbsence, type ModelledAbsenceKey } from "./modelled-subset";
+
 // The style model: what a layout tree asks for.
 export { type Align, type Axis, type Length, type LayoutNode, type LayoutStyle } from "./style";
 
