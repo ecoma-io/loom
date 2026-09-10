@@ -1,7 +1,7 @@
 {
   "name": "@ecoma-io/loom",
   "version": "0.5.0",
-  "description": "An Application Interface System for Vue — accessible components, design tokens and responsive layouts for cross-platform web applications.",
+  "description": "An Application Interface System for Vue — accessible components, design tokens and responsive layouts. Cross-platform is a design constraint, not the product category.",
   "keywords": [
     "design-system",
     "component-library",
