@@ -55,7 +55,7 @@ jobs:
           api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
           api-key: ${{ secrets.ECOMA_LLM_API_KEY }}
           model: review
-          dry-run: "true"
+          dry-run: "false"
 
       # The exact file the run declared — set on green runs and on the red
       # boundary's record alike, and empty on terminals that declare none,
