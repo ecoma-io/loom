@@ -11,11 +11,16 @@
 // registered. For each composition directory the gate demands, all of:
 //
 //   1. `src/layout.ts` exporting at least one `export function` — the
-//      adapter — plus the engine re-exports spelled exactly
-//      `export { layout }` (the judged edge the route reaches the engine
-//      through) and `export { MODELLED_SUBSET }` (the engine's declared
-//      scope, riding the same edge so a reader of any adapter sees the
-//      subset it maps onto without reaching past the adapter's module);
+//      adapter — plus the two engine re-exports, in any export-list shape
+//      (sole-name or combined): `layout`, the judged edge the route reaches
+//      the engine through, and `MODELLED_SUBSET`, the engine's declared
+//      scope riding the same edge so a reader of any adapter sees the
+//      subset it maps onto without reaching past the adapter's module. The
+//      scope's re-export is provenance-checked as well as spelled: the
+//      adapter must *import* `MODELLED_SUBSET` from
+//      `@ecoma-io/loom-layout-engine`, because a local definition that
+//      borrowed the name type-checks, lints and passes its own tests while
+//      exporting a shadow of the record;
 //   2. `e2e/conformance.cases.ts` exporting the four-name module contract,
 //      each name spelled exactly — `export const component`,
 //      `export const adapter`, `export const cases` and
@@ -43,6 +48,11 @@
 // module is the same approximation check-a11y-evidence.ts makes — a parser
 // for files this repository owns, not a TypeScript front end — and every
 // structural fault is a reported failure naming the file, never a skipped one.
+// Parse-only bounds what the provenance law can mean: the gate proves the
+// pairing text is carried and that no local binding stands in for the engine
+// import, never that the shapes it matched are code — a string literal
+// carrying the whole incantation satisfies every shape, and that residual is
+// what the tiers that load the adapter hold instead.
 //
 // Run: `node --experimental-strip-types tools/check-composition-conformance.ts`
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -80,6 +90,32 @@ const ABSENCE = /^[^:]+: missing /;
 const NAME_FIELD = /\bname\s*:\s*"((?:[^"\\]|\\.)*)"/;
 /** The case's viewport list, inside one flat record. */
 const VIEWPORT_FIELD = /\bviewports\s*:\s*\[([^\]]*)\]/;
+
+/**
+ * The engine package specifier, matched in full rather than by package name:
+ * a relative climb to the engine source is not a provenance archkeep allows
+ * and a subpath import cannot resolve — the engine package publishes only the
+ * root export — so this is the one specifier the record can come through.
+ */
+const ENGINE_SPECIFIER = "@ecoma-io/loom-layout-engine";
+/**
+ * The provenance half of the `MODELLED_SUBSET` pairing: a named value import
+ * from the engine package. `import type` does not satisfy it, because a
+ * type-only binding cannot carry the value the re-export claims to hand on;
+ * the whole-token guard keeps a longer identifier (`MODELLED_SUBSET_V2`) a
+ * different import rather than a longer spelling of this one.
+ */
+const MODELLED_SUBSET_FROM_ENGINE = new RegExp(
+  `import\\s*\\{[^}]*\\bMODELLED_SUBSET\\b[^}]*\\}\\s*from\\s*["']${ENGINE_SPECIFIER}["']`,
+);
+/**
+ * The re-export half of the pairing, each name accepted in any export-list
+ * shape — sole-name or combined — because the contract binds the re-export's
+ * existence, not the shape of the list that carries it. Whole-token like the
+ * import guard above: `layoutV2` and `MODELLED_SUBSET_V2` are other names.
+ */
+const LAYOUT_REEXPORT = /export\s*\{[^}]*\blayout\b[^}]*\}/;
+const MODELLED_SUBSET_REEXPORT = /export\s*\{[^}]*\bMODELLED_SUBSET\b[^}]*\}/;
 
 /** Remove comments before parsing. See check-a11y-evidence.ts for why. */
 function stripComments(text: string): string {
@@ -296,16 +332,25 @@ export function checkCompositionConformance(
       own.push(`${composition}: missing ${adapterRel}`);
     } else {
       const text = stripComments(readFileSync(adapterPath, "utf8"));
-      if (!text.includes("export { layout }")) {
+      if (!LAYOUT_REEXPORT.test(text)) {
         own.push(
           `${composition}: ${adapterRel} does not re-export \`layout\` — the route reaches the engine only through this package's own module`,
         );
       }
+      // The provenance half first, because it is what the re-export check
+      // cannot see: the Phase 4 mutation kept the export spelling and swapped
+      // the engine import for a local definition, and every other tier —
+      // vue-tsc, eslint, the component's own vitest run — stayed green on it.
       // Whole-token, like the cases-module contract matches: a longer
       // identifier (a local MODELLED_SUBSET_V2) must not stand in for the
-      // record, and a commented-out export must not pass — comments are
+      // record, and a commented-out import must not pass — comments are
       // stripped above.
-      if (!/export\s*\{\s*MODELLED_SUBSET\s*\}/.test(text)) {
+      if (!MODELLED_SUBSET_FROM_ENGINE.test(text)) {
+        own.push(
+          `${composition}: ${adapterRel} does not import \`MODELLED_SUBSET\` from \`${ENGINE_SPECIFIER}\` — the re-export must be the engine's declared scope, not a local definition that borrowed the name`,
+        );
+      }
+      if (!MODELLED_SUBSET_REEXPORT.test(text)) {
         own.push(
           `${composition}: ${adapterRel} does not re-export \`MODELLED_SUBSET\` — the engine's declared scope rides the same edge as \`layout\`, so every adapter's reader sees the subset it maps onto`,
         );
@@ -447,7 +492,7 @@ if (import.meta.url === `file://${process.argv[1] ?? ""}`) {
     console.error(`Composition conformance contract unmet (${String(failures.length)}):`);
     for (const failure of failures) console.error(`  • ${failure}`);
     console.error(
-      `\nEvery composition needs src/layout.ts (adapter + the \`layout\` and \`MODELLED_SUBSET\` re-exports), ` +
+      `\nEvery composition needs src/layout.ts (adapter + the \`layout\` and \`MODELLED_SUBSET\` re-exports, the scope imported from \`${ENGINE_SPECIFIER}\`), ` +
         `e2e/conformance.cases.ts (the four-name module contract), ` +
         `e2e/layout-conformance.e2e.ts, a case-coverage floor in src/layout.test.ts ` +
         `— or a recorded exception with reason, owner and removal milestone.`,

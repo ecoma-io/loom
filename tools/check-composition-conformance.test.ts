@@ -232,6 +232,7 @@ describe("checkCompositionConformance", () => {
     expect(checkCompositionConformance(reexportGone, [])).toEqual(
       owed([
         "demo: packages/composition/demo/src/layout.ts does not re-export `layout` — the route reaches the engine only through this package's own module",
+        "demo: packages/composition/demo/src/layout.ts does not import `MODELLED_SUBSET` from `@ecoma-io/loom-layout-engine` — the re-export must be the engine's declared scope, not a local definition that borrowed the name",
         "demo: packages/composition/demo/src/layout.ts does not re-export `MODELLED_SUBSET` — the engine's declared scope rides the same edge as `layout`, so every adapter's reader sees the subset it maps onto",
       ]),
     );
@@ -239,7 +240,9 @@ describe("checkCompositionConformance", () => {
     const scopeGone = makeRoot();
     // The judged edge intact, the declared scope not: the newer half of the
     // pairing fails on its own, so a re-export cannot silently lose the
-    // record while `layout` keeps the older check green.
+    // record while `layout` keeps the older check green — and with no
+    // `MODELLED_SUBSET` in the import list, the provenance half fails with
+    // it, one run naming both faults.
     writeComposition(scopeGone, "demo", {
       adapter: [
         `import { layout } from "@ecoma-io/loom-layout-engine";`,
@@ -250,6 +253,7 @@ describe("checkCompositionConformance", () => {
     });
     expect(checkCompositionConformance(scopeGone, [])).toEqual(
       owed([
+        "demo: packages/composition/demo/src/layout.ts does not import `MODELLED_SUBSET` from `@ecoma-io/loom-layout-engine` — the re-export must be the engine's declared scope, not a local definition that borrowed the name",
         "demo: packages/composition/demo/src/layout.ts does not re-export `MODELLED_SUBSET` — the engine's declared scope rides the same edge as `layout`, so every adapter's reader sees the subset it maps onto",
       ]),
     );
@@ -259,8 +263,89 @@ describe("checkCompositionConformance", () => {
       adapter: `import { layout } from "@ecoma-io/loom-layout-engine";\nexport { layout };\nexport { MODELLED_SUBSET };\n`,
     });
     expect(checkCompositionConformance(adapterGone, [])).toEqual(
-      owed(["demo: packages/composition/demo/src/layout.ts exports no adapter function"]),
+      owed([
+        "demo: packages/composition/demo/src/layout.ts does not import `MODELLED_SUBSET` from `@ecoma-io/loom-layout-engine` — the re-export must be the engine's declared scope, not a local definition that borrowed the name",
+        "demo: packages/composition/demo/src/layout.ts exports no adapter function",
+      ]),
     );
+  });
+
+  it("holds the MODELLED_SUBSET pairing to the engine, not to the spelling", () => {
+    // The hole the Phase 4 mutation demonstrated: swap the engine import for
+    // a local definition and the export line still type-checks, still lints
+    // and still passes the component's own vitest tier — this gate is the
+    // only reader that holds the exported record to its source.
+    const shadow = makeRoot();
+    writeComposition(shadow, "demo", {
+      adapter: [
+        `import { layout } from "@ecoma-io/loom-layout-engine";`,
+        `export { layout };`,
+        `const MODELLED_SUBSET = { models: [], refuses: [] };`,
+        `export { MODELLED_SUBSET };`,
+        `export function DemoLayout() { return {}; }`,
+        "",
+      ].join("\n"),
+    });
+    expect(checkCompositionConformance(shadow, [])).toEqual(
+      owed([
+        "demo: packages/composition/demo/src/layout.ts does not import `MODELLED_SUBSET` from `@ecoma-io/loom-layout-engine` — the re-export must be the engine's declared scope, not a local definition that borrowed the name",
+      ]),
+    );
+
+    // The shape rule the old spelling check held without stating: a combined
+    // export list is ordinary TypeScript, and the contract binds the
+    // re-export's existence, not the shape of the list that carries it.
+    const combined = makeRoot();
+    writeComposition(combined, "demo", {
+      adapter: [
+        `import { layout, MODELLED_SUBSET } from "@ecoma-io/loom-layout-engine";`,
+        `export { layout, MODELLED_SUBSET };`,
+        `export function DemoLayout() { return {}; }`,
+        "",
+      ].join("\n"),
+    });
+    expect(checkCompositionConformance(combined, [])).toEqual([]);
+
+    // Whole-token at both ends: `_V2` continues the identifier rather than
+    // ending it, so an extended name is a different import and a different
+    // export, and neither stands in for the record.
+    const extended = makeRoot();
+    writeComposition(extended, "demo", {
+      adapter: [
+        `import { layoutV2, MODELLED_SUBSET_V2 } from "@ecoma-io/loom-layout-engine";`,
+        `export { layoutV2 };`,
+        `export { MODELLED_SUBSET_V2 };`,
+        `export function DemoLayout() { return {}; }`,
+        "",
+      ].join("\n"),
+    });
+    expect(checkCompositionConformance(extended, [])).toEqual(
+      owed([
+        "demo: packages/composition/demo/src/layout.ts does not re-export `layout` — the route reaches the engine only through this package's own module",
+        "demo: packages/composition/demo/src/layout.ts does not import `MODELLED_SUBSET` from `@ecoma-io/loom-layout-engine` — the re-export must be the engine's declared scope, not a local definition that borrowed the name",
+        "demo: packages/composition/demo/src/layout.ts does not re-export `MODELLED_SUBSET` — the engine's declared scope rides the same edge as `layout`, so every adapter's reader sees the subset it maps onto",
+      ]),
+    );
+
+    // The honest bound of parse-only: these matches read token shapes on
+    // comment-stripped text, so the gate cannot prove a matched shape is
+    // code — a string literal carrying the whole incantation satisfies the
+    // import and the export alike, and passes. What the provenance law holds
+    // is the shadow above, no local binding standing in for the engine
+    // import; this residual belongs to the tiers that load the adapter, and
+    // closing it here would take a tokenizer, not a stricter regex.
+    const smuggled = makeRoot();
+    writeComposition(smuggled, "demo", {
+      adapter: [
+        `import { layout } from "@ecoma-io/loom-layout-engine";`,
+        `export { layout };`,
+        `const MIGRATION_NOTE =`,
+        `  "import { MODELLED_SUBSET } from '@ecoma-io/loom-layout-engine'; export { MODELLED_SUBSET };"`,
+        `export function DemoLayout() { return {}; }`,
+        "",
+      ].join("\n"),
+    });
+    expect(checkCompositionConformance(smuggled, [])).toEqual([]);
   });
 
   it("fails a cases module that lost one of the four contract exports", () => {
