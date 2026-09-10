@@ -11,9 +11,11 @@
 // registered. For each composition directory the gate demands, all of:
 //
 //   1. `src/layout.ts` exporting at least one `export function` — the
-//      adapter — plus the engine re-export spelled exactly
-//      `export { layout }`: the judged edge the route reaches the engine
-//      through;
+//      adapter — plus the engine re-exports spelled exactly
+//      `export { layout }` (the judged edge the route reaches the engine
+//      through) and `export { MODELLED_SUBSET }` (the engine's declared
+//      scope, riding the same edge so a reader of any adapter sees the
+//      subset it maps onto without reaching past the adapter's module);
 //   2. `e2e/conformance.cases.ts` exporting the four-name module contract,
 //      each name spelled exactly — `export const component`,
 //      `export const adapter`, `export const cases` and
@@ -299,6 +301,15 @@ export function checkCompositionConformance(
           `${composition}: ${adapterRel} does not re-export \`layout\` — the route reaches the engine only through this package's own module`,
         );
       }
+      // Whole-token, like the cases-module contract matches: a longer
+      // identifier (a local MODELLED_SUBSET_V2) must not stand in for the
+      // record, and a commented-out export must not pass — comments are
+      // stripped above.
+      if (!/export\s*\{\s*MODELLED_SUBSET\s*\}/.test(text)) {
+        own.push(
+          `${composition}: ${adapterRel} does not re-export \`MODELLED_SUBSET\` — the engine's declared scope rides the same edge as \`layout\`, so every adapter's reader sees the subset it maps onto`,
+        );
+      }
       if (!/export\s+function\s+/.test(text)) {
         own.push(`${composition}: ${adapterRel} exports no adapter function`);
       }
@@ -436,7 +447,7 @@ if (import.meta.url === `file://${process.argv[1] ?? ""}`) {
     console.error(`Composition conformance contract unmet (${String(failures.length)}):`);
     for (const failure of failures) console.error(`  • ${failure}`);
     console.error(
-      `\nEvery composition needs src/layout.ts (adapter + engine re-export), ` +
+      `\nEvery composition needs src/layout.ts (adapter + the \`layout\` and \`MODELLED_SUBSET\` re-exports), ` +
         `e2e/conformance.cases.ts (the four-name module contract), ` +
         `e2e/layout-conformance.e2e.ts, a case-coverage floor in src/layout.test.ts ` +
         `— or a recorded exception with reason, owner and removal milestone.`,
