@@ -1,7 +1,7 @@
 name: Feature request
 description: Propose a component, pattern, token, or capability.
 title: "feat: "
-labels: ["enhancement", "needs triage"]
+labels: ["needs triage"]
 body:
   - type: markdown
     attributes:

@@ -1,7 +1,7 @@
 name: Bug report
 description: Something in the design system behaves differently from what it documents.
 title: "bug: "
-labels: ["bug", "needs triage"]
+labels: ["needs triage"]
 body:
   - type: markdown
     attributes:
