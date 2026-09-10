@@ -31,9 +31,9 @@ law and a measurement.
    status table defers to the audit's row, and to nothing else the audit
    says.
 2. **Normative documents change through their own amendment paths.** The
-   constitution's §§1–8 via the amendment rule; §9–10 when a principle
-   changes; the artifact model and interface contract by arguing the change
-   in the document that owns the classification or contract. The
+   constitution's §§1–8 and §§11–12 via the amendment rule; §9–10 when a
+   principle changes; the artifact model and interface contract by arguing
+   the change in the document that owns the classification or contract. The
    current-state contract follows mechanics and changes whenever mechanics
    change.
 3. **Every status claim has one home.** Enforcement statuses live in the
