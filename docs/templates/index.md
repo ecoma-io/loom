@@ -83,3 +83,8 @@ file set, boundary, build and browser gates, plus the page-scale composition
 the starter deliberately omits — and Workspace settings is the second, the
 form-surface counterpart to Analytics' data surface. This page lists each
 template as it lands.
+
+What a copied page still asks of the consumer is measured, not guessed: the
+[consumer escape rate](/templates/escape-rate) counts the custom CSS,
+accessibility and behaviour decisions each template leaves to the application,
+and the tool behind the number re-derives it from the templates themselves.
