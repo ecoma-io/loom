@@ -23,7 +23,7 @@ project:
 deps:
   # preserved
   - "loom"
-  # The conformance route statically imports the seven composition packages'
+  # The conformance route statically imports the eight composition packages'
   # e2e/conformance.cases.ts files, which no specifier can name (their exports
   # maps point at src/index.ts only), so the edge is hand-declared here the
   # same way: this is what makes an engine or case-file change re-run this
@@ -42,6 +42,8 @@ deps:
   - "grid"
   # preserved
   - "dashboard-grid"
+  # preserved
+  - "split"
 
 tasks:
   # Inherits lint and test from .moon/tasks/*.yml. The test task finds no

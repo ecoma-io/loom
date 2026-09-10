@@ -1,9 +1,9 @@
 import { createApp, defineComponent, h, type Component } from "vue";
-// The seven case modules, imported statically — never import.meta.glob, whose
+// The eight case modules, imported statically — never import.meta.glob, whose
 // reaches neither architecture reader can see. Each module brings its own
 // component and adapter with it (intra-package relatives, judged clean under
 // its own row), so the engine is reached transitively through judged edges.
-// These seven relative imports are the one cross-library verdict the boundary
+// These eight relative imports are the one cross-library verdict the boundary
 // table's named suppression on this file accepts: the case files live in
 // their composition packages' e2e/ directories, which no specifier can name
 // — exports maps and tsconfig paths both point at src/index.ts only — and
@@ -18,6 +18,7 @@ import * as frameCases from "../../packages/composition/frame/e2e/conformance.ca
 import * as gridCases from "../../packages/composition/grid/e2e/conformance.cases";
 import * as inlineCases from "../../packages/composition/inline/e2e/conformance.cases";
 import * as sidebarCases from "../../packages/composition/sidebar/e2e/conformance.cases";
+import * as splitCases from "../../packages/composition/split/e2e/conformance.cases";
 import * as stackCases from "../../packages/composition/stack/e2e/conformance.cases";
 
 /**
@@ -90,6 +91,7 @@ const MODULES = {
   sidebar: sidebarCases,
   grid: gridCases,
   "dashboard-grid": dashboardGridCases,
+  split: splitCases,
 } as const;
 
 type ModuleName = keyof typeof MODULES;
