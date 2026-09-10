@@ -54,10 +54,11 @@ Statuses: `DISCOVERED` · `PLANNED` · `IN_PROGRESS` · `BLOCKED` · `REVIEW` ·
 Durable architecture decisions land in `docs/architecture/decisions/` as they
 are made; this section only indexes them.
 
-| Decision                                                                  | ADR                                                                           | Status   |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
-| DashboardGrid → Composition, DesktopAppShell → Layout, TitleBar → Pattern | [0001](./decisions/0001-reclassify-dashboardgrid-desktopappshell-titlebar.md) | Accepted |
-| ScrollReel is CSS-only by design — no layout-engine adapter               | [0002](./decisions/0002-scroll-reel-css-only-by-design.md)                    | Accepted |
+| Decision                                                                                                      | ADR                                                                           | Status   |
+| ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
+| DashboardGrid → Composition, DesktopAppShell → Layout, TitleBar → Pattern                                     | [0001](./decisions/0001-reclassify-dashboardgrid-desktopappshell-titlebar.md) | Accepted |
+| ScrollReel is CSS-only by design — no layout-engine adapter                                                   | [0002](./decisions/0002-scroll-reel-css-only-by-design.md)                    | Accepted |
+| The engine's boundary is the modelled subset — no expansion without a real use case, and no second CSS engine | [0003](./decisions/0003-engine-modelled-subset-boundary.md)                   | Accepted |
 
 ## Program-level constraints
 
