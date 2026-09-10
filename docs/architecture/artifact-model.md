@@ -66,9 +66,18 @@ anyone to.
 geometry and layout semantics as data, importing nothing. It exists as the
 computable twin of the layout CSS each composition renders — the oracle a
 geometry test and a hypothetical non-web backend could both read. Its
-current consumers are the composition adapters (`src/layout.ts` beside the
-four compositions that have one today — stack, inline, frame, center) and
-the conformance harness that holds the twins equal.
+current consumers are the composition adapters (`src/layout.ts`, beside
+eight of the nine compositions — the recorded absence is the by-design
+exception, [ADR-002](./decisions/0002-scroll-reel-css-only-by-design.md))
+and the conformance harness that holds the twins equal.
+
+The engine's scope is data, not prose: `packages/layout-engine/src/modelled-subset.ts`
+carries `MODELLED_SUBSET` — the capabilities the single-line IR models and
+every behaviour it deliberately does not, each absence with its reason,
+owner and reopen condition. This document cites that record and never
+restates it; the composition adapters re-export the constant beside their
+`layout` edge, and a refusal in an adapter names the absence entry it
+refuses on.
 
 Constitutional facts and limits, until a decision changes them:
 

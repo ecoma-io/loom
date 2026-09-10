@@ -178,6 +178,9 @@ export type { ButtonSize, ButtonVariant } from "@ecoma-io/loom-button";
 // @internal LayoutStyle — what one node asks of its container
 // @internal AvailableSpace — what a container offers the tree on both axes
 // @internal DimensionConstraint — the definite/max-content/fit-content sizing modes
+// @internal MODELLED_SUBSET — the engine's declared scope as data; the composition adapters re-export it beside `layout` and the conformance gate requires that pairing
+// @internal ModelledAbsence — one absence entry's shape in the withheld scope record
+// @internal ModelledAbsenceKey — one key of the withheld scope record's absence table
 //
 // Component barrels — helpers the components consume in their own templates:
 // @internal buttonVariantClasses — Button.vue's own class table; buttonVariants is the published surface

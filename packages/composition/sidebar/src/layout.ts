@@ -20,7 +20,7 @@
  * who crosses the boundary anyway gets the loudest failure there is — a
  * red engine-vs-browser comparison — not a silently agreed lie.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 // The band value is the law, not a restated number — see stack's layout.ts.
 import { RESPONSIVE_VIEWPORT_BANDS } from "@ecoma-io/loom-core";
 import type { SidebarSide } from "./Sidebar.vue";
@@ -29,8 +29,10 @@ import type { SidebarSide } from "./Sidebar.vue";
 // through this package's own module rather than importing it past the
 // e2e layer's boundary — the route's only cross-library reaches are the
 // five case files, and everything else arrives transitively through
-// this judged edge.
+// this judged edge. The declared scope rides beside it — see stack's
+// layout.ts.
 export { layout };
+export { MODELLED_SUBSET };
 
 /** See stack's layout.ts — the two inputs and why there are two. */
 export interface LayoutContext {
@@ -71,7 +73,7 @@ function remToPx(value: string): number {
   const match = REM.exec(value.trim());
   if (match === null) {
     throw new Error(
-      `sidebarLayout: sideWidth ${JSON.stringify(value)} is not modeled — the component ships its preferred width in rem ("16rem", "14rem"); pass a rem length.`,
+      `sidebarLayout: sideWidth ${JSON.stringify(value)} is not modeled — the component ships its preferred width in rem ("16rem", "14rem"); pass a rem length. Recorded as MODELLED_SUBSET.absences.PERCENT.`,
     );
   }
   return Number.parseFloat(match[1] ?? "0") * ROOT_PX_PER_REM;
@@ -82,7 +84,7 @@ function percentToFraction(value: string): number {
   const match = PERCENT.exec(value.trim());
   if (match === null) {
     throw new Error(
-      `sidebarLayout: contentMin ${JSON.stringify(value)} is not modeled — the component documents the floor as a percentage of the container; pass one ("50%").`,
+      `sidebarLayout: contentMin ${JSON.stringify(value)} is not modeled — the component documents the floor as a percentage of the container; pass one ("50%"). Recorded as MODELLED_SUBSET.absences.PERCENT.`,
     );
   }
   return Number.parseFloat(match[1] ?? "0") / 100;
@@ -127,6 +129,15 @@ export function sidebarInputs(
  * the measured quantity the route hands the adapter, not anything the engine
  * models; the breakpoint is exact at the boundary (`>` — a line that fits
  * exactly does not break, in the browser or here).
+ *
+ * At the component defaults the boundary is derivable in closed form:
+ * `0.5W + gap + 256 > W` solves to `W < 544` at the sm-band gap of 16. The
+ * threshold MOVES with the container because the floor is a percentage of
+ * it — the collapse point is the derived 544px, not a fixed width. (A
+ * fixed-width reading of the row's needs at one measured case — 672px of
+ * line at the 800px defaults case — gives the wrong boundary: 672 is what
+ * the row occupies AT 800, not what it needs everywhere.) sidebar's
+ * layout.test.ts pins 544/543.
  */
 export function sidebarCollapses(
   props: { sideWidth?: string; contentMin?: string; gap?: boolean },
@@ -162,9 +173,10 @@ export const SIDEBAR_UNMODELLED: readonly UnmodeledBehaviour[] = [
       "the wrapped state — both panels stacked after the intrinsic collapse, and the width the wrapped sidebar panel keeps",
     reason:
       "the collapse is flex-wrap line breaking and the engine's IR is one line. The breakpoint resolves adapter-side (sidebarCollapses), but the wrapped boxes have no honest engine geometry: across a deficit the engine's shrink pass eats the sidebar panel's basis while the browser puts it alone on its own line at its declared width — the exact open question ecoma-io/loom#275 keeps unpinned.",
-    owner: "Phase 4B (the modelled-subset record)",
+    owner:
+      "closed by Phase 4B: the modelled-subset record carries the absence (MODELLED_SUBSET.absences.SIDEBAR_WRAPPED_PANEL) — what stays open is only #275's wrapped width",
     removal:
-      "the engine growing line collection, or the 4B record declaring the wrapped state CSS-only with the behavioural e2e as its evidence.",
+      "the engine growing line collection; the record's declaration has landed, so what remains is #275's resolution — a pinned wrapped-panel width or line collection.",
   },
 ];
 
@@ -181,8 +193,8 @@ export const SIDEBAR_UNMODELLED: readonly UnmodeledBehaviour[] = [
  * would also bring the browser's automatic minimum size (`min-width: auto`
  * over the slotted content) into play, and that floor is a divergence this
  * slice does not model — small text-free fixtures keep it out of every
- * comparison, and the trap itself is 4B's first modelled-subset record
- * entry.
+ * comparison, and the trap itself is a record entry
+ * (MODELLED_SUBSET.absences.AUTOMATIC_MINIMUM_SIZE).
  */
 export function sidebarLayout(
   props: { side?: SidebarSide; sideWidth?: string; contentMin?: string; gap?: boolean },

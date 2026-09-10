@@ -8,7 +8,7 @@
  * import path reaches the engine — the component keeps rendering pure CSS,
  * and the published build carries zero engine bytes.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 // The band value is the law, not a restated number: the responsive contract
 // owns the viewport bands, and an adapter that keeps its own 640 could drift
 // from the contract its sidecar claim is judged against.
@@ -19,8 +19,9 @@ import type { GridGap } from "./Grid.vue";
 // through this package's own module rather than importing it past the
 // e2e layer's boundary — the route's only cross-library reaches are the
 // case files, and everything else arrives transitively through this judged
-// edge.
+// edge. The declared scope rides beside it — see stack's layout.ts.
 export { layout };
+export { MODELLED_SUBSET };
 
 /** See stack's layout.ts — the two inputs and why there are two. */
 export interface LayoutContext {
@@ -75,7 +76,7 @@ export function parseMinColWidth(value: string): number {
     throw new Error(
       `gridLayout: minColWidth "${value}" is outside the modelled subset — the engine speaks px, and rem at the pinned ${String(
         REM_PX,
-      )}px root. Use px or rem.`,
+      )}px root. Use px or rem. Recorded as MODELLED_SUBSET.absences.PERCENT.`,
     );
   }
   const amount = Number.parseFloat(match[1] ?? "0");
@@ -142,7 +143,9 @@ export function trackWidth(availableWidth: number, usedColumns: number, gap: num
  * first row's projection — the first n items on the gap line — and the case
  * carrying such a fixture must carry the `knownDivergence` that declines the
  * comparison. The coverage floor in src/layout.test.ts holds that pairing,
- * so the row banding stays a counted exception instead of a silent one.
+ * so the row banding stays a counted exception instead of a silent one; the
+ * absence itself is recorded engine-side as
+ * MODELLED_SUBSET.absences.GRID_ROW_BANDING.
  */
 export function gridLayout(
   props: { minColWidth?: string; gap?: GridGap },
@@ -157,7 +160,8 @@ export function gridLayout(
   if (children.length > columns) {
     // Row banding: the first row only, and never compared — see the
     // docblock; the pairing with the case's knownDivergence is the
-    // coverage floor's law.
+    // coverage floor's law, and the absence is
+    // MODELLED_SUBSET.absences.GRID_ROW_BANDING.
     return {
       id: "root",
       style: { axis: "row", gap },

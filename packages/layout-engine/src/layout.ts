@@ -2,15 +2,14 @@
  * The single entry point: a pure function from a style tree plus the space it
  * was offered, to the geometry that results.
  *
- * Scope of the algorithm, stated honestly: single-line flexbox at the
- * fidelity Loom's four slice components exercise — resolve own size
- * (width/height/min/max/aspectRatio against the constraint), subtract
- * padding, size children along the main axis (fixed sizes, then
- * grow/shrink/basis distribution with min/max clamping), place with gap and
- * justifyContent, size and place on the cross axis per alignItems. No wrap,
- * no percent, no measure protocol: those arrive in later phases behind the
- * gates the design record names, and none of them may force this IR to
- * change shape.
+ * Scope of the algorithm, stated once and kept as data: the modelled subset —
+ * what this IR computes and every behaviour it deliberately does not — is
+ * `MODELLED_SUBSET` in modelled-subset.ts, which the adapters re-export
+ * beside the `layout` edge and the artifact model cites. This docblock does
+ * not restate the list; a scope in two places is a scope that drifts. The
+ * absences it names (wrap, percent, text metrics among them) arrive in later
+ * phases behind the gates the design record names, and none of them may
+ * force this IR to change shape.
  *
  * The engine never touches the DOM and never rounds: rounding is a policy of
  * the reader (the conformance comparator applies Yoga's two-edge absolute
@@ -74,6 +73,12 @@ function styleSize(style: LayoutStyle, axis: Axis): number | undefined {
  * that is where the shipped semantics need it (the px fragment of the
  * Split/Sidebar collapse trio), and an honest type beats a speculative
  * minHeight nobody pins.
+ *
+ * This is also the whole floor the engine knows: CSS's content-based
+ * automatic minimum (`min-width: auto`) is not modeled — the floor is
+ * exactly what is declared here, and 0 where nothing is.
+ * `MODELLED_SUBSET.absences.AUTOMATIC_MINIMUM_SIZE` records the divergence
+ * and its observed instance.
  */
 function clampAlong(style: LayoutStyle, axis: Axis, size: number): number {
   return axis === "row"
@@ -330,7 +335,7 @@ function compute(node: LayoutNode, available: AvailableSpace): ComputedNode {
   // padding larger than the box collapses this space to zero and places
   // children at the content origin (0) where CSS would keep them at the
   // padding edge — unreachable through the slice's 16-32px gutters, recorded
-  // rather than modeled.
+  // rather than modeled (MODELLED_SUBSET.absences.PADDING_LARGER_THAN_BOX).
   const bases = kids.map((kid) => hypotheticalSize(kid, axis, true));
   const contentMain =
     bases.reduce((sum, base) => sum + base, 0) + gap * Math.max(0, kids.length - 1);

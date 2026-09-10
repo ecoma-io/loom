@@ -26,7 +26,18 @@ import type { Axis, LayoutNode, LayoutStyle } from "./style";
 //                   node's content box on either axis", recomputed from the
 //                   output the way a reader would;
 //   ratio         — a degenerate aspectRatio (≤0, NaN, ±Infinity) is
-//                   indistinguishable from no ratio at all.
+//                   indistinguishable from no ratio at all;
+//   monotonicity  — growing the offered main space never shrinks a child;
+//   conservation  — a fully active, unclamped, gapless line ends exactly
+//                   full: the children sum to the content box;
+//   degeneracy    — under max-content, center and end justification place
+//                   children exactly where start does;
+//   order         — the output's id sequence is the input's preorder (ids
+//                   stamped by the generator): distribution never reorders;
+//   invariance    — a pass-through wrapper is geometry-transparent, and
+//                   padding on an undeclared box is translation;
+//   clampSize     — the constraint primitive is total, idempotent, monotone
+//                   and applies min after max (its own describe below).
 //
 // History: the first revision of this suite carried three generator-level
 // exclusions, each holding it clear of a then-live engine defect (findings
@@ -37,6 +48,9 @@ import type { Axis, LayoutNode, LayoutStyle } from "./style";
 // each defect is additionally pinned below as a literal regression case:
 // the shrunk counterexample that found it, asserting the CSS-expected
 // geometry, per the Yoga discipline of freezing a bug's minimal input.
+// Finding 5 is pinned too, with the opposite sign: the both-definite ratio
+// is not a defect but the declared contract, recorded as
+// MODELLED_SUBSET.absences.BOTH_AXES_DEFINITE_RATIO and asserted as such.
 //
 // CI pins fast-check's seed (vitest.setup.ts); a counterexample that reveals
 // a real defect is committed here as a literal regression case, never fixed
@@ -506,11 +520,13 @@ describe("layout invariants", () => {
               widthC.mode === "definite" ||
               heightC.mode === "definite";
             if (!anyAxisResolves) return;
-            // Finding 5 (found by the re-enabled generators, gated behind
-            // analysis rather than pinned red): when BOTH axes fill from
-            // definite constraints at once and no style size is declared,
-            // the engine never re-consults the ratio — a declared style size
-            // mixed with a constraint fill couples on every other path.
+            // Finding 5 (found by the re-enabled generators; since Phase 4B
+            // pinned below as the modelled contract rather than fixed away —
+            // MODELLED_SUBSET.absences.BOTH_AXES_DEFINITE_RATIO records it
+            // as declared scope): when BOTH axes fill from definite
+            // constraints at once and no style size is declared, the engine
+            // never re-consults the ratio — a declared style size mixed with
+            // a constraint fill couples on every other path.
             // Nested nodes are exempt from this guard: their pair is
             // assigned by the parent's cross derivation, which does couple.
             if (
@@ -551,6 +567,27 @@ describe("layout invariants", () => {
       }),
       { numRuns: 250 },
     );
+  });
+
+  it("pins finding 5 as the modelled contract: the ratio is inert when both axes resolve without it", () => {
+    // Finding 5 reached this suite as a generator guard with an analysis
+    // comment; Phase 4B makes the analysis the assertion. A change that
+    // "closes the gap" by re-consulting the ratio in the both-definite case
+    // reddens this pin — deliberately, because the semantics it would pick
+    // were deferred, not lost, and no adapter reaches the case (the route's
+    // height offer is always max-content).
+    const offered: AvailableSpace = {
+      width: { mode: "definite", size: 500 },
+      height: { mode: "definite", size: 400 },
+    };
+    // Both axes fill from the definite constraints: 500x400, ratio 2 unheard.
+    const inert = layout({ style: { axis: "row", aspectRatio: 2 } }, offered);
+    expect([inert.width, inert.height]).toEqual([500, 400]);
+    // The same ratio couples on every path where exactly one axis resolves —
+    // here a declared height against the definite width the box would
+    // otherwise fill: 100 x 2 = 200.
+    const coupled = layout({ style: { axis: "row", aspectRatio: 2, height: 100 } }, offered);
+    expect([coupled.width, coupled.height]).toEqual([200, 100]);
   });
 
   it("places each following child exactly one gap past the previous child's reported size — the line's cursor agrees with the boxes it placed", () => {
@@ -705,6 +742,250 @@ describe("layout invariants", () => {
           }
         };
         check(tree, layout(tree, available), "root");
+        expect(issues).toEqual([]);
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("never shrinks a child when the offered main space grows", () => {
+    // Space monotonicity of the line. The distribution's freeze makes this
+    // non-trivial — a saturated child stops absorbing deficit — but a base
+    // is clamped by the child's own min before distribution
+    // (hypotheticalSize), so saturation already sits inside the base and
+    // cannot reorder offers: the property holds over the whole generator
+    // space with no guard, verified across seeds and tens of thousands of
+    // generated trees before it was committed. Tolerance is the engine's own
+    // EPSILON: the two runs divide by different totals, and the proportional
+    // dust of one need not match the other's.
+    fc.assert(
+      fc.property(treeArb(3), availSizeArb, availSizeArb, (tree, first, more) => {
+        const axis = tree.style.axis;
+        const avail = (size: number): AvailableSpace =>
+          axis === "row"
+            ? { width: { mode: "definite", size }, height: { mode: "max-content" } }
+            : { width: { mode: "max-content" }, height: { mode: "definite", size } };
+        const before = layout(tree, avail(first)).children ?? [];
+        const after = layout(tree, avail(first + more)).children ?? [];
+        const issues: Mismatch[] = [];
+        for (let i = 0; i < Math.min(before.length, after.length); i += 1) {
+          const smaller = axis === "row" ? (before[i]?.width ?? 0) : (before[i]?.height ?? 0);
+          const larger = axis === "row" ? (after[i]?.width ?? 0) : (after[i]?.height ?? 0);
+          if (larger < smaller - EPSILON) {
+            issues.push({
+              path: `child ${String(i)}`,
+              detail: `${String(larger)} at space ${String(first + more)} < ${String(smaller)} at space ${String(first)}`,
+            });
+          }
+        }
+        expect(issues).toEqual([]);
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("conserves space on a fully active line: the children sum exactly to the content box", () => {
+    // The distribution's equality face. The guards carve where conservation
+    // is the LAW rather than a coincidence: every child shrinkable and some
+    // child growing, so whichever regime the line lands in, its pass runs to
+    // completion; no child clamp, basis or ratio re-deriving a base; no
+    // container clamp; a gapless line — gaps are not distributable (CSS does
+    // not shrink a gap either), so a gapped deficit lawfully ends in
+    // overflow, not conservation; padding that fits the box, since the
+    // larger-padding collapse is MODELLED_SUBSET.absences
+    // .PADDING_LARGER_THAN_BOX, a recorded pathology and not a law to
+    // assert. Tolerance EPSILON: the pass divides by the active totals, and
+    // the sum carries that division's dust.
+    fc.assert(
+      fc.property(treeArb(3), definiteArb, definiteArb, (tree, w, h) => {
+        const axis = tree.style.axis;
+        const kids = tree.children ?? [];
+        if (kids.length === 0) return;
+        const shrinkable = kids.every((kid) => Math.max(0, usable(kid.style.flexShrink) ?? 1) > 0);
+        const growTotal = kids.reduce(
+          (sum, kid) => sum + Math.max(0, usable(kid.style.flexGrow) ?? 0),
+          0,
+        );
+        const rebased = kids.some(
+          (kid) =>
+            kid.style.minWidth !== undefined ||
+            kid.style.maxWidth !== undefined ||
+            kid.style.flexBasis !== undefined ||
+            kid.style.aspectRatio !== undefined,
+        );
+        const containerClamped =
+          tree.style.minWidth !== undefined ||
+          tree.style.maxWidth !== undefined ||
+          tree.style.aspectRatio !== undefined;
+        const gap = Math.max(0, usable(tree.style.gap) ?? 0);
+        const pad = padOf(tree.style);
+        const mainPad = 2 * (axis === "row" ? pad.x : pad.y);
+        const declaredMain = usable(axis === "row" ? tree.style.width : tree.style.height);
+        const mainKnown = declaredMain ?? (axis === "row" ? w.size : h.size);
+        if (
+          !shrinkable ||
+          growTotal <= 0 ||
+          rebased ||
+          containerClamped ||
+          gap !== 0 ||
+          mainKnown - mainPad < 0
+        ) {
+          return;
+        }
+        const mainSpace = Math.max(0, mainKnown - mainPad);
+        const outs = layout(tree, { width: w, height: h }).children ?? [];
+        const sumMain = outs.reduce(
+          (sum, child) => sum + (axis === "row" ? child.width : child.height),
+          0,
+        );
+        expect(Math.abs(sumMain - mainSpace)).toBeLessThanOrEqual(EPSILON);
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("degenerates center and end justification to start when the main size is content-derived", () => {
+    // layout.test.ts pins the degeneration for one fixture; this is the law
+    // it instances. Under an unbounded offer the line IS the content, so
+    // there is no free space to inset: whatever start places, center and end
+    // must place identically. The guards exclude a declared or clamped main
+    // size — there the inset is real — and a ratio coupling that resolves
+    // the main size from a definite cross one. Tolerance EPSILON: the two
+    // runs compute the same line through different leading-edge arithmetic,
+    // and expression-order dust is what the tolerance is for.
+    fc.assert(
+      fc.property(
+        treeArb(3).filter((tree) => (tree.style.justifyContent ?? "start") !== "start"),
+        (tree) => {
+          const axis = tree.style.axis;
+          const cross: Axis = axis === "row" ? "column" : "row";
+          const mainDeclared =
+            usable(axis === "row" ? tree.style.width : tree.style.height) !== undefined ||
+            tree.style.minWidth !== undefined ||
+            tree.style.maxWidth !== undefined ||
+            tree.style.aspectRatio !== undefined;
+          const crossCoupled =
+            usable(cross === "row" ? tree.style.width : tree.style.height) !== undefined &&
+            tree.style.aspectRatio !== undefined;
+          if (mainDeclared || crossCoupled) return;
+          const unbounded: AvailableSpace = {
+            width: { mode: "max-content" },
+            height: { mode: "max-content" },
+          };
+          const asIs = layout(tree, unbounded);
+          const start = layout(
+            { ...tree, style: { ...tree.style, justifyContent: "start" } },
+            unbounded,
+          );
+          const issues: Mismatch[] = [];
+          expectWithin(asIs, start, "root", issues);
+          expect(issues).toEqual([]);
+        },
+      ),
+      { numRuns: 250 },
+    );
+  });
+
+  it("keeps the output's id sequence equal to the input's preorder — distribution never reorders a line", () => {
+    // The structural property checks ids only where both trees have a node
+    // at the same position, and the generators never set ids — so it could
+    // not see a reordering. This one stamps every node with a unique
+    // preorder id and holds the OUTPUT's id sequence to the input's: child
+    // order is document order on every axis, in every constraint mode.
+    // Exact, not tolerant: ids are strings echoed verbatim, and sequence
+    // identity is not an arithmetic claim.
+    fc.assert(
+      fc.property(treeArb(3), dimArb, dimArb, (tree, w, h) => {
+        const stamped = decorate(tree, "n");
+        const inIds: string[] = [];
+        const walk = (node: LayoutNode): void => {
+          if (node.id !== undefined) inIds.push(node.id);
+          for (const kid of node.children ?? []) walk(kid);
+        };
+        walk(stamped);
+        expect(preorderIds(layout(stamped, { width: w, height: h }))).toEqual(inIds);
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("is transparent to a pass-through wrapper: wrapping a subtree changes nothing", () => {
+    // A node whose only work is to measure its child and hand the child its
+    // own box must not perturb it — the recursion's contract, stated as a
+    // law (Center's synthetic centering row is the consumer-facing instance).
+    // The excluded subtree roots are the two fields the wrapper itself
+    // consumes: a basis is the wrapper's distribution base, and a ratio
+    // derives the root's cross size from the box the WRAPPER assigned, while
+    // the direct run derives it from the constraint — both differences are
+    // the wrapper doing its job, not a defect. Tolerance EPSILON: the two
+    // runs derive the same numbers through different expressions.
+    fc.assert(
+      fc.property(treeArb(3), (subtree) => {
+        if (subtree.style.aspectRatio !== undefined) return;
+        if (subtree.style.flexBasis !== undefined) return;
+        const unbounded: AvailableSpace = {
+          width: { mode: "max-content" },
+          height: { mode: "max-content" },
+        };
+        const direct = layout(subtree, unbounded);
+        const wrapped = layout(
+          { style: { axis: subtree.style.axis }, children: [subtree] },
+          unbounded,
+        );
+        const inner = wrapped.children ?? [];
+        const issues: Mismatch[] = [];
+        if (inner.length !== 1) {
+          issues.push({
+            path: "wrapper",
+            detail: `expected the wrapper to keep one child, got ${String(inner.length)}`,
+          });
+        } else {
+          expectWithin(inner[0]!, direct, "subtree", issues);
+        }
+        expect(issues).toEqual([]);
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("treats padding as translation: declare padding p, grow the offer by 2p, and no child moves", () => {
+    // With the container undeclared and unclamped, the box grows with the
+    // offer and the padding rides outside the content box — the children's
+    // geometry is identical to the unpadded run in the smaller offer. What
+    // is excluded is everything that pins the box (a declared size does not
+    // grow, so the padding would eat into it) and the recorded pathology
+    // where padding exceeds the box (MODELLED_SUBSET.absences
+    // .PADDING_LARGER_THAN_BOX). Tolerance EPSILON, for the same
+    // expression-order dust as the wrapper property.
+    fc.assert(
+      fc.property(treeArb(2), padArb, padArb, availSizeArb, availSizeArb, (tree, p, q, w, h) => {
+        const axis = tree.style.axis;
+        const pinned =
+          tree.style.width !== undefined ||
+          tree.style.height !== undefined ||
+          tree.style.minWidth !== undefined ||
+          tree.style.maxWidth !== undefined ||
+          tree.style.aspectRatio !== undefined ||
+          tree.style.padding !== undefined;
+        if (pinned) return;
+        const padX = axis === "row" ? p : q;
+        const padY = axis === "row" ? q : p;
+        const avail = (width: number, height: number): AvailableSpace => ({
+          width: { mode: "definite", size: width },
+          height: { mode: "definite", size: height },
+        });
+        const base = layout(tree, avail(w, h));
+        // exactOptionalPropertyTypes: a leaf's `children` is absent, not
+        // undefined, so the field spreads in only when the tree carries one.
+        const padded = layout(
+          {
+            style: { ...tree.style, padding: { x: padX, y: padY } },
+            ...(tree.children === undefined ? {} : { children: tree.children }),
+          },
+          avail(w + 2 * padX, h + 2 * padY),
+        );
+        const issues: Mismatch[] = [];
+        expectWithin(padded, base, "root", issues);
         expect(issues).toEqual([]);
       }),
       { numRuns: 250 },
@@ -871,6 +1152,146 @@ describe("layout invariants", () => {
     const stretched = crossClamped.children?.[0];
     expect([stretched?.width, stretched?.height, stretched?.hadOverflow]).toEqual([60, 30, true]);
     expect(stretched?.children?.[0]).toMatchObject({ left: 0, top: 0, width: 80, height: 10 });
+  });
+});
+
+/**
+ * Dust-tolerant deep geometry compare: every position and size within
+ * EPSILON, `hadOverflow` and the child structure exact. The invariance
+ * properties compare two runs that compute the same numbers through
+ * different expressions; the tolerance absorbs expression-order dust
+ * without loosening any law.
+ */
+function expectWithin(
+  actual: ComputedNode,
+  expected: ComputedNode,
+  path: string,
+  issues: Mismatch[],
+): void {
+  for (const [field, a, b] of [
+    ["left", actual.left, expected.left],
+    ["top", actual.top, expected.top],
+    ["width", actual.width, expected.width],
+    ["height", actual.height, expected.height],
+  ] as const) {
+    if (Math.abs(a - b) > EPSILON) {
+      issues.push({ path, detail: `${field} ${String(a)} != ${String(b)}` });
+    }
+  }
+  if (actual.hadOverflow !== expected.hadOverflow) {
+    issues.push({
+      path,
+      detail: `hadOverflow ${String(actual.hadOverflow)} != ${String(expected.hadOverflow)}`,
+    });
+  }
+  const actualKids = actual.children ?? [];
+  const expectedKids = expected.children ?? [];
+  if (actualKids.length !== expectedKids.length) {
+    issues.push({
+      path,
+      detail: `child count ${String(actualKids.length)} != ${String(expectedKids.length)}`,
+    });
+    return;
+  }
+  for (const [i, kid] of actualKids.entries()) {
+    expectWithin(kid, expectedKids[i]!, `${path}/${String(i)}`, issues);
+  }
+}
+
+/** Stamp every node with its preorder path as a unique id. */
+function decorate(node: LayoutNode, path: string): LayoutNode {
+  const kids = node.children ?? [];
+  return {
+    id: path,
+    style: node.style,
+    ...(kids.length > 0
+      ? { children: kids.map((kid, i) => decorate(kid, `${path}/${String(i)}`)) }
+      : {}),
+  };
+}
+
+/** The output's ids, in the order the output tree carries them. */
+function preorderIds(out: ComputedNode): string[] {
+  const ids: string[] = [];
+  const walk = (node: ComputedNode): void => {
+    if (node.id !== undefined) ids.push(node.id);
+    for (const kid of node.children ?? []) walk(kid);
+  };
+  walk(out);
+  return ids;
+}
+
+describe("clampSize, the constraint primitive", () => {
+  // The edge normalizer's own laws, held on the primitive rather than
+  // through layout's outputs. Every law is EXACT — clampSize returns one of
+  // its operands (max and min introduce no arithmetic), so a tolerance could
+  // only hide a defect. The generators include the hostiles finite()
+  // exists to absorb, because NaN and ±Infinity are ordinary inputs here,
+  // not error cases.
+  const numberArb = fc.oneof(
+    fc.constant(Number.NaN),
+    fc.constant(Number.POSITIVE_INFINITY),
+    fc.constant(Number.NEGATIVE_INFINITY),
+    fc.double({ noNaN: false }),
+    fc.integer(),
+  );
+  const boundArb = opt(numberArb);
+
+  it("returns a finite, non-negative size for every input, including NaN and ±Infinity", () => {
+    fc.assert(
+      fc.property(numberArb, boundArb, boundArb, (size, min, max) => {
+        const out = clampSize(size, min, max);
+        expect(Number.isFinite(out)).toBe(true);
+        expect(out).toBeGreaterThanOrEqual(0);
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("is idempotent — clamping an already-clamped size changes nothing", () => {
+    fc.assert(
+      fc.property(numberArb, boundArb, boundArb, (size, min, max) => {
+        expect(clampSize(clampSize(size, min, max), min, max)).toBe(clampSize(size, min, max));
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("is monotone in the size", () => {
+    // NaN is excluded, not tolerated: it has no ordering, and its
+    // finiteness is the first law's business.
+    fc.assert(
+      fc.property(numberArb, numberArb, boundArb, boundArb, (a, b, min, max) => {
+        if (!Number.isFinite(a) || !Number.isFinite(b) || a > b) return;
+        expect(clampSize(b, min, max)).toBeGreaterThanOrEqual(clampSize(a, min, max));
+      }),
+      { numRuns: 250 },
+    );
+  });
+
+  it("applies min after max: a finite min is a floor, a finite max a ceiling — unless the min overrules it", () => {
+    // Conditional bounds assert by throwing — the fast-check idiom — so the
+    // violation rides the counterexample report instead of a conditional
+    // expect.
+    fc.assert(
+      fc.property(numberArb, boundArb, boundArb, (size, min, max) => {
+        const out = clampSize(size, min, max);
+        const finiteMin = min !== undefined && Number.isFinite(min) ? Math.max(0, min) : undefined;
+        const finiteMax = max !== undefined && Number.isFinite(max) ? Math.max(0, max) : undefined;
+        if (finiteMin !== undefined && out < finiteMin) {
+          throw new Error(`below floor: ${String(out)} < ${String(finiteMin)}`);
+        }
+        if (finiteMax !== undefined && (finiteMin === undefined || finiteMin <= finiteMax)) {
+          if (out > finiteMax) {
+            throw new Error(`above ceiling: ${String(out)} > ${String(finiteMax)}`);
+          }
+        }
+        // Unconditional, and implied by the bounds themselves: non-negativity
+        // is the one part of the clamp this law can state as an assertion.
+        expect(out).toBeGreaterThanOrEqual(0);
+      }),
+      { numRuns: 250 },
+    );
   });
 });
 

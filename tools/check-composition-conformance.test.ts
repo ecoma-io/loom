@@ -32,12 +32,13 @@ function toPascal(name: string): string {
   return name.replace(/(^|[-_])([a-z])/g, (_match, _sep, char: string) => char.toUpperCase());
 }
 
-/** The adapter file: the mapping function plus the engine re-export. */
+/** The adapter file: the mapping function plus the engine re-exports. */
 function adapterSource(name: string): string {
   const pascal = toPascal(name);
   return [
-    `import { layout } from "@ecoma-io/loom-layout-engine";`,
+    `import { layout, MODELLED_SUBSET } from "@ecoma-io/loom-layout-engine";`,
     `export { layout };`,
+    `export { MODELLED_SUBSET };`,
     `export function ${pascal}Layout() {`,
     `  return { id: "root", style: {}, children: [] };`,
     `}`,
@@ -223,7 +224,7 @@ describe("checkCompositionConformance", () => {
     );
   });
 
-  it("fails an adapter file that lost the engine re-export or the adapter function", () => {
+  it("fails an adapter file that lost an engine re-export or the adapter function", () => {
     const reexportGone = makeRoot();
     writeComposition(reexportGone, "demo", {
       adapter: `export function DemoLayout() { return {}; }\n`,
@@ -231,12 +232,31 @@ describe("checkCompositionConformance", () => {
     expect(checkCompositionConformance(reexportGone, [])).toEqual(
       owed([
         "demo: packages/composition/demo/src/layout.ts does not re-export `layout` — the route reaches the engine only through this package's own module",
+        "demo: packages/composition/demo/src/layout.ts does not re-export `MODELLED_SUBSET` — the engine's declared scope rides the same edge as `layout`, so every adapter's reader sees the subset it maps onto",
+      ]),
+    );
+
+    const scopeGone = makeRoot();
+    // The judged edge intact, the declared scope not: the newer half of the
+    // pairing fails on its own, so a re-export cannot silently lose the
+    // record while `layout` keeps the older check green.
+    writeComposition(scopeGone, "demo", {
+      adapter: [
+        `import { layout } from "@ecoma-io/loom-layout-engine";`,
+        `export { layout };`,
+        `export function DemoLayout() { return {}; }`,
+        "",
+      ].join("\n"),
+    });
+    expect(checkCompositionConformance(scopeGone, [])).toEqual(
+      owed([
+        "demo: packages/composition/demo/src/layout.ts does not re-export `MODELLED_SUBSET` — the engine's declared scope rides the same edge as `layout`, so every adapter's reader sees the subset it maps onto",
       ]),
     );
 
     const adapterGone = makeRoot();
     writeComposition(adapterGone, "demo", {
-      adapter: `import { layout } from "@ecoma-io/loom-layout-engine";\nexport { layout };\n`,
+      adapter: `import { layout } from "@ecoma-io/loom-layout-engine";\nexport { layout };\nexport { MODELLED_SUBSET };\n`,
     });
     expect(checkCompositionConformance(adapterGone, [])).toEqual(
       owed(["demo: packages/composition/demo/src/layout.ts exports no adapter function"]),

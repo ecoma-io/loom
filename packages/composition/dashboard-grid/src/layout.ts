@@ -59,15 +59,15 @@
  *
  * - **Row auto-placement.** More tiles than tracks reflow onto further rows;
  *   the IR is one line and cannot express a second row, so the adapter
- *   refuses (`sum(spans) > fitted` throws). Owner Phase 4B, which owns the
- *   modelled-subset record this lands beside; removal: 4B's wrap record, or
- *   an IR that can express lines.
+ *   refuses (`sum(spans) > fitted` throws). Recorded engine-side as
+ *   MODELLED_SUBSET.absences.DASHBOARD_ROW_AUTO_PLACEMENT; removal: an IR
+ *   that can express lines.
  * - **Implicit tracks.** A span wider than the whole fitted grid (a span-2
  *   tile at one track) creates auto-sized implicit columns the `1fr`
- *   arithmetic does not cover; the same wrap check refuses it. Owner Phase
- *   4B, same removal.
+ *   arithmetic does not cover; the same wrap check refuses it. Recorded as
+ *   MODELLED_SUBSET.absences.DASHBOARD_IMPLICIT_TRACKS; same removal.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 // The band value is the law, not a restated number: the responsive contract
 // owns the viewport bands, and an adapter that keeps its own 640 could drift
 // from the contract its sidecar claim is judged against.
@@ -78,8 +78,10 @@ import type { DashboardGridGap } from "./DashboardGrid.vue";
 // through this package's own module rather than importing it past the
 // e2e layer's boundary — the route's only cross-library reaches are the
 // four case files, and everything else arrives transitively through
-// this judged edge.
+// this judged edge. The declared scope rides beside it — see stack's
+// layout.ts.
 export { layout };
+export { MODELLED_SUBSET };
 
 /**
  * What every adapter is told about the host it is mapping for. See stack's
@@ -140,7 +142,7 @@ export function minTileWidthToPx(value: string): number {
   const rem = /^(\d+(?:\.\d+)?)rem$/.exec(value);
   if (rem !== null) return Number(rem[1]) * REM_PX;
   throw new Error(
-    `dashboardGridLayout: minTileWidth "${value}" is not a px or rem length — the engine speaks px at the ${String(REM_PX)}px root the conformance page pins`,
+    `dashboardGridLayout: minTileWidth "${value}" is not a px or rem length — the engine speaks px at the ${String(REM_PX)}px root the conformance page pins. Recorded as MODELLED_SUBSET.absences.PERCENT.`,
   );
 }
 
@@ -210,7 +212,7 @@ export function dashboardGridLayout(
   const used = spans.reduce((sum, span) => sum + span, 0);
   if (used > fitted) {
     refuse(
-      `the tiles need ${String(used)} tracks but the container fits ${String(fitted)} — the grid would wrap onto a further row (or raise implicit tracks), which is outside the single-line subset`,
+      `the tiles need ${String(used)} tracks but the container fits ${String(fitted)} — the grid would wrap onto a further row (or raise implicit tracks), which is outside the single-line subset (MODELLED_SUBSET.absences.DASHBOARD_ROW_AUTO_PLACEMENT / DASHBOARD_IMPLICIT_TRACKS)`,
     );
   }
 

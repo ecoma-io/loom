@@ -7,15 +7,17 @@
  * never imports this and the package barrel does not re-export it, so no
  * consumer import path reaches the engine.
  */
-import { layout, type LayoutNode } from "@ecoma-io/loom-layout-engine";
+import { layout, MODELLED_SUBSET, type LayoutNode } from "@ecoma-io/loom-layout-engine";
 import type { FrameRatio } from "./Frame.vue";
 
 // The engine's entry point, re-exported so the conformance route reaches it
 // through this package's own module rather than importing it past the
 // e2e layer's boundary — the route's only cross-library reaches are the
 // four case files, and everything else arrives transitively through
-// this judged edge.
+// this judged edge. The declared scope rides beside it — see stack's
+// layout.ts.
 export { layout };
+export { MODELLED_SUBSET };
 
 /** See stack's layout.ts — the two inputs and why there are two. */
 export interface LayoutContext {
