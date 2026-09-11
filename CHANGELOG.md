@@ -1,5 +1,98 @@
 # Changelog
 
+## [0.6.0](https://github.com/ecoma-io/loom/compare/v0.5.0...v0.6.0) (2026-09-11)
+
+
+### Features
+
+* **a11y:** behavioural viewport evidence per artifact class (Phase 3B) ([#281](https://github.com/ecoma-io/loom/issues/281)) ([75c66fb](https://github.com/ecoma-io/loom/commit/75c66fb388eddae5a872d8f1a2301e18bf175631))
+* **a11y:** role-aware accessibility evidence contract, enforced by gate (Phase 3A) ([#273](https://github.com/ecoma-io/loom/issues/273)) ([cd1ee9a](https://github.com/ecoma-io/loom/commit/cd1ee9aac270b7b8a2705c8bec3902ab69e6a2f9))
+* canonical application layouts — four obligations per layout (Phase 5B) ([#340](https://github.com/ecoma-io/loom/issues/340)) ([fe2f98e](https://github.com/ecoma-io/loom/commit/fe2f98eb37354a7ca0af2f04ff527dddfd661097))
+* canonical pattern layer — curated intent + evidence tiers (Phase 5A) ([#335](https://github.com/ecoma-io/loom/issues/335)) ([3e9560e](https://github.com/ecoma-io/loom/commit/3e9560e46193c49c6db86124a5b26b5011dec245))
+* canonical template families — enumeration + swap-point contract (Phase 5C) ([#345](https://github.com/ecoma-io/loom/issues/345)) ([3fae19e](https://github.com/ecoma-io/loom/commit/3fae19eb84eca6999e9eaee3eaa403aa93b3d329)), closes [#344](https://github.com/ecoma-io/loom/issues/344)
+* **composition:** enforce the conformance contract with expiring exceptions (Phase 3C) ([#285](https://github.com/ecoma-io/loom/issues/285)) ([43a9145](https://github.com/ecoma-io/loom/commit/43a9145d7eabeec012b1ebc9f1048cac4fab27ca))
+* **composition:** give Split its layout-engine twin (Phase 4A) ([#316](https://github.com/ecoma-io/loom/issues/316)) ([810bdab](https://github.com/ecoma-io/loom/commit/810bdabc66d6a6d70d3ae2614a4ff6bc6e823c5f))
+* **composition:** land grid's layout-engine twin (Phase 4A) ([#317](https://github.com/ecoma-io/loom/issues/317)) ([3fcf0e9](https://github.com/ecoma-io/loom/commit/3fcf0e955b08cc0a905b026b3eca0d326376bd70))
+* **composition:** land sidebar's engine adapter and conformance evidence (Phase 4A) ([b230fef](https://github.com/ecoma-io/loom/commit/b230feff81513bbe57de0e5d57adfad276725b3b))
+* **composition:** land the dashboard-grid engine twin (Phase 4A) ([#315](https://github.com/ecoma-io/loom/issues/315)) ([c79e1be](https://github.com/ecoma-io/loom/commit/c79e1be765d9a4b723ce83dc05cdf86909c4b50c))
+* **composition:** sidebar's engine adapter and conformance evidence (Phase 4A) ([#314](https://github.com/ecoma-io/loom/issues/314)) ([b230fef](https://github.com/ecoma-io/loom/commit/b230feff81513bbe57de0e5d57adfad276725b3b))
+* **e2e:** conformance discipline + scalability — Phase 4C/4D tolerance policy + registry ([#323](https://github.com/ecoma-io/loom/issues/323)) ([37f1287](https://github.com/ecoma-io/loom/commit/37f12876e63f9f08d1b280293f20e86bc97cea86))
+* enforce component-manifest privacy — one public package ([#238](https://github.com/ecoma-io/loom/issues/238)) ([#251](https://github.com/ecoma-io/loom/issues/251)) ([73b2abf](https://github.com/ecoma-io/loom/commit/73b2abf5094d82d19db833b8ec52c35d71876706))
+* enforce the full package→facade→docs parity surface (Phase 3F) ([#293](https://github.com/ecoma-io/loom/issues/293)) ([b8d171e](https://github.com/ecoma-io/loom/commit/b8d171ee2b49b1c6d91e86bc1fb950daf1f525e6))
+* harden the consumer-facing boundary (Phase 2F) ([#258](https://github.com/ecoma-io/loom/issues/258)) ([3aad324](https://github.com/ecoma-io/loom/commit/3aad32458e22f48619e76dae4a8eec43ab909646))
+* harden the public API boundary ([#253](https://github.com/ecoma-io/loom/issues/253)) ([#254](https://github.com/ecoma-io/loom/issues/254)) ([ca796cb](https://github.com/ecoma-io/loom/commit/ca796cb5b62e455474a13a2b934376bb72093cbf))
+* interaction evidence contract (3D PR-1) ([#296](https://github.com/ecoma-io/loom/issues/296)) ([b0ccf50](https://github.com/ecoma-io/loom/commit/b0ccf50c02ca23d948d5996f0f4d4e3446e7c3b3))
+* **lib:** record the engine's modelled subset as data (Phase 4B) ([#320](https://github.com/ecoma-io/loom/issues/320)) ([f773539](https://github.com/ecoma-io/loom/commit/f7735396c38eadffc0999699b08a939fd8cddb32))
+* make the enforcement claims standing, failing checks (Phase 2G) ([#263](https://github.com/ecoma-io/loom/issues/263)) ([de0a378](https://github.com/ecoma-io/loom/commit/de0a378e8aa68bc885a4023442834acee2849808))
+* migrate the blocks tier to patterns and reclassify 2C outliers ([#249](https://github.com/ecoma-io/loom/issues/249)) ([2958db5](https://github.com/ecoma-io/loom/commit/2958db518400110b3a98a62d8f53b14ffd0019ec))
+* **styles:** enforce the token allowlist with recorded exceptions (Phase 3E) ([#292](https://github.com/ecoma-io/loom/issues/292)) ([32e6c6c](https://github.com/ecoma-io/loom/commit/32e6c6c6a6e79d419c13408c2bfd6637719d1a7d))
+* take review live on pull requests ([#353](https://github.com/ecoma-io/loom/issues/353)) ([9226755](https://github.com/ecoma-io/loom/commit/92267553ff3ed3b701be93a6775c605ef0c6ce6a))
+* take triage live on the labels sheet ([#350](https://github.com/ecoma-io/loom/issues/350)) ([bf10fde](https://github.com/ecoma-io/loom/commit/bf10fdecee484215b80f4e8337513beff36c32c7))
+* **workspace:** measure the consumer escape rate (Phase 5D) ([#349](https://github.com/ecoma-io/loom/issues/349)) ([dfb4f83](https://github.com/ecoma-io/loom/commit/dfb4f834f3d1e94207e526dbf463536c50555b3a))
+
+
+### Bug Fixes
+
+* align machine hierarchy with the semantic model (2A/2B) ([#245](https://github.com/ecoma-io/loom/issues/245)) ([2cee972](https://github.com/ecoma-io/loom/commit/2cee972558145a32be2cb1a1379fa079ce55be1a))
+* close the nine Phase 3 gate-correctness findings ([#307](https://github.com/ecoma-io/loom/issues/307)) ([#310](https://github.com/ecoma-io/loom/issues/310)) ([63a044f](https://github.com/ecoma-io/loom/commit/63a044fd755cc8447429be2dfb77f9fca4e0baa3))
+* close the Phase 2 gate findings — enforcement half ([#269](https://github.com/ecoma-io/loom/issues/269)) ([#271](https://github.com/ecoma-io/loom/issues/271)) ([b1ec90a](https://github.com/ecoma-io/loom/commit/b1ec90aea747e3c6f242e5449ebfdc0a98799a78))
+* **e2e:** copy-button clipboard spec — grant the real-clipboard permission to its chromium test only ([11034ca](https://github.com/ecoma-io/loom/commit/11034ca4f68c3265ca4893fe1e6d6876f5334d81))
+* **e2e:** grant the real-clipboard permission to the chromium copy-button test only ([#243](https://github.com/ecoma-io/loom/issues/243)) ([11034ca](https://github.com/ecoma-io/loom/commit/11034ca4f68c3265ca4893fe1e6d6876f5334d81))
+* enforce MODELLED_SUBSET re-export provenance in the composition gate ([#334](https://github.com/ecoma-io/loom/issues/334)) ([f30925e](https://github.com/ecoma-io/loom/commit/f30925eeb82ccac8a5c2aac954436a78c5fa07c5)), closes [#330](https://github.com/ecoma-io/loom/issues/330)
+* out-wait npm packument propagation in verify-artifact ([#233](https://github.com/ecoma-io/loom/issues/233)) ([c357a87](https://github.com/ecoma-io/loom/commit/c357a8723927df9dbc286c2f9fff022730fbcd83)), closes [#232](https://github.com/ecoma-io/loom/issues/232)
+* wrap FormActions instead of overflowing at phone width ([#276](https://github.com/ecoma-io/loom/issues/276)) ([#278](https://github.com/ecoma-io/loom/issues/278)) ([de84218](https://github.com/ecoma-io/loom/commit/de8421833309cb8747fa388ece062e8b6a94af7d))
+
+
+### Performance
+
+* **e2e:** measure and attribute CI/E2E wall time ([#364](https://github.com/ecoma-io/loom/issues/364)) ([7249c07](https://github.com/ecoma-io/loom/commit/7249c077ad7784624ef52fc2c7469a68fe229e1c))
+
+
+### Documentation
+
+* add the Phase 1 repository audit ([#239](https://github.com/ecoma-io/loom/issues/239)) ([a7f2de1](https://github.com/ecoma-io/loom/commit/a7f2de1bdd9d378a787dcdea2a808a23012aaf4b))
+* close out Phase 4A — record the landed census, close P1/M6/M7, flip the ledger row ([#318](https://github.com/ecoma-io/loom/issues/318)) ([0be52da](https://github.com/ecoma-io/loom/commit/0be52da869c6a49a1ad95ac67521e3be424ee139))
+* close the Phase 2 gate's documentation-claim findings ([#268](https://github.com/ecoma-io/loom/issues/268)) ([#270](https://github.com/ecoma-io/loom/issues/270)) ([b76094b](https://github.com/ecoma-io/loom/commit/b76094b2bbee45d3454cf197b6d8c58f61bd49bc))
+* **composition:** declare scroll-reel CSS-only by design (ADR-002) ([546c8c5](https://github.com/ecoma-io/loom/commit/546c8c5b62d9bdf3495b38499508e896b1ea9826))
+* **composition:** declare ScrollReel CSS-only by design — ADR-002 (Phase 4A scroll-reel twin) ([#313](https://github.com/ecoma-io/loom/issues/313)) ([546c8c5](https://github.com/ecoma-io/loom/commit/546c8c5b62d9bdf3495b38499508e896b1ea9826))
+* engine boundary investigations — ratify the modelled-subset boundary (Phase 4E) ([#325](https://github.com/ecoma-io/loom/issues/325)) ([2377c50](https://github.com/ecoma-io/loom/commit/2377c506b26f36d9b70cc7a5e142e894ed6b4110)), closes [#324](https://github.com/ecoma-io/loom/issues/324)
+* establish the Loom constitution (Phase 0) ([#237](https://github.com/ecoma-io/loom/issues/237)) ([956dbcd](https://github.com/ecoma-io/loom/commit/956dbcd5e8b8a1f90aaacfce19bba4ef5181b269))
+* make criterion 11's check match the phrase it claims ([#359](https://github.com/ecoma-io/loom/issues/359)) ([1d674cb](https://github.com/ecoma-io/loom/commit/1d674cb64a2ec7a3d90b21f4669bb402b94e0d65))
+* reconcile Phase 0 documents with the Phase 1 audit (Phase 0.5) ([#241](https://github.com/ecoma-io/loom/issues/241)) ([011f04a](https://github.com/ecoma-io/loom/commit/011f04aa84152670ce49ec0b2b250ab8ec370f9d)), closes [#240](https://github.com/ecoma-io/loom/issues/240)
+* reconcile Phase 4 records with the tree (gate closeout drifts) ([#333](https://github.com/ecoma-io/loom/issues/333)) ([59f81c9](https://github.com/ecoma-io/loom/commit/59f81c9f1ffee96a4f82ead15a91a42f95e3bc39)), closes [#331](https://github.com/ecoma-io/loom/issues/331)
+* reconcile the Phase 3 record with the gate's findings ([#308](https://github.com/ecoma-io/loom/issues/308)) ([#309](https://github.com/ecoma-io/loom/issues/309)) ([33e0a80](https://github.com/ecoma-io/loom/commit/33e0a8072e32a567118274ea6634c21b9e5c30a5))
+* record 2A/2B as merged in the evolution ledger ([#247](https://github.com/ecoma-io/loom/issues/247)) ([68f6c72](https://github.com/ecoma-io/loom/commit/68f6c7287c88878fcd80125471091af999650b28))
+* record 2A/2B as merged on main ([#245](https://github.com/ecoma-io/loom/issues/245)) ([68f6c72](https://github.com/ecoma-io/loom/commit/68f6c7287c88878fcd80125471091af999650b28))
+* record 2C as merged in the evolution ledger ([#250](https://github.com/ecoma-io/loom/issues/250)) ([47a2b7d](https://github.com/ecoma-io/loom/commit/47a2b7d6abed052b324eb799b2cd79d644453924))
+* record 2D as merged in the evolution ledger ([#252](https://github.com/ecoma-io/loom/issues/252)) ([2d184cf](https://github.com/ecoma-io/loom/commit/2d184cfcf6d3f65a2d80d0b792730f1eb3b6d681))
+* record 2E as merged in the evolution ledger ([#255](https://github.com/ecoma-io/loom/issues/255)) ([ce64570](https://github.com/ecoma-io/loom/commit/ce645707de7d099f0b8f771afa1dfe1f9ea93413))
+* record 2F as merged in the evolution ledger ([#260](https://github.com/ecoma-io/loom/issues/260)) ([29dc938](https://github.com/ecoma-io/loom/commit/29dc9389e9ee9c468863bce0b081ca612f9dffc5))
+* record 2G as merged in the evolution ledger ([#266](https://github.com/ecoma-io/loom/issues/266)) ([731e144](https://github.com/ecoma-io/loom/commit/731e144fc25aa6c83ab5d55d7a812de2a921f0d2))
+* record 2H as merged in the evolution ledger ([#267](https://github.com/ecoma-io/loom/issues/267)) ([f63e4f7](https://github.com/ecoma-io/loom/commit/f63e4f747b30b9dc8c8cf44dba15bdf5deb080c8))
+* record 3A as merged in the evolution ledger ([#279](https://github.com/ecoma-io/loom/issues/279)) ([0b3c741](https://github.com/ecoma-io/loom/commit/0b3c741c49943e8dfeb5c1690b17c736a030ae5d))
+* record 3B as merged in the evolution ledger ([#294](https://github.com/ecoma-io/loom/issues/294)) ([3dc3bc5](https://github.com/ecoma-io/loom/commit/3dc3bc5f0d08ab760e01c4bf97a859260291d476))
+* record 3C as merged in the evolution ledger ([#295](https://github.com/ecoma-io/loom/issues/295)) ([ce7acbe](https://github.com/ecoma-io/loom/commit/ce7acbefce001e435e5c51e5988f6056f5d9e1c8))
+* record 3D as merged in the evolution ledger ([#306](https://github.com/ecoma-io/loom/issues/306)) ([773a358](https://github.com/ecoma-io/loom/commit/773a358cc3fbed506db938e784f3df15bc5da63a))
+* record 3E as merged in the evolution ledger ([#304](https://github.com/ecoma-io/loom/issues/304)) ([0880f12](https://github.com/ecoma-io/loom/commit/0880f12b89feef0996384bce0c198fff694dcdda))
+* record 3F as merged in the evolution ledger ([#297](https://github.com/ecoma-io/loom/issues/297)) ([aa7cc81](https://github.com/ecoma-io/loom/commit/aa7cc81b94d8a25e3c0f3a3a9fc75a45234ec11a))
+* record Phase 4B as merged in the evolution ledger ([#321](https://github.com/ecoma-io/loom/issues/321)) ([357f302](https://github.com/ecoma-io/loom/commit/357f30230e74bcbc042dd34c679bf2b4e53fdfa3))
+* record Phase 4C/4D as merged in the evolution ledger ([#326](https://github.com/ecoma-io/loom/issues/326)) ([6d84419](https://github.com/ecoma-io/loom/commit/6d844194b563cf0d61cf9eda2ca56a0e98906d09))
+* record Phase 4E as merged in the evolution ledger ([#327](https://github.com/ecoma-io/loom/issues/327)) ([c44f10d](https://github.com/ecoma-io/loom/commit/c44f10d2469571ca505dd8e3cb30121c0bc55fb5))
+* record Phase 5A as merged in the evolution ledger ([#341](https://github.com/ecoma-io/loom/issues/341)) ([a4ba788](https://github.com/ecoma-io/loom/commit/a4ba788679d65d9d4aafa9a0a8a01d57f6023442))
+* record Phase 5B and 5E as merged in the evolution ledger ([#346](https://github.com/ecoma-io/loom/issues/346)) ([9f403af](https://github.com/ecoma-io/loom/commit/9f403afb90eed0d41c741e650ff0c1180c3b694a))
+* record Phase 5C as merged in the evolution ledger ([#347](https://github.com/ecoma-io/loom/issues/347)) ([48717e4](https://github.com/ecoma-io/loom/commit/48717e4c365a73467a2a7ca88e5e1dd9ae4c72e2))
+* record Phase 5D as merged in the evolution ledger ([#354](https://github.com/ecoma-io/loom/issues/354)) ([8bdb64b](https://github.com/ecoma-io/loom/commit/8bdb64bd23707c7e94452bf1add2b868898d649e))
+* record Phase 5F as merged in the evolution ledger ([#360](https://github.com/ecoma-io/loom/issues/360)) ([bdf8d71](https://github.com/ecoma-io/loom/commit/bdf8d71bcf0ca34d71effa3ba37aeca3128f97be))
+* record the Phase 2 adversarial-review gate as merged (ledger flip) ([#274](https://github.com/ecoma-io/loom/issues/274)) ([135dc2d](https://github.com/ecoma-io/loom/commit/135dc2daed0fd2faf042deffe70c5bf173b59a02))
+* record the Phase 2 gate as merged in the evolution ledger ([135dc2d](https://github.com/ecoma-io/loom/commit/135dc2daed0fd2faf042deffe70c5bf173b59a02))
+* record the Phase 3 adversarial-review gate in the evolution ledger ([#312](https://github.com/ecoma-io/loom/issues/312)) ([278167a](https://github.com/ecoma-io/loom/commit/278167a7a35eeb1a8a2443cb5b50527051b0ee33))
+* record the Phase 3 gate as merged in the evolution ledger ([278167a](https://github.com/ecoma-io/loom/commit/278167a7a35eeb1a8a2443cb5b50527051b0ee33))
+* record the Phase 4 adversarial gate as merged in the evolution ledger ([#336](https://github.com/ecoma-io/loom/issues/336)) ([5bc19ce](https://github.com/ecoma-io/loom/commit/5bc19ce5f22b26d13307ace68930c945c6f945ab))
+* restore the positioning phrase on the templates landing ([#343](https://github.com/ecoma-io/loom/issues/343)) ([0fc957f](https://github.com/ecoma-io/loom/commit/0fc957f0faa4c77757d0432f70eac4c1ec79d074))
+* rewrite the README to the ten-section structure (Phase 5E) ([#339](https://github.com/ecoma-io/loom/issues/339)) ([151c1e3](https://github.com/ecoma-io/loom/commit/151c1e3ff2b69a6d85c9b7a31a2d93cd3e39ca92)), closes [#338](https://github.com/ecoma-io/loom/issues/338)
+* synchronize pre-2C terminology and land the positioning phrase (Phase 2H) ([#265](https://github.com/ecoma-io/loom/issues/265)) ([e72f682](https://github.com/ecoma-io/loom/commit/e72f6826f4f126c4ce05d5c7a9f3a096b0ac80ea))
+* write the intake path and completion criteria (Phase 5F) ([#356](https://github.com/ecoma-io/loom/issues/356)) ([ef79c56](https://github.com/ecoma-io/loom/commit/ef79c561623b1d75704bb62a2c4296e0310ef450)), closes [#355](https://github.com/ecoma-io/loom/issues/355)
+
 ## [0.5.0](https://github.com/ecoma-io/loom/compare/v0.4.0...v0.5.0) (2026-09-05)
 
 
