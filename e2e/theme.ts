@@ -40,6 +40,17 @@ export const REUSE_THEME = process.env.LOOM_E2E_REUSE_THEME === "1";
  * - `title`/`aria-checked` on the appearance-toggle buttons — the switch's
  *   accessible name and state, non-empty in both themes, flipped.
  *
+ * One strip is not a theme marker but a time marker, and it is normalized
+ * for the same reason the theme markers are: `<link rel="prefetch">` tags,
+ * which VitePress injects into `<head>` as route chunks become worth
+ * prefetching — a function of dwell time, not of the theme. The contrast
+ * spec's light pass is one fast `evaluate` (no axe scan holding the page),
+ * so on firefox its `before` capture landed mid-prefetch and the gate read
+ * the accumulating links as a premise break on every page (bench run
+ * 34632743958, 2026-09-12). Nothing the sweeps measure reads a prefetch
+ * link, and the production dark pass — which re-navigates — never compared
+ * them in the first place.
+ *
  * The strips are scoped to the html open tag and the toggle buttons rather
  * than applied to these attribute names wherever they appear: normalization
  * that reaches past the known markers would call a genuinely divergent DOM
@@ -47,26 +58,31 @@ export const REUSE_THEME = process.env.LOOM_E2E_REUSE_THEME === "1";
  * drift this gate exists to catch.
  */
 function withoutThemeMarkers(html: string): string {
-  return html
-    .replace(
-      /<html\b([^>]*)>/,
-      (_open, attrs: string) =>
-        `<html${attrs
-          .replace(/\sdata-theme="[^"]*"/, "")
-          .replace(/\sclass="([^"]*)"/, (_class, tokens: string) => {
-            const kept = tokens
-              .split(/\s+/)
-              .filter((token) => token !== "dark")
-              .join(" ");
-            // The attribute goes when its last token does: light mode carries no
-            // class at all where dark carries exactly `dark`, so keeping an
-            // empty `class=""` behind on one side would fail every page.
-            return kept === "" ? "" : ` class="${kept}"`;
-          })}>`,
-    )
-    .replace(/<button\b[^>]*\bVPSwitchAppearance\b[^>]*>/g, (button) =>
-      button.replace(/\s(?:title|aria-checked)(?:="[^"]*")?/g, ""),
-    );
+  return (
+    html
+      .replace(
+        /<html\b([^>]*)>/,
+        (_open, attrs: string) =>
+          `<html${attrs
+            .replace(/\sdata-theme="[^"]*"/, "")
+            .replace(/\sclass="([^"]*)"/, (_class, tokens: string) => {
+              const kept = tokens
+                .split(/\s+/)
+                .filter((token) => token !== "dark")
+                .join(" ");
+              // The attribute goes when its last token does: light mode carries no
+              // class at all where dark carries exactly `dark`, so keeping an
+              // empty `class=""` behind on one side would fail every page.
+              return kept === "" ? "" : ` class="${kept}"`;
+            })}>`,
+      )
+      // The attribute order is fixed by the serializer, but the strip stays
+      // order-tolerant so a VitePress change cannot silently re-arm the gate.
+      .replace(/<link\b[^>]*\brel="prefetch"[^>]*>/g, "")
+      .replace(/<button\b[^>]*\bVPSwitchAppearance\b[^>]*>/g, (button) =>
+        button.replace(/\s(?:title|aria-checked)(?:="[^"]*")?/g, ""),
+      )
+  );
 }
 
 /**
