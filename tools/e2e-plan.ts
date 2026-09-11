@@ -731,6 +731,12 @@ export function runSelfCheck(): void {
       [...counts.values()].every((n) => n === 1),
       "no spec is named twice",
     );
+    const small = groups.find((g) => g.group === "small");
+    assert.ok(small, "the catch-all small group exists");
+    assert.ok(
+      small.specs.length > 0,
+      "the small leg carries specs — an empty positional arg list would make Playwright run the whole suite on that leg",
+    );
     const heaviest = groups.reduce((a, b) => (b.shards > a.shards ? b : a));
     assert.equal(heaviest.group, "a11y", "the pole group is the measured heaviest spec");
     const docsPlan = plan("docs", []);
