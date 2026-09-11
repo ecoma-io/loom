@@ -39,7 +39,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: e2e-bench-${{ github.ref }}
+  # Keyed by the dispatch parameters, not just the ref: two benches of
+  # different engines on the same branch are independent measurements, and a
+  # ref-only group would let the second dispatch cancel the first (observed
+  # 2026-09-11: the chromium dispatch cancelled the queued firefox run of the
+  # same SHA).
+  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}
   cancel-in-progress: true
 
 jobs:
