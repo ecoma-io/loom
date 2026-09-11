@@ -144,3 +144,29 @@ compute cap.
 
 Nothing short of cutting the swept page set (coverage semantics change) closes
 the measured gap; the report stays at "not achievable" with the floors above.
+
+## 9. CI-measured validation, and the spec-group shard plan (issue #367)
+
+The full-suite bench (workflow_dispatch, `e2e-bench.yml`, production container,
+runs 34593135967 chromium / 34593707946 firefox, SHA a09a516) put the local
+attribution to the test. Per-phase engine factors measured on CI runners are
+smaller than the local ones — goto ×1.22 (p50 1878/1540 ms), axe-analyze ×1.35
+(1454/1079 ms), evaluate ×0.21 — and the firefox/chromium _wall_ factor is
+only ×1.12. The local ×1.59/×2.50 figures are this workstation's CPU
+contention, not CI's; sections 2–7 keep them as local context only.
+
+The same run confirmed the flat 5-shard split is a contiguous slice of the
+alphabetized spec list: all 177 accessibility tests land in shard 1 (the pole,
+10.20m chromium / 11.42m firefox of test wall) and the 144 cheapest
+target-size tests in shard 5 (5.26/7.43m) — a ×1.94 / ×1.54 pole-to-tail skew.
+`tools/e2e-plan.ts` now cuts the suite by spec group, each sharded by measured
+cost (a11y/3, contrast/2, keyboard, target-size, small): projected pole
+6.36m firefox / 5.67m chromium of test wall, 8 legs per browser instead of 5.
+
+Live validation, PR #368's pw-infra run (34597507798, full profile, 40 root
+legs, all green): the pole leg is `firefox-a11y-s2` at **10.2m of job wall**
+(including per-leg setup) against ~14.8m for the equivalent flat-split pole —
+a −31% critical-path cut, within the +3-legs setup tax the plan discloses.
+Workers probes on the same SHA (runs 34595144010/51691/58798/65717, shard 1):
+chromium w2 is a pure wall win (×1.98, compute ×1.0); firefox w2 buys ×1.44
+wall for ×1.38 compute on a CPU-bound axe — documented, not adopted.
