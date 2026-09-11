@@ -177,6 +177,21 @@ export async function reachDark(browserPage: Page, target: string, label: string
     return;
   }
 
+  // VPSidebarGroup holds `no-transition` on its groups for the first 300ms
+  // after mount — a one-shot timer in VitePress's own source — so a page whose
+  // light pass finishes inside that window captures `before` mid-transient,
+  // and the gate reads the timer's expiry across the click as a premise break
+  // (run 34644775869: the first-difference window lands in the sidebar at
+  // byte ≈ 8.3k on every failing page). The transient is waited out before the
+  // capture instead of normalized away: the gate then compares settled DOM to
+  // settled DOM, and no new VitePress transient can silently join the
+  // normalization list.
+  await browserPage
+    .waitForFunction(() => !document.querySelector(".no-transition"), undefined, {
+      timeout: 5_000,
+    })
+    .catch(() => undefined);
+
   const before = await browserPage.content();
   await toggle.click();
   await browserPage.waitForFunction(darkRepaintLanded);
