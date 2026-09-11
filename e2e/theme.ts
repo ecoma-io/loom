@@ -8,9 +8,12 @@ import { expect, type Page } from "@playwright/test";
  * semantics and geometry, the dark pass reaches dark on the same DOM through
  * VitePress's own appearance toggle and re-runs only the color-dependent
  * checks, per the 2026-08-26 measurement recorded beside the dark scan in
- * accessibility.e2e.ts. Unset — the default, in CI and locally — both specs
- * keep their two navigations, byte-for-byte the same titles and phases, so
- * the timings JSONL join and CI history stay comparable across the A/B.
+ * accessibility.e2e.ts. Unset — still the default locally — both specs keep
+ * their two navigations, byte-for-byte the same titles and phases; ci.yml's
+ * root legs set it since the measured A/B
+ * (perf/e2e-performance-analysis.md §11: phase wall −19…−49% on the two
+ * heaviest specs, coverage unchanged), and the bench workflow dispatches it
+ * for the next A/B.
  *
  * The collapse is equivalent coverage only while one premise holds: that
  * reaching dark changes no DOM byte outside the three known theme markers.
