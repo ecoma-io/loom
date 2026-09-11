@@ -170,3 +170,68 @@ a −31% critical-path cut, within the +3-legs setup tax the plan discloses.
 Workers probes on the same SHA (runs 34595144010/51691/58798/65717, shard 1):
 chromium w2 is a pure wall win (×1.98, compute ×1.0); firefox w2 buys ×1.44
 wall for ×1.38 compute on a CPU-bound axe — documented, not adopted.
+
+## 10. The PR run put the plan on the clock: queueing, not the pole, set the wall
+
+PR #368's pw-infra run (34597507798, 40 root legs, all green) is the first
+end-to-end measurement of the spec-group topology, and it splits the question
+in two: the per-leg cut is real, the per-run result is not, yet.
+
+- Pole legs, measured: firefox-a11y-s2 10.25m of job wall (chromium 7.75m,
+  webkit 6.85m) — −21/−26/−25% against the flat-split leg P50s
+  (12.97/10.47/9.08m, n=52 per leg).
+- Run wall, measured: 17.1m (run created 12:09:47Z, last leg ended
+  12:26:51Z) against the 15.23m E2E P50 the flat topology posted. The pole
+  win drowned in queueing: leg starts spread 12:11:07Z→12:19:54Z (8.8m, two
+  waves) because 40 legs contend for an org runner supply that spread prices
+  at ≈20 concurrent slots. The run's root legs cost 244.3 runner-minutes.
+- The topology arithmetic behind the queueing: a docs PR now emits 24 root
+  legs (3 browsers × 8), theme 27, deps 25, pw-infra 43–46 plus the 4
+  non-matrix jobs — every routine change class now overflows the ≈20-slot
+  supply, and `e2e-run` carries no `max-parallel`.
+
+Two §9 statements this run corrects. The a11y spec is 288 tests (144 pages ×
+light+dark), not 177 — 177 is the flat shard size, and flat shard 1 is the
+first 177 of the alphabetized suite (all light + 33 dark). And the profile
+penalty is nil: the group legs below ran 3.78s/test at `full` against the
+flat bench's 3.89 at `standard`; the ×1.35 earlier read as a profile cost was
+a derivation artifact (job wall minus a wrong setup constant).
+
+### Workers on the production legs (bench, full profile, zero failures and retries)
+
+Group-leg benches (runs 34603189852/34603193137 firefox,
+34603196536/34603200180 chromium; a11y shards of 96 tests; test wall from the
+timings `end` records):
+
+| legs          | w1 walls (s1/s2/s3)       | w2 walls                  | wall ÷ | work w1→w2 | compute × |
+| ------------- | ------------------------- | ------------------------- | ------ | ---------- | --------- |
+| firefox a11y  | 7.02/6.64/4.49 (Σ 18.15m) | 4.42/3.38/3.90 (Σ 11.70m) | 1.55   | 18.0→23.1m | 1.28      |
+| chromium a11y | 5.59/5.33/4.97 (Σ 15.89m) | 3.55/3.34/3.12 (Σ 10.01m) | 1.59   | 15.8→19.8m | 1.25      |
+
+The flat-shard probes had priced chromium w2 as a free win (×1.98 wall,
+×1.0 compute at 177 tests, `standard`); at the production shard size of 96
+tests that no longer holds — both engines land at wall ÷1.55–1.59 for
+compute ×1.25–1.28. The probes remain the A/B method; the group-leg numbers
+are the ones a production change may cite. The revision accordingly adopts
+`workers: 2` for the a11y rows of chromium and firefox only (the pole drops,
+projected, 10.25m → ≈7.8m of job wall for +~25% compute on the heaviest
+group); webkit and every other group stay at 1 until their own bench exists.
+
+### What is left, in measured order
+
+1. Leg count vs the ≈20-slot supply: re-cutting groups (or a `max-parallel`)
+   is the lever on the queueing that set this run's wall — it needs its own
+   dispatch-level bench before any cut lands.
+2. Navigation reuse: the docs sweep does 6 gotos per page per project (868
+   per standard project); accessibility light+dark and contrast light+dark
+   each collapse to one goto with an in-place theme toggle — the DOM is
+   measured byte-identical between themes except the theme markers
+   (`e2e/accessibility.e2e.ts`'s own claim) — ≈ −4.5m of goto wall per
+   project, semantics-preserving.
+3. The axe rule partition: 51 of the 68 rules the light pass enforces are
+   already authoritatively gated browserless on demos (`a11y-scope.ts`
+   partition); the irreducible browser set is the 17 `BROWSER_REQUIRED_RULES`.
+   Re-scoping the page sweep is a coverage-policy decision, not a
+   measurement gap (the acceleration model prices it at −75% axe wall).
+4. webkit and the remaining groups' worker benches — same dispatch
+   instrument, no new plumbing.
