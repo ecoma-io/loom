@@ -75,10 +75,6 @@ import {
   ENGINE_FOR_PROJECT,
   type BrowserProfile,
 } from "../playwright/profiles.ts";
-// The same page list every root sweep iterates, read here rather than counted
-// again: the shard split below is sized in pages, and a second way of counting
-// them would drift from the suite it is meant to divide.
-import { documentationPages } from "../e2e/docs-pages.ts";
 
 // Repo root (the script lives in `tools/`).
 const ROOT = new URL("..", import.meta.url).pathname;
@@ -270,53 +266,63 @@ const CONFIG_PATHS = {
 const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
 
 /**
- * How many `--shard` pieces the root cross-cutting suite is cut into, per
- * browser. Sized from measurement, not habit.
+ * How the root cross-cutting suite is cut into legs, per browser: spec
+ * groups, each sharded by its measured cost.
  *
- * Original sizing: 30 pages each, calibrated at 102 pages over 4 shards. The
- * split sizes by worst-shard wall clock because the root suite's per-browser
- * runtime IS its slowest shard (shards run in parallel legs).
+ * Playwright shards a test list by walking it in declaration order and
+ * slicing contiguously — measured on the full-suite bench (runs
+ * 34593135967/34593707946, commit a09a516, 2026-09-11): all 177
+ * accessibility tests landed in shard 1 of 5 and the 144 cheapest
+ * target-size tests in shard 5, so the pole leg carried ×1.94 the tail
+ * leg's test wall on chromium (10.20m vs 5.26m) and ×1.54 on firefox
+ * (11.42m vs 7.43m). Shards run as parallel legs, so every idle shard
+ * minute extends the job wall-clock; the pole, not the total, is the
+ * pipeline's critical path.
  *
- * Pre-#122 baseline (run 32929370780, merge group for #121, commit 1453b45,
- * 2026-08-26 04:13Z): Firefox median 7.2m per shard (~26 pages), worst single
- * shard 12.2m. Chromium median 6.0m, worst 8.0m. WebKit median 4.6m, worst 7.9m.
+ * The split below cuts the suite by spec group instead, with each group's
+ * shard count from its measured share of firefox test wall (same runs):
+ * accessibility 45.4%, contrast 24.7%, target-size 14.6%, keyboard 13.0%,
+ * the three small gates 2.3% combined. Re-slicing each group into its
+ * pieces — the same contiguous mechanism, now within one spec — projects
+ * the firefox pole at 6.36m (accessibility 1/3) against 11.42m flat,
+ * −44% on the engine the pipeline waits for, with chromium's pole at
+ * 5.67m. Per browser the plan is 8 legs where the flat split ran 5; the
+ * three extra legs pay ~2.4m of setup each and buy ~5m of wall on every
+ * run that includes the root sweep.
  *
- * Post-#122 measurements (run 32933034655, merge group for #122, commit
- * 7884045, 2026-08-26 05:10Z): the WCAG gate split made the dark pass
- * contrast-only. Firefox median fell to 5.9m (~18% improvement), worst single
- * shard 10.9m. Chromium median 5.4m, worst 6.4m. WebKit median 3.8m, worst 5.0m.
+ * Costs move with the page set. The counts above were measured at 144
+ * pages; re-run the bench and re-cut the groups when documentationPages()
+ * grows past ~250 pages or a new heavy gate lands — the sizing is
+ * re-derived from data, not projected from a per-page constant.
  *
- * The #122 savings are already banked as shorter shards: median 7.2→5.9m,
- * worst 12.2→10.9m. No constant change is needed to capture that win.
- *
- * Why 30 stays (not 34, which would give 3 shards at today's 102 pages):
- * ceil(102/N)=3 requires N≥34. At the measured worst-shard cost
- * (Firefox: 10.9m / 26 pages ≈ 25.2s/page), a 34-page shard runs
- * 34 × 25.2s ≈ 14.3m — LONGER than today's 10.9m worst shard. That trades
- * wall-clock (the point of parallel legs) for compute (12→9 legs). Wall-clock
- * comes first; a 30% wall regression to save 25% compute is a bad trade.
- *
- * When 34 becomes right: when worst-shard per-page cost falls enough that
- * 34 × cost ≤ ~10m (i.e., cost ≤ ~17.6s/page). At that point, 3 shards at 34
- * pages each land the worst engine near today's 10.9m envelope, and the
- * reduction to 9 legs is pure gain. Until that measurement exists, 30 stands.
- *
- * The cap is `harnessShardCount`'s philosophy from the other side: bounded,
- * never proportional. Eight shards is already 40 legs on the `full` profile's
- * five engines, so the matrix stops widening there and per-shard workload
- * starts growing again — a deliberate ceiling with a known expiry, since at
- * ~240 pages a capped shard (30 pages each) is back at ~17 minutes and it is
- * the cap, or the job timeout, that has to be revisited. Both numbers are
- * recorded here so that recalibration starts from this evidence rather than
- * from a guess.
+ * The `small` group is computed from the directory, not a literal list,
+ * so a newly added gate joins a leg automatically — the property the flat
+ * split got for free from the config's testMatch, and the one this table
+ * must never lose. `runSelfCheck` pins it.
  */
-const PAGES_PER_ROOT_SHARD = 30;
-const ROOT_SHARD_CAP = 8;
+const ROOT_SHARD_PLAN: { group: string; specs: string[]; shards: number }[] = [
+  { group: "a11y", specs: ["e2e/accessibility.e2e.ts"], shards: 3 },
+  { group: "contrast", specs: ["e2e/contrast.e2e.ts"], shards: 2 },
+  { group: "keyboard", specs: ["e2e/keyboard.e2e.ts"], shards: 1 },
+  { group: "target-size", specs: ["e2e/target-size.e2e.ts"], shards: 1 },
+];
 
-const rootShardCount = (pages: number): number =>
-  Math.min(ROOT_SHARD_CAP, Math.max(1, Math.ceil(pages / PAGES_PER_ROOT_SHARD)));
+// Every root-suite spec not named in the plan — the catch-all leg a new
+// gate falls into, keeping the flat split's "a new file runs" guarantee.
+const smallRootGroup = (): { group: string; specs: string[]; shards: number } => ({
+  group: "small",
+  specs: readdirSync(join(ROOT, "e2e"))
+    .filter((f) => f.endsWith(".e2e.ts"))
+    .sort()
+    .map((f) => `e2e/${f}`)
+    .filter((s) => !ROOT_SHARD_PLAN.some((g) => g.specs.includes(s))),
+  shards: 1,
+});
 
-const ROOT_SHARDS = rootShardCount(documentationPages().length);
+const rootShardGroups = (): { group: string; specs: string[]; shards: number }[] => [
+  ...ROOT_SHARD_PLAN,
+  smallRootGroup(),
+];
 
 /**
  * Harness legs group every affected component into one Playwright run per
@@ -384,6 +390,7 @@ export function plan(
     browser: keyof typeof ENGINE_FOR_PROJECT,
     shards: number,
     shardIndex: number,
+    group = "",
   ): MatrixRow => ({
     scenario,
     profile,
@@ -393,7 +400,7 @@ export function plan(
     specs,
     demos,
     shardArgs: shards > 1 ? `--shard=${String(shardIndex)}/${String(shards)}` : "",
-    name: `${scenario}-${config}-${browser}${shards > 1 ? `-s${String(shardIndex)}` : ""}`,
+    name: `${scenario}-${config}-${browser}${group ? `-${group}` : ""}${shards > 1 ? `-s${String(shardIndex)}` : ""}`,
   });
 
   const ownsE2E = (p: AffectedProject): boolean => "e2e" in p.tasks;
@@ -425,14 +432,16 @@ export function plan(
     if (id && !affectedDemos.includes(id)) affectedDemos.push(id);
   }
 
-  // The root cross-cutting suite across `profile`'s browsers. The axe and
-  // contrast sweeps double the test count (every page in light and dark), so
-  // each browser is split into ROOT_SHARDS legs (`--shard=i/N`) to stay under
-  // the per-leg wall-clock ceiling — see ROOT_SHARDS for the sizing evidence.
+  // The root cross-cutting suite across `profile`'s browsers, cut by the
+  // measured spec-group plan: each group is its own set of legs, sharded
+  // within the group's positional specs (ROOT_SHARD_PLAN holds the sizing
+  // evidence and the pole arithmetic).
   const rootLegs = (profile: BrowserProfile): MatrixRow[] =>
     PROFILE_PROJECTS[profile].flatMap((browser) =>
-      Array.from({ length: ROOT_SHARDS }, (_, i) =>
-        row(profile, "root", [], [], browser, ROOT_SHARDS, i + 1),
+      rootShardGroups().flatMap(({ group, specs, shards }) =>
+        Array.from({ length: shards }, (_, i) =>
+          row(profile, "root", specs, [], browser, shards, i + 1, group),
+        ),
       ),
     );
 
@@ -685,39 +694,71 @@ export function runSelfCheck(): void {
   assert.ok(buttonLeg.demos.includes("button"));
 
   // A theme change holds the affected demos — not just e2e-tagged ones — to
-  // the bar at standard, beside the root sweep: 3 browsers × ROOT_SHARDS root
-  // legs, one harness leg per browser while the affected set is small.
+  // the bar at standard, beside the root sweep: 3 browsers × the spec-group
+  // plan's legs (8 per browser today), one harness leg per browser while the
+  // affected set is small.
   const themed = plan("theme", [
     project("theme-core", "packages/theme-core", []),
     project("badge", "packages/primitives/badge", []),
   ]);
-  assert.equal(themed.filter((r) => r.config === CONFIG_PATHS.root).length, 3 * ROOT_SHARDS);
+  const rootLegsPerBrowser = rootShardGroups().reduce((n, g) => n + g.shards, 0);
+  assert.equal(
+    themed.filter((r) => r.config === CONFIG_PATHS.root).length,
+    PROFILE_PROJECTS.standard.length * rootLegsPerBrowser,
+  );
   assert.equal(themed.filter((r) => r.config === CONFIG_PATHS.harness).length, 3);
   assert.ok(
     themed.filter((r) => r.config === CONFIG_PATHS.harness).every((r) => r.demos.includes("badge")),
   );
 
-  // The root split follows the size of the page set the suite sweeps. Pinned
-  // at literal page counts rather than at today's live count: pages arrive
-  // with ordinary documentation work, and an assertion on the live number
-  // would redden an unrelated docs pull request the day it crossed a boundary
-  // — the shard count moving with the page count is the design, not a
-  // regression. What is asserted is the policy, at the counts that define it.
-  assert.equal(
-    rootShardCount(102),
-    4,
-    "today's 102 pages stay at 4 shards; the post-split win is shorter wall-clock, not fewer legs",
-  );
-  assert.equal(rootShardCount(120), 4, "the last page count that still fits four shards");
-  assert.equal(rootShardCount(121), 5, "one page past it buys a shard, not a longer leg");
-  assert.equal(rootShardCount(240), ROOT_SHARD_CAP, "the cap is reached, not exceeded");
-  assert.equal(rootShardCount(4000), ROOT_SHARD_CAP, "growth is bounded: legs stop widening");
-  assert.equal(rootShardCount(0), 1, "an empty docs tree is still one leg, never zero");
-  // The live count is checked only against the bound, for the reason above.
-  assert.ok(
-    ROOT_SHARDS >= 1 && ROOT_SHARDS <= ROOT_SHARD_CAP,
-    "the shard count the matrix runs with stays inside the bound",
-  );
+  // The spec-group plan's safety properties, not its literals: every spec in
+  // the root suite lands in exactly one group (a newly added gate joins the
+  // small leg instead of silently dropping out of CI), the heaviest group
+  // carries the most shards, every sharded row's args agree with its group,
+  // and the job names stay unique — `name` keys the GitHub job and the
+  // report artifact, and upload-artifact rejects duplicates.
+  {
+    const groups = rootShardGroups();
+    const directory = readdirSync(join(ROOT, "e2e"))
+      .filter((f) => f.endsWith(".e2e.ts"))
+      .sort()
+      .map((f) => `e2e/${f}`);
+    const covered = groups.flatMap((g) => g.specs).sort();
+    assert.deepEqual(covered, directory, "the groups partition the root suite's specs");
+    const counts = new Map<string, number>();
+    for (const s of covered) counts.set(s, (counts.get(s) ?? 0) + 1);
+    assert.ok(
+      [...counts.values()].every((n) => n === 1),
+      "no spec is named twice",
+    );
+    const heaviest = groups.reduce((a, b) => (b.shards > a.shards ? b : a));
+    assert.equal(heaviest.group, "a11y", "the pole group is the measured heaviest spec");
+    const docsPlan = plan("docs", []);
+    const rootRows = docsPlan.filter((r) => r.config === CONFIG_PATHS.root);
+    for (const browser of PROFILE_PROJECTS.standard) {
+      for (const g of groups) {
+        const rows = rootRows.filter((r) => r.browser === browser && r.specs[0] === g.specs[0]);
+        assert.equal(
+          rows.length,
+          g.shards,
+          `the ${g.group} group runs ${String(g.shards)} legs on ${browser}`,
+        );
+        for (const [i, r] of rows.entries()) {
+          assert.equal(
+            r.shardArgs,
+            g.shards > 1 ? `--shard=${String(i + 1)}/${String(g.shards)}` : "",
+          );
+          assert.equal(
+            r.specs.every((s) => g.specs.includes(s)),
+            true,
+            "a leg runs only its group's specs",
+          );
+        }
+      }
+    }
+    const names = new Set(rootRows.map((r) => r.name));
+    assert.equal(names.size, rootRows.length, "root leg names are unique");
+  }
 
   // A no-op change runs nothing.
   assert.equal(plan("noop", []).length, 0);
@@ -725,7 +766,7 @@ export function runSelfCheck(): void {
   // A lockfile-only bump gets the root sweep (moon marks no project affected —
   // the site is the evidence) and nothing per-component.
   const depsOnly = plan("deps", [], ["pnpm-lock.yaml"]);
-  assert.equal(depsOnly.length, 3 * ROOT_SHARDS);
+  assert.equal(depsOnly.length, PROFILE_PROJECTS.standard.length * rootLegsPerBrowser);
   assert.ok(depsOnly.every((r) => r.config === CONFIG_PATHS.root));
 
   // The harness workload stays bounded however large the affected set grows:
