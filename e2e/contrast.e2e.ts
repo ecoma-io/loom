@@ -110,20 +110,23 @@ const measureInPage = () => {
           const b8 = enc(-0.0041960863 * rl - 0.7034186147 * gl + 1.707614701 * bl);
           // Cross-check against the engine once per conversion: the canvas
           // read of the same string is the renderer's own answer, 8-bit
-          // quantized, so one count of slack per channel is the most a
-          // correct transform may differ. A wrong coefficient would shift
-          // every ratio it touches silently — worse than the quantization
-          // the exact form just avoided — so a disagreement is recorded as
-          // a defect, not absorbed as a fallback.
+          // quantized. The slack is alpha-scaled — canvas storage is
+          // premultiplied, so at alpha a one storage count reconstructs to
+          // ~1/a channel counts (observed on WebKit, 2026-09-12: an
+          // oklab(... / 0.1) failed a flat one-count tolerance while the
+          // transform was exact). A wrong coefficient shifts a colour by
+          // far more than that bound, so a disagreement is still recorded
+          // as a defect, not absorbed as a fallback.
+          const slack = Math.max(1, Math.ceil(1 / alpha));
           _ctx.clearRect(0, 0, 1, 1);
           _ctx.fillStyle = s;
           _ctx.fillRect(0, 0, 1, 1);
           const [er = 0, eg = 0, eb = 0, ealpha = 0] = _ctx.getImageData(0, 0, 1, 1).data;
           if (
             ealpha === 0 ||
-            Math.abs(er - r8) > 1 ||
-            Math.abs(eg - g8) > 1 ||
-            Math.abs(eb - b8) > 1
+            Math.abs(er - r8) > slack ||
+            Math.abs(eg - g8) > slack ||
+            Math.abs(eb - b8) > slack
           ) {
             transformMismatches.push(s);
           }
