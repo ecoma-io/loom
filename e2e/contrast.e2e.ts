@@ -1,6 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { timed } from "../playwright/timings";
 import { documentationPages } from "./docs-pages";
+import { REUSE_THEME, reachDark } from "./theme";
 
 // One rendered-SVG contrast sweep per page, at WCAG 1.4.11's 3:1 floor for
 // graphical objects. Two real defects hid behind the same pair of gaps, and
@@ -31,6 +32,12 @@ import { documentationPages } from "./docs-pages";
 // component that owns one of those tokens asserts it verbatim in its own
 // unit tests — so a data-bearing glyph can never borrow the exemption
 // without the class-level pin failing first.
+//
+// Both sweeps ride one test per page when `LOOM_E2E_REUSE_THEME=1` (see
+// e2e/theme.ts): the light pass sweeps, then the dark pass reaches dark on
+// the loaded page through VitePress's own toggle and sweeps again. Unset —
+// the default — each theme still navigates on its own, byte-for-byte as
+// before.
 
 const measureInPage = () => {
   // Hoisted helpers: `page.evaluate` serialises the function body, so the
@@ -232,40 +239,73 @@ const measureInPage = () => {
   })();
 };
 
+// The reuse mode's dark pass sweeps the page reachDark already loaded and
+// toggled — no second navigation, no addInitScript.
+async function sweepLoadedPage(browserPage: Page) {
+  return timed("evaluate", () => browserPage.evaluate(measureInPage));
+}
+
+// Tell VitePress which theme to start in. addInitScript runs after the
+// page has an origin but before VitePress's inline script, so the
+// localStorage key is set before first paint — Layout.vue's watchEffect
+// then mirrors it onto `data-theme`, reproducing the same state a real
+// user sees after toggling.
+async function sweepInTheme(browserPage: Page, target: string, theme: "light" | "dark") {
+  await browserPage.addInitScript((t) => {
+    localStorage.setItem("vitepress-theme-appearance", t);
+  }, theme);
+  await timed("goto", () => browserPage.goto(target));
+  return sweepLoadedPage(browserPage);
+}
+
+type Sweep = Awaited<ReturnType<typeof sweepInTheme>>;
+
+// The message carries the measurement, not just the failure: which svg,
+// what it painted, what the composited background actually was, and the
+// ratio between them — the same shape of report the accessibility suite
+// builds for axe violations, so a red gate says what to fix.
+const sweepReport = (failures: Sweep["failures"]): string =>
+  failures
+    .map((f) => `${f.ratio}:1 — ${f.svgClass} painted ${f.paint} on ${f.background}`)
+    .join("\n");
+
 for (const page of documentationPages()) {
   const label = page === "." ? "/" : `/${page}`;
 
-  for (const theme of ["light", "dark"] as const) {
-    test(`${label} (${theme}) draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
-      page: browserPage,
-    }) => {
-      // Tell VitePress which theme to start in. addInitScript runs after the
-      // page has an origin but before VitePress's inline script, so the
-      // localStorage key is set before first paint — Layout.vue's watchEffect
-      // then mirrors it onto `data-theme`, reproducing the same state a real
-      // user sees after toggling.
-      await browserPage.addInitScript((t) => {
-        localStorage.setItem("vitepress-theme-appearance", t);
-      }, theme);
-      await timed("goto", () => browserPage.goto(page));
+  if (!REUSE_THEME) {
+    for (const theme of ["light", "dark"] as const) {
+      test(`${label} (${theme}) draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
+        page: browserPage,
+      }) => {
+        const { failures, skipped } = await sweepInTheme(browserPage, page, theme);
+        expect(failures, sweepReport(failures)).toEqual([]);
 
-      const { failures, skipped } = await timed("evaluate", () =>
-        browserPage.evaluate(measureInPage),
-      );
+        // Nothing silently escapes the sweep. A gradient backdrop has no single
+        // ratio, so the elements on one are counted rather than ignored.
+        expect(skipped, `svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+      });
+    }
 
-      // The message carries the measurement, not just the failure: which svg,
-      // what it painted, what the composited background actually was, and the
-      // ratio between them — the same shape of report the accessibility suite
-      // builds for axe violations, so a red gate says what to fix.
-      const report = failures
-        .map((f) => `${f.ratio}:1 — ${f.svgClass} painted ${f.paint} on ${f.background}`)
-        .join("\n");
-
-      expect(failures, report).toEqual([]);
-
-      // Nothing silently escapes the sweep. A gradient backdrop has no single
-      // ratio, so the elements on one are counted rather than ignored.
-      expect(skipped, `svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
-    });
+    continue;
   }
+
+  test(`${label} draws every SVG graphical object at WCAG 1.4.11's 3:1 floor in either theme`, async ({
+    page: browserPage,
+  }) => {
+    await test.step("light", async () => {
+      const { failures, skipped } = await sweepInTheme(browserPage, page, "light");
+      expect(failures, `[light] ${sweepReport(failures)}`).toEqual([]);
+      expect(skipped, `[light] svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+    });
+
+    await test.step("dark", async () => {
+      // The dark pass rides the same loaded page: reach dark through
+      // VitePress's own toggle — reachDark also asserts the DOM-identity
+      // premise the collapse rests on — then sweep it again.
+      await reachDark(browserPage, page, label);
+      const { failures, skipped } = await sweepLoadedPage(browserPage);
+      expect(failures, `[dark] ${sweepReport(failures)}`).toEqual([]);
+      expect(skipped, `[dark] svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+    });
+  });
 }
