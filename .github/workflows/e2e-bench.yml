@@ -34,6 +34,35 @@ on:
         required: true
         default: all
         type: string
+      profile:
+        # Production root legs run `full` on pw-infra runs and `standard`
+        # everywhere else (ci.yml sets PW_PROFILE from the matrix row); the
+        # bench defaults to `standard` so new numbers stay comparable with
+        # the leg history in perf/e2e-performance-baseline.md.
+        description: PW_PROFILE for this run
+        required: false
+        default: standard
+        type: choice
+        options:
+          - standard
+          - full
+      group:
+        # The measured spec-group legs (tools/e2e-plan.ts ROOT_SHARD_PLAN) as
+        # a dispatch choice, so a bench can time exactly the legs production
+        # runs. The shard counts and spec paths below deliberately restate
+        # ROOT_SHARD_PLAN instead of calling it — dispatch inputs are static
+        # — so re-cutting the plan must update this map in the same commit.
+        description: Spec-group leg to run (empty = legacy flat 5-shard split)
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - a11y
+          - contrast
+          - keyboard
+          - target-size
+          - small
 
 permissions:
   contents: read
@@ -44,7 +73,7 @@ concurrency:
   # ref-only group would let the second dispatch cancel the first (observed
   # 2026-09-11: the chromium dispatch cancelled the queued firefox run of the
   # same SHA).
-  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}
+  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}
   cancel-in-progress: true
 
 jobs:
@@ -96,10 +125,17 @@ jobs:
           key: docs-dist-${{ github.sha }}
 
   bench-run:
-    name: Bench · ${{ inputs.project }} · s${{ matrix.shard }} · w${{ inputs.workers }}
+    name: Bench · ${{ inputs.project }} · ${{ inputs.group == '' && 'flat' || inputs.group }} · s${{ matrix.shard }} · w${{ inputs.workers }}
     runs-on: ubuntu-latest
     needs: bench-build-docs
     timeout-minutes: 40
+    env:
+      # The dispatch inputs cannot call tools/e2e-plan.ts, so the group →
+      # (shards, specs) map rests here and mirrors ROOT_SHARD_PLAN; the
+      # `small` list is the same computed catch-all (every root spec not in
+      # the plan). Empty group = the legacy flat 5-shard split.
+      GROUP_SHARDS: ${{ inputs.group == 'a11y' && '3' || inputs.group == 'contrast' && '2' || inputs.group != '' && '1' || '5' }}
+      GROUP_SPECS: ${{ inputs.group == 'a11y' && 'e2e/accessibility.e2e.ts' || inputs.group == 'contrast' && 'e2e/contrast.e2e.ts' || inputs.group == 'keyboard' && 'e2e/keyboard.e2e.ts' || inputs.group == 'target-size' && 'e2e/target-size.e2e.ts' || inputs.group == 'small' && 'e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -147,10 +183,10 @@ jobs:
       # not (the runner overrides HOME; measured and recorded in ci.yml) —
       # Firefox refuses to run as root otherwise.
       - name: Run Playwright (instrumented)
-        if: inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
         env:
           HOME: /root
-          PW_PROFILE: standard
+          PW_PROFILE: ${{ inputs.profile }}
           PW_PREBUILT_DOCS: "1"
           LOOM_E2E_TIMINGS: /tmp/timings.jsonl
         run: >-
@@ -160,17 +196,18 @@ jobs:
           --project ${{ inputs.project }}
           --config playwright.config.ts
           --workers ${{ inputs.workers }}
-          --shard=${{ matrix.shard }}/5;
-          echo "e2e-bench ${{ inputs.project }} shard=${{ matrix.shard }} workers=${{ inputs.workers }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
+          ${{ env.GROUP_SPECS }}
+          --shard=${{ matrix.shard }}/${{ env.GROUP_SHARDS }};
+          echo "e2e-bench ${{ inputs.project }} group=${{ inputs.group || 'flat' }} shard=${{ matrix.shard }}/${{ env.GROUP_SHARDS }} workers=${{ inputs.workers }} profile=${{ inputs.profile }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       # Uploaded on every outcome: a bench that fails mid-shard still carries
       # the phase records written before the failure, which is often the
       # interesting half of the answer.
       - name: Upload timings
-        if: always() && (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard)
+        if: always() && (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: timings-${{ inputs.project }}-s${{ matrix.shard }}-w${{ inputs.workers }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: timings-${{ inputs.project }}-${{ inputs.group || 'flat' }}-s${{ matrix.shard }}-w${{ inputs.workers }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/timings.jsonl
           retention-days: 14
           if-no-files-found: warn
