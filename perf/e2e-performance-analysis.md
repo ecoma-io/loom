@@ -267,21 +267,66 @@ order §10 left the levers standing:
   bench↔plan consistency guard that fails if `e2e-bench.yml`'s static group
   map drifts from `ROOT_SHARD_PLAN` — and the Case-4 route (affected set with
   neither specs nor demos → full root sweep at smoke) is pinned by test.
-- **Navigation reuse is implemented, default off.** `e2e/theme.ts` collapses
-  accessibility's and contrast's light+dark pairs into one navigation under
-  `LOOM_E2E_REUSE_THEME=1` — the exact literal; unset (the CI and local
-  default) keeps today's two-goto shape byte-for-byte, so CI history stays
-  comparable across the A/B. The collapse's premise — that reaching dark
-  changes no DOM byte outside the three theme markers — is asserted on every
-  collapsed page by `reachDark` (VitePress's own appearance toggle, then a
-  marker-normalized `page.content()` diff), so the measured premise became a
-  continuous gate rather than a one-off.
+- **Navigation reuse is implemented — and adopted on the root legs.**
+  `e2e/theme.ts` collapses accessibility's and contrast's light+dark pairs
+  into one navigation per page under `LOOM_E2E_REUSE_THEME=1` — the exact
+  literal; unset stays the local default and keeps the two-goto shape.
+  ci.yml's root legs set it since 606b79c, on the A/B below. The collapse's
+  premise — that reaching dark changes no DOM byte outside the known theme
+  markers — is asserted on every collapsed page by `reachDark` (VitePress's
+  own appearance toggle, then a marker-normalized `page.content()` diff), so
+  the measured premise became a continuous gate rather than a one-off.
 
-  PENDING BENCH (2026-09-12): reuse off/on A/B on the a11y and contrast
-  groups (chromium + firefox, same shard cut on both sides) — the timings
-  JSONL's wall and goto-phase counts decide adoption and whether the a11y
-  group's three shards re-cut to two under the halved goto count; the
-  measured numbers land here.
+  The A/B: phase-sum wall per shard from the timings JSONL, each group's
+  sides benched from one SHA with the shard page-sets verified identical
+  before comparing (a11y and contrast-chromium at 618ab89, dispatched as the
+  18:20Z batch, runs 34632717902…34632739784; contrast-firefox re-benched
+  at 94b3911 after the two transport fixes recorded below — its off side is
+  byte-identical across those SHAs). Standard profile, production worker
+  counts.
+
+  | spec     | engine   | workers | shard | off  | on   | Δ    |
+  | -------- | -------- | ------- | ----- | ---- | ---- | ---- |
+  | a11y     | chromium | 2       | 1     | 401s | 285s | −29% |
+  | a11y     | chromium | 2       | 2     | 390s | 255s | −35% |
+  | a11y     | chromium | 2       | 3     | 290s | 235s | −19% |
+  | a11y     | firefox  | 2       | 1     | 379s | 346s | −9%  |
+  | a11y     | firefox  | 2       | 2     | 464s | 239s | −49% |
+  | a11y     | firefox  | 2       | 3     | 433s | 289s | −33% |
+  | contrast | chromium | 1       | 1     | 277s | 146s | −47% |
+  | contrast | chromium | 1       | 2     | 275s | 140s | −49% |
+  | contrast | firefox  | 1       | 1     | 297s | 147s | −50% |
+  | contrast | firefox  | 1       | 2     | 286s | 148s | −48% |
+
+  Gotos halve exactly wherever the toggle path runs — 96→48 (a11y) and
+  144→72 (contrast) per shard — and every dark pass keeps its full check
+  set: the JSONL still records one axe-analyze or evaluate per theme per
+  page, so the coverage per page is unchanged and only the duplicate
+  navigation is gone. The chromium contrast numbers include 6/4 fallback
+  navigations paid before the mount race below was fixed, which makes them
+  an upper bound on the settled shape; the firefox re-bench is the settled
+  shape itself — 72 gotos for 72 pages on both shards, zero fallbacks (run
+  34647896802).
+
+  The gate earned its keep three times during the A/B, each failure a real
+  VitePress or browser mechanism rather than a flake, each fixed by naming
+  the mechanism in `e2e/theme.ts`: VitePress injects route
+  `<link rel="prefetch">` tags as a function of dwell time, and the
+  contrast spec's fast light pass captured them mid-injection (normalized —
+  run 34632743958); the appearance switch renders inside `<ClientOnly>`, so
+  an instantaneous visibility check raced Vue's mount and sent most firefox
+  pages to the fallback transport (bounded wait — 66–69 of 72 shard-1 pages
+  on run 34636309729); and `VPSidebarGroup` holds `no-transition` for its
+  first 300ms after mount, so a fast light pass captured `before`
+  mid-transient and the gate read the timer's expiry across the click as a
+  premise break (waited out — run 34644775869, with the gate message
+  carrying the first differing byte window since fa97555 so the next
+  premise break is diagnosable from CI logs alone).
+
+  The a11y group keeps its three shards for now: reuse halves its goto wall
+  but the per-shard pole is axe-bound, so re-cutting to two shards trades a
+  bigger pole leg for one fewer leg — the leg-count-versus-pole trade the
+  topology bench below prices; the decision rides on those numbers.
 
 - **Queueing gets its own instrument.**
   `.github/workflows/e2e-topology-bench.yml` runs four dispatch-only

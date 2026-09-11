@@ -60,9 +60,10 @@ B5. Navigation reuse — collapse each page's light+dark pair into one goto
   toggle under a byte-identity gate on the DOM between themes, so the
   collapse cannot silently weaken the dark pass. ≈ −4.5m of goto wall per
   standard project, projected from §0's goto attribution (868 → 434 gotos).
-- PENDING BENCH (2026-09-12): reuse off/on A/B on the a11y and contrast
-  groups (chromium + firefox, same shard cut on both sides) — numbers land
-  in analysis §11, which owns the placeholder.
+- **Adopted on the root legs** (ci.yml since 606b79c): the off/on A/B
+  measures phase wall −9…−50% per shard at unchanged coverage (the table
+  and the three gate-caught mechanisms in analysis §11; contrast firefox
+  297/286s → 147/148s at zero fallbacks, run 34647896802).
 
 ## 3. Scenario C — coverage-class rerouting (projected, changes semantics)
 
@@ -114,12 +115,13 @@ proposal.
 
 **CI wall P50 ≤ 2 minutes is not reachable without either breaching the shard
 cap (B4) or deleting coverage (D).** The measured, defensible goals, in
-adoption order: navigation reuse (B5, implemented behind a flag, A/B pending),
-the queueing/topology cut the 17.1m run priced (analysis §10–11, bench
-pending), B2 (needs a small tryout PR), and Lightpanda as a future
-cost-reduction candidate for geometry-class specs **only after it clears the
-capability contract** (`perf/browser-capability-contract.md`) — never for the
-shipped gates, whose verdicts this study does not change. B1 and C2, the two
+adoption order: navigation reuse (B5, adopted: −9…−50% per shard at
+unchanged coverage), the queueing/topology cut the 17.1m run priced
+(analysis §10–11, bench pending), B2 (needs a small tryout PR), and
+Lightpanda as a future cost-reduction candidate for geometry-class specs
+**only after it clears the capability contract**
+(`perf/browser-capability-contract.md`) — never for the shipped gates,
+whose verdicts this study does not change. B1 and C2, the two
 harness-routing levers this model projected, are refuted (C2 above; B1 loses
 the generated tables' authority, and C2's per-rule measurement breaks the
 per-test extrapolation B1 was priced from).
