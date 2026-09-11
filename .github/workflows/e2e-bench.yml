@@ -26,7 +26,10 @@ on:
           - firefox
           - webkit
       workers:
-        description: Playwright --workers for this run (production legs run 1)
+        # Production legs run 1 except the a11y rows of chromium and firefox,
+        # which run 2 (tools/e2e-plan.ts, MatrixRow.workers) — so dispatching
+        # workers=2 on the a11y group reproduces those legs' exact shape.
+        description: Playwright --workers for this run
         required: true
         default: "1"
       only_shard:
@@ -63,6 +66,15 @@ on:
           - keyboard
           - target-size
           - small
+      reuse_theme:
+        # The specs' collapsed light+dark shape (LOOM_E2E_REUSE_THEME in
+        # e2e/accessibility.e2e.ts / e2e/contrast.e2e.ts). The A/B lever for
+        # the navigation-reuse decision: dispatch the same group twice, flag
+        # off and on, and diff the goto-phase counts and wall from the JSONL.
+        description: Collapse light+dark into one goto per page
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -72,8 +84,9 @@ concurrency:
   # different engines on the same branch are independent measurements, and a
   # ref-only group would let the second dispatch cancel the first (observed
   # 2026-09-11: the chromium dispatch cancelled the queued firefox run of the
-  # same SHA).
-  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}
+  # same SHA). The reuse flag joins the key for the same reason — the A/B is
+  # two concurrent-eligible benches of one group, not one measurement.
+  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-r${{ inputs.reuse_theme }}
   cancel-in-progress: true
 
 jobs:
@@ -189,6 +202,10 @@ jobs:
           PW_PROFILE: ${{ inputs.profile }}
           PW_PREBUILT_DOCS: "1"
           LOOM_E2E_TIMINGS: /tmp/timings.jsonl
+          # Empty when the input is false, so the specs keep today's two-goto
+          # shape — the flag is read with the same unset-means-off contract as
+          # LOOM_E2E_TIMINGS.
+          LOOM_E2E_REUSE_THEME: ${{ inputs.reuse_theme && '1' || '' }}
         run: >-
           set -e;
           SECONDS=0;
