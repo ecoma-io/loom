@@ -319,7 +319,7 @@ const smallRootGroup = (): { group: string; specs: string[]; shards: number } =>
   shards: 1,
 });
 
-const rootShardGroups = (): { group: string; specs: string[]; shards: number }[] => [
+export const rootShardGroups = (): { group: string; specs: string[]; shards: number }[] => [
   ...ROOT_SHARD_PLAN,
   smallRootGroup(),
 ];
@@ -543,7 +543,7 @@ export function plan(
       // changed.
       return rootLegs("standard");
     case "component": {
-      // A component change follows one of three policies:
+      // A component change follows one of four policies:
       //
       // 1. Spec-less component, no docs prose change, PR-level: zero browser legs.
       //    Semantic evidence arrives from the browserless tier (docs/demos-a11y.test.ts)
@@ -560,6 +560,15 @@ export function plan(
       // 3. Component with specs, or docs touched: harness leg(s) as today.
       //    Behavioral/geometry evidence needs a browser; a prose change keeps the
       //    root sweep (generated tables) alongside the component legs.
+      //
+      // 4. Affected set with neither specs nor demos (packages/labels, the loom
+      //    facade): the full root sweep at smoke. Case 1's zero-leg policy is
+      //    keyed on a DEMO the browserless tier can hold to WCAG_TAGS — a package
+      //    that ships no demo owns no demo evidence to defer to, and everything
+      //    it ships renders on every docs page, so the sweep is the browser
+      //    evidence that change needs. Over-tests by design: the alternative —
+      //    extending case 1's zero legs here — would let a labels/facade change
+      //    reach main with no browser evidence at all.
       const touchedDocs = files.some((f) => /^docs\/(?!demos\/)/.test(f));
       const isSpecLessComponent = withE2E.length === 0 && !touchedDocs && affectedDemos.length > 0;
 
@@ -570,6 +579,7 @@ export function plan(
 
       // Case 2: spec-less component at push/dispatch → harness leg (backstop)
       // Case 3: has specs or docs touched → harness legs + optional root sweep
+      // Case 4: neither specs nor demos affected → the root sweep itself
       const harness =
         withE2E.length || affectedDemos.length ? harnessLegs("smoke") : rootLegs("smoke");
       const extra = touchedDocs ? rootLegs("smoke") : [];
@@ -705,8 +715,12 @@ export function runSelfCheck(): void {
   assert.equal(badgeLeg.config, CONFIG_PATHS.harness);
   assert.deepEqual(badgeLeg.demos, ["badge"]);
   assert.deepEqual(badgeLeg.specs, [HARNESS_AXE_GATE]);
-  // Restore original environment
-  process.env.GITHUB_EVENT_NAME = originalEventName;
+  // Restore the caller's environment. `= originalEventName` when it is
+  // undefined would write the literal string "undefined" (Node coerces
+  // values), so a local run's unset variable would be left set — delete
+  // instead of assign.
+  if (originalEventName === undefined) delete process.env.GITHUB_EVENT_NAME;
+  else process.env.GITHUB_EVENT_NAME = originalEventName;
 
   // An e2e-tagged project's change adds its own specs to the same leg.
   const button = plan("component", [
@@ -829,6 +843,7 @@ export function runSelfCheck(): void {
   //    Moon's affected set for a BadgeDemo.vue edit is `docs` only (empirically),
   //    so the reverse map must supply the `badge` id — and it does, via the
   //    for-loop that maps demo files to components.
+  const originalForDemoEdit = process.env.GITHUB_EVENT_NAME;
   process.env.GITHUB_EVENT_NAME = "pull_request";
   const demoEditPr = plan("component", [project("docs", "docs", [])], ["docs/demos/BadgeDemo.vue"]);
   assert.equal(demoEditPr.length, 0, "demo-only edit at PR level -> zero browser legs");
@@ -845,6 +860,8 @@ export function runSelfCheck(): void {
   assert.ok(demoEditRow, "the single harness leg exists");
   assert.equal(demoEditRow.config, CONFIG_PATHS.harness);
   assert.deepEqual(demoEditRow.demos, ["badge"], "the demo's component is swept");
+  if (originalForDemoEdit === undefined) delete process.env.GITHUB_EVENT_NAME;
+  else process.env.GITHUB_EVENT_NAME = originalForDemoEdit;
 
   // 2. A docs prose edit plus an incidental lockfile bump is a `deps` change
   //    (the sweep still runs, now for two reasons); prose plus a README or

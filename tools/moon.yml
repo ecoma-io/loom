@@ -28,7 +28,9 @@ deps:
   - "docs"
   # preserved — e2e-plan.ts imports playwright/profiles.ts; no specifier moon can see
   - "playwright"
-  # preserved — e2e-plan.ts imports e2e/docs-pages.ts; no specifier moon can see
+  # preserved — e2e-plan.ts derives the `small` catch-all group from the e2e/
+  # directory listing and e2e-plan.test.ts holds the spec partition against it;
+  # no specifier moon can see
   - "e2e"
 
 tasks:
