@@ -1,5 +1,6 @@
 import { defineConfig } from "@playwright/test";
 import { projectsForProfile } from "../profiles";
+import type { ReporterDescription } from "@playwright/test";
 
 /**
  * Component E2E harness Playwright config.
@@ -22,6 +23,15 @@ const BASE_URL = `http://localhost:${String(HARNESS_PORT)}`;
 // policy in ../profiles.ts; an unknown PW_PROFILE throws there.
 const projects = projectsForProfile(process.env.PW_PROFILE ?? "smoke");
 
+// Suite-level JSONL timing records when LOOM_E2E_TIMINGS names a file; see
+// the root config for the rationale. Unset by default, including CI.
+const baseReporters: ReporterDescription[] = process.env.CI
+  ? [["github"], ["html", { open: "never" }]]
+  : [["list"]];
+const timingReporters: ReporterDescription[] = process.env.LOOM_E2E_TIMINGS
+  ? [["../timings-reporter.ts"]]
+  : [];
+
 export default defineConfig({
   // Component-owned specs live beside their components (`packages/**/e2e`),
   // so the harness discovers them from the workspace root — but `testMatch`
@@ -36,7 +46,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   ...(process.env.CI ? { workers: 1 } : {}),
 
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
+  reporter: [...baseReporters, ...timingReporters],
 
   use: {
     baseURL: BASE_URL,

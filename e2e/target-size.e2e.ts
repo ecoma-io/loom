@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { timed } from "../playwright/timings";
 import { documentationPages } from "./docs-pages";
 
 // WCAG 2.2 SC 2.5.8 Target Size (Minimum): interactive elements must have a
@@ -166,9 +167,9 @@ for (const page of documentationPages()) {
   test(`${label} has no interactive target smaller than ${String(MIN_SIZE)}×${String(MIN_SIZE)}px (WCAG 2.5.8)`, async ({
     page: browserPage,
   }) => {
-    await browserPage.goto(page);
+    await timed("goto", () => browserPage.goto(page));
 
-    const findings = await browserPage.evaluate(measureInPage);
+    const findings = await timed("evaluate", () => browserPage.evaluate(measureInPage));
 
     const report = findings
       .map((f) => `${f.tag} (${String(f.width)}×${String(f.height)}px) — ${f.selector}`)

@@ -7,6 +7,11 @@ deps:
   # package.json to declare it in.
   # preserved
   - "loom"
+  # The four instrumented root specs (accessibility, contrast, keyboard,
+  # target-size) import the shared timing helper from playwright/timings; no
+  # specifier moon can see, e2e has no package.json to declare the edge in.
+  # preserved
+  - "playwright"
 
 tags: ["layer-e2e", "e2e"]
 

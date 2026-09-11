@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import type { Page } from "@playwright/test";
+import { timed } from "../../playwright/timings";
 
 /**
  * The component harness's accessibility gate.
@@ -76,7 +77,7 @@ async function scan(page: Page, demo: string, theme: "light" | "dark"): Promise<
   // `?component=<kebab>` (see playwright/harness/main.ts) — that is what makes
   // one component's demo its own browser evidence. A miss throws, so a bad
   // `demos` entry fails loudly here rather than scanning the wrong element.
-  await page.goto(`/?component=${demo}`);
+  await timed("goto", () => page.goto(`/?component=${demo}`));
   await page.evaluate((value) => {
     document.documentElement.setAttribute("data-theme", value);
   }, theme);
@@ -131,14 +132,16 @@ async function scan(page: Page, demo: string, theme: "light" | "dark"): Promise<
   // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(400);
 
-  const { violations } = await new AxeBuilder({ page })
-    .withRules([...(BROWSER_REQUIRED_RULES as readonly string[])] as string[])
-    // No excludes, and keeping it that way is the point — the same rule holds
-    // here as at the root gate: an exclusion is not justified by naming a
-    // cause, only by that cause being outside this repository's reach. The
-    // demo is this repository's own markup; find the code that emits the
-    // failing element rather than silencing it.
-    .analyze();
+  const { violations } = await timed("axe-analyze", () =>
+    new AxeBuilder({ page })
+      .withRules([...(BROWSER_REQUIRED_RULES as readonly string[])] as string[])
+      // No excludes, and keeping it that way is the point — the same rule holds
+      // here as at the root gate: an exclusion is not justified by naming a
+      // cause, only by that cause being outside this repository's reach. The
+      // demo is this repository's own markup; find the code that emits the
+      // failing element rather than silencing it.
+      .analyze(),
+  );
 
   return violations.map(
     (violation) =>

@@ -39,8 +39,9 @@ jobs:
     # "The operation was canceled" — no task named. A hung task now fails by
     # name through the shared test task's own timeout (.moon/tasks/test.yml),
     # so this number is sized for legitimate work: recent Verify runs are
-    # p50 ≈ 10 min and 13.4 min at the slowest green, and 25 minutes keeps
-    # roughly double the p95 as burst headroom instead of a mid-run cancel.
+    # p50 ≈ 2.5 min (the ~10 min figure was the whole-run wall, not the job;
+    # see perf/e2e-performance-baseline.md Finding 1) and 13.4 min at the
+    # slowest green (a 2026-09-05 dependency-bump PR), and 25 minutes keeps
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
