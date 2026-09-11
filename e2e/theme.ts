@@ -101,6 +101,20 @@ const darkRepaintLanded = () => {
 };
 
 /**
+ * The fallback dark transport: the same pre-load pin the un-collapsed specs
+ * use — set the theme before navigation so VitePress's inline script paints
+ * `.dark` before first paint, then wait for the repaint. It is the production
+ * dark pass itself, so its verdicts need no premise gate.
+ */
+async function reachDarkByNavigation(browserPage: Page, target: string): Promise<void> {
+  await browserPage.addInitScript(() => {
+    localStorage.setItem("vitepress-theme-appearance", "dark");
+  });
+  await browserPage.goto(target);
+  await browserPage.waitForFunction(darkRepaintLanded);
+}
+
+/**
  * Reach dark on the already-loaded light page, asserting the reuse premise on
  * the way. The production dark pass re-navigates with the theme pinned before
  * first paint; the collapsed pass instead flips VitePress's own toggle, the
@@ -118,26 +132,28 @@ const darkRepaintLanded = () => {
  */
 export async function reachDark(browserPage: Page, target: string, label: string): Promise<void> {
   const toggle = browserPage.locator(".VPNavBarAppearance .VPSwitchAppearance").first();
-  if (!(await toggle.isVisible())) {
-    // The same pre-load dark transport the un-collapsed specs use: pin the
-    // theme before navigation so VitePress's inline script paints `.dark`
-    // before first paint, then wait for the repaint.
-    await browserPage.addInitScript(() => {
-      localStorage.setItem("vitepress-theme-appearance", "dark");
-    });
-    await browserPage.goto(target);
-    await browserPage.waitForFunction(darkRepaintLanded);
+  // VitePress renders the switch inside <ClientOnly>, so the button exists
+  // only after Vue mounts. An instantaneous isVisible() races that mount: the
+  // contrast spec's light pass is one fast evaluate and on firefox it reached
+  // the check first on 66–69 of 72 shard-1 pages (bench run 34636309729 vs
+  // 34632743958 — the loser count varies run to run), paying the fallback's
+  // second navigation as if the toggle were unreachable. A profile whose
+  // viewport is under 1280px can never show the navbar toggle, so it falls
+  // back at once; a desktop profile gets one bounded wait for the mount
+  // before the same fallback, and the timeout failing open to the fallback
+  // keeps a genuinely broken page loud without inventing a third transport.
+  if ((browserPage.viewportSize()?.width ?? 0) < 1280) {
+    await reachDarkByNavigation(browserPage, target);
     return;
   }
-
-  // The toggle's click handler is a hydration artifact, and the light repaint
-  // predicate proves nothing about hydration — VitePress's inline script
-  // paints before Vue mounts. A click issued before hydration lands is a
-  // silent no-op that would surface only as a repaint timeout, so wait for
-  // Layout.vue's watchEffect to have run: `data-theme` on the html element is
-  // Loom's own hydration marker, written by the same reactive flush that
-  // binds the toggle.
-  await browserPage.waitForFunction(() => document.documentElement.hasAttribute("data-theme"));
+  const mounted = await toggle
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!mounted) {
+    await reachDarkByNavigation(browserPage, target);
+    return;
+  }
 
   const before = await browserPage.content();
   await toggle.click();
@@ -151,6 +167,6 @@ export async function reachDark(browserPage: Page, target: string, label: string
   const after = await browserPage.content();
   expect(
     withoutThemeMarkers(after),
-    `[dark] ${label}: the theme-reuse premise broke — the page's DOM is not byte-identical across the appearance toggle once the three known markers are normalized (html data-theme, html .dark class, toggle title/aria-checked). The dark pass only re-checks colour on the premise that the light pass proved this exact DOM; find what changed before trusting its verdicts.`,
+    `[dark] ${label}: the theme-reuse premise broke — the page's DOM is not byte-identical across the appearance toggle once the known markers are normalized (html data-theme, html .dark class, toggle title/aria-checked, VitePress route-prefetch links). The dark pass only re-checks colour on the premise that the light pass proved this exact DOM; find what changed before trusting its verdicts.`,
   ).toEqual(withoutThemeMarkers(before));
 }
