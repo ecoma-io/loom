@@ -1,0 +1,94 @@
+# E2E acceleration model
+
+Scenario-by-scenario wall-time model built entirely on measured numbers from
+[e2e-performance-analysis.md](./e2e-performance-analysis.md) and
+[e2e-browser-authority-matrix.md](./e2e-browser-authority-matrix.md).
+Every value is either `measured` (this study) or `projected` (arithmetic on
+measured values with the stated assumption). The question this model answers:
+which scenario gets CI E2E wall P50 to ≤ 2 minutes, and at what cost?
+
+## 0. The measured substrate
+
+Per-test phase costs (chromium, local, serial per file):
+
+| phase                           | p50        | where it dominates                        |
+| ------------------------------- | ---------- | ----------------------------------------- |
+| goto (built docs page)          | 1.34–1.48s | every root spec — 62–78% of phase time    |
+| axe-analyze (68 rules, root)    | 1.01s      | accessibility leg (345s across 288 pages) |
+| axe-analyze (17 rules, harness) | 0.39s      | harness axe legs (Vite dev host)          |
+| evaluate (contrast walk)        | 0.08s      | contrast leg — negligible                 |
+| wait-repaint                    | 0.09s      | accessibility leg — negligible            |
+
+Engine factors (firefox/chromium, same machine): goto ×1.59, axe ×2.50,
+repaint ×0.97. CI overhead factor vs local serial model: ×1.83 (chromium s1
+628s CI vs 344s model).
+
+Root suite: 884 tests / 5 shards ≈ 177 tests per shard; page-complexity spread
+4.2s–18.9s per page-goto+axe.
+
+## 1. Scenario A — status quo (measured)
+
+- chromium s1: P50 10.47m CI; firefox s1: P50 12.97m (pole); webkit s1: P50
+  9.08m. Whole-run P50 ≈ 15.2m (legged). E2E = 92% of CI compute
+  (6841/7420 runner-minutes).
+- **≤ 2m: no** (measured gap ×5.2 on the pole leg).
+
+## 2. Scenario B — routing optimizations (projected, no coverage change)
+
+| lever                                                                                                     | arithmetic                                                         | saving                                   | ≤ 2m?                                                                           |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------- |
+| B1. Harness-route the root accessibility gate (17 rendering rules on Vite dev instead of built docs)      | 345s → 288 × 0.39s = 112s on the accessibility leg                 | −3.9m on the leg; −~15% of pole-leg wall | no — goto floor 262s + CI factor                                                |
+| B2. Preload/prefetch the docs shell (goto is 1.34–1.48s/page; assume −50% goto serving from memory cache) | −0.7s × 177 tests ≈ −2.1m per shard [projected, needs a tryout PR] | −2.1m per leg                            | no — axe + remaining goto still 3× over budget                                  |
+| B3. Cut the browser matrix (drop firefox/webkit)                                                          | removes legs; pole becomes chromium 10.47m → B1+B2 → ≈ 6–8m        | ~−8m on whole run                        | no                                                                              |
+| B4. Shard beyond the cap of 8 (884/20 ≈ 44 tests/shard)                                                   | 44 × 1.48s = 65s real work; ×1.83 → ~2m wall                       | wall/leg                                 | only at 20+ shards: compute 2.5× current — policy change, not a performance win |
+
+Strictly measured floor: goto alone for a 177-test shard = 262s = 4.4m,
+already 2.2× over the 2m budget, before CI factor. **No combination of B1–B3
+reaches 2m.** B4 reaches ~2m only at a compute multiple the org has capped.
+
+## 3. Scenario C — coverage-class rerouting (projected, changes semantics)
+
+C1. Per-class authority (matrix §2): geometry-only assertions
+(target-size, focus-not-obscured, layout-responsive, contrast walk) are
+style-engine-classifiable _in principle_. The Lightpanda PoC (matrix §4)
+measured the current requirement: no stylesheet cascade, no layout, axe
+crashes — so no such engine exists on this machine today. If one arrives with
+a working cascade, these legs could drop the full browser host.
+
+- target-size: 144 tests × (1.48 + 0.08)s = 3.7m serial chromium today. A
+  geometry-only runner at even 10× browser speed = ~0.4m.
+- Combined geometry class ≈ 6m of the 13m chromium accessibility-time budget.
+- **≤ 2m: no** — goto/axe on the remaining 68-rule sweep still dominates.
+
+C2. Split the axe pass: run BROWSERLESS_RULES browserlessly (already gated
+there — the root re-run duplicates it) and BROWSER_REQUIRED_RULES in browser.
+
+- axe time 345s → browser-side only 17-rule cost ≈ 345 × (17/68) ≈ 86s plus
+  browserless host cost (small). Leg −4.3m.
+- **≤ 2m: no** — goto floor.
+
+## 4. Scenario D — coverage reduction (out of scope, for completeness)
+
+Halving the swept page set (goto floor halves) still lands at ≈ 4.5–5.5m
+per leg ×1.83 → >2m. Eliminating all but one browser × halving pages:
+≈ 2.5–3m. **Only a 70–80% coverage cut reaches 2m** — that is deleting the
+sweep's purpose, not an optimization. Recorded to name the boundary, not as a
+proposal.
+
+## 5. Verdict
+
+| scenario       | wall P50 (projected)  | ≤ 2m?                         | cost                              |
+| -------------- | --------------------- | ----------------------------- | --------------------------------- |
+| A status quo   | 10.5–13.0m (measured) | no                            | —                                 |
+| B1+B2+B3       | ~6–8m                 | no                            | none (B2 needs a tryout)          |
+| B4 20 shards   | ~2m                   | barely, at compute cap breach | 2.5× E2E compute                  |
+| C1+C2          | ~5–6m                 | no                            | architecture work, coverage moves |
+| D coverage cut | ~2.5–3m               | no                            | deletes the gate's purpose        |
+
+**CI wall P50 ≤ 2 minutes is not reachable without either breaching the shard
+cap (B4) or deleting coverage (D).** The measured, defensible goals are: keep
+the pole leg under ~10m (already true), take B1 (−3.9m, no coverage change) and
+B2 (needs a small tryout PR), and treat Lightpanda as a future cost-reduction
+candidate for geometry-class specs **only after it gains a working stylesheet
+cascade** — never for the shipped gates, whose verdicts this study does not
+change.

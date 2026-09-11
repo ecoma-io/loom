@@ -86,9 +86,12 @@ reaching up for something that should have been composed beneath it.
 Beside the stack, not inside it, sit the consumer-shaped projects — the
 documentation site (`layer-docs`), the E2E suites (`layer-e2e`) and the
 Official Templates (`layer-templates`). Each reaches only the facade and the
-stylesheets, exactly as an external consumer would — the one disclosed
-exception being the E2E suites' conformance route into the compositions,
-licensed by the `layer-e2e` row below — and nothing in the stack
+stylesheets, exactly as an external consumer would — the two disclosed
+exceptions being the E2E suites' conformance route into the compositions,
+licensed by the `layer-e2e` row below, and the same-layer E2E reach
+(`e2e → playwright`: the four instrumented root specs import the harness's
+shared timing helper, `../playwright/timings`, as data, under the same shape
+the `layer-tooling` row licenses) — and nothing in the stack
 depends back on them. That direction is what makes a template a real
 consumer test: if a template cannot build against the published surface, the
 defect is in the published surface, and it is filed there.

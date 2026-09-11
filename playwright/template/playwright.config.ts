@@ -1,6 +1,7 @@
 import { defineConfig } from "@playwright/test";
 import { projectsForProfile } from "../profiles";
 import { templateTargets } from "./template-targets.ts";
+import type { ReporterDescription } from "@playwright/test";
 
 /**
  * Template E2E harness Playwright config.
@@ -39,6 +40,15 @@ const webServer =
 
 const projects = projectsForProfile(profile);
 
+// Suite-level JSONL timing records when LOOM_E2E_TIMINGS names a file; see
+// the root config for the rationale. Unset by default, including CI.
+const baseReporters: ReporterDescription[] = process.env.CI
+  ? [["github"], ["html", { open: "never" }]]
+  : [["list"]];
+const timingReporters: ReporterDescription[] = process.env.LOOM_E2E_TIMINGS
+  ? [["../timings-reporter.ts"]]
+  : [];
+
 export default defineConfig({
   testDir: "..",
   testMatch: ["playwright/template/**/*.e2e.ts"],
@@ -49,7 +59,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   ...(process.env.CI ? { workers: 1 } : {}),
 
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
+  reporter: [...baseReporters, ...timingReporters],
 
   use: {
     baseURL: "http://localhost:3000",

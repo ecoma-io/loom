@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import type { Page } from "@playwright/test";
+import { timed } from "../../playwright/timings";
 import { waitForAppSettled } from "./settle.ts";
 import { templateTargets } from "./template-targets.ts";
 
@@ -43,7 +44,7 @@ if (targets.length === 0) {
   });
 } else {
   async function scan(page: Page, url: string, theme: "light" | "dark"): Promise<string[]> {
-    await page.goto(url);
+    await timed("goto", () => page.goto(url));
     await page.evaluate((value) => {
       document.documentElement.setAttribute("data-theme", value);
     }, theme);
@@ -66,9 +67,11 @@ if (targets.length === 0) {
       return value === "dark" ? red < 50 : red > 200;
     }, theme);
 
-    const { violations } = await new AxeBuilder({ page })
-      .withRules([...(BROWSER_REQUIRED_RULES as readonly string[])] as string[])
-      .analyze();
+    const { violations } = await timed("axe-analyze", () =>
+      new AxeBuilder({ page })
+        .withRules([...(BROWSER_REQUIRED_RULES as readonly string[])] as string[])
+        .analyze(),
+    );
 
     return violations.map(
       (violation) =>

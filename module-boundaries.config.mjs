@@ -217,10 +217,19 @@ export const depConstraints = [
 
   // The cross-cutting browser suite. It imports `@ecoma-io/loom/a11y` for
   // WCAG_TAGS — the same array the accessibility page publishes — and carries
-  // the same hand-declared theme-core edge the docs project does.
+  // the same hand-declared theme-core edge the docs project does. Same-layer
+  // e2e → e2e reach is licensed like the primitives and composition rows
+  // license their own layer: the root site suite reads the harness's shared
+  // timing helper (playwright/timings) and its browser profiles through the
+  // tools row's shape — as data, never as the library.
   {
     sourceTag: "layer-e2e",
-    onlyDependOnLibsWithTags: ["layer-facade", "layer-theme-core", "layer-composition"],
+    onlyDependOnLibsWithTags: [
+      "layer-facade",
+      "layer-theme-core",
+      "layer-composition",
+      "layer-e2e",
+    ],
     description:
       "The browser suites drive the built site, read the library's own published a11y contract, and — since Archkeep began judging resolved edges — mount the layout compositions through the conformance route's case files. Stated truthfully: this row licenses ANY e2e-tagged project to import compositions (the root site suite carries the same tag, and a per-project distinction is not expressible here). The bound on escalation is not prose but the mutation row harness-reaches-past-the-compositions-it-proves: anything BENEATH the compositions, reached from any e2e file, reddens.",
     remediation:
@@ -338,6 +347,12 @@ export const boundarySuppressions = [
     messageId: "noRelativeOrAbsoluteImportsAcrossLibraries",
     reason:
       "`tools/` is repository machinery, run by node directly under --experimental-strip-types, and the three sources it reads — playwright/profiles.ts, e2e/docs-pages.ts, docs/.vitepress/base.ts — live in directories that are Moon projects but not npm packages: none has a package.json, so none has a published name to import instead. The rule is right that a relative path reaches past a public entry point; here there is no entry point to reach past. Giving three directories a package.json and an export map so that four import statements could be spelled differently would be restructuring the repository to suit the spelling, so the reach is accepted and named instead.",
+  },
+  {
+    path: "e2e/*.e2e.ts",
+    messageId: "noRelativeOrAbsoluteImportsAcrossLibraries",
+    reason:
+      "the four instrumented root specs (accessibility, contrast, keyboard, target-size) import the shared timing helper from ../playwright/timings. playwright/ is a Moon project but not an npm package: it has no package.json, so no published name exists to import instead — the same reach-as-data shape the tools row accepts, and the same reason wording applies. The helper is env-gated and contributes nothing to a production build; giving playwright/ a package.json and an export map so that four import statements could be spelled differently would be restructuring the repository to suit the spelling, so the reach is accepted and named instead.",
   },
   {
     path: "playwright/harness/vite.config.mts",

@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 
+import { timed } from "../playwright/timings";
 import { documentationPages } from "./docs-pages";
 
 // Component-owned keyboard traversal cases live beside their primitives. What
@@ -69,7 +70,7 @@ for (const path of documentationPages()) {
 
   test(`at 375px, ${label} has no scrollable table unreachable by keyboard`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
-    await page.goto(path);
+    await timed("goto", () => page.goto(path));
 
     // One browser-side pass: find the tables that actually scroll, try to focus
     // each, and report whether focus landed. Done here rather than as a loop of
@@ -77,14 +78,16 @@ for (const path of documentationPages()) {
     // otherwise be a conditional in the test body, which
     // `playwright/no-conditional-in-test` rejects — and rightly, since a skipped
     // iteration and a passing one look identical from the outside.
-    const results = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLElement>(".vp-doc table")]
-        .map((table, index) => ({ table, index }))
-        .filter(({ table }) => table.scrollWidth > table.clientWidth)
-        .map(({ table, index }) => {
-          table.focus();
-          return { index, focused: document.activeElement === table };
-        }),
+    const results = await timed("evaluate", () =>
+      page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>(".vp-doc table")]
+          .map((table, index) => ({ table, index }))
+          .filter(({ table }) => table.scrollWidth > table.clientWidth)
+          .map(({ table, index }) => {
+            table.focus();
+            return { index, focused: document.activeElement === table };
+          }),
+      ),
     );
 
     const unreachable = results

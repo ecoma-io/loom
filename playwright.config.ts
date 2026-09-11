@@ -1,6 +1,7 @@
 import { defineConfig } from "@playwright/test";
 import { BASE } from "./docs/.vitepress/base";
 import { projectsForProfile } from "./playwright/profiles";
+import type { ReporterDescription } from "@playwright/test";
 
 // The one port every piece below has to agree on: the URL Playwright polls
 // before starting a test, the `baseURL` every relative `page.goto` resolves
@@ -23,6 +24,17 @@ const projects = projectsForProfile(process.env.PW_PROFILE ?? "standard");
 // documentation. Cross-cutting checks live in `e2e/`; component-owned checks
 // live in `packages/**/e2e/`. Both remain separate from unit tests so either
 // browser evidence can run without turning a package's unit suite into E2E.
+// Suite-level JSONL timing records when LOOM_E2E_TIMINGS names a file; the
+// phase-level splits inside the specs come from playwright/timings.ts, and
+// neither writes anything when the variable is unset — the default here and
+// in CI, so production reporting is untouched.
+const baseReporters: ReporterDescription[] = process.env.CI
+  ? [["github"], ["html", { open: "never" }]]
+  : [["list"]];
+const timingReporters: ReporterDescription[] = process.env.LOOM_E2E_TIMINGS
+  ? [["./playwright/timings-reporter.ts"]]
+  : [];
+
 export default defineConfig({
   testDir: ".",
   // Only the cross-cutting suite. Component-owned specs under
@@ -58,7 +70,7 @@ export default defineConfig({
   // hands the choice back to Playwright's own heuristic.
   ...(process.env.CI ? { workers: 1 } : {}),
 
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
+  reporter: [...baseReporters, ...timingReporters],
 
   use: {
     baseURL: BASE_URL,

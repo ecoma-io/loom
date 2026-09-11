@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { timed } from "../playwright/timings";
 import { documentationPages } from "./docs-pages";
 
 // One rendered-SVG contrast sweep per page, at WCAG 1.4.11's 3:1 floor for
@@ -246,9 +247,11 @@ for (const page of documentationPages()) {
       await browserPage.addInitScript((t) => {
         localStorage.setItem("vitepress-theme-appearance", t);
       }, theme);
-      await browserPage.goto(page);
+      await timed("goto", () => browserPage.goto(page));
 
-      const { failures, skipped } = await browserPage.evaluate(measureInPage);
+      const { failures, skipped } = await timed("evaluate", () =>
+        browserPage.evaluate(measureInPage),
+      );
 
       // The message carries the measurement, not just the failure: which svg,
       // what it painted, what the composited background actually was, and the

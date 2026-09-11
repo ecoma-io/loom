@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import { documentationPages } from "./docs-pages";
+import { timed } from "../playwright/timings";
 
 // One `axe-core` run per rendered page, scoped to the effective rule set the
 // library holds itself to (`BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES`,
@@ -30,44 +31,48 @@ for (const page of documentationPages()) {
     await browserPage.addInitScript(() => {
       localStorage.setItem("vitepress-theme-appearance", "light");
     });
-    await browserPage.goto(page);
+    await timed("goto", () => browserPage.goto(page));
     // Ensure the repaint has landed before axe reads computed colours.
-    await browserPage.waitForFunction(() => {
-      const match = /rgba?\((\d+),/.exec(getComputedStyle(document.body).backgroundColor);
-      return match && Number(match[1]) > 200;
-    });
+    await timed("wait-repaint", () =>
+      browserPage.waitForFunction(() => {
+        const match = /rgba?\((\d+),/.exec(getComputedStyle(document.body).backgroundColor);
+        return match && Number(match[1]) > 200;
+      }),
+    );
 
-    const { violations } = await new AxeBuilder({ page: browserPage })
-      // The rule lists, not the tags: a tag-type runOnly cannot select the
-      // five rules adopted out of axe's disabled set on 2026-08-26, and this
-      // gate is the only judge of the built site's non-demo content — the
-      // prose and the token tables `design-tokens.ts` emits, exactly the
-      // markup `td-has-header` and `table-fake-caption` exist for. The site
-      // is held to the same 68-rule effective set as the demo tiers, with no
-      // gap between them.
-      .withRules([
-        ...(BROWSERLESS_RULES as readonly string[]),
-        ...(BROWSER_REQUIRED_RULES as readonly string[]),
-      ] as string[])
-      // No excludes, and keeping it that way is the point.
-      //
-      // There were two, both blaming the vendor, and both wrong. Code blocks
-      // were excluded for `color-contrast` — but the colours that failed were
-      // failing against `--vp-code-block-bg`, which is a line we wrote, and
-      // pointing it at the content surface instead cleared the floor. Tables
-      // were excluded for `scrollable-region-focusable`, blamed on VitePress
-      // styling tables as scrollable without a `tabindex` — and VitePress in
-      // fact writes that `tabindex` itself, on every table it renders from
-      // markdown. The tables that failed were the ones *we* generate as raw
-      // HTML in `design-tokens.ts`, which markdown-it passes through untouched.
-      //
-      // What both exclusions had in common is a note that sounded like a
-      // reason. An exclusion is not justified by naming a cause; it is
-      // justified by that cause being outside this repository's reach — and
-      // neither of these was, one of them not even being the real cause.
-      // Before adding one here, find which code actually emits the failing
-      // element.
-      .analyze();
+    const { violations } = await timed("axe-analyze", () =>
+      new AxeBuilder({ page: browserPage })
+        // The rule lists, not the tags: a tag-type runOnly cannot select the
+        // five rules adopted out of axe's disabled set on 2026-08-26, and this
+        // gate is the only judge of the built site's non-demo content — the
+        // prose and the token tables `design-tokens.ts` emits, exactly the
+        // markup `td-has-header` and `table-fake-caption` exist for. The site
+        // is held to the same 68-rule effective set as the demo tiers, with no
+        // gap between them.
+        .withRules([
+          ...(BROWSERLESS_RULES as readonly string[]),
+          ...(BROWSER_REQUIRED_RULES as readonly string[]),
+        ] as string[])
+        // No excludes, and keeping it that way is the point.
+        //
+        // There were two, both blaming the vendor, and both wrong. Code blocks
+        // were excluded for `color-contrast` — but the colours that failed were
+        // failing against `--vp-code-block-bg`, which is a line we wrote, and
+        // pointing it at the content surface instead cleared the floor. Tables
+        // were excluded for `scrollable-region-focusable`, blamed on VitePress
+        // styling tables as scrollable without a `tabindex` — and VitePress in
+        // fact writes that `tabindex` itself, on every table it renders from
+        // markdown. The tables that failed were the ones *we* generate as raw
+        // HTML in `design-tokens.ts`, which markdown-it passes through untouched.
+        //
+        // What both exclusions had in common is a note that sounded like a
+        // reason. An exclusion is not justified by naming a cause; it is
+        // justified by that cause being outside this repository's reach — and
+        // neither of these was, one of them not even being the real cause.
+        // Before adding one here, find which code actually emits the failing
+        // element.
+        .analyze(),
+    );
 
     const report = violations
       .map((violation) => {
@@ -90,17 +95,19 @@ for (const page of documentationPages()) {
     await browserPage.addInitScript(() => {
       localStorage.setItem("vitepress-theme-appearance", "dark");
     });
-    await browserPage.goto(page);
+    await timed("goto", () => browserPage.goto(page));
     // Wait for the browser to repaint with the dark theme. VitePress's inline
     // script sets `.dark` before paint, and Layout.vue's watchEffect sets
     // `data-theme` during hydration — but the repaint is asynchronous, and
     // axe can run before the computed colours update, reading stale values.
-    await browserPage.waitForFunction(() => {
-      const bodyBg = getComputedStyle(document.body).backgroundColor;
-      // Dark backgrounds have very low RGB values.
-      const match = /rgba?\((\d+),/.exec(bodyBg);
-      return match && Number(match[1]) < 50;
-    });
+    await timed("wait-repaint", () =>
+      browserPage.waitForFunction(() => {
+        const bodyBg = getComputedStyle(document.body).backgroundColor;
+        // Dark backgrounds have very low RGB values.
+        const match = /rgba?\((\d+),/.exec(bodyBg);
+        return match && Number(match[1]) < 50;
+      }),
+    );
 
     // Measured 2026-08-26: a page's DOM in light and dark is byte-identical
     // except the `data-theme` attribute, the `.dark` class, and VitePress's
@@ -114,25 +121,27 @@ for (const page of documentationPages()) {
     // from axe's disabled set on 2026-08-26 included, so only color-
     // dependent checks can differ between the themes, and this pass re-runs
     // exactly those.
-    const { violations } = await new AxeBuilder({ page: browserPage })
-      .withRules(["color-contrast"])
-      // No excludes — the same bar the light-theme test holds itself to.
-      //
-      // There were once VitePress-specific excludes here, and every one of
-      // them was wrong. The `.dark` class was missing from the test, leaving
-      // VitePress's own CSS in light mode while Loom's tokens had switched to
-      // dark — a state no user ever sees, and one that fails contrast at
-      // every turn because VitePress's light-mode chrome colours are not
-      // designed for dark backgrounds. Adding `.dark` alongside `data-theme`
-      // reproduced the real synchronised state, and the VitePress-specific
-      // failures vanished.
-      //
-      // An exclusion is not justified by naming a cause; it is justified by
-      // that cause being outside this repository's reach. The Shiki theme,
-      // the code-block background, the VitePress link colour — all are chosen
-      // by this repository, in `config.mts` and `theme.css`. Before adding
-      // an exclude here, find which code actually emits the failing element.
-      .analyze();
+    const { violations } = await timed("axe-analyze", () =>
+      new AxeBuilder({ page: browserPage })
+        .withRules(["color-contrast"])
+        // No excludes — the same bar the light-theme test holds itself to.
+        //
+        // There were once VitePress-specific excludes here, and every one of
+        // them was wrong. The `.dark` class was missing from the test, leaving
+        // VitePress's own CSS in light mode while Loom's tokens had switched to
+        // dark — a state no user ever sees, and one that fails contrast at
+        // every turn because VitePress's light-mode chrome colours are not
+        // designed for dark backgrounds. Adding `.dark` alongside `data-theme`
+        // reproduced the real synchronised state, and the VitePress-specific
+        // failures vanished.
+        //
+        // An exclusion is not justified by naming a cause; it is justified by
+        // that cause being outside this repository's reach. The Shiki theme,
+        // the code-block background, the VitePress link colour — all are chosen
+        // by this repository, in `config.mts` and `theme.css`. Before adding
+        // an exclude here, find which code actually emits the failing element.
+        .analyze(),
+    );
 
     const report = violations
       .map((violation) => {
