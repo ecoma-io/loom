@@ -53,6 +53,13 @@ const measureInPage = () => {
     _canvas.width = 1;
     _canvas.height = 1;
     const _ctx = _canvas.getContext("2d")!;
+    // Counted, not trusted dormant: today every computed colour on the swept
+    // pages serializes as rgb/rgba, so the canvas round-trip below never runs
+    // and its precision loss never lands in a 3:1 verdict. The tests assert
+    // the count is zero, so a colour format the fast path cannot parse turns
+    // the sweep red instead of silently changing the measurement's error
+    // profile.
+    let canvasConversions = 0;
 
     function toSRGB(str: string): { r: number; g: number; b: number; a: number } | null {
       const s = str.trim();
@@ -68,6 +75,7 @@ const measureInPage = () => {
       }
       // Slow path: any other format (oklab, oklch, named colour, hsl…).
       // Draw one pixel and read it back — the browser does the conversion.
+      canvasConversions += 1;
       _ctx.clearRect(0, 0, 1, 1);
       _ctx.fillStyle = s;
       _ctx.fillRect(0, 0, 1, 1);
@@ -235,7 +243,7 @@ const measureInPage = () => {
       }
     }
 
-    return { failures, skipped };
+    return { failures, skipped, canvasConversions };
   })();
 };
 
@@ -269,6 +277,16 @@ const sweepReport = (failures: Sweep["failures"]): string =>
     .map((f) => `${f.ratio}:1 — ${f.svgClass} painted ${f.paint} on ${f.background}`)
     .join("\n");
 
+// The canvas fallback is the one place the sweep's numbers can silently
+// change error profile: it loses precision on anything the rgb fast path
+// would have parsed losslessly. Holding it at zero pins the sweep's
+// precision story — an oklch token or a named colour landing in the theme
+// turns the gate red and forces the decision (extend the fast path, or
+// accept the canvas precision deliberately) instead of letting the ratios
+// drift.
+const canvasTripwire = (count: Sweep["canvasConversions"]): string =>
+  `the sweep's canvas fallback converted ${String(count)} colour(s); every computed colour on the swept pages is expected to serialize as rgb/rgba, which the fast path parses losslessly. Extend the fast path deliberately, or accept the canvas precision in a comment beside the assertion, before trusting these ratios again.`;
+
 for (const page of documentationPages()) {
   const label = page === "." ? "/" : `/${page}`;
 
@@ -277,12 +295,19 @@ for (const page of documentationPages()) {
       test(`${label} (${theme}) draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
         page: browserPage,
       }) => {
-        const { failures, skipped } = await sweepInTheme(browserPage, page, theme);
+        const { failures, skipped, canvasConversions } = await sweepInTheme(
+          browserPage,
+          page,
+          theme,
+        );
         expect(failures, sweepReport(failures)).toEqual([]);
 
         // Nothing silently escapes the sweep. A gradient backdrop has no single
         // ratio, so the elements on one are counted rather than ignored.
         expect(skipped, `svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+
+        // And nothing silently changes the precision the verdicts rest on.
+        expect(canvasConversions, canvasTripwire(canvasConversions)).toBe(0);
       });
     }
 
@@ -293,19 +318,25 @@ for (const page of documentationPages()) {
     page: browserPage,
   }) => {
     await test.step("light", async () => {
-      const { failures, skipped } = await sweepInTheme(browserPage, page, "light");
+      const { failures, skipped, canvasConversions } = await sweepInTheme(
+        browserPage,
+        page,
+        "light",
+      );
       expect(failures, `[light] ${sweepReport(failures)}`).toEqual([]);
       expect(skipped, `[light] svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+      expect(canvasConversions, `[light] ${canvasTripwire(canvasConversions)}`).toBe(0);
     });
 
     await test.step("dark", async () => {
       // The dark pass rides the same loaded page: reach dark through
       // VitePress's own toggle — reachDark also asserts the DOM-identity
-      // premise the collapse rests on — then sweep it again.
+      // premise the collapse both modes share — then sweep it again.
       await reachDark(browserPage, page, label);
-      const { failures, skipped } = await sweepLoadedPage(browserPage);
+      const { failures, skipped, canvasConversions } = await sweepLoadedPage(browserPage);
       expect(failures, `[dark] ${sweepReport(failures)}`).toEqual([]);
       expect(skipped, `[dark] svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+      expect(canvasConversions, `[dark] ${canvasTripwire(canvasConversions)}`).toBe(0);
     });
   });
 }
