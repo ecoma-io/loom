@@ -1101,6 +1101,7 @@ jobs:
           --project ${{ matrix.browser }}
           --config ${{ matrix.config }}
           ${{ join(matrix.specs, ' ') }}
+          --workers ${{ matrix.workers }}
           ${{ matrix.shardArgs }};
           echo "e2e-leg ${{ matrix.name }} profile=${{ matrix.profile }} browser=${{ matrix.browser }} ${{ matrix.config }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 

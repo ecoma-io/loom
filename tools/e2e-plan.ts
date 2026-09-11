@@ -368,6 +368,14 @@ export interface MatrixRow {
   demos: string[];
   /** Shard CLI args for this leg (`--shard=N/M`), empty when unsharded. */
   shardArgs: string;
+  /**
+   * The `--workers` count the leg passes. The a11y rows of chromium and
+   * firefox run 2 — CI-measured on those exact legs (runs
+   * 34603189852/34603193137/34603196536/34603200180: wall ÷1.55–1.59 for
+   * compute ×1.25–1.28, zero failures and retries); every other row stays at
+   * 1 until a bench says otherwise.
+   */
+  workers: number;
   /** A unique, GitHub-safe job name for this leg. */
   name: string;
 }
@@ -391,6 +399,7 @@ export function plan(
     shards: number,
     shardIndex: number,
     group = "",
+    workers = 1,
   ): MatrixRow => ({
     scenario,
     profile,
@@ -400,6 +409,7 @@ export function plan(
     specs,
     demos,
     shardArgs: shards > 1 ? `--shard=${String(shardIndex)}/${String(shards)}` : "",
+    workers,
     name: `${scenario}-${config}-${browser}${group ? `-${group}` : ""}${shards > 1 ? `-s${String(shardIndex)}` : ""}`,
   });
 
@@ -436,11 +446,26 @@ export function plan(
   // measured spec-group plan: each group is its own set of legs, sharded
   // within the group's positional specs (ROOT_SHARD_PLAN holds the sizing
   // evidence and the pole arithmetic).
+  // Workers are part of the measured leg shape, not a knob: the two-worker
+  // a11y legs are the ones the bench priced (MatrixRow.workers), and the
+  // other groups keep the suite's historic one-worker isolation until their
+  // own bench exists.
+  const ROOT_WORKERS: Record<string, number> = { chromium: 2, firefox: 2 };
   const rootLegs = (profile: BrowserProfile): MatrixRow[] =>
     PROFILE_PROJECTS[profile].flatMap((browser) =>
       rootShardGroups().flatMap(({ group, specs, shards }) =>
         Array.from({ length: shards }, (_, i) =>
-          row(profile, "root", specs, [], browser, shards, i + 1, group),
+          row(
+            profile,
+            "root",
+            specs,
+            [],
+            browser,
+            shards,
+            i + 1,
+            group,
+            group === "a11y" ? (ROOT_WORKERS[browser] ?? 1) : 1,
+          ),
         ),
       ),
     );
@@ -758,6 +783,11 @@ export function runSelfCheck(): void {
             r.specs.every((s) => g.specs.includes(s)),
             true,
             "a leg runs only its group's specs",
+          );
+          assert.equal(
+            r.workers,
+            g.group === "a11y" && (browser === "chromium" || browser === "firefox") ? 2 : 1,
+            `${r.name} carries the measured worker count`,
           );
         }
       }
