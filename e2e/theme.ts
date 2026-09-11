@@ -115,6 +115,28 @@ async function reachDarkByNavigation(browserPage: Page, target: string): Promise
 }
 
 /**
+ * `page.content()` serialization of a docs page is one enormous line, so
+ * jest-diff's rendering of the pair exceeds the CI log's per-line cap and the
+ * + side is dropped — the premise break becomes undiagnosable from the log
+ * alone. On failure the gate message carries the first differing byte's
+ * window instead: small enough to survive the log, exact enough to name the
+ * culprit element.
+ */
+function firstDiffWindow(a: string, b: string): string {
+  const n = Math.min(a.length, b.length);
+  let k = n;
+  for (let i = 0; i < n; i++) {
+    if (a[i] !== b[i]) {
+      k = i;
+      break;
+    }
+  }
+  const windowOf = (s: string): string =>
+    s.length <= 260 ? s : `…${s.slice(Math.max(0, k - 100), k + 160)}…`;
+  return `First difference at byte ${String(k)} — before: ${windowOf(a)} / after: ${windowOf(b)}`;
+}
+
+/**
  * Reach dark on the already-loaded light page, asserting the reuse premise on
  * the way. The production dark pass re-navigates with the theme pinned before
  * first paint; the collapsed pass instead flips VitePress's own toggle, the
@@ -165,8 +187,13 @@ export async function reachDark(browserPage: Page, target: string, label: string
   // proof no longer transfers and the dark verdicts would be green against
   // input nobody verified.
   const after = await browserPage.content();
+  const beforeNormalized = withoutThemeMarkers(before);
+  const afterNormalized = withoutThemeMarkers(after);
   expect(
-    withoutThemeMarkers(after),
-    `[dark] ${label}: the theme-reuse premise broke — the page's DOM is not byte-identical across the appearance toggle once the known markers are normalized (html data-theme, html .dark class, toggle title/aria-checked, VitePress route-prefetch links). The dark pass only re-checks colour on the premise that the light pass proved this exact DOM; find what changed before trusting its verdicts.`,
-  ).toEqual(withoutThemeMarkers(before));
+    afterNormalized,
+    `[dark] ${label}: the theme-reuse premise broke — the page's DOM is not byte-identical across the appearance toggle once the known markers are normalized (html data-theme, html .dark class, toggle title/aria-checked, VitePress route-prefetch links). The dark pass only re-checks colour on the premise that the light pass proved this exact DOM; find what changed before trusting its verdicts. ${firstDiffWindow(
+      beforeNormalized,
+      afterNormalized,
+    )}`,
+  ).toEqual(beforeNormalized);
 }
