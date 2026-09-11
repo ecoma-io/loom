@@ -1,8 +1,9 @@
 # E2E performance analysis: phase attribution, engine factors, and the 2-minute question
 
 Status: instrumented measurement, commit b0e9f70 + instrumentation PR #364.
-All numbers labeled `local` (this workstation, same machine for every browser
-comparison) or `CI` (GitHub Actions history, from `perf/data/baseline-2026-09.json`).
+All numbers are labeled `local` (this workstation, same machine for every browser
+comparison) or `CI` (GitHub Actions history — the 2026-09 baseline sample
+described in [e2e-performance-baseline.md](./e2e-performance-baseline.md)).
 Companion: [e2e-performance-baseline.md](./e2e-performance-baseline.md),
 [e2e-browser-authority-matrix.md](./e2e-browser-authority-matrix.md).
 

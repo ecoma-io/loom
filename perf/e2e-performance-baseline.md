@@ -17,8 +17,13 @@ gh api repos/ecoma-io/loom/actions/workflows/ci.yml/runs?per_page=100&status=suc
 gh api repos/ecoma-io/loom/actions/runs/<id>/jobs?per_page=100                          # jobs per run
 ```
 
-The trimmed per-run job durations and every aggregate quoted here live in
-[`perf/data/baseline-2026-09.json`](./data/baseline-2026-09.json).
+The trimmed per-run job durations and every aggregate quoted here were
+collected during the study from `gh run list` / `gh api` over the 100
+successful `ci-gate` runs of 2026-09-05 → 09-10 (plus the 20-run late-August
+comparison), into `perf/data/baseline-2026-09.json`. The file is not kept
+in-tree — 6.5k lines of point-in-time GitHub API output, past the review
+action's 5,000-line refusal threshold — and every aggregate it fed is
+reproduced in the tables below.
 
 ## Headline: where the wall clock is
 
