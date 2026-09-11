@@ -85,8 +85,12 @@ concurrency:
   # ref-only group would let the second dispatch cancel the first (observed
   # 2026-09-11: the chromium dispatch cancelled the queued firefox run of the
   # same SHA). The reuse flag joins the key for the same reason — the A/B is
-  # two concurrent-eligible benches of one group, not one measurement.
-  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-r${{ inputs.reuse_theme }}
+  # two concurrent-eligible benches of one group, not one measurement. So does
+  # the shard selector: the topology bursts dispatch one leg per run — a11y
+  # s1, s2, s3 as three dispatches seconds apart — and the key without it let
+  # each shard dispatch cancel the previous one (observed 2026-09-12: 9 of the
+  # 24 burst runs cancelled, every a11y s1/s2 and contrast s1 leg among them).
+  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-r${{ inputs.reuse_theme }}-s${{ inputs.only_shard }}
   cancel-in-progress: true
 
 jobs:
