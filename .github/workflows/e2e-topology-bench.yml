@@ -784,6 +784,10 @@ jobs:
           HOME: /root
           PW_PROFILE: standard
           PW_PREBUILT_DOCS: "1"
+          # Mirrors ci.yml's root legs (the A/B adopted the reuse mode there);
+          # the topology comparison is only about queueing, but its walls must
+          # stay comparable with the production shape they will price.
+          LOOM_E2E_REUSE_THEME: "1"
         run: >-
           set -e;
           SECONDS=0;
@@ -1093,6 +1097,10 @@ jobs:
           HOME: /root
           PW_PROFILE: standard
           PW_PREBUILT_DOCS: "1"
+          # Mirrors ci.yml's root legs (the A/B adopted the reuse mode there);
+          # the topology comparison is only about queueing, but its walls must
+          # stay comparable with the production shape they will price.
+          LOOM_E2E_REUSE_THEME: "1"
         run: >-
           set -e;
           SECONDS=0;
