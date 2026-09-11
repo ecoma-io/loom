@@ -1,0 +1,6561 @@
+{
+  "method": "gh api repos/ecoma-io/loom/actions/actions runs + jobs, successful CI workflow runs, job wall = completed-started",
+  "collectedAt": "2026-09-11",
+  "window": {
+    "main": "2026-09-05..2026-09-10",
+    "comparison": "2026-08-26..2026-08-30 (20 runs)"
+  },
+  "runs": [
+    {
+      "runId": 34519824369,
+      "event": "push",
+      "createdAt": "2026-09-10T19:20:29Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 815.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 78.0
+        },
+        {
+          "name": "deps-root-chromium-s4",
+          "durSec": 383.0
+        },
+        {
+          "name": "deps-root-chromium-s2",
+          "durSec": 424.0
+        },
+        {
+          "name": "deps-root-firefox-s4",
+          "durSec": 426.0
+        },
+        {
+          "name": "deps-root-firefox-s1",
+          "durSec": 813.0
+        },
+        {
+          "name": "deps-root-firefox-s2",
+          "durSec": 657.0
+        },
+        {
+          "name": "deps-root-chromium-s1",
+          "durSec": 543.0
+        },
+        {
+          "name": "deps-root-firefox-s3",
+          "durSec": 502.0
+        },
+        {
+          "name": "deps-root-chromium-s5",
+          "durSec": 413.0
+        },
+        {
+          "name": "deps-root-webkit-s5",
+          "durSec": 321.0
+        },
+        {
+          "name": "deps-root-webkit-s1",
+          "durSec": 568.0
+        },
+        {
+          "name": "deps-root-webkit-s3",
+          "durSec": 267.0
+        },
+        {
+          "name": "deps-root-firefox-s5",
+          "durSec": 499.0
+        },
+        {
+          "name": "deps-root-webkit-s2",
+          "durSec": 450.0
+        },
+        {
+          "name": "deps-root-webkit-s4",
+          "durSec": 260.0
+        },
+        {
+          "name": "deps-root-chromium-s3",
+          "durSec": 429.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34518257938,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T19:05:02Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 604.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 36.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 67.0
+        },
+        {
+          "name": "deps-root-chromium-s1",
+          "durSec": 646.0
+        },
+        {
+          "name": "deps-root-chromium-s3",
+          "durSec": 438.0
+        },
+        {
+          "name": "deps-root-firefox-s4",
+          "durSec": 507.0
+        },
+        {
+          "name": "deps-root-chromium-s4",
+          "durSec": 414.0
+        },
+        {
+          "name": "deps-root-webkit-s1",
+          "durSec": 591.0
+        },
+        {
+          "name": "deps-root-firefox-s1",
+          "durSec": 781.0
+        },
+        {
+          "name": "deps-root-webkit-s5",
+          "durSec": 319.0
+        },
+        {
+          "name": "deps-root-firefox-s2",
+          "durSec": 646.0
+        },
+        {
+          "name": "deps-root-firefox-s5",
+          "durSec": 505.0
+        },
+        {
+          "name": "deps-root-webkit-s4",
+          "durSec": 324.0
+        },
+        {
+          "name": "deps-root-chromium-s2",
+          "durSec": 555.0
+        },
+        {
+          "name": "deps-root-chromium-s5",
+          "durSec": 462.0
+        },
+        {
+          "name": "deps-root-firefox-s3",
+          "durSec": 523.0
+        },
+        {
+          "name": "deps-root-webkit-s2",
+          "durSec": 321.0
+        },
+        {
+          "name": "deps-root-webkit-s3",
+          "durSec": 366.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34517440708,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T18:56:58Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 156.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34517376371,
+      "event": "push",
+      "createdAt": "2026-09-10T18:56:20Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 421.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 39.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 59.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 522.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 428.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 505.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 652.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 439.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 834.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 429.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 613.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 539.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 440.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 307.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 444.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 528.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 355.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 381.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34516036483,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T18:43:05Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 34.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 162.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 41.0
+        },
+        {
+          "name": "deps-root-firefox-s4",
+          "durSec": 353.0
+        },
+        {
+          "name": "deps-root-webkit-s1",
+          "durSec": 545.0
+        },
+        {
+          "name": "deps-root-firefox-s1",
+          "durSec": 791.0
+        },
+        {
+          "name": "deps-root-chromium-s2",
+          "durSec": 536.0
+        },
+        {
+          "name": "deps-root-chromium-s3",
+          "durSec": 427.0
+        },
+        {
+          "name": "deps-root-firefox-s2",
+          "durSec": 648.0
+        },
+        {
+          "name": "deps-root-webkit-s4",
+          "durSec": 310.0
+        },
+        {
+          "name": "deps-root-webkit-s5",
+          "durSec": 381.0
+        },
+        {
+          "name": "deps-root-webkit-s2",
+          "durSec": 425.0
+        },
+        {
+          "name": "deps-root-chromium-s1",
+          "durSec": 681.0
+        },
+        {
+          "name": "deps-root-webkit-s3",
+          "durSec": 335.0
+        },
+        {
+          "name": "deps-root-chromium-s4",
+          "durSec": 410.0
+        },
+        {
+          "name": "deps-root-chromium-s5",
+          "durSec": 438.0
+        },
+        {
+          "name": "deps-root-firefox-s3",
+          "durSec": 486.0
+        },
+        {
+          "name": "deps-root-firefox-s5",
+          "durSec": 493.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34515786730,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T18:40:33Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 158.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 60.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 426.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 305.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 288.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 449.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 670.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 316.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 809.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 511.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 525.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 454.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 479.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 435.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 271.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 670.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 434.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34513746023,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T18:20:42Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 194.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 70.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 366.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 789.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 670.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 545.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 517.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 438.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 523.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 432.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 344.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 417.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 388.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 558.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 261.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 398.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 476.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34512725304,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T18:10:48Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 112.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34512673358,
+      "event": "push",
+      "createdAt": "2026-09-10T18:10:19Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 36.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 383.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 70.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 535.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 672.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 419.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 817.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 430.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 555.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 499.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 383.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 427.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 313.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 505.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 447.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 339.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 518.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 431.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34511317991,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T17:57:00Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 184.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 28.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 62.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 497.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 361.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 559.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 426.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 490.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 319.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 522.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 664.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 630.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 321.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 368.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 663.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 449.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 304.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 492.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34509971273,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T17:43:41Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 167.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 75.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 654.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 447.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 413.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 656.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 621.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 360.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 523.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 503.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 376.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 547.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 339.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 452.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 552.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 308.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 482.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34506110933,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T17:05:55Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 124.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34506048544,
+      "event": "push",
+      "createdAt": "2026-09-10T17:05:18Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 497.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 50.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 359.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 502.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 607.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 768.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 544.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 630.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 655.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 287.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 428.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 502.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 354.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 397.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 441.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 429.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 223.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34504455264,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T16:49:31Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 181.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 67.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 465.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 825.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 498.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 554.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 314.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 498.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 433.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 309.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 351.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 424.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 405.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 391.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 418.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 461.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 650.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34502206643,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T16:27:27Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 200.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 69.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 669.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 433.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 311.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 337.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 403.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 518.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 599.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 500.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 343.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 496.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 494.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 475.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 393.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 537.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 548.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34502172445,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T16:27:06Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 26.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 148.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34502048864,
+      "event": "push",
+      "createdAt": "2026-09-10T16:25:56Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 474.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 60.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 432.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 526.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 412.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 803.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 647.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 534.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 560.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 500.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 355.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 558.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 206.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 337.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 491.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 427.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 421.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34500371377,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T16:10:10Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 160.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 34.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 70.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 653.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 635.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 588.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 812.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 421.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 453.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 462.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 406.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 347.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 530.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 466.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 429.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 280.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 519.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 308.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34499337903,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T16:00:32Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 146.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34499195508,
+      "event": "push",
+      "createdAt": "2026-09-10T15:59:12Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 457.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 37.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34498856511,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T15:55:58Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 152.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 36.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34498580910,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T15:53:23Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 231.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 24.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 49.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 676.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 489.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 560.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 498.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 584.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 337.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 845.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 589.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 355.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 412.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 334.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 486.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 314.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 425.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 432.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 5.0
+        }
+      ]
+    },
+    {
+      "runId": 34498552102,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T15:53:05Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 125.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 35.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34496449464,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T15:33:45Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 115.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 37.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34496366576,
+      "event": "push",
+      "createdAt": "2026-09-10T15:33:02Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 514.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 71.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 592.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 449.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 401.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 506.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 425.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 431.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 787.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 415.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 432.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 317.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 347.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 656.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 312.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 491.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 542.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34494639227,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T15:17:14Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 240.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 61.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 527.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 301.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 659.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 804.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 647.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 438.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 514.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 336.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 417.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 405.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 614.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 360.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 427.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 432.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 411.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34493097659,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T15:03:09Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 39.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 142.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 40.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 444.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 436.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 515.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 662.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 542.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 441.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 358.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 313.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 317.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 340.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 283.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 507.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 645.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 419.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 521.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34491264369,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T14:46:25Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 151.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34491166519,
+      "event": "push",
+      "createdAt": "2026-09-10T14:45:32Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 359.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34491151925,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T14:45:24Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 183.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 42.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 505.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 558.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 411.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 366.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 443.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 494.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 669.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 812.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 479.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 666.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 350.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 350.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 333.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 504.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 346.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34490798372,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T14:42:15Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 136.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 39.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34490021457,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T14:35:09Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 162.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 46.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34489430432,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T14:29:46Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 161.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 33.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 41.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 455.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 824.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 500.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 657.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 433.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 505.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 688.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 549.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 589.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 357.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 431.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 431.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 309.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 353.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 385.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34487316899,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T14:10:33Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 110.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 29.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 554.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 818.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 657.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 464.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 493.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 462.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 444.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 686.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 310.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 496.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 426.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 301.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 527.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 424.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 360.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34485671206,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T13:55:13Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 35.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 231.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 63.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 539.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 669.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 355.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 522.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 492.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 342.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 490.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 509.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 660.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 379.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 395.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 425.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 356.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 297.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 678.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34484845219,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T13:47:24Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 28.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 145.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34484782339,
+      "event": "push",
+      "createdAt": "2026-09-10T13:46:47Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 512.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 61.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 558.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 416.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 658.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 796.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 643.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 451.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 489.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 361.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 508.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 286.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 479.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 417.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 542.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 290.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 425.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34483579491,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T13:35:22Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 225.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 71.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 417.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 660.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 504.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 442.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 455.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 392.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 348.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 319.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 340.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 496.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 278.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 815.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 640.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 308.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 526.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34483131804,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T13:31:05Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 201.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 35.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 72.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 553.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 470.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 489.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 804.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 296.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 429.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 339.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 403.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 502.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 435.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 351.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 469.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 659.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 618.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 508.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34481118946,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T13:11:41Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 141.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 72.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 402.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 343.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 379.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 565.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 390.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 499.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 331.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 696.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 539.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 306.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 511.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 645.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 589.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 507.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 428.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34480470408,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T13:05:13Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 28.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 139.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34480420521,
+      "event": "push",
+      "createdAt": "2026-09-10T13:04:45Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 33.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 513.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 62.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 705.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 483.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 537.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 703.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 417.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 276.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 407.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 509.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 426.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 435.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 307.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 644.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 439.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 603.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 377.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34479417521,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T12:54:38Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 37.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 143.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34479364961,
+      "event": "push",
+      "createdAt": "2026-09-10T12:54:06Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 341.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 37.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 76.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 361.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 412.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 549.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 488.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 819.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 498.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 308.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 544.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 292.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 545.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 437.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 504.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 458.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 673.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 241.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34478847355,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T12:48:47Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 28.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 174.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 61.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 834.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 412.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 313.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 347.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 656.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 456.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 509.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 559.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 450.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 535.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 479.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 426.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 455.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 437.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 225.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34477881598,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T12:38:41Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 180.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 68.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 490.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 797.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 444.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 428.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 350.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 483.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 654.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 404.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 493.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 543.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 312.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 306.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 550.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 456.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 652.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34476514201,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T12:24:11Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 39.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 148.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 50.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 418.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 535.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 801.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 350.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 414.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 432.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 505.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 421.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 647.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 341.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 479.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 287.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 425.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 588.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 680.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34476216033,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T12:20:54Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 105.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        }
+      ]
+    },
+    {
+      "runId": 34475840680,
+      "event": "push",
+      "createdAt": "2026-09-10T12:16:53Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 483.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 38.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 78.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 401.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 778.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 502.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 472.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 373.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 592.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 398.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 515.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 277.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 350.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 543.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 642.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 551.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 389.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 366.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34475184252,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T12:09:58Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 157.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34475146684,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T12:09:34Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 191.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 65.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 426.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 504.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 436.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 683.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 661.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 483.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 505.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 540.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 362.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 644.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 438.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 577.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 317.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 259.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 314.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34474978130,
+      "event": "push",
+      "createdAt": "2026-09-10T12:07:43Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 528.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 44.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 61.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 619.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 498.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 293.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 439.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 595.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 401.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 488.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 658.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 295.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 354.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 661.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 427.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 341.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 540.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 319.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34474532814,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T12:02:58Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 194.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 53.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 663.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 625.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 431.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 349.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 288.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 400.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 389.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 497.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 337.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 544.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 420.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 545.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 463.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 405.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 538.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34474114458,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T11:58:22Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 175.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34473097980,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T11:46:49Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 178.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 29.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 667.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 450.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 656.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 803.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 375.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 603.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 440.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 488.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 339.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 395.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 548.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 349.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 318.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 323.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 527.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34472838432,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T11:43:55Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 169.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 38.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34472300047,
+      "event": "merge_group",
+      "createdAt": "2026-09-10T11:37:43Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 171.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34472163892,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T11:36:12Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 121.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34472069461,
+      "event": "push",
+      "createdAt": "2026-09-10T11:35:09Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 537.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 66.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 495.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 512.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 507.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 452.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 661.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 548.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 374.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 335.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 476.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 359.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 364.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 836.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 302.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 518.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 402.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34471909611,
+      "event": "pull_request",
+      "createdAt": "2026-09-10T11:33:23Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 59.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 199.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 53.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 408.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 481.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 687.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 626.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 525.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 525.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 356.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 585.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 435.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 489.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 537.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 267.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 284.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 339.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 426.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34172000532,
+      "event": "pull_request",
+      "createdAt": "2026-09-08T00:02:24Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 184.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 66.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 624.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 443.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 482.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 797.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 554.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 390.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 416.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 274.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 528.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 424.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 330.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 332.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 622.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 492.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 389.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34162828905,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T21:21:18Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 136.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 28.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34162808074,
+      "event": "push",
+      "createdAt": "2026-09-07T21:20:59Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 598.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 61.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s3",
+          "durSec": 341.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s5",
+          "durSec": 466.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s1",
+          "durSec": 538.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s5",
+          "durSec": 362.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s3",
+          "durSec": 335.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s1",
+          "durSec": 631.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s2",
+          "durSec": 641.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s4",
+          "durSec": 409.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s1",
+          "durSec": 529.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s5",
+          "durSec": 435.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s2",
+          "durSec": 521.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s2",
+          "durSec": 452.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s3",
+          "durSec": 479.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s1",
+          "durSec": 601.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s1",
+          "durSec": 521.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s2",
+          "durSec": 509.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s3",
+          "durSec": 390.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s1",
+          "durSec": 184.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s5",
+          "durSec": 398.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s2",
+          "durSec": 220.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s1",
+          "durSec": 193.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s4",
+          "durSec": 405.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s4",
+          "durSec": 293.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s3",
+          "durSec": 282.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s4",
+          "durSec": 305.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s3",
+          "durSec": 195.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s2",
+          "durSec": 150.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s3",
+          "durSec": 196.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s2",
+          "durSec": 370.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s2",
+          "durSec": 200.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s3",
+          "durSec": 155.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s4",
+          "durSec": 405.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s5",
+          "durSec": 327.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s1",
+          "durSec": 195.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34161446651,
+      "event": "merge_group",
+      "createdAt": "2026-09-07T20:59:18Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 129.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 36.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s3",
+          "durSec": 422.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s2",
+          "durSec": 428.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s1",
+          "durSec": 664.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s5",
+          "durSec": 412.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s2",
+          "durSec": 434.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s2",
+          "durSec": 444.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s4",
+          "durSec": 409.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s4",
+          "durSec": 478.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s2",
+          "durSec": 520.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s1",
+          "durSec": 527.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s5",
+          "durSec": 477.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s4",
+          "durSec": 242.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s1",
+          "durSec": 609.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s1",
+          "durSec": 152.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s3",
+          "durSec": 224.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s4",
+          "durSec": 301.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s5",
+          "durSec": 398.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s2",
+          "durSec": 403.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s3",
+          "durSec": 196.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s2",
+          "durSec": 193.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s2",
+          "durSec": 241.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s2",
+          "durSec": 157.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s1",
+          "durSec": 473.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s3",
+          "durSec": 216.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s4",
+          "durSec": 412.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s1",
+          "durSec": 199.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s3",
+          "durSec": 279.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s3",
+          "durSec": 494.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s3",
+          "durSec": 403.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s5",
+          "durSec": 357.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s3",
+          "durSec": 309.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s5",
+          "durSec": 269.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s1",
+          "durSec": 248.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s1",
+          "durSec": 778.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34159336430,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T20:25:14Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 172.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 64.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s1",
+          "durSec": 509.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s5",
+          "durSec": 406.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s3",
+          "durSec": 489.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s1",
+          "durSec": 628.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s2",
+          "durSec": 519.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s4",
+          "durSec": 473.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s3",
+          "durSec": 323.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s5",
+          "durSec": 305.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s4",
+          "durSec": 401.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s2",
+          "durSec": 614.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s2",
+          "durSec": 441.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s1",
+          "durSec": 544.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s4",
+          "durSec": 404.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s4",
+          "durSec": 291.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s2",
+          "durSec": 525.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s3",
+          "durSec": 333.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s1",
+          "durSec": 647.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s5",
+          "durSec": 483.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s3",
+          "durSec": 393.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s3",
+          "durSec": 293.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s1",
+          "durSec": 205.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s5",
+          "durSec": 414.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s2",
+          "durSec": 240.0
+        },
+        {
+          "name": "pw-infra-harness-firefox-s3",
+          "durSec": 201.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s1",
+          "durSec": 179.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s2",
+          "durSec": 192.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s4",
+          "durSec": 272.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s1",
+          "durSec": 175.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s2",
+          "durSec": 213.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s2",
+          "durSec": 321.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s1",
+          "durSec": 402.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s5",
+          "durSec": 341.0
+        },
+        {
+          "name": "pw-infra-harness-chromium-s3",
+          "durSec": 193.0
+        },
+        {
+          "name": "pw-infra-harness-webkit-s3",
+          "durSec": 210.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34158760704,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T20:16:12Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 139.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 5.0
+        }
+      ]
+    },
+    {
+      "runId": 34158740652,
+      "event": "push",
+      "createdAt": "2026-09-07T20:15:54Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 468.0
+        },
+        {
+          "name": "component-harness-chromium",
+          "durSec": 63.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34158531351,
+      "event": "merge_group",
+      "createdAt": "2026-09-07T20:12:49Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 149.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 35.0
+        },
+        {
+          "name": "component-harness-chromium",
+          "durSec": 65.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34158292556,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T20:09:02Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 171.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 27.0
+        },
+        {
+          "name": "component-harness-chromium",
+          "durSec": 66.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34144817443,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T16:46:53Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 127.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        }
+      ]
+    },
+    {
+      "runId": 34144360414,
+      "event": "merge_group",
+      "createdAt": "2026-09-07T16:40:38Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 173.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 58.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 467.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 419.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 470.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 394.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 627.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 763.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 232.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 612.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 468.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 417.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 406.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 213.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 562.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 406.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 249.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34143122403,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T16:24:33Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 163.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 46.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 71.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 406.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 325.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 310.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 515.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 515.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 443.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 410.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 620.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 398.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 271.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 745.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 568.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 466.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 445.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 473.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34140665894,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T15:54:28Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 103.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 34.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34140632293,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T15:54:05Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 127.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 38.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 516.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 350.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 472.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 502.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 481.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 384.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 753.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 474.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 404.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 268.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 467.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 604.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 336.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 288.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 305.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 4.0
+        }
+      ]
+    },
+    {
+      "runId": 34140563453,
+      "event": "push",
+      "createdAt": "2026-09-07T15:53:14Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 302.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 46.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 419.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 370.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 333.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 387.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 449.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 447.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 608.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 725.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 447.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 282.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 505.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 259.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 333.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 490.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 327.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34139400503,
+      "event": "merge_group",
+      "createdAt": "2026-09-07T15:39:13Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 171.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 34.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 58.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 613.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 400.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 560.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 477.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 364.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 507.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 249.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 524.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 321.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 349.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 421.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 706.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 401.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 340.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 281.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34138143885,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T15:24:28Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 170.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 64.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 504.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 606.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 362.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 314.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 251.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 287.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 722.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 449.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 346.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 469.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 421.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 458.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 356.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 498.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 494.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 34135862986,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T14:58:45Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 25.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 172.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 68.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 381.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 453.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 421.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 545.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 500.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 449.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 610.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 460.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 390.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 271.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 394.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 521.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 739.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 345.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 369.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 34132639404,
+      "event": "pull_request",
+      "createdAt": "2026-09-07T14:22:57Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 166.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 64.0
+        },
+        {
+          "name": "docs-root-chromium-s2",
+          "durSec": 506.0
+        },
+        {
+          "name": "docs-root-firefox-s3",
+          "durSec": 471.0
+        },
+        {
+          "name": "docs-root-chromium-s4",
+          "durSec": 369.0
+        },
+        {
+          "name": "docs-root-webkit-s5",
+          "durSec": 263.0
+        },
+        {
+          "name": "docs-root-chromium-s5",
+          "durSec": 399.0
+        },
+        {
+          "name": "docs-root-firefox-s4",
+          "durSec": 442.0
+        },
+        {
+          "name": "docs-root-firefox-s5",
+          "durSec": 443.0
+        },
+        {
+          "name": "docs-root-firefox-s1",
+          "durSec": 743.0
+        },
+        {
+          "name": "docs-root-webkit-s2",
+          "durSec": 342.0
+        },
+        {
+          "name": "docs-root-chromium-s1",
+          "durSec": 612.0
+        },
+        {
+          "name": "docs-root-webkit-s3",
+          "durSec": 299.0
+        },
+        {
+          "name": "docs-root-chromium-s3",
+          "durSec": 390.0
+        },
+        {
+          "name": "docs-root-webkit-s1",
+          "durSec": 506.0
+        },
+        {
+          "name": "docs-root-firefox-s2",
+          "durSec": 641.0
+        },
+        {
+          "name": "docs-root-webkit-s4",
+          "durSec": 260.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33993213658,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T21:29:56Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 132.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 26.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33993198777,
+      "event": "push",
+      "createdAt": "2026-09-05T21:29:35Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 33.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 402.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33993065939,
+      "event": "merge_group",
+      "createdAt": "2026-09-05T21:26:39Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 140.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33992932853,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T21:23:55Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 33.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 133.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33992276717,
+      "event": "push",
+      "createdAt": "2026-09-05T21:10:55Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 26.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 401.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33992170846,
+      "event": "merge_group",
+      "createdAt": "2026-09-05T21:08:50Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 34.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 89.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33989130024,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T20:06:55Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 119.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 34.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33989110549,
+      "event": "push",
+      "createdAt": "2026-09-05T20:06:31Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 455.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 31.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 56.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 590.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 311.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 382.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 364.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 341.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 384.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 585.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 478.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 388.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 390.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33988507335,
+      "event": "merge_group",
+      "createdAt": "2026-09-05T19:54:23Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 196.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 24.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 66.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 592.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 490.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 388.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 293.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 386.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 496.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 603.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 374.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 330.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 399.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33987898744,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T19:42:02Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 147.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 74.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 485.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 392.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 385.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 326.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 584.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 367.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 486.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 601.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 373.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 393.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33987538338,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T19:34:55Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 126.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33987519627,
+      "event": "push",
+      "createdAt": "2026-09-05T19:34:29Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 732.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33986989963,
+      "event": "merge_group",
+      "createdAt": "2026-09-05T19:23:57Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 603.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 30.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33986435552,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T19:13:03Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 625.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 32.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33972153682,
+      "event": "push",
+      "createdAt": "2026-09-05T14:33:11Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 29.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 1111.0
+        },
+        {
+          "name": "template-template-chromium",
+          "durSec": 106.0
+        },
+        {
+          "name": "template-template-webkit",
+          "durSec": 112.0
+        },
+        {
+          "name": "template-template-firefox",
+          "durSec": 118.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33971629255,
+      "event": "merge_group",
+      "createdAt": "2026-09-05T14:22:40Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 598.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 35.0
+        },
+        {
+          "name": "template-template-firefox",
+          "durSec": 123.0
+        },
+        {
+          "name": "template-template-webkit",
+          "durSec": 115.0
+        },
+        {
+          "name": "template-template-chromium",
+          "durSec": 110.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33970928791,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T14:08:42Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 805.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 25.0
+        },
+        {
+          "name": "template-template-webkit",
+          "durSec": 118.0
+        },
+        {
+          "name": "template-template-firefox",
+          "durSec": 114.0
+        },
+        {
+          "name": "template-template-chromium",
+          "durSec": 107.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    },
+    {
+      "runId": 33965982449,
+      "event": "pull_request",
+      "createdAt": "2026-09-05T12:25:15Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 40.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 140.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 0.0
+        },
+        {
+          "name": "matrix.name",
+          "durSec": -1.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33965963428,
+      "event": "push",
+      "createdAt": "2026-09-05T12:24:52Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 1094.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 35.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 76.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s5",
+          "durSec": 387.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s3",
+          "durSec": 248.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s3",
+          "durSec": 291.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s1",
+          "durSec": 554.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s2",
+          "durSec": 606.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s4",
+          "durSec": 378.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s4",
+          "durSec": 246.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s5",
+          "durSec": 278.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s1",
+          "durSec": 479.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s3",
+          "durSec": 334.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s2",
+          "durSec": 409.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s4",
+          "durSec": 434.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s2",
+          "durSec": 296.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s2",
+          "durSec": 483.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s3",
+          "durSec": 289.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s4",
+          "durSec": 260.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s3",
+          "durSec": 448.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s2",
+          "durSec": 474.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s5",
+          "durSec": 322.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s1",
+          "durSec": 566.0
+        },
+        {
+          "name": "pw-infra-harness-firefox",
+          "durSec": 80.0
+        },
+        {
+          "name": "pw-infra-template-webkit",
+          "durSec": 104.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s1",
+          "durSec": 494.0
+        },
+        {
+          "name": "pw-infra-harness-webkit",
+          "durSec": 89.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s5",
+          "durSec": 456.0
+        },
+        {
+          "name": "pw-infra-template-chromium",
+          "durSec": 87.0
+        },
+        {
+          "name": "pw-infra-template-firefox",
+          "durSec": 114.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s4",
+          "durSec": 353.0
+        },
+        {
+          "name": "pw-infra-harness-chromium",
+          "durSec": 61.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s5",
+          "durSec": 392.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s1",
+          "durSec": 342.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33965226317,
+      "event": "merge_group",
+      "createdAt": "2026-09-05T12:09:02Z",
+      "jobs": [
+        {
+          "name": "E2E discovery",
+          "durSec": 33.0
+        },
+        {
+          "name": "Verify",
+          "durSec": 337.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 71.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 266.0
+        },
+        {
+          "name": "component-root-chromium-s4",
+          "durSec": 378.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 488.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 434.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 377.0
+        },
+        {
+          "name": "component-root-chromium-s2",
+          "durSec": 482.0
+        },
+        {
+          "name": "component-root-chromium-s5",
+          "durSec": 374.0
+        },
+        {
+          "name": "component-root-chromium-s1",
+          "durSec": 522.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 385.0
+        },
+        {
+          "name": "component-root-chromium-s3",
+          "durSec": 344.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 2.0
+        }
+      ]
+    },
+    {
+      "runId": 33965021772,
+      "event": "merge_group",
+      "createdAt": "2026-09-05T12:04:36Z",
+      "jobs": [
+        {
+          "name": "Verify",
+          "durSec": 803.0
+        },
+        {
+          "name": "E2E discovery",
+          "durSec": 36.0
+        },
+        {
+          "name": "Build docs for E2E",
+          "durSec": 74.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s1",
+          "durSec": 492.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s4",
+          "durSec": 371.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s2",
+          "durSec": 480.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s5",
+          "durSec": 386.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s5",
+          "durSec": 435.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s3",
+          "durSec": 442.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s2",
+          "durSec": 592.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s3",
+          "durSec": 323.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s3",
+          "durSec": 372.0
+        },
+        {
+          "name": "pw-infra-root-chromium-s3",
+          "durSec": 384.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s2",
+          "durSec": 472.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s5",
+          "durSec": 272.0
+        },
+        {
+          "name": "pw-infra-template-chromium",
+          "durSec": 112.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s4",
+          "durSec": 281.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s4",
+          "durSec": 276.0
+        },
+        {
+          "name": "pw-infra-root-webkit-s1",
+          "durSec": 522.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s2",
+          "durSec": 330.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s4",
+          "durSec": 381.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s5",
+          "durSec": 327.0
+        },
+        {
+          "name": "pw-infra-template-firefox",
+          "durSec": 123.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s2",
+          "durSec": 462.0
+        },
+        {
+          "name": "pw-infra-harness-firefox",
+          "durSec": 65.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s1",
+          "durSec": 695.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s5",
+          "durSec": 374.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s1",
+          "durSec": 486.0
+        },
+        {
+          "name": "pw-infra-template-webkit",
+          "durSec": 117.0
+        },
+        {
+          "name": "pw-infra-root-firefox-s4",
+          "durSec": 443.0
+        },
+        {
+          "name": "pw-infra-harness-webkit",
+          "durSec": 67.0
+        },
+        {
+          "name": "pw-infra-root-chromium-mobile-s1",
+          "durSec": 567.0
+        },
+        {
+          "name": "pw-infra-harness-chromium",
+          "durSec": 66.0
+        },
+        {
+          "name": "pw-infra-root-webkit-mobile-s3",
+          "durSec": 283.0
+        },
+        {
+          "name": "ci-gate",
+          "durSec": 3.0
+        }
+      ]
+    }
+  ],
+  "aggregates": {
+    "verifyByEvent": {
+      "pull_request": {
+        "n": 51,
+        "p50s": 148.0,
+        "p75s": 172.0,
+        "p95s": 231.0,
+        "minSec": 103.0,
+        "maxSec": 805.0
+      },
+      "merge_group": {
+        "n": 26,
+        "p50s": 175.0,
+        "p75s": 201.0,
+        "p95s": 604.0,
+        "minSec": 89.0,
+        "maxSec": 803.0
+      },
+      "push": {
+        "n": 23,
+        "p50s": 483.0,
+        "p75s": 537.0,
+        "p95s": 1094.0,
+        "minSec": 302.0,
+        "maxSec": 1111.0
+      }
+    },
+    "e2ePipelineWallByEvent": {
+      "pull_request": {
+        "n": 25,
+        "p50s": 914.0,
+        "p75s": 1162.0,
+        "p95s": 1345.0,
+        "minSec": 96.0,
+        "maxSec": 1517.0
+      },
+      "merge_group": {
+        "n": 19,
+        "p50s": 902.0,
+        "p75s": 930.0,
+        "p95s": 1263.0,
+        "minSec": 103.0,
+        "maxSec": 1263.0
+      },
+      "push": {
+        "n": 18,
+        "p50s": 923.0,
+        "p75s": 984.0,
+        "p95s": 1420.0,
+        "minSec": 93.0,
+        "maxSec": 1420.0
+      }
+    },
+    "slowestLegPerRun": {
+      "pull_request": {
+        "n": 25,
+        "p50s": 739.0,
+        "p75s": 797.0,
+        "p95s": 824.0,
+        "minSec": 66.0,
+        "maxSec": 845.0
+      },
+      "merge_group": {
+        "n": 19,
+        "p50s": 778.0,
+        "p75s": 804.0,
+        "p95s": 834.0,
+        "minSec": 65.0,
+        "maxSec": 834.0
+      },
+      "push": {
+        "n": 18,
+        "p50s": 768.0,
+        "p75s": 813.0,
+        "p95s": 836.0,
+        "minSec": 63.0,
+        "maxSec": 836.0
+      }
+    },
+    "wholeRunWallByEvent": {
+      "pull_request": {
+        "n": 51,
+        "p50s": 410.0,
+        "p75s": 933.0,
+        "p95s": 1386.0,
+        "minSec": 123.0,
+        "maxSec": 1592.0
+      },
+      "merge_group": {
+        "n": 26,
+        "p50s": 812.0,
+        "p75s": 929.0,
+        "p95s": 1183.0,
+        "minSec": 96.0,
+        "maxSec": 1269.0
+      },
+      "push": {
+        "n": 23,
+        "p50s": 919.0,
+        "p75s": 1050.0,
+        "p95s": 1184.0,
+        "minSec": 406.0,
+        "maxSec": 1521.0
+      }
+    },
+    "rootLegsPerLeg": {
+      "n": 870,
+      "p50s": 443.0,
+      "p75s": 528.0,
+      "p95s": 686.0,
+      "minSec": 206.0,
+      "maxSec": 845.0
+    },
+    "harnessLegsPerLeg": {
+      "n": 36,
+      "p50s": 193.0,
+      "p75s": 201.0,
+      "p95s": 241.0,
+      "minSec": 61.0,
+      "maxSec": 248.0
+    },
+    "templateLegsPerLeg": {
+      "n": 15,
+      "p50s": 114.0,
+      "p75s": 118.0,
+      "p95s": 123.0,
+      "minSec": 87.0,
+      "maxSec": 123.0
+    },
+    "discovery": {
+      "n": 100,
+      "p50s": 31.0,
+      "p75s": 34.0,
+      "p95s": 39.0,
+      "minSec": 24.0,
+      "maxSec": 59.0
+    },
+    "buildDocs": {
+      "n": 100,
+      "p50s": 41.0,
+      "p75s": 64.0,
+      "p95s": 74.0,
+      "minSec": -1.0,
+      "maxSec": 78.0
+    },
+    "rootS1ByBrowser": {
+      "chromium": {
+        "n": 60,
+        "p50s": 628.0,
+        "p75s": 662.0,
+        "p95s": 681.0,
+        "minSec": 479.0,
+        "maxSec": 705.0
+      },
+      "chromium-mobile": {
+        "n": 5,
+        "p50s": 567.0,
+        "p75s": 601.0,
+        "p95s": 609.0,
+        "minSec": 544.0,
+        "maxSec": 609.0
+      },
+      "firefox": {
+        "n": 52,
+        "p50s": 778.0,
+        "p75s": 809.0,
+        "p95s": 834.0,
+        "minSec": 538.0,
+        "maxSec": 845.0
+      },
+      "webkit": {
+        "n": 52,
+        "p50s": 545.0,
+        "p75s": 588.0,
+        "p95s": 613.0,
+        "minSec": 342.0,
+        "maxSec": 618.0
+      },
+      "webkit-mobile": {
+        "n": 5,
+        "p50s": 486.0,
+        "p75s": 494.0,
+        "p95s": 521.0,
+        "minSec": 402.0,
+        "maxSec": 521.0
+      }
+    },
+    "rootLegsByBrowserShard": {
+      "chromium-s1": {
+        "n": 60,
+        "p50s": 628.0,
+        "p75s": 662.0,
+        "p95s": 681.0,
+        "minSec": 479.0,
+        "maxSec": 705.0
+      },
+      "chromium-s2": {
+        "n": 60,
+        "p50s": 527.0,
+        "p75s": 543.0,
+        "p95s": 558.0,
+        "minSec": 341.0,
+        "maxSec": 560.0
+      },
+      "chromium-s3": {
+        "n": 60,
+        "p50s": 406.0,
+        "p75s": 432.0,
+        "p95s": 444.0,
+        "minSec": 291.0,
+        "maxSec": 455.0
+      },
+      "chromium-s4": {
+        "n": 60,
+        "p50s": 402.0,
+        "p75s": 412.0,
+        "p95s": 426.0,
+        "minSec": 266.0,
+        "maxSec": 439.0
+      },
+      "chromium-s5": {
+        "n": 60,
+        "p50s": 424.0,
+        "p75s": 433.0,
+        "p95s": 447.0,
+        "minSec": 293.0,
+        "maxSec": 466.0
+      },
+      "chromium-mobile-s1": {
+        "n": 5,
+        "p50s": 567.0,
+        "p75s": 601.0,
+        "p95s": 609.0,
+        "minSec": 544.0,
+        "maxSec": 609.0
+      },
+      "chromium-mobile-s2": {
+        "n": 5,
+        "p50s": 509.0,
+        "p75s": 519.0,
+        "p95s": 520.0,
+        "minSec": 462.0,
+        "maxSec": 520.0
+      },
+      "chromium-mobile-s3": {
+        "n": 5,
+        "p50s": 390.0,
+        "p75s": 393.0,
+        "p95s": 403.0,
+        "minSec": 334.0,
+        "maxSec": 403.0
+      },
+      "chromium-mobile-s4": {
+        "n": 5,
+        "p50s": 404.0,
+        "p75s": 405.0,
+        "p95s": 412.0,
+        "minSec": 353.0,
+        "maxSec": 412.0
+      },
+      "chromium-mobile-s5": {
+        "n": 5,
+        "p50s": 398.0,
+        "p75s": 398.0,
+        "p95s": 414.0,
+        "minSec": 374.0,
+        "maxSec": 414.0
+      },
+      "firefox-s1": {
+        "n": 52,
+        "p50s": 778.0,
+        "p75s": 809.0,
+        "p95s": 834.0,
+        "minSec": 538.0,
+        "maxSec": 845.0
+      },
+      "firefox-s2": {
+        "n": 52,
+        "p50s": 641.0,
+        "p75s": 656.0,
+        "p95s": 670.0,
+        "minSec": 434.0,
+        "maxSec": 683.0
+      },
+      "firefox-s3": {
+        "n": 52,
+        "p50s": 492.0,
+        "p75s": 505.0,
+        "p95s": 523.0,
+        "minSec": 354.0,
+        "maxSec": 527.0
+      },
+      "firefox-s4": {
+        "n": 52,
+        "p50s": 479.0,
+        "p75s": 488.0,
+        "p95s": 511.0,
+        "minSec": 353.0,
+        "maxSec": 534.0
+      },
+      "firefox-s5": {
+        "n": 52,
+        "p50s": 498.0,
+        "p75s": 507.0,
+        "p95s": 525.0,
+        "minSec": 401.0,
+        "maxSec": 530.0
+      },
+      "webkit-s1": {
+        "n": 52,
+        "p50s": 545.0,
+        "p75s": 588.0,
+        "p95s": 613.0,
+        "minSec": 342.0,
+        "maxSec": 618.0
+      },
+      "webkit-s2": {
+        "n": 52,
+        "p50s": 428.0,
+        "p75s": 452.0,
+        "p95s": 472.0,
+        "minSec": 288.0,
+        "maxSec": 476.0
+      },
+      "webkit-s3": {
+        "n": 52,
+        "p50s": 333.0,
+        "p75s": 344.0,
+        "p95s": 366.0,
+        "minSec": 213.0,
+        "maxSec": 377.0
+      },
+      "webkit-s4": {
+        "n": 52,
+        "p50s": 293.0,
+        "p75s": 308.0,
+        "p95s": 323.0,
+        "minSec": 206.0,
+        "maxSec": 346.0
+      },
+      "webkit-s5": {
+        "n": 52,
+        "p50s": 340.0,
+        "p75s": 357.0,
+        "p95s": 389.0,
+        "minSec": 223.0,
+        "maxSec": 393.0
+      },
+      "webkit-mobile-s1": {
+        "n": 5,
+        "p50s": 486.0,
+        "p75s": 494.0,
+        "p95s": 521.0,
+        "minSec": 402.0,
+        "maxSec": 521.0
+      },
+      "webkit-mobile-s2": {
+        "n": 5,
+        "p50s": 330.0,
+        "p75s": 370.0,
+        "p95s": 403.0,
+        "minSec": 296.0,
+        "maxSec": 403.0
+      },
+      "webkit-mobile-s3": {
+        "n": 5,
+        "p50s": 283.0,
+        "p75s": 289.0,
+        "p95s": 293.0,
+        "minSec": 279.0,
+        "maxSec": 293.0
+      },
+      "webkit-mobile-s4": {
+        "n": 5,
+        "p50s": 276.0,
+        "p75s": 301.0,
+        "p95s": 305.0,
+        "minSec": 260.0,
+        "maxSec": 305.0
+      },
+      "webkit-mobile-s5": {
+        "n": 5,
+        "p50s": 327.0,
+        "p75s": 327.0,
+        "p95s": 341.0,
+        "minSec": 269.0,
+        "maxSec": 341.0
+      }
+    },
+    "e2eBrowserMinutesPerLeggedRun": {
+      "n": 62,
+      "p50s": 7103.0,
+      "p75s": 7292.0,
+      "p95s": 10998.0,
+      "minSec": 63.0,
+      "maxSec": 12768.0
+    },
+    "e2eBrowserMinutesRootOnly": {
+      "n": 62,
+      "p50s": 7103.0,
+      "p75s": 7292.0,
+      "p95s": 10448.0,
+      "minSec": 0,
+      "maxSec": 10945.0
+    },
+    "lateAugVerifyComparison": {
+      "n": 20,
+      "p50s": 167.0,
+      "p75s": 325.0,
+      "p95s": 445.0,
+      "minSec": 119.0,
+      "maxSec": 460.0
+    }
+  },
+  "parser": "canonical LEG regex: kinds root|harness|template; scenarios deps|component|docs|pw-infra|theme|template"
+}
