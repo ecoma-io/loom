@@ -86,3 +86,20 @@ rules need at least a working style engine plus layout, which no candidate
 engine on this machine provides. The acceleration model
 ([e2e-acceleration-model.md](./e2e-acceleration-model.md)) therefore does not
 route any shipped gate to a different engine.
+
+## 5. The repeatable instrument (2026-09-12)
+
+§4's PoC was a one-off script; `tools/browser-capability-probe.ts` and
+[browser-capability-contract.md](./browser-capability-contract.md) turn its
+method into a re-runnable measurement: 11 fail-closed cases (DOM, cascade,
+computed style, layout, media queries, theme switch, focus, hit-testing, axe
+injection) derive an engine's capability classes conjunctively — `dom`,
+`dom+hit-testing`, `cascade+layout` (class B: the 12 cascade+layout rules),
+`axe` — and three rules (`label-content-name-mismatch`,
+`frame-focusable-content`, `no-autoplay-audio`) stay full-browser-only under
+every outcome because no synthetic case can prove canvas, iframe-content or
+media inspection. The contract's baseline maps §4's Lightpanda numbers onto
+the case ids (the engine hosts `dom`, and nothing else); no production
+workflow routes through any of this, and the conclusion is unchanged — a
+future candidate engine is judged by a committed probe report against the
+contract before anything reroutes.

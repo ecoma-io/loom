@@ -102,6 +102,23 @@ orchestration + cold style caches, not the walk. Two consequences:
   Lightpanda-candidate question the authority matrix answers with the same
   evidence).
 
+**Postscript, 2026-09-11 — the sample's blind spot.** The zero above held for
+the 12-page sample and not for the site. The full CI sweep's canvas tripwire
+(asserted strict zero) fired on run 34623804250: VitePress chrome's
+`color-mix(in oklab, currentcolor 50%, transparent)` — the soft-surface
+backgrounds, 18 `color-mix(in oklab, …)` declarations in the built CSS —
+resolves to `oklab(0.508735 -0.00840174 -0.0288461 / 0.5)`, a form the fast
+path did not parse, so those ratios had been resting on the canvas's 8-bit
+round-trip. The walk now parses oklab exactly (Ottosson's closed form,
+`e2e/contrast.e2e.ts`), cross-checks every parsed value against the engine's
+own resolution of the same string within the canvas's quantization slack
+(alpha-scaled for premultiplied storage — a WebKit observation, 2026-09-12),
+and keeps the tripwire at strict zero for anything else: a format the fast
+path still cannot parse turns the gate red naming the strings, as it did
+here. The measurement lesson is the sampling one — every 12th page of 144
+never landed on the mixed chrome, so "every color parses as rgb" was true of
+the sample and false of the site.
+
 ## 6. Harness and template legs (local, chromium)
 
 Harness component sweep (138 tests, `packages/**/e2e` + smoke/conformance):
@@ -186,9 +203,11 @@ in two: the per-leg cut is real, the per-run result is not, yet.
   waves) because 40 legs contend for an org runner supply that spread prices
   at ≈20 concurrent slots. The run's root legs cost 244.3 runner-minutes.
 - The topology arithmetic behind the queueing: a docs PR now emits 24 root
-  legs (3 browsers × 8), theme 27, deps 25, pw-infra 43–46 plus the 4
-  non-matrix jobs — every routine change class now overflows the ≈20-slot
-  supply, and `e2e-run` carries no `max-parallel`.
+  legs (3 browsers × 8); theme and deps emit 24 in their common shape (the
+  root sweep alone — the planner appends 3 harness legs only when the same
+  diff also touches a demo-bearing component, `tools/e2e-plan.ts`); pw-infra
+  emits 43–46 plus the 4 non-matrix jobs — every routine change class now
+  overflows the ≈20-slot supply, and `e2e-run` carries no `max-parallel`.
 
 Two §9 statements this run corrects. The a11y spec is 288 tests (144 pages ×
 light+dark), not 177 — 177 is the flat shard size, and flat shard 1 is the
@@ -235,3 +254,62 @@ group); webkit and every other group stay at 1 until their own bench exists.
    measurement gap (the acceleration model prices it at −75% axe wall).
 4. webkit and the remaining groups' worker benches — same dispatch
    instrument, no new plumbing.
+
+## 11. The verification-architecture pass (PR #368)
+
+What the second half of issue #367 added on top of the numbers above, in the
+order §10 left the levers standing:
+
+- **Planner hardened before anything leaned on it further.** Two
+  `GITHUB_EVENT_NAME` environment leaks in `tools/e2e-plan.ts` are fixed (the
+  self-check could see a caller's variable; the delete-when-unset toggle did
+  not restore), the planner carries 35 vitest tests — including a
+  bench↔plan consistency guard that fails if `e2e-bench.yml`'s static group
+  map drifts from `ROOT_SHARD_PLAN` — and the Case-4 route (affected set with
+  neither specs nor demos → full root sweep at smoke) is pinned by test.
+- **Navigation reuse is implemented, default off.** `e2e/theme.ts` collapses
+  accessibility's and contrast's light+dark pairs into one navigation under
+  `LOOM_E2E_REUSE_THEME=1` — the exact literal; unset (the CI and local
+  default) keeps today's two-goto shape byte-for-byte, so CI history stays
+  comparable across the A/B. The collapse's premise — that reaching dark
+  changes no DOM byte outside the three theme markers — is asserted on every
+  collapsed page by `reachDark` (VitePress's own appearance toggle, then a
+  marker-normalized `page.content()` diff), so the measured premise became a
+  continuous gate rather than a one-off.
+
+  PENDING BENCH (2026-09-12): reuse off/on A/B on the a11y and contrast
+  groups (chromium + firefox, same shard cut on both sides) — the timings
+  JSONL's wall and goto-phase counts decide adoption and whether the a11y
+  group's three shards re-cut to two under the halved goto count; the
+  measured numbers land here.
+
+- **Queueing gets its own instrument.**
+  `.github/workflows/e2e-topology-bench.yml` runs four dispatch-only
+  topologies — grouped-8 (production), grouped-8-capped (`max-parallel: 16`),
+  flat-5, reduced-6 — each leg byte-faithful to ci.yml's `e2e-run`. The four
+  must run sequentially on a quiet org: the ≈20-slot supply is the thing
+  being measured, and a concurrent PR run corrupts the queueing curve.
+
+  PENDING BENCH (2026-09-12): the four topologies' run walls and queueing
+  curves land here; a `max-parallel` cap is adopted only if they show the
+  17.1m wall was queue-bound rather than pole-bound.
+
+- **The axe partition (§10 item 3) closes as a policy answer, not a bench.**
+  The harness-routing projections (B1/C2 in
+  [e2e-acceleration-model.md](./e2e-acceleration-model.md)) assume axe cost
+  scales linearly in rule count; the benched legs' timings JSONL measures it
+  otherwise. The dark pass runs `color-contrast` alone, and that single rule
+  is ≈ 60% of the light pass's 68-rule axe wall on both benched engines
+  (p50 1378ms light / 850ms dark on chromium, 1777 / 1073ms on firefox —
+  runs 34593135967 / 34593707946), so dropping the 51 already-browserless-gated
+  rules from the root sweep buys at most the remaining ≈ 40% of light axe —
+  ≈ 1.5m on the a11y leg, not the projected −4.3m. The authority argument
+  closes it: the root sweep is the only check that casts verdicts on the
+  generated token/API tables, which render only on the built site. The honest
+  reductions are the navigation reuse and queueing work above.
+- **Candidate engines get a repeatable instrument instead of a one-off PoC.**
+  `tools/browser-capability-probe.ts` and
+  [browser-capability-contract.md](./browser-capability-contract.md) turn
+  §4 of the authority matrix into a re-runnable, fail-closed measurement
+  (pointer in authority-matrix §5). Measurement-only — no production workflow
+  routes through it, and nothing reroutes on its answer.
