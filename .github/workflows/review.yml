@@ -1,6 +1,6 @@
 name: Review
 
-# Dogfood enrollment (ecoma-io/action-agents docs/dogfood.md @ v0.11.2, issue
+# Dogfood enrollment (ecoma-io/action-agents docs/dogfood.md @ v0.12.1, issue
 # #261): review in its documented starting posture — dry-run, and no policy
 # file, so the built-in defaults apply (strictness medium, strategy standard,
 # language en, maxDiffLines 5000, no ignore). The rollout's first question —
@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 1
 
       - id: review
-        uses: ecoma-io/action-agents/review@97f294f439ee9dd12f60a1a723469f6dcdf9c93f # v0.12.0
+        uses: ecoma-io/action-agents/review@2f0e18a8e1ea5bdfa8fc690057ca1bbdfaa4f3a4 # v0.12.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}

@@ -1,6 +1,6 @@
 name: Triage
 
-# Dogfood enrollment (ecoma-io/action-agents docs/dogfood.md @ v0.11.2, issue
+# Dogfood enrollment (ecoma-io/action-agents docs/dogfood.md @ v0.12.1, issue
 # #261): triage phase 1 — no label sheet on disk, so the classification's only
 # destination is a comment and the run therefore writes nothing. Dry-run is
 # the posture, and the full decision plan lands in the machine-readable run
@@ -45,7 +45,7 @@ jobs:
       # No checkout step: a target references the released action by ref, and
       # triage reads everything through the API — one less thing in the
       # workspace.
-      - uses: ecoma-io/action-agents/triage@97f294f439ee9dd12f60a1a723469f6dcdf9c93f # v0.12.0
+      - uses: ecoma-io/action-agents/triage@2f0e18a8e1ea5bdfa8fc690057ca1bbdfaa4f3a4 # v0.12.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
