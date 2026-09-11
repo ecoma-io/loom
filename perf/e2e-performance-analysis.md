@@ -201,7 +201,9 @@ in two: the per-leg cut is real, the per-run result is not, yet.
   12:26:51Z) against the 15.23m E2E P50 the flat topology posted. The pole
   win drowned in queueing: leg starts spread 12:11:07Z→12:19:54Z (8.8m, two
   waves) because 40 legs contend for an org runner supply that spread prices
-  at ≈20 concurrent slots. The run's root legs cost 244.3 runner-minutes.
+  at ≈20 concurrent slots (an inference from this run's timeline — §11's
+  burst measures the supply directly at 6–8). The run's root legs cost
+  244.3 runner-minutes.
 - The topology arithmetic behind the queueing: a docs PR now emits 24 root
   legs (3 browsers × 8); theme and deps emit 24 in their common shape (the
   root sweep alone — the planner appends 3 harness legs only when the same
@@ -328,16 +330,61 @@ order §10 left the levers standing:
   bigger pole leg for one fewer leg — the leg-count-versus-pole trade the
   topology bench below prices; the decision rides on those numbers.
 
-- **Queueing gets its own instrument.**
-  `.github/workflows/e2e-topology-bench.yml` runs four dispatch-only
-  topologies — grouped-8 (production), grouped-8-capped (`max-parallel: 16`),
-  flat-5, reduced-6 — each leg byte-faithful to ci.yml's `e2e-run`. The four
-  must run sequentially on a quiet org: the ≈20-slot supply is the thing
-  being measured, and a concurrent PR run corrupts the queueing curve.
+- **Queueing gets its own instrument — and the supply it measured is 6–8
+  runners, not the ≈20 §10 estimated.**
+  `.github/workflows/e2e-topology-bench.yml` stands ready with the four
+  dispatch-only topologies (grouped-8, grouped-8-capped, flat-5, reduced-6),
+  each leg byte-faithful to ci.yml's `e2e-run` — but GitHub registers
+  `workflow_dispatch` only for workflows on the default branch, so the
+  instrument could not be dispatched from this branch. The production shape
+  was measured instead by bursting all 24 grouped-8 legs through
+  `e2e-bench.yml` at one moment (24 dispatches, 22:58:09–22:59:02Z at
+  d80364d, org verified quiet, all 24 success):
 
-  PENDING BENCH (2026-09-12): the four topologies' run walls and queueing
-  curves land here; a `max-parallel` cap is adopted only if they show the
-  17.1m wall was queue-bound rather than pole-bound.
+  - **Peak concurrency of the shard jobs: 6, never above 8.** The org's
+    runner supply for this workload is ≈6–8, not ≈20 — the §10 estimate was
+    inferred from one CI run's timeline, and the burst measures it directly.
+  - **Shard-job start delays: 76s–669s.** The first-dispatched legs start in
+    ~1–2m; the last-dispatched wait 9–11m for a slot. The 24 per-run docs
+    builds (≈1m each) consume the slots first, then the shard jobs drain
+    through the same 6–8-wide pipe.
+  - **Burst wall 17.5m**, set by the pole leg (firefox target-size: 9.6m
+    slot wait + 6.1m run = 15.6m after dispatch). The arithmetic closes:
+    ≈114 slot-minutes of fleet work ÷ 17.5m ≈ 6.5 effective concurrency —
+    the measured supply.
+
+  Three consequences, each a refutation the candidate topologies could not
+  have survived:
+
+  - **The §10 17.1m wall was supply-bound, not topology-bound.** flat-5's
+    15 legs walled 17.1m in §10's CI run; grouped-8's 24 legs wall 17.5m in
+    this burst — two different cuts, same wall, because wall ≈ fleet compute
+    ÷ supply and the cuts change neither term.
+  - **grouped-8-capped is refuted as a wall lever**: its `max-parallel: 16`
+    never binds on a 6–8-wide supply. It would only reorder who waits. The
+    cap remains adoptable as org-courtesy under contention, which is a
+    policy choice, not a measured wall win.
+  - **The a11y group keeps its three shards**, and no re-cut happens at all:
+    fewer legs do not cut compute, so they cannot move a supply-bound wall;
+    they only raise the pole (a11y s2 firefox 239s → ≈6m at 72 pages).
+
+  The lever that does move this wall is the one already landed: cutting
+  compute. The reuse mode's −9…−50% per leg is a proportional cut to the
+  fleet's compute term, hence to the supply-bound wall. Two corollaries land
+  with it: #374's workers=2 proposal inverts on a saturated org (per-leg
+  wall ÷1.55 but slot-minutes ×1.25 — at fleet level the wall goes up where
+  the pole is not binding, which is why w2 stays on the a11y legs, whose
+  poles bind); and the remaining levers are operator-side (raise the org's
+  runner ceiling) or compute-side (B2's shared-page tryout), not
+  leg-topology-side.
+
+  Bench-leg caveat: an `e2e-bench.yml` run carries its own docs build
+  (≈1m); ci.yml's e2e legs share one build through the actions cache, so
+  the absolute walls above overstate ci legs. The supply measurement and
+  the compute÷supply arithmetic do not depend on that term.
+
+  Follow-up: #380 holds the byte-faithful four-topology confirmation runs
+  once this PR's instrument reaches `main`.
 
 - **The axe partition (§10 item 3) closes as a policy answer, not a bench.**
   The harness-routing projections (B1/C2 in

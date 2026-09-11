@@ -116,8 +116,12 @@ proposal.
 **CI wall P50 ≤ 2 minutes is not reachable without either breaching the shard
 cap (B4) or deleting coverage (D).** The measured, defensible goals, in
 adoption order: navigation reuse (B5, adopted: −9…−50% per shard at
-unchanged coverage), the queueing/topology cut the 17.1m run priced
-(analysis §10–11, bench pending), B2 (needs a small tryout PR), and
+unchanged coverage — the one lever that moves the supply-bound fleet wall,
+because it cuts compute), then operator-side supply or B2's compute cut;
+the queueing/topology candidates are **refuted by the 2026-09-12 burst**
+(analysis §11): the org's measured supply is ≈6–8 runners, so the
+17.1m wall was supply-bound, `max-parallel: 16` never binds, and no leg
+re-cut moves wall ≈ compute ÷ supply. B2 (needs a small tryout PR), and
 Lightpanda as a future cost-reduction candidate for geometry-class specs
 **only after it clears the capability contract**
 (`perf/browser-capability-contract.md`) — never for the shipped gates,
