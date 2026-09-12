@@ -1,4 +1,28 @@
-name: E2E topology bench
+name: E2E topology bench [ARCHIVED — historical evidence, do not dispatch]
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ARCHIVED (2026-09-12, PR #383): this is a frozen record of what the #367
+# topology study measured, kept verbatim so its history stays reproducible in
+# text. It is no longer a workflow: it lives outside .github/workflows/, so
+# GitHub cannot dispatch it, and it MUST NOT be moved back.
+#
+# Why it is dead: its four topology arms name the four per-page spec groups
+# (accessibility / contrast / target-size / keyboard) 66 times, and B6 (PR
+# #383) deleted those specs — every leg this file can name is gone, so any
+# dispatch would either fail or, worse, quietly measure a topology that no
+# longer exists.
+#
+# What it measured (kept for the record): the #367 queueing question — org
+# runner supply 6–8 concurrent (2026-09-12 burst; analysis §11), the 17.1m
+# wall was supply-bound, and the topology re-cut candidates were refuted.
+# Runs 34597507798 / 34606614010 are its evidence, alongside the 2026-09-12
+# dispatch burst in the same study.
+#
+# The current benchmark instrument is .github/workflows/e2e-bench.yml — its
+# `group: page-sweep` dispatch measures today's merged spec, and its
+# `group: b2` dispatch still runs this file's sibling bench,
+# e2e/b2-shared-page.e2e.ts.
+# ═════════════════════════════════════════════════════════════════════════════
 
 # The instrument for the queueing question behind PR #368: the spec-group
 # topology fans out more legs than the org has runner slots for, and the two

@@ -1,12 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-import { timed } from "../playwright/timings";
-import { documentationPages } from "./docs-pages";
-import { keyboardReport, keyboardTableResults } from "./checks";
-
 // Component-owned keyboard traversal cases live beside their primitives. What
-// remains here is cross-cutting browser evidence: input-modality styling and
-// the docs site's phone-width keyboard reachability guarantee.
+// remains here is cross-cutting browser evidence: input-modality styling, and
+// the guard that keeps the phone-width reachability gate in e2e/page-sweep
+// honest. The per-page reachability gate itself lives there — one navigation
+// per page carries it with the other three page-level gates.
 
 test("the focus ring appears on keyboard entry and stays hidden after a mouse click", async ({
   page,
@@ -38,60 +36,9 @@ test("the focus ring appears on keyboard entry and stays hidden after a mouse cl
   expect(await secondary.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
 });
 
-// Phone-width table focusability checks, split per page so each gets its own
-// timeout and the VitePress preview server is not hit sequentially by one
-// long-running test. A single test that looped over every documentation page
-// timed out on WebKit (the slowest CI browser) once the page count grew.
-//
-// The width is the reason these tests exist. Every table on this site is a
-// scroll container — VitePress styles `.vp-doc table` as `display: block;
-// overflow-x: auto` — and whether one actually scrolls is a property of the
-// viewport, not of the table: measured across the built site, the tables that
-// scroll at 1280px are a small minority of the tables that scroll at 375px. A
-// desktop-only check therefore reports a site-wide keyboard defect as one
-// stray page, which is exactly what it did before this test existed.
-//
-// Focusability is asserted rather than a full Tab walk. Tabbing to every table
-// on every page would spend minutes proving what the browser decides in one
-// question — whether the element is in the tab order at all — and that
-// question is the whole of WCAG 2.1.1 here. The failure this guards against is
-// an element that no key press can reach, not one that is reached late.
-//
-// WebKit is the browser this test speaks for, and running it on Chromium alone
-// would be worse than not running it: Chromium now makes a scroll container
-// keyboard-focusable on its own, so `focus()` lands on an unfocusable table
-// there and the check passes with the defect fully present. Verified by
-// removing the `tabindex` and rerunning — green on Chromium, and eight named
-// token tables on WebKit. `axe` says as much in its own rule text ("accessible
-// by keyboard in Safari"). Keep this test on every project in
-// `playwright.config.ts`; narrowing the suite to Chromium would silently
-// retire it.
-for (const path of documentationPages()) {
-  const label = path === "." ? "/" : `/${path}`;
-
-  test(`at 375px, ${label} has no scrollable table unreachable by keyboard`, async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 800 });
-    await timed("goto", () => page.goto(path));
-
-    // One browser-side pass: find the tables that actually scroll, try to focus
-    // each, and report whether focus landed. Done here rather than as a loop of
-    // `locator.focus()` calls because the decision "does this one scroll" would
-    // otherwise be a conditional in the test body, which
-    // `playwright/no-conditional-in-test` rejects — and rightly, since a skipped
-    // iteration and a passing one look identical from the outside.
-    const results = await keyboardTableResults(page);
-
-    const unreachable = results
-      .filter((result) => !result.focused)
-      .map((result) => `table[${String(result.index)}]`);
-
-    expect(unreachable, keyboardReport(unreachable)).toEqual([]);
-  });
-}
-
 // Guards the guard: if a future stylesheet stops tables scrolling altogether,
-// the per-page tests above would find nothing to check and pass while proving
-// nothing. This is the assertion that would fail first. Checked against a few
+// the per-page gate in page-sweep would find nothing to check and pass while
+// proving nothing. This is the assertion that would fail first. Checked against a few
 // known token-table pages rather than the whole site — any page with a design
 // token table is guaranteed to overflow at phone width.
 test("at 375px, at least one documentation table scrolls", async ({ page }) => {

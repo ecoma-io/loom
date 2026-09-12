@@ -66,7 +66,7 @@ const ROOT_CONFIG = "playwright.config.ts";
 const HARNESS_CONFIG = "playwright/harness/playwright.config.ts";
 const TEMPLATE_CONFIG = "playwright/template/playwright.config.ts";
 const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
-const ACCESSIBILITY = "accessibility";
+const PAGE_SWEEP = "page-sweep";
 const GROUPS = rootShardGroups();
 const ROOT_LEGS_PER_BROWSER = GROUPS.reduce((n, g) => n + g.shards, 0);
 
@@ -107,9 +107,9 @@ describe("e2e-plan: spec-group partition", () => {
     }
   });
 
-  it("a11y carries the most shards — the measured heaviest spec is the pole", () => {
+  it("page-sweep carries the most shards — the measured heaviest spec is the pole", () => {
     const heaviest = GROUPS.reduce((a, b) => (b.shards > a.shards ? b : a));
-    expect(heaviest.group).toBe("a11y");
+    expect(heaviest.group).toBe("page-sweep");
   });
 });
 
@@ -156,39 +156,39 @@ describe("e2e-plan: workers assignment", () => {
   const isTwoWorkerBrowser = (browser: string): boolean =>
     browser === "chromium" || browser === "firefox";
 
-  it("a11y chromium and firefox rows run 2 workers — the measured pole", () => {
-    const a11y = docsPlan.filter((r) => r.specs.some((s) => s.includes(ACCESSIBILITY)));
-    for (const r of a11y) {
+  it("page-sweep chromium and firefox rows run 2 workers — the measured pole", () => {
+    const sweep = docsPlan.filter((r) => r.specs.some((s) => s.includes(PAGE_SWEEP)));
+    for (const r of sweep) {
       expect(r.workers).toBe(isTwoWorkerBrowser(r.browser) ? 2 : 1);
     }
   });
 
-  it("every non-a11y row runs 1 worker", () => {
-    const nonA11y = docsPlan.filter((r) => !r.specs.some((s) => s.includes(ACCESSIBILITY)));
-    for (const r of nonA11y) {
+  it("every non-page-sweep row runs 1 worker", () => {
+    const nonSweep = docsPlan.filter((r) => !r.specs.some((s) => s.includes(PAGE_SWEEP)));
+    for (const r of nonSweep) {
       expect(r.workers).toBe(1);
     }
   });
 
-  it("webkit and the mobile projects stay at 1 worker even on a11y", () => {
+  it("webkit and the mobile projects stay at 1 worker even on page-sweep", () => {
     const infra = plan("pw-infra", [], ["playwright.config.ts"]);
-    const a11y = infra.filter(
-      (r) => r.config === ROOT_CONFIG && r.specs.some((s) => s.includes(ACCESSIBILITY)),
+    const sweep = infra.filter(
+      (r) => r.config === ROOT_CONFIG && r.specs.some((s) => s.includes(PAGE_SWEEP)),
     );
-    for (const r of a11y) {
+    for (const r of sweep) {
       expect(r.workers).toBe(isTwoWorkerBrowser(r.browser) ? 2 : 1);
     }
   });
 });
 
 describe("e2e-plan: scenario leg-count arithmetic", () => {
-  it("docs emits 24 root legs (3 browsers × 8 group legs)", () => {
+  it("docs emits 21 root legs (3 browsers × 7 group legs)", () => {
     const docsPlan = plan("docs", []);
     expect(docsPlan.length).toBe(PROFILE_PROJECTS.standard.length * ROOT_LEGS_PER_BROWSER);
     expect(docsPlan.every((r) => r.config === ROOT_CONFIG)).toBe(true);
   });
 
-  it("deps lockfile-only emits 24 root legs and no harness legs", () => {
+  it("deps lockfile-only emits 21 root legs and no harness legs", () => {
     const depsPlan = plan("deps", [], ["pnpm-lock.yaml"]);
     expect(depsPlan.length).toBe(PROFILE_PROJECTS.standard.length * ROOT_LEGS_PER_BROWSER);
     expect(depsPlan.every((r) => r.config === ROOT_CONFIG)).toBe(true);

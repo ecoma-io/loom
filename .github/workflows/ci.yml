@@ -1094,12 +1094,6 @@ jobs:
           PW_PROFILE: ${{ matrix.profile }}
           HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
           PW_PREBUILT_DOCS: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
-          # The reuse mode is production on root legs since the A/B
-          # (perf/e2e-performance-analysis.md §11): phase wall −19…−49% on the
-          # two heaviest specs at unchanged coverage, the dark pass still
-          # enforced by the byte-identity gate. Harness legs run specs that
-          # never read it, so they get nothing.
-          LOOM_E2E_REUSE_THEME: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
         run: >-
           set -e;
           SECONDS=0;

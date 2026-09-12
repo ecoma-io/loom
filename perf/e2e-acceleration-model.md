@@ -76,25 +76,71 @@ single-sourced bodies the production specs assert, so a variant cannot pass
 on weaker evidence than the gate it is meant to replace.
 
 - **Measured** on the bench subset (8 representative pages, workers=1,
-  built site, standard profile, runs 34677213048…34677631967, 2026-09-12):
-  navigations 4 → 1 per page on every engine; navigation wall chromium
+  built site, standard profile — the desktop rows — runs
+  34677213048…34677631967, 2026-09-12): navigations 4 → 1 per page on
+  every engine; navigation wall chromium
   56.5 → 14.3s, firefox 54.1 → 16.7s, webkit 16.2 → 5.8s (−75% / −69% /
   −64%); subset run wall chromium 87.8 → 36.9s, firefox 89.8 → 36.1–46.5s,
-  webkit 56.5 → 36.0s (−58% / −48…−60% / −36%).
+  webkit 56.5 → 36.0s (−58% / −48…−60% / −36%). The 4 → 1 claim is a
+  desktop claim: on the mobile profile rows both device projects sit below
+  the 1280px the navbar appearance toggle needs, so `reachDark`'s designed
+  fallback deterministically pays a second, dark navigation — 4 → 2 there
+  (derived from the profile viewports plus `reachDark`'s threshold in
+  `e2e/theme.ts`; the fallback is the only path the code can take below
+  1280px).
 - **Equivalence (measured)**: every check's result payload joined on
   (page, check) is byte-identical between the baseline and the merged
   variant — 288 of 288 joins across the three engines, including keyboard's
   table verdicts on WebKit, the engine that check speaks for, run dark at
-  375px off a 1280px resize instead of on a fresh light page.
+  375px off a 1280px resize instead of on a fresh light page. That was
+  variant c's order when first measured; the lifecycle has since been
+  reordered — keyboard mid-page on the light page, viewport restored before
+  the dark passes — and re-measured under the shipped order.
+- **Re-measured under the shipped order** (runs 34683138682…34683157121,
+  2026-09-12): 144 of 144 (page, check) joins byte-identical across the
+  three engines, keyboard included — now joined light-at-375px-mid-page
+  against the fresh native-375 baseline. The first re-run under the
+  reordered lifecycle (chromium 34682397107, firefox 34682411644) failed
+  the premise gate instead: plain `focus()` had scrolled each table into
+  view, and VitePress's outline marker carried the resulting scroll state
+  across the toggle's captures (`top: 33px; opacity: 0` → `top: 391px;
+opacity: 1`, first difference at the marker) — the gate going red
+  exactly as designed, fixed at the cause (`focus({ preventScroll: true })`)
+  rather than by widening the gate's normalization. The leak-diff under the
+  shipped order shows only the prefetch-link time marker (41/48 chromium,
+  37/48 firefox fingerprints, 0/48 webkit; growth-asserted since) — no
+  scroll, focus, storage, or theme key reaches any check input.
 - **State-leak evidence (measured)**: the only `stateBefore` fingerprint
   keys that ever differ are VitePress's prefetch-link injection timing (a
   time marker none of the checks read) and keyboard's designed theme delta
   (shared dark page vs fresh light page) — no scroll, focus, storage, or
   theme leakage reached any light check, and payloads stayed identical
   despite the delta.
-- **Verdict B2-STRONG**: all four groups may share the page; the production
-  merge and root-plan re-cut are the follow-up implementation PR's work,
-  with the full-suite CI benchmark as its acceptance evidence.
+- **Verdict B2-STRONG**, and **adopted** (PR #383, stacked on the bench PR
+  #382): `e2e/page-sweep.e2e.ts` replaces the three per-page specs —
+  keyboard keeps its two cross-cutting tests — the plan re-cuts to one
+  page-sweep group at 6 shards (7 root legs per browser instead of 8) with
+  the a11y legs' measured 2 workers on chromium/firefox, and
+  `LOOM_E2E_REUSE_THEME` retires: the collapsed shape is the suite, not a
+  mode. **Acceptance, measured twice.** First on the original order (run
+  34679559408, the PR's first CI, all 41 jobs green): page-sweep job walls
+  118–138s per shard on chromium (workers 2), 144–181s on firefox (workers
+  2), 145–182s on webkit (workers 1), mobile rows 149–179s, pole ≈ 3.0m.
+  Then re-confirmed after the keyboard reorder + the `preventScroll` fix
+  (run 34683137600, all 42 jobs green): page-sweep walls 100–148s chromium
+  (workers 2), 146–169s firefox (workers 2), 138–182s webkit (workers 1),
+  mobile rows 144–188s across both mobile projects, pole 188s ≈ 3.1m
+  (chromium mobile page-sweep s2, the rows that pay the second navigation)
+  — the same ≈ 3m pole, now with the reordered lifecycle, against §1's
+  10.5–13.0m per-leg P50s. Run wall 9m for the whole pw-infra matrix (38
+  e2e legs + 4 infra jobs) at org supply 6–8, this run contended with six
+  concurrent bench dispatches.
+- **Workers A/B on the merged shape** (bench run 34679994636, chromium
+  shard 1 of 6): the bench's unselected-shard jobs pin the per-job setup
+  floor at ≈ 55s, so playwright wall ≈ 112s at workers 1 against the CI
+  leg's 130s − ≈55s ≈ 75s at workers 2 — wall ÷ ≈1.5 for zero extra
+  runners, matching the ÷1.55 the 2-worker rule was cut from on the a11y
+  legs. The inheritance holds on the merged unit.
 
 ## 3. Scenario C — coverage-class rerouting (projected, changes semantics)
 
@@ -148,12 +194,13 @@ proposal.
 cap (B4) or deleting coverage (D).** The measured, defensible goals, in
 adoption order: navigation reuse (B5, adopted: −9…−50% per shard at
 unchanged coverage — the one lever that moves the supply-bound fleet wall,
-because it cuts compute), then operator-side supply or B2's compute cut;
-the queueing/topology candidates are **refuted by the 2026-09-12 burst**
+because it cuts compute), then operator-side supply — B2's compute cut has
+since been adopted too (B6 above); the queueing/topology candidates are
+**refuted by the 2026-09-12 burst**
 (analysis §11): the org's measured supply is ≈6–8 runners, so the
 17.1m wall was supply-bound, `max-parallel: 16` never binds, and no leg
-re-cut moves wall ≈ compute ÷ supply. B2 (needs a small tryout PR), and
-Lightpanda as a future cost-reduction candidate for geometry-class specs
+re-cut moves wall ≈ compute ÷ supply. Lightpanda remains a future
+cost-reduction candidate for geometry-class specs
 **only after it clears the capability contract**
 (`perf/browser-capability-contract.md`) — never for the shipped gates,
 whose verdicts this study does not change. B1 and C2, the two

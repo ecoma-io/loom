@@ -8,6 +8,8 @@ import {
   assertRulesResult,
   assertSweepResult,
   assertTargetSizeResult,
+  enterPhoneWidth,
+  exitPhoneWidth,
   keyboardTableResults,
   loadInLight,
   measureInPage,
@@ -27,16 +29,20 @@ import { reachDark } from "./theme";
 // This file is a measurement instrument, not a gate. It registers ZERO tests
 // unless `LOOM_E2E_B2_VARIANT` names one of:
 //
-//   off  — today's production shape, per page: the a11y light+dark test, the
-//          contrast light+dark test (each on its own page, dark reached
-//          through VitePress's toggle under the byte-identity premise gate),
-//          target-size on a fresh default-theme page, keyboard on a fresh
-//          375px page. Four navigations per page — the control side.
+//   off  — the pre-merge production shape (the control side of the #382
+//          measurement; e2e/page-sweep.e2e.ts has since replaced it), per
+//          page: the a11y light+dark test, the contrast light+dark test
+//          (each on its own page, dark reached through VitePress's toggle
+//          under the byte-identity premise gate), target-size on a fresh
+//          default-theme page, keyboard on a fresh 375px page. Four
+//          navigations per page.
 //   a    — one test per page: a11y light + contrast light on one loaded light
 //          page, one reachDark, the two dark passes. One navigation per page.
 //   b    — a + target-size on the same light page before the toggle.
-//   c    — b + keyboard's table-focusability check at 375px after the dark
-//          passes. The page ends at 375px, dark.
+//   c    — b + keyboard's table-focusability check at 375px mid-page, on the
+//          light page the earlier checks proved: resize down, verdict,
+//          restore the project viewport, then the dark passes. The page ends
+//          dark, back at the project viewport.
 //
 // Production never sets the variable (the unset-means-absent contract of
 // LOOM_E2E_TIMINGS), and no ci.yml group names this file, so the production
@@ -184,13 +190,15 @@ const assertContrastDark: CheckRunner = async (p, target, variant) => {
   assertSweepResult(sweep, "[dark] ");
 };
 
-// The last runner in variant c: 1280 → 375 on the dark page. Viewport has no
-// memory — the resize makes the layout exactly a fresh 375px page's — and the
-// check's own focus() calls re-establish focus state per table, so the deltas
-// a fresh page cannot have are theme (dark vs the fresh default-light) and
-// the resize-vs-initial-load path. Both are what the record join measures.
+// The mid-page keyboard leg of variant c, shaped exactly like production's:
+// down to 375×800 on the light page the earlier checks proved, verdict, back
+// to the project viewport before darkToggle — the viewport reachDark keys on
+// (the desktop navbar toggle lives at ≥1280px; below it, the mobile fallback
+// navigation). Against the off baseline's fresh native-375 light page, the
+// theme now matches too, so the only delta the record join can find is the
+// resize-vs-initial-load path.
 const assertKeyboard375: CheckRunner = async (p, target, variant) => {
-  await p.setViewportSize({ width: 375, height: 800 });
+  const saved = await enterPhoneWidth(p);
   const fp = await stateBefore(p);
   const results = await keyboardTableResults(p);
   const unreachable = results.filter((r) => !r.focused).map((r) => `table[${String(r.index)}]`);
@@ -202,6 +210,7 @@ const assertKeyboard375: CheckRunner = async (p, target, variant) => {
     result: { results, unreachable },
   });
   assertKeyboardResult(unreachable, "");
+  await exitPhoneWidth(p, saved);
 };
 
 // The variant → check-sequence map. b extends a; c extends b. Each runner's
@@ -220,10 +229,10 @@ const VARIANT_CHECKS: Record<"a" | "b" | "c", CheckRunner[]> = {
     assertA11yLight,
     assertContrastLight,
     assertTargetSize,
+    assertKeyboard375,
     darkToggle,
     assertA11yDark,
     assertContrastDark,
-    assertKeyboard375,
   ],
 };
 
