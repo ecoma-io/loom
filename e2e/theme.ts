@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { settleMotion } from "./motion-settle";
 
 /**
  * The root sweep's dark transport, and the gate that keeps it honest.
@@ -126,6 +127,13 @@ const darkRepaintLanded = () => {
  * script paints `.dark` before first paint, then wait for the repaint. Its
  * verdicts read a page that was dark from first paint, so they need no
  * premise gate.
+ *
+ * The fresh navigation restarts the page's entrance animations, and the
+ * repaint wait lands within that window — a colour scan fired next reads an
+ * element still travelling toward its resting opacity, which is #396's
+ * flake (this is the transport the mobile rows take, and the failing pages
+ * were the entrance-staggered ones). The settle closes the window by
+ * contract, not by luck.
  */
 async function reachDarkByNavigation(browserPage: Page, target: string): Promise<void> {
   await browserPage.addInitScript(() => {
@@ -133,6 +141,7 @@ async function reachDarkByNavigation(browserPage: Page, target: string): Promise
   });
   await browserPage.goto(target);
   await browserPage.waitForFunction(darkRepaintLanded);
+  await settleMotion(browserPage);
 }
 
 /**
@@ -214,6 +223,11 @@ export async function reachDark(browserPage: Page, target: string, label: string
   const before = await browserPage.content();
   await toggle.click();
   await browserPage.waitForFunction(darkRepaintLanded);
+  // The flip starts colour *transitions* too — `getAnimations()` sees them —
+  // and `darkRepaintLanded` proves only the body background's, not every
+  // element's. The settle holds the dark scans until all of them have
+  // finished, the same contract the fresh-navigation transports hold.
+  await settleMotion(browserPage);
 
   // Continuous enforcement of the measured premise. The collapsed dark pass
   // re-runs only color-dependent checks against the DOM the light pass

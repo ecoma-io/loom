@@ -171,7 +171,7 @@ jobs:
       # `small` list is the same computed catch-all (every root spec not in
       # the plan). Empty group = the legacy flat 5-shard split.
       GROUP_SHARDS: ${{ inputs.group == 'page-sweep' && '6' || inputs.group != '' && '1' || '5' }}
-      GROUP_SPECS: ${{ inputs.group == 'page-sweep' && 'e2e/page-sweep.e2e.ts' || inputs.group == 'b2' && 'e2e/b2-shared-page.e2e.ts' || inputs.group == 'small' && 'e2e/b2-shared-page.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/keyboard.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
+      GROUP_SPECS: ${{ inputs.group == 'page-sweep' && 'e2e/page-sweep.e2e.ts' || inputs.group == 'b2' && 'e2e/b2-shared-page.e2e.ts' || inputs.group == 'small' && 'e2e/b2-shared-page.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/keyboard.e2e.ts e2e/layout-responsive.e2e.ts e2e/motion-settle.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
     strategy:
       fail-fast: false
       matrix:
