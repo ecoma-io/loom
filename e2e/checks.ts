@@ -637,6 +637,26 @@ export const keyboardTableResults = (browserPage: Page) =>
     ),
   );
 
+// The phone-width leg of the shared page, split in two so the bench can
+// fingerprint the DOM between the halves: `enterPhoneWidth` resizes to
+// 375×800 and returns the project viewport it displaced; `exitPhoneWidth`
+// restores it. Kept beside `keyboardTableResults` so the production test body
+// stays straight-line — a conditional restore in the test body is exactly the
+// `playwright/no-conditional-in-test` finding the single-sourcing here exists
+// to avoid. On a failed keyboard verdict the page stays at 375px, which is
+// the layout the screenshot and trace should show.
+export type Viewport = ReturnType<Page["viewportSize"]>;
+
+export const enterPhoneWidth = async (browserPage: Page): Promise<Viewport> => {
+  const saved = browserPage.viewportSize();
+  await browserPage.setViewportSize({ width: 375, height: 800 });
+  return saved;
+};
+
+export const exitPhoneWidth = async (browserPage: Page, saved: Viewport): Promise<void> => {
+  if (saved !== null) await browserPage.setViewportSize(saved);
+};
+
 // ── the verdicts ─────────────────────────────────────────────────────────
 //
 // The production failure reports and their assertions, exported beside the

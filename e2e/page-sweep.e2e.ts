@@ -4,6 +4,8 @@ import { timed } from "../playwright/timings";
 import { reachDark } from "./theme";
 import {
   canvasTripwire,
+  enterPhoneWidth,
+  exitPhoneWidth,
   formatViolations,
   keyboardReport,
   keyboardTableResults,
@@ -17,18 +19,21 @@ import {
   transformMessage,
 } from "./checks";
 
-// One navigation per documentation page carries all four page-level gates:
-// the effective WCAG rule set, the rendered-SVG contrast sweep, the 2.5.8
+// One loaded documentation page carries all four page-level gates — the
+// effective WCAG rule set, the rendered-SVG contrast sweep, the 2.5.8
 // target-size floor, and the phone-width keyboard reachability of every
-// scrollable table — light and dark. The four gates used to be four spec
-// groups of one navigation each (accessibility / contrast / target-size /
-// keyboard); merging them is the B6 lever in perf/e2e-acceleration-model.md,
-// measured before it shipped: navigations 4 → 1 per page, navigation wall
-// −64…−75% across chromium, firefox and webkit, and 288 of 288 (page, check)
-// result payloads joined between the old shape and this one are byte-identical
-// (e2e/b2-shared-page.e2e.ts, the bench that decided it; runs
-// 34677213048…34677631967). The checks below are the same single-sourced
-// bodies from e2e/checks.ts that gate has been running all along.
+// scrollable table — light first, then the keyboard gate at 375px on the
+// same light page, then dark. The four gates used to be four spec groups of
+// one navigation each (accessibility / contrast / target-size / keyboard);
+// merging them is the B6 lever in perf/e2e-acceleration-model.md, measured
+// before it shipped: on the desktop rows, navigations 4 → 1 per page and
+// 288 of 288 (page, check) result payloads joined between the old shape and
+// this one are byte-identical (e2e/b2-shared-page.e2e.ts, the bench that
+// decided it; run IDs recorded in §2 B6). On the mobile profile rows the
+// appearance toggle is unreachable below 1280px, so `reachDark`'s designed
+// fallback pays a second, dark navigation — 4 → 2 there, still one gate
+// sequence per load. The checks below are the same single-sourced bodies
+// from e2e/checks.ts that bench ran all along.
 //
 // The honest cost of the merge is failure granularity, not coverage: a page
 // that fails two gates reports the first one until it is fixed, where four
@@ -124,9 +129,11 @@ import {
 // Chromium, and eight named token tables on WebKit. `axe` says as much in
 // its own rule text ("accessible by keyboard in Safari"). Keep every project
 // in `playwright.config.ts`; narrowing the suite to Chromium would silently
-// retire the check. The shared page reaches 375px by resizing after the
-// 1280px gates: the bench measured the resize path's verdicts identical to a
-// fresh native-375 page on every engine, WebKit included.
+// retire the check. The shared page reaches 375px by resizing mid-page, on
+// the light theme, before the dark pass — the same theme a fresh native-375
+// page reads, with fonts already loaded from the desktop pass. The bench
+// joins the resize path's verdicts against that fresh baseline on every
+// engine, WebKit included (§2 B6).
 const MIN_SIZE = 24;
 
 for (const page of documentationPages()) {
@@ -159,6 +166,22 @@ for (const page of documentationPages()) {
       );
     });
 
+    await test.step("375px: no scrollable table unreachable by keyboard", async () => {
+      // Mid-page, on the light theme the fresh baseline reads: the resize is
+      // the only state it changes, and the project's own viewport comes back
+      // before the dark pass — that is the viewport `reachDark` keys on (the
+      // desktop navbar toggle lives at ≥1280px; below it, the mobile fallback
+      // navigation). On failure the page stays at 375px, which is the layout
+      // the screenshot and trace should show.
+      const projectViewport = await enterPhoneWidth(browserPage);
+      const results = await keyboardTableResults(browserPage);
+      const unreachable = results
+        .filter((result) => !result.focused)
+        .map((result) => `table[${String(result.index)}]`);
+      expect(unreachable, keyboardReport(unreachable)).toEqual([]);
+      await exitPhoneWidth(browserPage, projectViewport);
+    });
+
     await test.step("dark: no violations against color-dependent WCAG rules", async () => {
       await reachDark(browserPage, page, label);
       const { violations } = await timed("axe-analyze", () => scanColorContrast(browserPage));
@@ -175,15 +198,6 @@ for (const page of documentationPages()) {
         `[dark] ${canvasTripwire(canvasConversions, canvasConverted)}`,
       ).toBe(0);
       expect(transformMismatches, `[dark] ${transformMessage(transformMismatches)}`).toEqual([]);
-    });
-
-    await test.step("375px: no scrollable table unreachable by keyboard", async () => {
-      await browserPage.setViewportSize({ width: 375, height: 800 });
-      const results = await keyboardTableResults(browserPage);
-      const unreachable = results
-        .filter((result) => !result.focused)
-        .map((result) => `table[${String(result.index)}]`);
-      expect(unreachable, keyboardReport(unreachable)).toEqual([]);
     });
   });
 }

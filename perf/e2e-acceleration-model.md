@@ -76,16 +76,27 @@ single-sourced bodies the production specs assert, so a variant cannot pass
 on weaker evidence than the gate it is meant to replace.
 
 - **Measured** on the bench subset (8 representative pages, workers=1,
-  built site, standard profile, runs 34677213048…34677631967, 2026-09-12):
-  navigations 4 → 1 per page on every engine; navigation wall chromium
+  built site, standard profile — the desktop rows — runs
+  34677213048…34677631967, 2026-09-12): navigations 4 → 1 per page on
+  every engine; navigation wall chromium
   56.5 → 14.3s, firefox 54.1 → 16.7s, webkit 16.2 → 5.8s (−75% / −69% /
   −64%); subset run wall chromium 87.8 → 36.9s, firefox 89.8 → 36.1–46.5s,
-  webkit 56.5 → 36.0s (−58% / −48…−60% / −36%).
+  webkit 56.5 → 36.0s (−58% / −48…−60% / −36%). The 4 → 1 claim is a
+  desktop claim: on the mobile profile rows both device projects sit below
+  the 1280px the navbar appearance toggle needs, so `reachDark`'s designed
+  fallback deterministically pays a second, dark navigation — 4 → 2 there
+  (derived from the profile viewports plus `reachDark`'s threshold in
+  `e2e/theme.ts`; the fallback is the only path the code can take below
+  1280px).
 - **Equivalence (measured)**: every check's result payload joined on
   (page, check) is byte-identical between the baseline and the merged
   variant — 288 of 288 joins across the three engines, including keyboard's
   table verdicts on WebKit, the engine that check speaks for, run dark at
-  375px off a 1280px resize instead of on a fresh light page.
+  375px off a 1280px resize instead of on a fresh light page (that was
+  variant c's order when measured; the lifecycle has since been reordered —
+  keyboard mid-page on the light page, viewport restored before the dark
+  passes — and the re-measurement under the shipped order is recorded just
+  below).
 - **State-leak evidence (measured)**: the only `stateBefore` fingerprint
   keys that ever differ are VitePress's prefetch-link injection timing (a
   time marker none of the checks read) and keyboard's designed theme delta
