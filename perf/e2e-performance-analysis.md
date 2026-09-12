@@ -332,8 +332,10 @@ order §10 left the levers standing:
 
 - **Queueing gets its own instrument — and the supply it measured is 6–8
   runners, not the ≈20 §10 estimated.**
-  `.github/workflows/e2e-topology-bench.yml` stands ready with the four
-  dispatch-only topologies (grouped-8, grouped-8-capped, flat-5, reduced-6),
+  `perf/e2e-topology-bench.archived.yml` (archived from
+  `.github/workflows/e2e-topology-bench.yml` after B6 deleted the specs its
+  four dispatch-only topologies name — see the header there) priced this with
+  the grouped-8, grouped-8-capped, flat-5 and reduced-6 arms,
   each leg byte-faithful to ci.yml's `e2e-run` — but GitHub registers
   `workflow_dispatch` only for workflows on the default branch, so the
   instrument could not be dispatched from this branch. The production shape

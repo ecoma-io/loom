@@ -282,8 +282,10 @@ const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
  * The suite used to be cut by spec group (a11y 3 / contrast 2 / keyboard 1 /
  * target-size 1 legs, from those same runs' firefox wall shares) — until the
  * B6 shared-page merge collapsed the four per-page groups into one spec
- * (perf/e2e-acceleration-model.md §2 B6): one navigation per page carries all
- * four gates, 288 of 288 (page, check) result payloads are byte-identical
+ * (perf/e2e-acceleration-model.md §2 B6): on the desktop-profile rows, one
+ * navigation per page carries all four gates (on the mobile-profile rows
+ * reachDark's sub-1280px fallback pays a second, dark navigation), 288 of 288
+ * (page, check) result payloads are byte-identical
  * with the four-navigation shape, and the four groups' navigation wall fell
  * 64–75% across chromium, firefox and webkit (bench subset, runs
  * 34677213048…34677631967). With the groups merged, the sharding unit is the
