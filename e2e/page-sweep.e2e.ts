@@ -4,9 +4,11 @@ import { timed } from "../playwright/timings";
 import { reachDark } from "./theme";
 import {
   canvasTripwire,
+  collectGate,
   enterPhoneWidth,
   exitPhoneWidth,
   formatViolations,
+  gateReport,
   keyboardReport,
   keyboardTableResults,
   loadInLight,
@@ -17,6 +19,7 @@ import {
   sweepReport,
   targetReport,
   transformMessage,
+  type GateFailure,
 } from "./checks";
 
 // One loaded documentation page carries all four page-level gates — the
@@ -35,11 +38,14 @@ import {
 // sequence per load. The checks below are the same single-sourced bodies
 // from e2e/checks.ts that bench ran all along.
 //
-// The honest cost of the merge is failure granularity, not coverage: a page
-// that fails two gates reports the first one until it is fixed, where four
-// separate tests reported both. Every assertion still exists and still runs
-// on a green page; the test.step names below are how a red page says which
-// gate tripped.
+// The merge's recorded cost was failure granularity — a page failing two
+// gates reported only the first. The gates now aggregate (#384): each gate
+// runs to its own verdict and a tripped gate neither stops the page's
+// remaining gates nor hides the ones before it. The test fails once, at its
+// end, with every tripped gate under its step name and its own message
+// body — the same bodies a first-trip run printed. The green path is
+// unchanged: same steps, same assertions, same order, and the closing
+// aggregate assert is empty on green.
 //
 // ── the four gates, and why each looks the way it does ───────────────────────
 //
@@ -142,12 +148,16 @@ for (const page of documentationPages()) {
   test(`${label} passes every page-level gate in both themes`, async ({ page: browserPage }) => {
     await loadInLight(browserPage, page);
 
-    await test.step("light: no violations against Loom's effective WCAG rule set", async () => {
+    const tripped: GateFailure[] = [];
+    const gate = (name: string, run: () => Promise<void>): Promise<void> =>
+      collectGate(tripped, name, run);
+
+    await gate("light: no violations against Loom's effective WCAG rule set", async () => {
       const { violations } = await timed("axe-analyze", () => scanEffectiveRules(browserPage));
       expect(violations, `[light] ${formatViolations(violations)}`).toEqual([]);
     });
 
-    await test.step("light: every SVG graphical object at WCAG 1.4.11's 3:1 floor", async () => {
+    await gate("light: every SVG graphical object at WCAG 1.4.11's 3:1 floor", async () => {
       const { failures, skipped, canvasConversions, canvasConverted, transformMismatches } =
         await sweepLoadedPage(browserPage);
       expect(failures, `[light] ${sweepReport(failures)}`).toEqual([]);
@@ -159,36 +169,43 @@ for (const page of documentationPages()) {
       expect(transformMismatches, `[light] ${transformMessage(transformMismatches)}`).toEqual([]);
     });
 
-    await test.step(`light: no interactive target smaller than ${String(MIN_SIZE)}×${String(MIN_SIZE)}px (WCAG 2.5.8)`, async () => {
-      const findings = await timed("evaluate", () => browserPage.evaluate(measureInPage));
-      expect(findings, `targets below ${String(MIN_SIZE)}px:\n${targetReport(findings)}`).toEqual(
-        [],
-      );
-    });
+    await gate(
+      `light: no interactive target smaller than ${String(MIN_SIZE)}×${String(MIN_SIZE)}px (WCAG 2.5.8)`,
+      async () => {
+        const findings = await timed("evaluate", () => browserPage.evaluate(measureInPage));
+        expect(findings, `targets below ${String(MIN_SIZE)}px:\n${targetReport(findings)}`).toEqual(
+          [],
+        );
+      },
+    );
 
-    await test.step("375px: no scrollable table unreachable by keyboard", async () => {
+    await gate("375px: no scrollable table unreachable by keyboard", async () => {
       // Mid-page, on the light theme the fresh baseline reads: the resize is
       // the only state it changes, and the project's own viewport comes back
       // before the dark pass — that is the viewport `reachDark` keys on (the
       // desktop navbar toggle lives at ≥1280px; below it, the mobile fallback
-      // navigation). On failure the page stays at 375px, which is the layout
-      // the screenshot and trace should show.
+      // navigation). The `finally` restores the project viewport even when
+      // this gate trips — the dark gates below still run under the
+      // aggregation, and they read the project viewport, not 375px.
       const projectViewport = await enterPhoneWidth(browserPage);
-      const results = await keyboardTableResults(browserPage);
-      const unreachable = results
-        .filter((result) => !result.focused)
-        .map((result) => `table[${String(result.index)}]`);
-      expect(unreachable, keyboardReport(unreachable)).toEqual([]);
-      await exitPhoneWidth(browserPage, projectViewport);
+      try {
+        const results = await keyboardTableResults(browserPage);
+        const unreachable = results
+          .filter((result) => !result.focused)
+          .map((result) => `table[${String(result.index)}]`);
+        expect(unreachable, keyboardReport(unreachable)).toEqual([]);
+      } finally {
+        await exitPhoneWidth(browserPage, projectViewport);
+      }
     });
 
-    await test.step("dark: no violations against color-dependent WCAG rules", async () => {
+    await gate("dark: no violations against color-dependent WCAG rules", async () => {
       await reachDark(browserPage, page, label);
       const { violations } = await timed("axe-analyze", () => scanColorContrast(browserPage));
       expect(violations, `[dark] ${formatViolations(violations)}`).toEqual([]);
     });
 
-    await test.step("dark: every SVG graphical object at WCAG 1.4.11's 3:1 floor", async () => {
+    await gate("dark: every SVG graphical object at WCAG 1.4.11's 3:1 floor", async () => {
       const { failures, skipped, canvasConversions, canvasConverted, transformMismatches } =
         await sweepLoadedPage(browserPage);
       expect(failures, `[dark] ${sweepReport(failures)}`).toEqual([]);
@@ -199,5 +216,11 @@ for (const page of documentationPages()) {
       ).toBe(0);
       expect(transformMismatches, `[dark] ${transformMessage(transformMismatches)}`).toEqual([]);
     });
+
+    // The page's one failure: every gate that tripped above, under its step
+    // name, with its own message body. Empty on green — so the green path is
+    // byte-for-byte what it was, and a tripped gate neither stops the page's
+    // remaining gates nor hides the ones before it.
+    expect(tripped, gateReport(tripped)).toEqual([]);
   });
 }

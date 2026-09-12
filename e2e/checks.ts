@@ -15,7 +15,7 @@
  * file importable from both kinds of files.
  */
 
-import { expect, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import { timed } from "../playwright/timings";
@@ -732,3 +732,44 @@ export const keyboardReport = (unreachable: string[]): string =>
 export const assertKeyboardResult = (unreachable: string[], scope: string): void => {
   expect(unreachable, `${scope}${keyboardReport(unreachable)}`).toEqual([]);
 };
+
+/**
+ * Gate-granularity failure aggregation for the page sweep (#384): run one
+ * gate as its own `test.step` and, when it trips, record the gate name and
+ * its message and carry on to the next gate — instead of first-trip-only.
+ *
+ * The try surrounds the `test.step` call, not the gate body: Playwright
+ * marks a step failed when its callback throws, before the error reaches
+ * this catch — so a tripped gate still shows red in the step list, while
+ * the page's remaining gates still run and report.
+ *
+ * The green path is untouched: on a page that passes, `collectGate` is one
+ * await of the step and the collector stays empty. The per-test timeout
+ * still bounds the whole aggregation — a gate that hangs hits its step (or
+ * test) timeout and the test fails there, exactly as first-trip-only would.
+ */
+export interface GateFailure {
+  gate: string;
+  message: string;
+}
+
+export const collectGate = async (
+  failures: GateFailure[],
+  gate: string,
+  run: () => Promise<void>,
+): Promise<void> => {
+  try {
+    await test.step(gate, run);
+  } catch (error) {
+    failures.push({ gate, message: error instanceof Error ? error.message : String(error) });
+  }
+};
+
+/**
+ * The one failure the test reports at its end: every tripped gate under its
+ * step name, with the gate's own message body — the same
+ * `formatViolations`/`sweepReport`/`targetReport`/`keyboardReport` bodies a
+ * first-trip run printed, nothing reworded.
+ */
+export const gateReport = (failures: readonly GateFailure[]): string =>
+  failures.map(({ gate, message }) => `— ${gate}\n${message}`).join("\n\n");
