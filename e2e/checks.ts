@@ -631,11 +631,23 @@ export const keyboardTableResults = (browserPage: Page) =>
         .map((table, index) => ({ table, index }))
         .filter(({ table }) => table.scrollWidth > table.clientWidth)
         .map(({ table, index }) => {
-          table.focus();
+          table.focus({ preventScroll: true });
           return { index, focused: document.activeElement === table };
         }),
     ),
   );
+
+// `preventScroll` is load-bearing, not cosmetic: plain focus() also scrolls
+// the table into view, and on the shared page that scroll lands after the
+// light passes have already proved the DOM. VitePress's outline marker
+// carries the scroll-driven anchor state in its inline style, and on the
+// reordered shared page that state changed across the dark toggle's
+// premise-gate captures (measured: bench run 34682397107, first difference
+// at the `.outline-marker` style, `top: 33px; opacity: 0` → `top: 391px;
+// opacity: 1`). Focus is the only actor in the pre-toggle gate sequence
+// that scrolls, so the fix removes the side effect instead of normalizing
+// the marker. The check's question is whether focus LANDS — the tab-order
+// question of WCAG 2.1.1 — and it lands identically without the scroll.
 
 // The phone-width leg of the shared page, split in two so the bench can
 // fingerprint the DOM between the halves: `enterPhoneWidth` resizes to
