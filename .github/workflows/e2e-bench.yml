@@ -17,7 +17,16 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: Playwright project (engine) to run
+        # The mobile projects are dispatchable here because they carry
+        # measured legs: the production `full` profile runs them and the
+        # contract's mobile baseline rows are theirs (perf/
+        # ci-performance-contract.md, merge run 34687783284) — a bench that
+        # could not select them could never time the device rows it claims.
+        # They exist only under PW_PROFILE=full (playwright/profiles.ts), so
+        # dispatching one with the `standard` default runs nothing.
+        description: >-
+          Playwright project (engine) to run; the mobile projects require
+          profile: full
         required: true
         default: firefox
         type: choice
@@ -25,6 +34,8 @@ on:
           - chromium
           - firefox
           - webkit
+          - chromium-mobile
+          - webkit-mobile
       workers:
         # Production legs run 1 except the page-sweep rows of chromium and
         # firefox, which run 2 (tools/e2e-plan.ts, MatrixRow.workers) — so
