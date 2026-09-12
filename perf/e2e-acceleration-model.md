@@ -92,11 +92,24 @@ on weaker evidence than the gate it is meant to replace.
   (page, check) is byte-identical between the baseline and the merged
   variant — 288 of 288 joins across the three engines, including keyboard's
   table verdicts on WebKit, the engine that check speaks for, run dark at
-  375px off a 1280px resize instead of on a fresh light page (that was
-  variant c's order when measured; the lifecycle has since been reordered —
-  keyboard mid-page on the light page, viewport restored before the dark
-  passes — and the re-measurement under the shipped order is recorded just
-  below).
+  375px off a 1280px resize instead of on a fresh light page. That was
+  variant c's order when first measured; the lifecycle has since been
+  reordered — keyboard mid-page on the light page, viewport restored before
+  the dark passes — and re-measured under the shipped order.
+- **Re-measured under the shipped order** (runs 34683138682…34683157121,
+  2026-09-12): 144 of 144 (page, check) joins byte-identical across the
+  three engines, keyboard included — now joined light-at-375px-mid-page
+  against the fresh native-375 baseline. The first re-run under the
+  reordered lifecycle (chromium 34682397107, firefox 34682411644) failed
+  the premise gate instead: plain `focus()` had scrolled each table into
+  view, and VitePress's outline marker carried the resulting scroll state
+  across the toggle's captures (`top: 33px; opacity: 0` → `top: 391px;
+opacity: 1`, first difference at the marker) — the gate going red
+  exactly as designed, fixed at the cause (`focus({ preventScroll: true })`)
+  rather than by widening the gate's normalization. The leak-diff under the
+  shipped order shows only the prefetch-link time marker (41/48 chromium,
+  37/48 firefox fingerprints, 0/48 webkit; growth-asserted since) — no
+  scroll, focus, storage, or theme key reaches any check input.
 - **State-leak evidence (measured)**: the only `stateBefore` fingerprint
   keys that ever differ are VitePress's prefetch-link injection timing (a
   time marker none of the checks read) and keyboard's designed theme delta
@@ -109,12 +122,19 @@ on weaker evidence than the gate it is meant to replace.
   page-sweep group at 6 shards (7 root legs per browser instead of 8) with
   the a11y legs' measured 2 workers on chromium/firefox, and
   `LOOM_E2E_REUSE_THEME` retires: the collapsed shape is the suite, not a
-  mode. **Acceptance (run 34679559408, 2026-09-12, the PR's own CI, all 41
-  jobs green)**: page-sweep job walls 118–138s per shard on chromium
-  (workers 2), 144–181s on firefox (workers 2), 145–182s on webkit
-  (workers 1) — the root matrix's pole leg ≈ 3.0m against the ~2m test +
-  ~1m setup the 6-shard sizing modelled, and against §1's 10.5–13.0m
-  per-leg P50s.
+  mode. **Acceptance, measured twice.** First on the original order (run
+  34679559408, the PR's first CI, all 41 jobs green): page-sweep job walls
+  118–138s per shard on chromium (workers 2), 144–181s on firefox (workers
+  2), 145–182s on webkit (workers 1), mobile rows 149–179s, pole ≈ 3.0m.
+  Then re-confirmed after the keyboard reorder + the `preventScroll` fix
+  (run 34683137600, all 42 jobs green): page-sweep walls 100–148s chromium
+  (workers 2), 146–169s firefox (workers 2), 138–182s webkit (workers 1),
+  mobile rows 144–188s across both mobile projects, pole 188s ≈ 3.1m
+  (chromium mobile page-sweep s2, the rows that pay the second navigation)
+  — the same ≈ 3m pole, now with the reordered lifecycle, against §1's
+  10.5–13.0m per-leg P50s. Run wall 9m for the whole pw-infra matrix (38
+  e2e legs + 4 infra jobs) at org supply 6–8, this run contended with six
+  concurrent bench dispatches.
 - **Workers A/B on the merged shape** (bench run 34679994636, chromium
   shard 1 of 6): the bench's unselected-shard jobs pin the per-job setup
   floor at ≈ 55s, so playwright wall ≈ 112s at workers 1 against the CI
