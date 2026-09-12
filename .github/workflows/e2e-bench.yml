@@ -17,7 +17,16 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: Playwright project (engine) to run
+        # The mobile projects are dispatchable here because they carry
+        # measured legs: the production `full` profile runs them and the
+        # contract's mobile baseline rows are theirs (perf/
+        # ci-performance-contract.md, merge run 34687783284) — a bench that
+        # could not select them could never time the device rows it claims.
+        # They exist only under PW_PROFILE=full (playwright/profiles.ts), so
+        # dispatching one with the `standard` default runs nothing.
+        description: >-
+          Playwright project (engine) to run; the mobile projects require
+          profile: full
         required: true
         default: firefox
         type: choice
@@ -25,6 +34,8 @@ on:
           - chromium
           - firefox
           - webkit
+          - chromium-mobile
+          - webkit-mobile
       workers:
         # Production legs run 1 except the page-sweep rows of chromium and
         # firefox, which run 2 (tools/e2e-plan.ts, MatrixRow.workers) — so
@@ -34,7 +45,7 @@ on:
         required: true
         default: "1"
       only_shard:
-        description: Run a single shard (1-5), or "all" for the full split
+        description: Run a single shard (1-6), or "all" for the full split
         required: true
         default: all
         type: string
@@ -164,34 +175,52 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5]
+        # Six because the plan cuts page-sweep at six (tools/e2e-plan.ts
+        # ROOT_SHARD_PLAN) and the shard guards below admit up to GROUP_SHARDS:
+        # a matrix narrower than the largest arm leaves shard 6 a dispatch
+        # input that silently runs nothing (ecoma-io/loom#389).
+        shard: [1, 2, 3, 4, 5, 6]
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
       options: --cap-add SYS_ADMIN
       env:
         PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
+      # Every setup step below carries the run step's shard guard verbatim.
+      # Setup was measured at ≈55 s per job — measured on unselected-shard
+      # bench jobs, i.e. exactly this waste (perf/ci-performance-contract.md,
+      # "per-job setup floor") — so a one-shard dispatch no longer pays it
+      # four or five times over on shards that skip every guarded step. The
+      # jobs still report, as skipped-step shells: the right shape for a
+      # benchmark, per the run step's comment below.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
         with:
           persist-credentials: false
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
         with:
           node-version-file: .node-version
           cache: pnpm
 
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
 
       - run: pnpm install --frozen-lockfile
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
 
       # The Playwright image does not ship zstd, and actions/cache compresses
       # with it — the same one-package step `e2e-run` carries.
       - name: Install zstd for the site cache
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
         run: apt-get update -qq && apt-get install -y -qq zstd
 
       - name: Restore the built site
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: docs/.vitepress/dist
