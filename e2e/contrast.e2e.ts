@@ -1,6 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { timed } from "../playwright/timings";
 import { documentationPages } from "./docs-pages";
+import { REUSE_THEME, reachDark } from "./theme";
 
 // One rendered-SVG contrast sweep per page, at WCAG 1.4.11's 3:1 floor for
 // graphical objects. Two real defects hid behind the same pair of gaps, and
@@ -31,6 +32,12 @@ import { documentationPages } from "./docs-pages";
 // component that owns one of those tokens asserts it verbatim in its own
 // unit tests — so a data-bearing glyph can never borrow the exemption
 // without the class-level pin failing first.
+//
+// Both sweeps ride one test per page when `LOOM_E2E_REUSE_THEME=1` (see
+// e2e/theme.ts): the light pass sweeps, then the dark pass reaches dark on
+// the loaded page through VitePress's own toggle and sweeps again. Unset —
+// the default — each theme still navigates on its own, byte-for-byte as
+// before.
 
 const measureInPage = () => {
   // Hoisted helpers: `page.evaluate` serialises the function body, so the
@@ -46,6 +53,17 @@ const measureInPage = () => {
     _canvas.width = 1;
     _canvas.height = 1;
     const _ctx = _canvas.getContext("2d")!;
+    // Counted, not trusted dormant: today every computed colour on the swept
+    // pages is expected to serialize as rgb/rgba, so the canvas round-trip
+    // below should never produce a value a ratio is computed from. The count
+    // covers only conversions that returned a colour — an unparseable string
+    // that comes back transparent (alpha 0, e.g. a paint-server url) is
+    // measurement-excluded, not precision-lossy. The tests assert the count
+    // is zero and name the offending strings, so a non-rgb serialization
+    // turns the sweep red with the evidence to decide beside it.
+    let canvasConversions = 0;
+    const canvasConverted: string[] = [];
+    const transformMismatches: string[] = [];
 
     function toSRGB(str: string): { r: number; g: number; b: number; a: number } | null {
       const s = str.trim();
@@ -59,13 +77,73 @@ const measureInPage = () => {
           a: rgb[4] === undefined ? 1 : +rgb[4],
         };
       }
-      // Slow path: any other format (oklab, oklch, named colour, hsl…).
+      // Oklab — the resolved form the docs theme's color-mix(in oklab, …)
+      // soft surfaces serialize to (named by the tripwire on CI, 2026-09-11).
+      // Ottosson's closed form is exact: oklab → LMS′ → cube → linear sRGB →
+      // encode. Malformed components fall through to the canvas below, which
+      // still counts them — fail-closed.
+      const oklab = /^oklab\(([^)]*)\)$/.exec(s);
+      if (oklab) {
+        const num = (t: string): number =>
+          t.endsWith("%") ? Number.parseFloat(t) / 100 : Number.parseFloat(t);
+        const [body = "", alphaText = ""] = (oklab[1] ?? "").split("/").map((p) => p.trim());
+        const [lText = "", aText = "", bText = ""] = body.split(/\s+/);
+        const L = num(lText);
+        const aa = num(aText);
+        const bb = num(bText);
+        const alpha = alphaText === "" ? 1 : num(alphaText);
+        if ([L, aa, bb, alpha].every((v) => !Number.isNaN(v))) {
+          const l_ = L + 0.3963377774 * aa + 0.2158037573 * bb;
+          const m_ = L - 0.1055613458 * aa - 0.0638541728 * bb;
+          const s_ = L - 0.0894841775 * aa - 1.291485548 * bb;
+          const rl = l_ * l_ * l_;
+          const gl = m_ * m_ * m_;
+          const bl = s_ * s_ * s_;
+          const enc = (v: number): number => {
+            const c = Math.min(1, Math.max(0, v));
+            return Math.round(
+              255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055),
+            );
+          };
+          const r8 = enc(4.0767416621 * rl - 3.3077115913 * gl + 0.2309699292 * bl);
+          const g8 = enc(-1.2684380046 * rl + 2.6097574011 * gl - 0.3413193965 * bl);
+          const b8 = enc(-0.0041960863 * rl - 0.7034186147 * gl + 1.707614701 * bl);
+          // Cross-check against the engine once per conversion: the canvas
+          // read of the same string is the renderer's own answer, 8-bit
+          // quantized. The slack is alpha-scaled — canvas storage is
+          // premultiplied, so at alpha a one storage count reconstructs to
+          // ~1/a channel counts (observed on WebKit, 2026-09-12: an
+          // oklab(... / 0.1) failed a flat one-count tolerance while the
+          // transform was exact). A wrong coefficient shifts a colour by
+          // far more than that bound, so a disagreement is still recorded
+          // as a defect, not absorbed as a fallback.
+          const slack = Math.max(1, Math.ceil(1 / alpha));
+          _ctx.clearRect(0, 0, 1, 1);
+          _ctx.fillStyle = s;
+          _ctx.fillRect(0, 0, 1, 1);
+          const [er = 0, eg = 0, eb = 0, ealpha = 0] = _ctx.getImageData(0, 0, 1, 1).data;
+          if (
+            ealpha === 0 ||
+            Math.abs(er - r8) > slack ||
+            Math.abs(eg - g8) > slack ||
+            Math.abs(eb - b8) > slack
+          ) {
+            transformMismatches.push(s);
+          }
+          return { r: r8, g: g8, b: b8, a: alpha };
+        }
+        // A malformed oklab falls through to the canvas below, which still
+        // counts it — fail-closed.
+      }
+      // Slow path: any other format (oklch, named colour, hsl…).
       // Draw one pixel and read it back — the browser does the conversion.
       _ctx.clearRect(0, 0, 1, 1);
       _ctx.fillStyle = s;
       _ctx.fillRect(0, 0, 1, 1);
       const [r = 0, g = 0, b = 0, alpha = 0] = _ctx.getImageData(0, 0, 1, 1).data;
       if (alpha === 0) return null;
+      canvasConversions += 1;
+      canvasConverted.push(s);
       return { r, g, b, a: alpha / 255 };
     }
 
@@ -228,44 +306,116 @@ const measureInPage = () => {
       }
     }
 
-    return { failures, skipped };
+    return { failures, skipped, canvasConversions, canvasConverted, transformMismatches };
   })();
 };
+
+// The reuse mode's dark pass sweeps the page reachDark already loaded and
+// toggled — no second navigation, no addInitScript.
+async function sweepLoadedPage(browserPage: Page) {
+  return timed("evaluate", () => browserPage.evaluate(measureInPage));
+}
+
+// Tell VitePress which theme to start in. addInitScript runs after the
+// page has an origin but before VitePress's inline script, so the
+// localStorage key is set before first paint — Layout.vue's watchEffect
+// then mirrors it onto `data-theme`, reproducing the same state a real
+// user sees after toggling.
+async function sweepInTheme(browserPage: Page, target: string, theme: "light" | "dark") {
+  await browserPage.addInitScript((t) => {
+    localStorage.setItem("vitepress-theme-appearance", t);
+  }, theme);
+  await timed("goto", () => browserPage.goto(target));
+  return sweepLoadedPage(browserPage);
+}
+
+type Sweep = Awaited<ReturnType<typeof sweepInTheme>>;
+
+// The message carries the measurement, not just the failure: which svg,
+// what it painted, what the composited background actually was, and the
+// ratio between them — the same shape of report the accessibility suite
+// builds for axe violations, so a red gate says what to fix.
+const sweepReport = (failures: Sweep["failures"]): string =>
+  failures
+    .map((f) => `${f.ratio}:1 — ${f.svgClass} painted ${f.paint} on ${f.background}`)
+    .join("\n");
+
+// The canvas fallback is the one place the sweep's numbers can silently
+// change error profile: it loses precision on anything the rgb fast path
+// would have parsed losslessly. Holding it at zero pins the sweep's
+// precision story — a colour format the fast path cannot parse turns the
+// gate red with the offending strings named, forcing the decision (extend
+// the fast path, or accept the canvas precision deliberately) instead of
+// letting the ratios drift.
+const canvasTripwire = (
+  count: Sweep["canvasConversions"],
+  converted: Sweep["canvasConverted"],
+): string =>
+  `the sweep's canvas fallback converted ${String(count)} colour(s) through the lossy canvas round-trip: ${converted.join(" | ")}. Every computed colour on the swept pages is expected to serialize as rgb/rgba or oklab, which the fast path parses exactly. Extend the fast path deliberately, or accept the canvas precision in a comment beside the assertion, before trusting these ratios again.`;
+
+// A mismatch is a defect in the walk's Oklab→sRGB transform, not a theme
+// defect: the cross-check compares the closed form against the engine's own
+// resolution of the same string, which they may differ by at most the
+// canvas's one-count quantization. A wrong coefficient would quietly shift
+// every ratio computed from an oklab colour — fix the transform before
+// trusting any of them.
+const transformMessage = (mismatches: Sweep["transformMismatches"]): string =>
+  `the walk's Oklab→sRGB transform disagrees with the engine's own resolution of: ${mismatches.join(" | ")} — beyond the canvas's one-count quantization per channel. Fix the transform before trusting any ratio that touched these colours.`;
 
 for (const page of documentationPages()) {
   const label = page === "." ? "/" : `/${page}`;
 
-  for (const theme of ["light", "dark"] as const) {
-    test(`${label} (${theme}) draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
-      page: browserPage,
-    }) => {
-      // Tell VitePress which theme to start in. addInitScript runs after the
-      // page has an origin but before VitePress's inline script, so the
-      // localStorage key is set before first paint — Layout.vue's watchEffect
-      // then mirrors it onto `data-theme`, reproducing the same state a real
-      // user sees after toggling.
-      await browserPage.addInitScript((t) => {
-        localStorage.setItem("vitepress-theme-appearance", t);
-      }, theme);
-      await timed("goto", () => browserPage.goto(page));
+  if (!REUSE_THEME) {
+    for (const theme of ["light", "dark"] as const) {
+      test(`${label} (${theme}) draws every SVG graphical object at WCAG 1.4.11's 3:1 floor`, async ({
+        page: browserPage,
+      }) => {
+        const { failures, skipped, canvasConversions, canvasConverted, transformMismatches } =
+          await sweepInTheme(browserPage, page, theme);
+        expect(failures, sweepReport(failures)).toEqual([]);
 
-      const { failures, skipped } = await timed("evaluate", () =>
-        browserPage.evaluate(measureInPage),
-      );
+        // Nothing silently escapes the sweep. A gradient backdrop has no single
+        // ratio, so the elements on one are counted rather than ignored.
+        expect(skipped, `svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
 
-      // The message carries the measurement, not just the failure: which svg,
-      // what it painted, what the composited background actually was, and the
-      // ratio between them — the same shape of report the accessibility suite
-      // builds for axe violations, so a red gate says what to fix.
-      const report = failures
-        .map((f) => `${f.ratio}:1 — ${f.svgClass} painted ${f.paint} on ${f.background}`)
-        .join("\n");
+        // And nothing silently changes the precision the verdicts rest on.
+        expect(canvasConversions, canvasTripwire(canvasConversions, canvasConverted)).toBe(0);
+        expect(transformMismatches, transformMessage(transformMismatches)).toEqual([]);
+      });
+    }
 
-      expect(failures, report).toEqual([]);
-
-      // Nothing silently escapes the sweep. A gradient backdrop has no single
-      // ratio, so the elements on one are counted rather than ignored.
-      expect(skipped, `svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
-    });
+    continue;
   }
+
+  test(`${label} draws every SVG graphical object at WCAG 1.4.11's 3:1 floor in either theme`, async ({
+    page: browserPage,
+  }) => {
+    await test.step("light", async () => {
+      const { failures, skipped, canvasConversions, canvasConverted, transformMismatches } =
+        await sweepInTheme(browserPage, page, "light");
+      expect(failures, `[light] ${sweepReport(failures)}`).toEqual([]);
+      expect(skipped, `[light] svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+      expect(
+        canvasConversions,
+        `[light] ${canvasTripwire(canvasConversions, canvasConverted)}`,
+      ).toBe(0);
+      expect(transformMismatches, `[light] ${transformMessage(transformMismatches)}`).toEqual([]);
+    });
+
+    await test.step("dark", async () => {
+      // The dark pass rides the same loaded page: reach dark through
+      // VitePress's own toggle — reachDark also asserts the DOM-identity
+      // premise the collapse both modes share — then sweep it again.
+      await reachDark(browserPage, page, label);
+      const { failures, skipped, canvasConversions, canvasConverted, transformMismatches } =
+        await sweepLoadedPage(browserPage);
+      expect(failures, `[dark] ${sweepReport(failures)}`).toEqual([]);
+      expect(skipped, `[dark] svgs skipped on a gradient backdrop: ${String(skipped)}`).toBe(0);
+      expect(
+        canvasConversions,
+        `[dark] ${canvasTripwire(canvasConversions, canvasConverted)}`,
+      ).toBe(0);
+      expect(transformMismatches, `[dark] ${transformMessage(transformMismatches)}`).toEqual([]);
+    });
+  });
 }

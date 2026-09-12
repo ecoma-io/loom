@@ -1,8 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import { documentationPages } from "./docs-pages";
 import { timed } from "../playwright/timings";
+import { REUSE_THEME, reachDark } from "./theme";
 
 // One `axe-core` run per rendered page, scoped to the effective rule set the
 // library holds itself to (`BROWSERLESS_RULES ∪ BROWSER_REQUIRED_RULES`,
@@ -15,141 +16,178 @@ import { timed } from "../playwright/timings";
 // a symmetric set (not overrides), so both must pass independently — a
 // contrast ratio that clears the floor in light mode is not guaranteed to do
 // so in dark, and vice versa.
+//
+// Both themes ride one test per page when `LOOM_E2E_REUSE_THEME=1` (see
+// e2e/theme.ts): the light pass runs the full effective rule set, the dark
+// pass flips VitePress's own toggle on the loaded page and re-runs only the
+// color-dependent rules against the DOM the light pass proved. Unset — the
+// default — each theme still navigates on its own, with byte-for-byte the
+// titles and phases it has always had.
+
+// Tell VitePress to start in light mode. The `vitepress-theme-appearance`
+// key is the one VitePress's own toggle writes to; its inline script reads
+// it before first paint to set `.dark`, and Layout.vue's watchEffect then
+// mirrors it onto `data-theme`. Setting it before navigation reproduces the
+// path a real user takes through the toggle — no manual DOM mutation, no
+// risk of the reactive system reverting it mid-scan.
+async function loadInLight(browserPage: Page, target: string): Promise<void> {
+  await browserPage.addInitScript(() => {
+    localStorage.setItem("vitepress-theme-appearance", "light");
+  });
+  await timed("goto", () => browserPage.goto(target));
+  // Ensure the repaint has landed before axe reads computed colours.
+  await timed("wait-repaint", () =>
+    browserPage.waitForFunction(() => {
+      const match = /rgba?\((\d+),/.exec(getComputedStyle(document.body).backgroundColor);
+      return match && Number(match[1]) > 200;
+    }),
+  );
+}
+
+// Tell VitePress to start in dark mode. Setting the localStorage key before
+// navigation means VitePress's inline script adds `.dark` before first paint,
+// Layout.vue's watchEffect mirrors it onto `data-theme`, and the page arrives
+// in the same state a real user sees after toggling — no manual DOM mutation,
+// no risk of the reactive system reverting it mid-scan.
+async function loadInDark(browserPage: Page, target: string): Promise<void> {
+  await browserPage.addInitScript(() => {
+    localStorage.setItem("vitepress-theme-appearance", "dark");
+  });
+  await timed("goto", () => browserPage.goto(target));
+  // Wait for the browser to repaint with the dark theme. VitePress's inline
+  // script sets `.dark` before paint, and Layout.vue's watchEffect sets
+  // `data-theme` during hydration — but the repaint is asynchronous, and
+  // axe can run before the computed colours update, reading stale values.
+  await timed("wait-repaint", () =>
+    browserPage.waitForFunction(() => {
+      const bodyBg = getComputedStyle(document.body).backgroundColor;
+      // Dark backgrounds have very low RGB values.
+      const match = /rgba?\((\d+),/.exec(bodyBg);
+      return match && Number(match[1]) < 50;
+    }),
+  );
+}
+
+// The light pass's axe run: the full effective rule set, exactly as the light
+// test has always configured it.
+const scanEffectiveRules = (browserPage: Page) =>
+  new AxeBuilder({ page: browserPage })
+    // The rule lists, not the tags: a tag-type runOnly cannot select the
+    // five rules adopted out of axe's disabled set on 2026-08-26, and this
+    // gate is the only judge of the built site's non-demo content — the
+    // prose and the token tables `design-tokens.ts` emits, exactly the
+    // markup `td-has-header` and `table-fake-caption` exist for. The site
+    // is held to the same 68-rule effective set as the demo tiers, with no
+    // gap between them.
+    .withRules([
+      ...(BROWSERLESS_RULES as readonly string[]),
+      ...(BROWSER_REQUIRED_RULES as readonly string[]),
+    ] as string[])
+    // No excludes, and keeping it that way is the point.
+    //
+    // There were two, both blaming the vendor, and both wrong. Code blocks
+    // were excluded for `color-contrast` — but the colours that failed were
+    // failing against `--vp-code-block-bg`, which is a line we wrote, and
+    // pointing it at the content surface instead cleared the floor. Tables
+    // were excluded for `scrollable-region-focusable`, blamed on VitePress
+    // styling tables as scrollable without a `tabindex` — and VitePress in
+    // fact writes that `tabindex` itself, on every table it renders from
+    // markdown. The tables that failed were the ones *we* generate as raw
+    // HTML in `design-tokens.ts`, which markdown-it passes through untouched.
+    //
+    // What both exclusions had in common is a note that sounded like a
+    // reason. An exclusion is not justified by naming a cause; it is
+    // justified by that cause being outside this repository's reach — and
+    // neither of these was, one of them not even being the real cause.
+    // Before adding one here, find which code actually emits the failing
+    // element.
+    .analyze();
+
+// The dark pass re-runs `color-contrast` alone.
+// Measured 2026-08-26: a page's DOM in light and dark is byte-identical
+// except the `data-theme` attribute, the `.dark` class, and VitePress's
+// appearance-toggle `title`/`aria-checked` (its accessible name flips —
+// non-empty in both). Therefore semantic and geometry rules re-prove the
+// same input they already proved in the light pass; only color-dependent
+// checks can differ. The union of light-full + dark-contrast equals the
+// old coverage (the full rule set in both themes), and the dark pass is
+// ~27% faster because the semantic rules are not re-run on identical
+// DOM — the light pass runs all 68 effective rules, the five adopted
+// from axe's disabled set on 2026-08-26 included, so only color-
+// dependent checks can differ between the themes, and this pass re-runs
+// exactly those.
+// In reuse mode that premise is not just history: reachDark (e2e/theme.ts)
+// asserts it on every page it collapses, so a VitePress or Demo.vue change
+// that drifts the themes' DOM apart turns the suite red instead of
+// silently weakening the dark pass.
+const scanColorContrast = (browserPage: Page) =>
+  new AxeBuilder({ page: browserPage })
+    .withRules(["color-contrast"])
+    // No excludes — the same bar the light-theme test holds itself to.
+    //
+    // There were once VitePress-specific excludes here, and every one of
+    // them was wrong. The `.dark` class was missing from the test, leaving
+    // VitePress's own CSS in light mode while Loom's tokens had switched to
+    // dark — a state no user ever sees, and one that fails contrast at
+    // every turn because VitePress's light-mode chrome colours are not
+    // designed for dark backgrounds. Adding `.dark` alongside `data-theme`
+    // reproduced the real synchronised state, and the VitePress-specific
+    // failures vanished.
+    //
+    // An exclusion is not justified by naming a cause; it is justified by
+    // that cause being outside this repository's reach. The Shiki theme,
+    // the code-block background, the VitePress link colour — all are chosen
+    // by this repository, in `config.mts` and `theme.css`. Before adding
+    // an exclude here, find which code actually emits the failing element.
+    .analyze();
+
+const formatViolations = (violations: Violations): string =>
+  violations
+    .map((violation) => {
+      const targets = violation.nodes.map((node) => node.target.join(" ")).join(", ");
+      return `[${violation.impact ?? "unknown"}] ${violation.id}: ${violation.help} (${targets})`;
+    })
+    .join("\n");
+
+type Violations = Awaited<ReturnType<typeof scanColorContrast>>["violations"];
 
 for (const page of documentationPages()) {
   const label = page === "." ? "/" : `/${page}`;
 
-  test(`${label} (light) has no violations against Loom's effective WCAG rule set`, async ({
-    page: browserPage,
-  }) => {
-    // Tell VitePress to start in light mode. The `vitepress-theme-appearance`
-    // key is the one VitePress's own toggle writes to; its inline script reads
-    // it before first paint to set `.dark`, and Layout.vue's watchEffect then
-    // mirrors it onto `data-theme`. Setting it before navigation reproduces the
-    // path a real user takes through the toggle — no manual DOM mutation, no
-    // risk of the reactive system reverting it mid-scan.
-    await browserPage.addInitScript(() => {
-      localStorage.setItem("vitepress-theme-appearance", "light");
+  if (!REUSE_THEME) {
+    test(`${label} (light) has no violations against Loom's effective WCAG rule set`, async ({
+      page: browserPage,
+    }) => {
+      await loadInLight(browserPage, page);
+      const { violations } = await timed("axe-analyze", () => scanEffectiveRules(browserPage));
+      expect(violations, formatViolations(violations)).toEqual([]);
     });
-    await timed("goto", () => browserPage.goto(page));
-    // Ensure the repaint has landed before axe reads computed colours.
-    await timed("wait-repaint", () =>
-      browserPage.waitForFunction(() => {
-        const match = /rgba?\((\d+),/.exec(getComputedStyle(document.body).backgroundColor);
-        return match && Number(match[1]) > 200;
-      }),
-    );
 
-    const { violations } = await timed("axe-analyze", () =>
-      new AxeBuilder({ page: browserPage })
-        // The rule lists, not the tags: a tag-type runOnly cannot select the
-        // five rules adopted out of axe's disabled set on 2026-08-26, and this
-        // gate is the only judge of the built site's non-demo content — the
-        // prose and the token tables `design-tokens.ts` emits, exactly the
-        // markup `td-has-header` and `table-fake-caption` exist for. The site
-        // is held to the same 68-rule effective set as the demo tiers, with no
-        // gap between them.
-        .withRules([
-          ...(BROWSERLESS_RULES as readonly string[]),
-          ...(BROWSER_REQUIRED_RULES as readonly string[]),
-        ] as string[])
-        // No excludes, and keeping it that way is the point.
-        //
-        // There were two, both blaming the vendor, and both wrong. Code blocks
-        // were excluded for `color-contrast` — but the colours that failed were
-        // failing against `--vp-code-block-bg`, which is a line we wrote, and
-        // pointing it at the content surface instead cleared the floor. Tables
-        // were excluded for `scrollable-region-focusable`, blamed on VitePress
-        // styling tables as scrollable without a `tabindex` — and VitePress in
-        // fact writes that `tabindex` itself, on every table it renders from
-        // markdown. The tables that failed were the ones *we* generate as raw
-        // HTML in `design-tokens.ts`, which markdown-it passes through untouched.
-        //
-        // What both exclusions had in common is a note that sounded like a
-        // reason. An exclusion is not justified by naming a cause; it is
-        // justified by that cause being outside this repository's reach — and
-        // neither of these was, one of them not even being the real cause.
-        // Before adding one here, find which code actually emits the failing
-        // element.
-        .analyze(),
-    );
-
-    const report = violations
-      .map((violation) => {
-        const targets = violation.nodes.map((node) => node.target.join(" ")).join(", ");
-        return `[${violation.impact ?? "unknown"}] ${violation.id}: ${violation.help} (${targets})`;
-      })
-      .join("\n");
-
-    expect(violations, report).toEqual([]);
-  });
-
-  test(`${label} (dark) has no violations against color-dependent WCAG rules`, async ({
-    page: browserPage,
-  }) => {
-    // Tell VitePress to start in dark mode. Setting the localStorage key before
-    // navigation means VitePress's inline script adds `.dark` before first paint,
-    // Layout.vue's watchEffect mirrors it onto `data-theme`, and the page arrives
-    // in the same state a real user sees after toggling — no manual DOM mutation,
-    // no risk of the reactive system reverting it mid-scan.
-    await browserPage.addInitScript(() => {
-      localStorage.setItem("vitepress-theme-appearance", "dark");
+    test(`${label} (dark) has no violations against color-dependent WCAG rules`, async ({
+      page: browserPage,
+    }) => {
+      await loadInDark(browserPage, page);
+      const { violations } = await timed("axe-analyze", () => scanColorContrast(browserPage));
+      expect(violations, formatViolations(violations)).toEqual([]);
     });
-    await timed("goto", () => browserPage.goto(page));
-    // Wait for the browser to repaint with the dark theme. VitePress's inline
-    // script sets `.dark` before paint, and Layout.vue's watchEffect sets
-    // `data-theme` during hydration — but the repaint is asynchronous, and
-    // axe can run before the computed colours update, reading stale values.
-    await timed("wait-repaint", () =>
-      browserPage.waitForFunction(() => {
-        const bodyBg = getComputedStyle(document.body).backgroundColor;
-        // Dark backgrounds have very low RGB values.
-        const match = /rgba?\((\d+),/.exec(bodyBg);
-        return match && Number(match[1]) < 50;
-      }),
-    );
 
-    // Measured 2026-08-26: a page's DOM in light and dark is byte-identical
-    // except the `data-theme` attribute, the `.dark` class, and VitePress's
-    // appearance-toggle `title`/`aria-checked` (its accessible name flips —
-    // non-empty in both). Therefore semantic and geometry rules re-prove the
-    // same input they already proved in the light pass; only color-dependent
-    // checks can differ. The union of light-full + dark-contrast equals the
-    // old coverage (the full rule set in both themes), and the dark pass is
-    // ~27% faster because the semantic rules are not re-run on identical
-    // DOM — the light pass runs all 68 effective rules, the five adopted
-    // from axe's disabled set on 2026-08-26 included, so only color-
-    // dependent checks can differ between the themes, and this pass re-runs
-    // exactly those.
-    const { violations } = await timed("axe-analyze", () =>
-      new AxeBuilder({ page: browserPage })
-        .withRules(["color-contrast"])
-        // No excludes — the same bar the light-theme test holds itself to.
-        //
-        // There were once VitePress-specific excludes here, and every one of
-        // them was wrong. The `.dark` class was missing from the test, leaving
-        // VitePress's own CSS in light mode while Loom's tokens had switched to
-        // dark — a state no user ever sees, and one that fails contrast at
-        // every turn because VitePress's light-mode chrome colours are not
-        // designed for dark backgrounds. Adding `.dark` alongside `data-theme`
-        // reproduced the real synchronised state, and the VitePress-specific
-        // failures vanished.
-        //
-        // An exclusion is not justified by naming a cause; it is justified by
-        // that cause being outside this repository's reach. The Shiki theme,
-        // the code-block background, the VitePress link colour — all are chosen
-        // by this repository, in `config.mts` and `theme.css`. Before adding
-        // an exclude here, find which code actually emits the failing element.
-        .analyze(),
-    );
+    continue;
+  }
 
-    const report = violations
-      .map((violation) => {
-        const targets = violation.nodes.map((node) => node.target.join(" ")).join(", ");
-        return `[${violation.impact ?? "unknown"}] ${violation.id}: ${violation.help} (${targets})`;
-      })
-      .join("\n");
+  test(`${label} has no WCAG violations in either theme`, async ({ page: browserPage }) => {
+    await test.step("light", async () => {
+      await loadInLight(browserPage, page);
+      const { violations } = await timed("axe-analyze", () => scanEffectiveRules(browserPage));
+      expect(violations, `[light] ${formatViolations(violations)}`).toEqual([]);
+    });
 
-    expect(violations, report).toEqual([]);
+    await test.step("dark", async () => {
+      // The dark pass rides the same loaded page: reach dark through
+      // VitePress's own toggle — reachDark also asserts the DOM-identity premise
+      // the collapse rests on — then re-run only the color-dependent rules.
+      await reachDark(browserPage, page, label);
+      const { violations } = await timed("axe-analyze", () => scanColorContrast(browserPage));
+      expect(violations, `[dark] ${formatViolations(violations)}`).toEqual([]);
+    });
   });
 }

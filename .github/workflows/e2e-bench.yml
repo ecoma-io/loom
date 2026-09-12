@@ -1,0 +1,234 @@
+name: E2E bench
+
+# The measurement instrument behind ecoma-io/loom#367: one dispatch runs the
+# root sweep on real CI runners with `LOOM_E2E_TIMINGS` enabled and uploads the
+# JSONL — per-phase (goto, wait-repaint, axe-analyze, evaluate) and per-test
+# records joined in one file by the timings reporter. Production CI never sets
+# that variable, so nothing here can drift into the quality gate; and the
+# environment below is copied from `e2e-run`/`e2e-build-docs` in `ci.yml` (the
+# Playwright container, the SYS_ADMIN cap Firefox's sandbox needs, the
+# `PW_PREBUILT_DOCS` seam, the same action pins) so the numbers it produces are
+# comparable with the leg history in `perf/e2e-performance-baseline.md`.
+#
+# This workflow is a benchmark, not a gate: no other job waits on it, and a
+# red bench answers a measurement question rather than blocking a merge.
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Playwright project (engine) to run
+        required: true
+        default: firefox
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+      workers:
+        # Production legs run 1 except the a11y rows of chromium and firefox,
+        # which run 2 (tools/e2e-plan.ts, MatrixRow.workers) — so dispatching
+        # workers=2 on the a11y group reproduces those legs' exact shape.
+        description: Playwright --workers for this run
+        required: true
+        default: "1"
+      only_shard:
+        description: Run a single shard (1-5), or "all" for the full split
+        required: true
+        default: all
+        type: string
+      profile:
+        # Production root legs run `full` on pw-infra runs and `standard`
+        # everywhere else (ci.yml sets PW_PROFILE from the matrix row); the
+        # bench defaults to `standard` so new numbers stay comparable with
+        # the leg history in perf/e2e-performance-baseline.md.
+        description: PW_PROFILE for this run
+        required: false
+        default: standard
+        type: choice
+        options:
+          - standard
+          - full
+      group:
+        # The measured spec-group legs (tools/e2e-plan.ts ROOT_SHARD_PLAN) as
+        # a dispatch choice, so a bench can time exactly the legs production
+        # runs. The shard counts and spec paths below deliberately restate
+        # ROOT_SHARD_PLAN instead of calling it — dispatch inputs are static
+        # — so re-cutting the plan must update this map in the same commit.
+        description: Spec-group leg to run (empty = legacy flat 5-shard split)
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - a11y
+          - contrast
+          - keyboard
+          - target-size
+          - small
+      reuse_theme:
+        # The specs' collapsed light+dark shape (LOOM_E2E_REUSE_THEME in
+        # e2e/accessibility.e2e.ts / e2e/contrast.e2e.ts). The A/B lever for
+        # the navigation-reuse decision: dispatch the same group twice, flag
+        # off and on, and diff the goto-phase counts and wall from the JSONL.
+        description: Collapse light+dark into one goto per page
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  # Keyed by the dispatch parameters, not just the ref: two benches of
+  # different engines on the same branch are independent measurements, and a
+  # ref-only group would let the second dispatch cancel the first (observed
+  # 2026-09-11: the chromium dispatch cancelled the queued firefox run of the
+  # same SHA). The reuse flag joins the key for the same reason — the A/B is
+  # two concurrent-eligible benches of one group, not one measurement. So does
+  # the shard selector: the topology bursts dispatch one leg per run — a11y
+  # s1, s2, s3 as three dispatches seconds apart — and the key without it let
+  # each shard dispatch cancel the previous one (observed 2026-09-12: 9 of the
+  # 24 burst runs cancelled, every a11y s1/s2 and contrast s1 leg among them).
+  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-r${{ inputs.reuse_theme }}-s${{ inputs.only_shard }}
+  cancel-in-progress: true
+
+jobs:
+  bench-build-docs:
+    name: Bench · build docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Full history because `moon run` resolves `main` against the
+      # remote-tracking ref (the failure is recorded in ci.yml's
+      # `e2e-build-docs` checkout comment — this is that same price).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Restore-or-build, then save under the same immutable key production
+      # uses, so a bench can also consume a site `verify` already banked for
+      # this commit. The split restore/save (not combined `actions/cache`)
+      # keeps a failed build from freezing a partial dist under the key —
+      # same reason `e2e-build-docs` spells it this way.
+      - name: Restore an already-built site
+        id: docs-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+
+      - name: Build the docs site
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        env:
+          MOON_CONCURRENCY: "4"
+        run: pnpm exec moon run docs:build
+
+      - name: Save the built site
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+
+  bench-run:
+    name: Bench · ${{ inputs.project }} · ${{ inputs.group == '' && 'flat' || inputs.group }} · s${{ matrix.shard }} · w${{ inputs.workers }}
+    runs-on: ubuntu-latest
+    needs: bench-build-docs
+    timeout-minutes: 40
+    env:
+      # The dispatch inputs cannot call tools/e2e-plan.ts, so the group →
+      # (shards, specs) map rests here and mirrors ROOT_SHARD_PLAN; the
+      # `small` list is the same computed catch-all (every root spec not in
+      # the plan). Empty group = the legacy flat 5-shard split.
+      GROUP_SHARDS: ${{ inputs.group == 'a11y' && '3' || inputs.group == 'contrast' && '2' || inputs.group != '' && '1' || '5' }}
+      GROUP_SPECS: ${{ inputs.group == 'a11y' && 'e2e/accessibility.e2e.ts' || inputs.group == 'contrast' && 'e2e/contrast.e2e.ts' || inputs.group == 'keyboard' && 'e2e/keyboard.e2e.ts' || inputs.group == 'target-size' && 'e2e/target-size.e2e.ts' || inputs.group == 'small' && 'e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --cap-add SYS_ADMIN
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - run: pnpm install --frozen-lockfile
+
+      # The Playwright image does not ship zstd, and actions/cache compresses
+      # with it — the same one-package step `e2e-run` carries.
+      - name: Install zstd for the site cache
+        run: apt-get update -qq && apt-get install -y -qq zstd
+
+      - name: Restore the built site
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      # `matrix` is not available in a job-level `if` (it is evaluated before
+      # the strategy expands — the dispatch API rejected the workflow on
+      # exactly that), so the single-shard filter lives on the steps instead.
+      # Unselected shards report as jobs with skipped steps, which is the
+      # right shape for a benchmark.
+      #
+      # HOME=/root reaches the browser process where container-scoped env does
+      # not (the runner overrides HOME; measured and recorded in ci.yml) —
+      # Firefox refuses to run as root otherwise.
+      - name: Run Playwright (instrumented)
+        if: (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
+        env:
+          HOME: /root
+          PW_PROFILE: ${{ inputs.profile }}
+          PW_PREBUILT_DOCS: "1"
+          LOOM_E2E_TIMINGS: /tmp/timings.jsonl
+          # Empty when the input is false, so the specs keep today's two-goto
+          # shape — the flag is read with the same unset-means-off contract as
+          # LOOM_E2E_TIMINGS.
+          LOOM_E2E_REUSE_THEME: ${{ inputs.reuse_theme && '1' || '' }}
+        run: >-
+          set -e;
+          SECONDS=0;
+          pnpm exec playwright test
+          --project ${{ inputs.project }}
+          --config playwright.config.ts
+          --workers ${{ inputs.workers }}
+          ${{ env.GROUP_SPECS }}
+          --shard=${{ matrix.shard }}/${{ env.GROUP_SHARDS }};
+          echo "e2e-bench ${{ inputs.project }} group=${{ inputs.group || 'flat' }} shard=${{ matrix.shard }}/${{ env.GROUP_SHARDS }} workers=${{ inputs.workers }} profile=${{ inputs.profile }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
+
+      # Uploaded on every outcome: a bench that fails mid-shard still carries
+      # the phase records written before the failure, which is often the
+      # interesting half of the answer.
+      - name: Upload timings
+        if: always() && (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: timings-${{ inputs.project }}-${{ inputs.group || 'flat' }}-s${{ matrix.shard }}-w${{ inputs.workers }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/timings.jsonl
+          retention-days: 14
+          if-no-files-found: warn

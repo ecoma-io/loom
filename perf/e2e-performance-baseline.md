@@ -119,4 +119,8 @@ seam (~75 s × legs saved), docs-dist cache per commit, moon task + toolchain
 caches, Playwright container image (no per-leg browser install — the apt
 starvation of 2026-08), dynamic scenario matrix in `tools/e2e-plan.ts`, the
 #122 WCAG gate split (Firefox shard median 7.2 → 5.9 m), spec-less component
-PRs running zero browser legs, shard sizing by pages with a bounded cap.
+PRs running zero browser legs, shard sizing by pages with a bounded cap —
+superseded on this branch by the measured spec-group plan
+(`e2e-performance-analysis.md` §9, `tools/e2e-plan.ts`): same
+new-gates-join-automatically property, cost-based groups instead of page
+count.
