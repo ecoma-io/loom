@@ -1000,10 +1000,13 @@ jobs:
     # treat an empty `include`.
     needs: [e2e-discover, e2e-build-docs]
     if: ${{ !cancelled() && needs.e2e-discover.result == 'success' && needs.e2e-discover.outputs.matrix != '[]' && (needs.e2e-build-docs.result == 'success' || needs.e2e-build-docs.result == 'skipped') }}
-    # Sized for the slowest leg: the measured spec-group plan (tools/e2e-plan.ts,
-    # bench runs 34593135967/34593707946) puts the pole at the accessibility
-    # 3-way split, ~6.5m of tests on Firefox, plus ~2 of setup, with headroom
-    # for Playwright's two CI retries with traces on a genuinely failing shard.
+    # Sized for the slowest leg: the measured pole is the webkit desktop s2
+    # shard at 196 s ≈ 3.3 m (MEASURED, merge run 34687783284 — the leg band
+    # table in perf/ci-performance-contract.md §2), so the budget is not
+    # clean-run arithmetic; it is failure headroom — Playwright's two CI
+    # retries with traces on a genuinely failing shard, plus the straggler
+    # spread the same run's webkit desktop band shows (129–196 s per shard).
+    # §4's pole-regression trigger re-opens this arithmetic from measurement.
     timeout-minutes: 20
     strategy:
       # One battery failing in engine A must not hose the other engines' answer
