@@ -47,8 +47,39 @@ import { expect, type Page } from "@playwright/test";
  * than applied to these attribute names wherever they appear: normalization
  * that reaches past the known markers would call a genuinely divergent DOM
  * green, and an element whose `title` changes with the theme is exactly the
- * drift this gate exists to catch.
+ * drift this gate exists to catch. The prefetch strip is the widest of the
+ * four, so it does not stand on this argument alone:
+ * `assertPrefetchLinksOnlyGrow` pins the links' only licensed mutation to
+ * growth, and anything else fails by name before this normalization runs.
  */
+
+/**
+ * The one prefetch mutation the reuse premise licenses is growth. VitePress
+ * injects `<link rel="prefetch">` as route chunks become worth prefetching —
+ * a function of dwell time, which is exactly why the byte compare must
+ * normalize the links away. But dwell time can only add: a link that
+ * vanished or was rewritten across a theme toggle is a DOM mutation no theme
+ * marker explains, so it fails here, by href, before the strip-based compare
+ * could fold it into the normalization. Without this assertion the strip
+ * would be normalization wider than the evidence — the one thing this gate
+ * may not be.
+ */
+function assertPrefetchLinksOnlyGrow(before: string, after: string, label: string): void {
+  const hrefsOf = (html: string): string[] =>
+    [...html.matchAll(/<link\b[^>]*\brel="prefetch"[^>]*>/g)].map(
+      (link) => /href="([^"]*)"/.exec(link[0])?.[1] ?? link[0],
+    );
+  const afterHrefs = new Set(hrefsOf(after));
+  const vanished = hrefsOf(before).filter((href) => !afterHrefs.has(href));
+  expect(
+    vanished,
+    `[dark] ${label}: prefetch links vanished or changed across the appearance toggle — ` +
+      `growth is the only prefetch mutation the theme-reuse premise licenses ` +
+      `(VitePress injects the links as dwell time makes route chunks worth ` +
+      `prefetching; a removal or rewrite is a DOM change no theme marker ` +
+      `explains): ${JSON.stringify(vanished)}`,
+  ).toEqual([]);
+}
 function withoutThemeMarkers(html: string): string {
   return (
     html
@@ -190,6 +221,7 @@ export async function reachDark(browserPage: Page, target: string, label: string
   // proof no longer transfers and the dark verdicts would be green against
   // input nobody verified.
   const after = await browserPage.content();
+  assertPrefetchLinksOnlyGrow(before, after, label);
   const beforeNormalized = withoutThemeMarkers(before);
   const afterNormalized = withoutThemeMarkers(after);
   expect(
