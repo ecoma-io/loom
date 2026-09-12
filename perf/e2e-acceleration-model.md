@@ -92,9 +92,24 @@ on weaker evidence than the gate it is meant to replace.
   (shared dark page vs fresh light page) — no scroll, focus, storage, or
   theme leakage reached any light check, and payloads stayed identical
   despite the delta.
-- **Verdict B2-STRONG**: all four groups may share the page; the production
-  merge and root-plan re-cut are the follow-up implementation PR's work,
-  with the full-suite CI benchmark as its acceptance evidence.
+- **Verdict B2-STRONG**, and **adopted** (PR #383, stacked on the bench PR
+  #382): `e2e/page-sweep.e2e.ts` replaces the three per-page specs —
+  keyboard keeps its two cross-cutting tests — the plan re-cuts to one
+  page-sweep group at 6 shards (7 root legs per browser instead of 8) with
+  the a11y legs' measured 2 workers on chromium/firefox, and
+  `LOOM_E2E_REUSE_THEME` retires: the collapsed shape is the suite, not a
+  mode. **Acceptance (run 34679559408, 2026-09-12, the PR's own CI, all 41
+  jobs green)**: page-sweep job walls 118–138s per shard on chromium
+  (workers 2), 144–181s on firefox (workers 2), 145–182s on webkit
+  (workers 1) — the root matrix's pole leg ≈ 3.0m against the ~2m test +
+  ~1m setup the 6-shard sizing modelled, and against §1's 10.5–13.0m
+  per-leg P50s.
+- **Workers A/B on the merged shape** (bench run 34679994636, chromium
+  shard 1 of 6): the bench's unselected-shard jobs pin the per-job setup
+  floor at ≈ 55s, so playwright wall ≈ 112s at workers 1 against the CI
+  leg's 130s − ≈55s ≈ 75s at workers 2 — wall ÷ ≈1.5 for zero extra
+  runners, matching the ÷1.55 the 2-worker rule was cut from on the a11y
+  legs. The inheritance holds on the merged unit.
 
 ## 3. Scenario C — coverage-class rerouting (projected, changes semantics)
 
@@ -148,12 +163,13 @@ proposal.
 cap (B4) or deleting coverage (D).** The measured, defensible goals, in
 adoption order: navigation reuse (B5, adopted: −9…−50% per shard at
 unchanged coverage — the one lever that moves the supply-bound fleet wall,
-because it cuts compute), then operator-side supply or B2's compute cut;
-the queueing/topology candidates are **refuted by the 2026-09-12 burst**
+because it cuts compute), then operator-side supply — B2's compute cut has
+since been adopted too (B6 above); the queueing/topology candidates are
+**refuted by the 2026-09-12 burst**
 (analysis §11): the org's measured supply is ≈6–8 runners, so the
 17.1m wall was supply-bound, `max-parallel: 16` never binds, and no leg
-re-cut moves wall ≈ compute ÷ supply. B2 (needs a small tryout PR), and
-Lightpanda as a future cost-reduction candidate for geometry-class specs
+re-cut moves wall ≈ compute ÷ supply. Lightpanda remains a future
+cost-reduction candidate for geometry-class specs
 **only after it clears the capability contract**
 (`perf/browser-capability-contract.md`) — never for the shipped gates,
 whose verdicts this study does not change. B1 and C2, the two
