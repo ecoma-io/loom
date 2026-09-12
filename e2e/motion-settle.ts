@@ -36,21 +36,26 @@ import type { Page } from "@playwright/test";
  *   the same as pending play: a delayed animation's start time is
  *   resolved and its clock counts through the delay, so it gates as
  *   travelled distance, not as "not started yet".
- * - **Pending play never gates.** An animation that is `running` with an
- *   unresolved start time has never ticked: it holds only its fill state
- *   and produces no frames. Beyond the first-frame window of an animation
- *   about to run, this is also — permanently — a CSS animation on an
- *   element that is not being rendered, which Firefox leaves pending
- *   forever while Chromium resolves the same situation without leaving
- *   the animation in the list (the closed Collapse region Reka conceals
- *   with `hidden="until-found"`: run 34720387853, firefox page-sweep s2,
- *   `collapse` 140ms `running` at localTime 0 across all three retries).
- *   Gating on an animation that never advances would make the verdict
- *   depend on an interop artifact — this defect class from the mirror
- *   side. A *paused* animation is deliberately outside this exemption:
- *   paused also reports a null start time, but it can be holding a
- *   mid-flight frame at its paused progress, which is exactly the state
- *   a colour verdict must not sample.
+ * - **Pending play on an unrendered element never gates.** An animation
+ *   that is `running` with an unresolved start time has never ticked.
+ *   That alone is not enough to exempt it: a just-created animation on a
+ *   rendered element is pending for the gap before its first frame and
+ *   *will* tick, so it gates like any other in-flight animation. What is
+ *   exempt is pending play whose target is not being rendered — such an
+ *   animation produces no frames and cannot advance until something
+ *   renders it. That is permanently the closed Collapse region Reka
+ *   conceals with `hidden="until-found"` (mounted on purpose), which
+ *   Firefox leaves pending forever while Chromium resolves the same
+ *   situation without leaving the animation in the list (run 34720387853,
+ *   firefox page-sweep s2, `collapse` 140ms `running` at localTime 0
+ *   across all three retries). Gating on it would make the verdict depend
+ *   on an interop artifact — this defect class from the mirror side.
+ *   Rendered-ness is asked of the element itself via `checkVisibility()`
+ *   (baseline in every engine this suite runs), which is false for a
+ *   `display: none` subtree or any hidden ancestor. A *paused* animation
+ *   is deliberately outside every exemption here: paused can be holding a
+ *   mid-flight frame at its paused progress, which is exactly the state a
+ *   colour verdict must not sample.
  * - **Theme transitions included.** `getAnimations()` returns CSS transitions
  *   as well, so the dark pass also waits out the colour transitions the
  *   appearance flip starts — the same race one step earlier.
@@ -100,15 +105,21 @@ const finiteMotionSettled = () =>
     if (timing.iterations === Infinity) {
       return true;
     }
-    // Pending play: `running` with an unresolved start time has never
-    // ticked — no frame has been produced, so no colour read samples a
-    // transient. In Firefox this is also the permanent state of a CSS
-    // animation on an element Reka conceals with `hidden="until-found"`
-    // (Collapse keeps its closed region mounted on purpose), where the
-    // same page settles in Chromium — see the contract block above. A
-    // paused animation is not exempted: `paused` too reports a null start
-    // time, but it can be holding a mid-flight frame.
-    if (animation.playState === "running" && animation.startTime === null) {
+    // Pending play on an element that is not being rendered: it has never
+    // ticked and cannot until something renders it — no frame, no
+    // transient. Pending play on a *rendered* element is the gap before
+    // its first frame and does gate; only the unrendered kind is exempt
+    // (the Firefox `hidden="until-found"` Collapse shape — see the
+    // contract block above). No target at all renders nothing either. The
+    // effect is cast to KeyframeEffect because `target` lives there in
+    // the DOM typings, not on the AnimationEffect base — and every
+    // animation getAnimations() returns carries one, per spec.
+    const target = (animation.effect as KeyframeEffect | null)?.target ?? null;
+    if (
+      animation.playState === "running" &&
+      animation.startTime === null &&
+      !(target?.checkVisibility() ?? false)
+    ) {
       return true;
     }
     const now = animation.currentTime;
@@ -125,9 +136,15 @@ export const inFlightFiniteAnimations = () =>
     if (animation.playState === "idle" || animation.playState === "finished") {
       return false;
     }
-    // Pending play mirrors the predicate's exemption — lockstep with
-    // `finiteMotionSettled`, which the contract block above explains.
-    if (animation.playState === "running" && animation.startTime === null) {
+    // Pending play on an unrendered element mirrors the predicate's
+    // exemption — lockstep with `finiteMotionSettled`, which the contract
+    // block above explains.
+    const exemptTarget = (animation.effect as KeyframeEffect | null)?.target ?? null;
+    if (
+      animation.playState === "running" &&
+      animation.startTime === null &&
+      !(exemptTarget?.checkVisibility() ?? false)
+    ) {
       return false;
     }
     const timing = animation.effect?.getComputedTiming();
@@ -155,7 +172,14 @@ const stuckMotionReport = () =>
         if (animation.playState === "idle" || animation.playState === "finished") {
           return false;
         }
-        if (animation.playState === "running" && animation.startTime === null) {
+        // Same exemption as the predicate: pending play on an unrendered
+        // element is not a stall, so it is not reported either.
+        const reportTarget = (animation.effect as KeyframeEffect | null)?.target ?? null;
+        if (
+          animation.playState === "running" &&
+          animation.startTime === null &&
+          !(reportTarget?.checkVisibility() ?? false)
+        ) {
           return false;
         }
         const timing = animation.effect?.getComputedTiming();
@@ -170,6 +194,8 @@ const stuckMotionReport = () =>
         state: animation.playState,
         startTime: animation.startTime,
         currentTime: animation.currentTime,
+        rendered:
+          ((animation.effect as KeyframeEffect | null)?.target ?? null)?.checkVisibility() ?? null,
         timing: animation.effect?.getComputedTiming(),
       })),
   );
