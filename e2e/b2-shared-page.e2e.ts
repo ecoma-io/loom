@@ -27,11 +27,13 @@ import { reachDark } from "./theme";
 // This file is a measurement instrument, not a gate. It registers ZERO tests
 // unless `LOOM_E2E_B2_VARIANT` names one of:
 //
-//   off  — today's production shape, per page: the a11y light+dark test, the
-//          contrast light+dark test (each on its own page, dark reached
-//          through VitePress's toggle under the byte-identity premise gate),
-//          target-size on a fresh default-theme page, keyboard on a fresh
-//          375px page. Four navigations per page — the control side.
+//   off  — the pre-merge production shape (the control side of the #382
+//          measurement; e2e/page-sweep.e2e.ts has since replaced it), per
+//          page: the a11y light+dark test, the contrast light+dark test
+//          (each on its own page, dark reached through VitePress's toggle
+//          under the byte-identity premise gate), target-size on a fresh
+//          default-theme page, keyboard on a fresh 375px page. Four
+//          navigations per page.
 //   a    — one test per page: a11y light + contrast light on one loaded light
 //          page, one reachDark, the two dark passes. One navigation per page.
 //   b    — a + target-size on the same light page before the toggle.

@@ -1,35 +1,24 @@
 import { expect, type Page } from "@playwright/test";
 
 /**
- * The root suite's theme-reuse mode, and the gate that keeps it honest.
+ * The root sweep's dark transport, and the gate that keeps it honest.
  *
- * `LOOM_E2E_REUSE_THEME=1` collapses each documentation page's two full
- * navigations (light, then dark) into one: the light pass proves the page's
- * semantics and geometry, the dark pass reaches dark on the same DOM through
- * VitePress's own appearance toggle and re-runs only the color-dependent
- * checks, per the 2026-08-26 measurement recorded beside the dark scan in
- * accessibility.e2e.ts. Unset — still the default locally — both specs keep
- * their two navigations, byte-for-byte the same titles and phases; ci.yml's
- * root legs set it since the measured A/B
+ * One loaded documentation page carries both themes' checks (the B6
+ * shared-page merge, perf/e2e-acceleration-model.md §2): the light pass
+ * proves the page's semantics and geometry, then `reachDark` flips
+ * VitePress's own appearance toggle on the same DOM and the dark pass
+ * re-runs only the color-dependent checks. The collapse began as a measured
+ * A/B behind the now-retired `LOOM_E2E_REUSE_THEME` flag
  * (perf/e2e-performance-analysis.md §11: phase wall −19…−49% on the two
- * heaviest specs, coverage unchanged), and the bench workflow dispatches it
- * for the next A/B.
+ * heaviest specs at unchanged coverage) and is now the suite's only shape.
  *
  * The collapse is equivalent coverage only while one premise holds: that
- * reaching dark changes no DOM byte outside the three known theme markers.
- * That premise was measured once; `reachDark` asserts it on every page it
- * actually collapses, so a future VitePress or Demo.vue change that lets the
- * themes' DOM diverge turns the suite red instead of silently weakening the
- * dark pass.
+ * reaching dark changes no DOM byte outside the known theme markers. That
+ * premise was measured once; `reachDark` asserts it on every page it
+ * collapses, so a future VitePress or Demo.vue change that lets the themes'
+ * DOM diverge turns the suite red instead of silently weakening the dark
+ * pass.
  */
-
-/**
- * Only the literal `1` collapses the suite; every other value, `0` and unset
- * included, is the production shape. A benchmark that believed it had enabled
- * the mode but had not must read as unchanged numbers, never as an A/B result
- * about a mode that did not run.
- */
-export const REUSE_THEME = process.env.LOOM_E2E_REUSE_THEME === "1";
 
 /**
  * Strip the three theme markers a VitePress appearance flip is allowed to
@@ -101,10 +90,11 @@ const darkRepaintLanded = () => {
 };
 
 /**
- * The fallback dark transport: the same pre-load pin the un-collapsed specs
- * use — set the theme before navigation so VitePress's inline script paints
- * `.dark` before first paint, then wait for the repaint. It is the production
- * dark pass itself, so its verdicts need no premise gate.
+ * The fallback dark transport: the same pre-load pin `loadInLight` uses for
+ * the light direction — set the theme before navigation so VitePress's inline
+ * script paints `.dark` before first paint, then wait for the repaint. Its
+ * verdicts read a page that was dark from first paint, so they need no
+ * premise gate.
  */
 async function reachDarkByNavigation(browserPage: Page, target: string): Promise<void> {
   await browserPage.addInitScript(() => {
@@ -138,10 +128,8 @@ function firstDiffWindow(a: string, b: string): string {
 
 /**
  * Reach dark on the already-loaded light page, asserting the reuse premise on
- * the way. The production dark pass re-navigates with the theme pinned before
- * first paint; the collapsed pass instead flips VitePress's own toggle, the
- * reactive path a real user takes, and the only one that does not pay a second
- * navigation.
+ * the way: flip VitePress's own toggle — the reactive path a real user takes,
+ * and the only transport that does not pay a second navigation.
  *
  * The toggle flipped is the navbar copy — the only one reachable without
  * opening the mobile sidebar. VitePress hides it below 1280px, so the mobile

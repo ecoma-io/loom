@@ -279,16 +279,20 @@ const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
  * minute extends the job wall-clock; the pole, not the total, is the
  * pipeline's critical path.
  *
- * The split below cuts the suite by spec group instead, with each group's
- * shard count from its measured share of firefox test wall (same runs):
- * accessibility 45.4%, contrast 24.7%, target-size 14.6%, keyboard 13.0%,
- * the three small gates 2.3% combined. Re-slicing each group into its
- * pieces — the same contiguous mechanism, now within one spec — projects
- * the firefox pole at 6.36m (accessibility 1/3) against 11.42m flat,
- * −44% on the engine the pipeline waits for, with chromium's pole at
- * 5.67m. Per browser the plan is 8 legs where the flat split ran 5; the
- * three extra legs pay ~2.4m of setup each and buy ~5m of wall on every
- * run that includes the root sweep.
+ * The suite used to be cut by spec group (a11y 3 / contrast 2 / keyboard 1 /
+ * target-size 1 legs, from those same runs' firefox wall shares) — until the
+ * B6 shared-page merge collapsed the four per-page groups into one spec
+ * (perf/e2e-acceleration-model.md §2 B6): one navigation per page carries all
+ * four gates, 288 of 288 (page, check) result payloads are byte-identical
+ * with the four-navigation shape, and the four groups' navigation wall fell
+ * 64–75% across chromium, firefox and webkit (bench subset, runs
+ * 34677213048…34677631967). With the groups merged, the sharding unit is the
+ * merged per-page test: measured ≈ 4.6s on chromium and ≈ 4.5–5.8s on
+ * firefox (bench subset at workers 1), so 144 pages ≈ 11–14m serial per
+ * browser. Six shards slice that to ≈ 24 tests ≈ 2m of test wall plus ~1m of
+ * per-leg setup — a pole at or under the old 8-leg plan's, from 7 legs per
+ * browser instead of 8 (21 instead of 24 across the three standard browsers),
+ * at ~40% less root-sweep compute.
  *
  * Costs move with the page set. The counts above were measured at 144
  * pages; re-run the bench and re-cut the groups when documentationPages()
@@ -301,10 +305,7 @@ const HARNESS_AXE_GATE = "playwright/harness/accessibility.e2e.ts";
  * must never lose. `runSelfCheck` pins it.
  */
 const ROOT_SHARD_PLAN: { group: string; specs: string[]; shards: number }[] = [
-  { group: "a11y", specs: ["e2e/accessibility.e2e.ts"], shards: 3 },
-  { group: "contrast", specs: ["e2e/contrast.e2e.ts"], shards: 2 },
-  { group: "keyboard", specs: ["e2e/keyboard.e2e.ts"], shards: 1 },
-  { group: "target-size", specs: ["e2e/target-size.e2e.ts"], shards: 1 },
+  { group: "page-sweep", specs: ["e2e/page-sweep.e2e.ts"], shards: 6 },
 ];
 
 // Every root-suite spec not named in the plan — the catch-all leg a new
@@ -369,11 +370,12 @@ export interface MatrixRow {
   /** Shard CLI args for this leg (`--shard=N/M`), empty when unsharded. */
   shardArgs: string;
   /**
-   * The `--workers` count the leg passes. The a11y rows of chromium and
-   * firefox run 2 — CI-measured on those exact legs (runs
-   * 34603189852/34603193137/34603196536/34603200180: wall ÷1.55–1.59 for
-   * compute ×1.25–1.28, zero failures and retries); every other row stays at
-   * 1 until a bench says otherwise.
+   * The `--workers` count the leg passes. The page-sweep rows of chromium and
+   * firefox run 2 — CI-measured on the axe-dominated a11y legs that group
+   * absorbed (runs 34603189852/34603193137/34603196536/34603200180: wall
+   * ÷1.55–1.59 for compute ×1.25–1.28, zero failures and retries), and
+   * revalidated on the page-sweep acceptance run; every other row stays at 1
+   * until a bench says otherwise.
    */
   workers: number;
   /** A unique, GitHub-safe job name for this leg. */
@@ -447,9 +449,9 @@ export function plan(
   // within the group's positional specs (ROOT_SHARD_PLAN holds the sizing
   // evidence and the pole arithmetic).
   // Workers are part of the measured leg shape, not a knob: the two-worker
-  // a11y legs are the ones the bench priced (MatrixRow.workers), and the
-  // other groups keep the suite's historic one-worker isolation until their
-  // own bench exists.
+  // legs are the ones the bench priced (MatrixRow.workers) — measured on the
+  // a11y legs the page-sweep group absorbed, whose axe-dominated shape it
+  // keeps, and revalidated on the page-sweep acceptance run.
   const ROOT_WORKERS: Record<string, number> = { chromium: 2, firefox: 2 };
   const rootLegs = (profile: BrowserProfile): MatrixRow[] =>
     PROFILE_PROJECTS[profile].flatMap((browser) =>
@@ -464,7 +466,7 @@ export function plan(
             shards,
             i + 1,
             group,
-            group === "a11y" ? (ROOT_WORKERS[browser] ?? 1) : 1,
+            group === "page-sweep" ? (ROOT_WORKERS[browser] ?? 1) : 1,
           ),
         ),
       ),
@@ -777,7 +779,7 @@ export function runSelfCheck(): void {
       "the small leg carries specs — an empty positional arg list would make Playwright run the whole suite on that leg",
     );
     const heaviest = groups.reduce((a, b) => (b.shards > a.shards ? b : a));
-    assert.equal(heaviest.group, "a11y", "the pole group is the measured heaviest spec");
+    assert.equal(heaviest.group, "page-sweep", "the pole group is the measured heaviest spec");
     const docsPlan = plan("docs", []);
     const rootRows = docsPlan.filter((r) => r.config === CONFIG_PATHS.root);
     for (const browser of PROFILE_PROJECTS.standard) {
@@ -800,7 +802,7 @@ export function runSelfCheck(): void {
           );
           assert.equal(
             r.workers,
-            g.group === "a11y" && (browser === "chromium" || browser === "firefox") ? 2 : 1,
+            g.group === "page-sweep" && (browser === "chromium" || browser === "firefox") ? 2 : 1,
             `${r.name} carries the measured worker count`,
           );
         }

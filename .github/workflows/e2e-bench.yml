@@ -26,9 +26,10 @@ on:
           - firefox
           - webkit
       workers:
-        # Production legs run 1 except the a11y rows of chromium and firefox,
-        # which run 2 (tools/e2e-plan.ts, MatrixRow.workers) — so dispatching
-        # workers=2 on the a11y group reproduces those legs' exact shape.
+        # Production legs run 1 except the page-sweep rows of chromium and
+        # firefox, which run 2 (tools/e2e-plan.ts, MatrixRow.workers) — so
+        # dispatching workers=2 on the page-sweep group reproduces those
+        # legs' exact shape.
         description: Playwright --workers for this run
         required: true
         default: "1"
@@ -61,21 +62,9 @@ on:
         type: choice
         options:
           - ""
-          - a11y
-          - contrast
-          - keyboard
-          - target-size
+          - page-sweep
           - b2
           - small
-      reuse_theme:
-        # The specs' collapsed light+dark shape (LOOM_E2E_REUSE_THEME in
-        # e2e/accessibility.e2e.ts / e2e/contrast.e2e.ts). The A/B lever for
-        # the navigation-reuse decision: dispatch the same group twice, flag
-        # off and on, and diff the goto-phase counts and wall from the JSONL.
-        description: Collapse light+dark into one goto per page
-        required: false
-        default: false
-        type: boolean
       b2_variant:
         # The B2 shared-page bench's variant (e2e/b2-shared-page.e2e.ts):
         # "off" is the production shape — four navigations per page; a/b/c
@@ -101,16 +90,15 @@ concurrency:
   # different engines on the same branch are independent measurements, and a
   # ref-only group would let the second dispatch cancel the first (observed
   # 2026-09-11: the chromium dispatch cancelled the queued firefox run of the
-  # same SHA). The reuse flag joins the key for the same reason — the A/B is
-  # two concurrent-eligible benches of one group, not one measurement. So does
-  # the shard selector: the topology bursts dispatch one leg per run — a11y
-  # s1, s2, s3 as three dispatches seconds apart — and the key without it let
-  # each shard dispatch cancel the previous one (observed 2026-09-12: 9 of the
-  # 24 burst runs cancelled, every a11y s1/s2 and contrast s1 leg among them).
-  # The b2 variant joins the key for the same reason — off/a/b/c are four
+  # same SHA). The shard selector joins the key for the same reason: the
+  # topology bursts dispatch one leg per run — a11y s1, s2, s3 as three
+  # dispatches seconds apart — and the key without it let each shard dispatch
+  # cancel the previous one (observed 2026-09-12: 9 of the 24 burst runs
+  # cancelled, every a11y s1/s2 and contrast s1 leg among them). The b2
+  # variant joins the key for the same reason — off/a/b/c are four
   # concurrent-eligible benches of one page set (ecoma-io/loom#381), and the
   # off-vs-variant comparison wants them running at the same time.
-  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-r${{ inputs.reuse_theme }}-s${{ inputs.only_shard }}-b2${{ inputs.b2_variant }}
+  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-s${{ inputs.only_shard }}-b2${{ inputs.b2_variant }}
   cancel-in-progress: true
 
 jobs:
@@ -171,8 +159,8 @@ jobs:
       # (shards, specs) map rests here and mirrors ROOT_SHARD_PLAN; the
       # `small` list is the same computed catch-all (every root spec not in
       # the plan). Empty group = the legacy flat 5-shard split.
-      GROUP_SHARDS: ${{ inputs.group == 'a11y' && '3' || inputs.group == 'contrast' && '2' || inputs.group != '' && '1' || '5' }}
-      GROUP_SPECS: ${{ inputs.group == 'a11y' && 'e2e/accessibility.e2e.ts' || inputs.group == 'contrast' && 'e2e/contrast.e2e.ts' || inputs.group == 'keyboard' && 'e2e/keyboard.e2e.ts' || inputs.group == 'target-size' && 'e2e/target-size.e2e.ts' || inputs.group == 'b2' && 'e2e/b2-shared-page.e2e.ts' || inputs.group == 'small' && 'e2e/b2-shared-page.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
+      GROUP_SHARDS: ${{ inputs.group == 'page-sweep' && '6' || inputs.group != '' && '1' || '5' }}
+      GROUP_SPECS: ${{ inputs.group == 'page-sweep' && 'e2e/page-sweep.e2e.ts' || inputs.group == 'b2' && 'e2e/b2-shared-page.e2e.ts' || inputs.group == 'small' && 'e2e/b2-shared-page.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/keyboard.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -226,10 +214,6 @@ jobs:
           PW_PROFILE: ${{ inputs.profile }}
           PW_PREBUILT_DOCS: "1"
           LOOM_E2E_TIMINGS: /tmp/timings.jsonl
-          # Empty when the input is false, so the specs keep today's two-goto
-          # shape — the flag is read with the same unset-means-off contract as
-          # LOOM_E2E_TIMINGS.
-          LOOM_E2E_REUSE_THEME: ${{ inputs.reuse_theme && '1' || '' }}
           # The B2 bench's variant and records file. The bench treats an
           # empty variant as absent (the same unset-means-absent contract as
           # LOOM_E2E_TIMINGS), so a non-b2 dispatch leaves the specs' shape
