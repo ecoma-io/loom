@@ -2,13 +2,13 @@
 
 `workers: 2` ships on exactly two page-sweep rows — chromium and firefox desktop —
 on their own measured A/B. The other three rows (webkit desktop, chromium-mobile,
-webkit-mobile) still run `workers: 1`, and no bench of their own exists. This file
+webkit-mobile) still run `workers: 1`, and no bench of their own existed. This file
 is the experiment record the [contract](./ci-performance-contract.md) §6
 methodology requires before that changes: the question, the bar a measurement has
 to clear, and the dispatch ledger pre-written so the A/B runs the same way whoever
-executes it. It is a plan, not a verdict — every bench cell in §2 stays empty
-until the run id that produced it is written into the same cell, and no adoption
-happens from this file alone.
+executes it. The ledger ran 2026-09-12: the cells are filled from their run ids
+and the verdicts stand under the tables — no row adopted; chromium-mobile's
+question is held open by gate flake #396, not by this record.
 
 Labels follow the contract's §0: **MEASURED** (a recorded run, cited by id),
 **DERIVED** (arithmetic on measured values, assumption stated), **PROJECTED** (a
@@ -178,38 +178,81 @@ with the run id and the recorded supply count written beside its table. The rati
 a verdict is drawn from is w1 ÷ w2 on the pole shard, bench against bench — never
 a bench `seconds=` against the CI job wall above.
 
-**webkit desktop** — repeat 1: run ___ (supply ___) · repeat 2: run ___ (supply ___):
+Two recording deviations, both observed while filling these tables, 2026-09-12:
+
+- **Cells hold bench job walls, not `seconds=` figures.** The Actions API does not
+  expose step summaries, and the runs above are the only retrievable per-shard
+  figure. Each bench shard job runs the same setup steps as its sibling in the
+  other arm, so the comparison basis is uniform arm to arm, and it is the same
+  basis (job wall) the MEASURED baseline table above carries.
+- **Supply counts are repo-level in-progress counts.** The org-wide query in the
+  discipline block returns 404 for the token the dispatches ran under; the
+  repo-level count is recorded instead, and it includes sibling bench runs of
+  this same ledger.
+
+**webkit desktop** — w1 r1 = run [34700755420](https://github.com/ecoma-io/loom/actions/runs/34700755420) (supply 1) · w1 r2 = run [34701582726](https://github.com/ecoma-io/loom/actions/runs/34701582726) (supply 0) · w2 r1 = run [34701033298](https://github.com/ecoma-io/loom/actions/runs/34701033298) (supply 1) · w2 r2 = run [34702695051](https://github.com/ecoma-io/loom/actions/runs/34702695051) (supply 0), a re-dispatch under the supply clause replacing run [34701240468](https://github.com/ecoma-io/loom/actions/runs/34701240468), which ran overlapped with twelve sibling bench jobs (supply 2–3) and is voided for it:
 
 | shard     | w1 repeat 1 (s) | w1 repeat 2 (s) | w2 repeat 1 (s) | w2 repeat 2 (s) | failures / retries |
 | --------- | --------------- | --------------- | --------------- | --------------- | ------------------ |
-| s1        |                 |                 |                 |                 |                    |
-| s2 (pole) |                 |                 |                 |                 |                    |
-| s3        |                 |                 |                 |                 |                    |
-| s4        |                 |                 |                 |                 |                    |
-| s5        |                 |                 |                 |                 |                    |
-| s6        |                 |                 |                 |                 |                    |
+| s1        | 141             | 183             | 146             | 151             | 0 / 0              |
+| s2 (pole) | 204             | 183             | 135             | 142             | 0 / 0              |
+| s3        | 171             | 168             | 144             | 143             | 0 / 0              |
+| s4        | 184             | 173             | 155             | 123             | 0 / 0              |
+| s5        | 148             | 171             | 141             | 141             | 0 / 0              |
+| s6        | 175             | 177             | 138             | 141             | 0 / 0              |
 
-**chromium-mobile** — repeat 1: run ___ (supply ___) · repeat 2: run ___ (supply ___):
-
-| shard     | w1 repeat 1 (s) | w1 repeat 2 (s) | w2 repeat 1 (s) | w2 repeat 2 (s) | failures / retries |
-| --------- | --------------- | --------------- | --------------- | --------------- | ------------------ |
-| s1        |                 |                 |                 |                 |                    |
-| s2 (pole) |                 |                 |                 |                 |                    |
-| s3        |                 |                 |                 |                 |                    |
-| s4        |                 |                 |                 |                 |                    |
-| s5        |                 |                 |                 |                 |                    |
-| s6        |                 |                 |                 |                 |                    |
-
-**webkit-mobile** — repeat 1: run ___ (supply ___) · repeat 2: run ___ (supply ___):
+**chromium-mobile** — no admissible arm. Both w1 repeats ran red on s6 and are
+voided by the clean-run clause; no w2 dispatch happened. Repeat 1 = run
+[34700968946](https://github.com/ecoma-io/loom/actions/runs/34700968946) (dark
+contrast gate failed after retries on `/patterns/empty-state`, flaky-recovered on
+`/showcase/invite-teammates`); repeat 2 = run
+[34701204872](https://github.com/ecoma-io/loom/actions/runs/34701204872) (dark
+contrast gate failed hard on `/showcase/invite-teammates`). Same SHA as every
+other dispatch here. The failure is a property of the gate, not of the arm —
+[#396](https://github.com/ecoma-io/loom/issues/396) — so the cells below stay
+empty until that issue closes and the row's A/B runs clean:
 
 | shard     | w1 repeat 1 (s) | w1 repeat 2 (s) | w2 repeat 1 (s) | w2 repeat 2 (s) | failures / retries |
 | --------- | --------------- | --------------- | --------------- | --------------- | ------------------ |
-| s1        |                 |                 |                 |                 |                    |
-| s2 (pole) |                 |                 |                 |                 |                    |
-| s3        |                 |                 |                 |                 |                    |
-| s4        |                 |                 |                 |                 |                    |
-| s5        |                 |                 |                 |                 |                    |
-| s6        |                 |                 |                 |                 |                    |
+| s1        |                 |                 |                 |                 | voided — #396      |
+| s2 (pole) |                 |                 |                 |                 | voided — #396      |
+| s3        |                 |                 |                 |                 | voided — #396      |
+| s4        |                 |                 |                 |                 | voided — #396      |
+| s5        |                 |                 |                 |                 | voided — #396      |
+| s6        |                 |                 |                 |                 | voided — #396      |
+
+**webkit-mobile** — w1 r1 = run [34701216854](https://github.com/ecoma-io/loom/actions/runs/34701216854) (supply 1) · w1 r2 = run [34702041814](https://github.com/ecoma-io/loom/actions/runs/34702041814) (supply 0) · w2 r1 = run [34701623471](https://github.com/ecoma-io/loom/actions/runs/34701623471) (supply 1) · w2 r2 = run [34701828346](https://github.com/ecoma-io/loom/actions/runs/34701828346) (supply 0):
+
+| shard     | w1 repeat 1 (s) | w1 repeat 2 (s) | w2 repeat 1 (s) | w2 repeat 2 (s) | failures / retries |
+| --------- | --------------- | --------------- | --------------- | --------------- | ------------------ |
+| s1        | 164             | 165             | 132             | 130             | 0 / 0              |
+| s2 (pole) | 182             | 167             | 143             | 152             | 0 / 0              |
+| s3        | 173             | 161             | 134             | 124             | 0 / 0              |
+| s4        | 178             | 170             | 130             | 125             | 0 / 0              |
+| s5        | 148             | 148             | 112             | 135             | 0 / 0              |
+| s6        | 158             | 163             | 127             | 123             | 0 / 0              |
+
+### Verdicts — 2026-09-12, against the §1 bar
+
+All dispatches ran from one SHA of `main` (`7d01b311`, the instrument-fix merge).
+Ratios are DERIVED — w1 ÷ w2 on the pole shard, bench wall against bench wall of
+the runs cited in each table:
+
+- **webkit desktop — bar not met.** Repeat 1 clears: 204 ÷ 135 = **1.51** ≥ 1.4.
+  Repeat 2 does not: 183 ÷ 142 = **1.29** < 1.4 (the replacement arm's clean
+  supply confirmed the miss; the contaminated 151 it replaced would have missed
+  at 1.21). The stable-across-repeats clause fails the row.
+- **webkit-mobile — bar not met.** Repeat 1: 182 ÷ 143 = **1.27** < 1.4. Repeat 2:
+  167 ÷ 152 = **1.10** < 1.4. Both repeats measured, both clean, both miss.
+- **chromium-mobile — not measured.** Both w1 arms voided by the clean-run clause
+  (#396); the row's question stays open until that gate flake is fixed and the
+  ledger re-runs.
+
+No row adopts: `ROOT_WORKERS` stays `chromium: 2, firefox: 2` and the three rows
+stay `workers: 1`. The rejected alternative is recorded by the numbers above —
+a blanket w2 over the page-sweep would have bought ÷ 1.1–1.3 walls on rows whose
+CPU-work price still applies, and the adopted rows' ÷ 1.55–1.59 neighborhood
+does not transfer to these engines.
 
 ## 3. Evidence hygiene
 
