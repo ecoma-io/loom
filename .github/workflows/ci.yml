@@ -1000,10 +1000,10 @@ jobs:
     # treat an empty `include`.
     needs: [e2e-discover, e2e-build-docs]
     if: ${{ !cancelled() && needs.e2e-discover.result == 'success' && needs.e2e-discover.outputs.matrix != '[]' && (needs.e2e-build-docs.result == 'success' || needs.e2e-build-docs.result == 'skipped') }}
-    # Sized for the slowest quarter-suite: post-#122 WCAG gate split, a 4-shard
-    # leg runs ~11 minutes of tests on the worst engine (Firefox, ~10.9m measured
-    # down from ~12.2m pre-split) plus ~2 of setup, with headroom for
-    # Playwright's two CI retries with traces on a genuinely failing shard.
+    # Sized for the slowest leg: the measured spec-group plan (tools/e2e-plan.ts,
+    # bench runs 34593135967/34593707946) puts the pole at the accessibility
+    # 3-way split, ~6.5m of tests on Firefox, plus ~2 of setup, with headroom
+    # for Playwright's two CI retries with traces on a genuinely failing shard.
     timeout-minutes: 20
     strategy:
       # One battery failing in engine A must not hose the other engines' answer
@@ -1094,6 +1094,12 @@ jobs:
           PW_PROFILE: ${{ matrix.profile }}
           HARNESS_DEMOS: ${{ join(matrix.demos, ',') }}
           PW_PREBUILT_DOCS: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
+          # The reuse mode is production on root legs since the A/B
+          # (perf/e2e-performance-analysis.md §11): phase wall −19…−49% on the
+          # two heaviest specs at unchanged coverage, the dark pass still
+          # enforced by the byte-identity gate. Harness legs run specs that
+          # never read it, so they get nothing.
+          LOOM_E2E_REUSE_THEME: ${{ matrix.config == 'playwright.config.ts' && '1' || '' }}
         run: >-
           set -e;
           SECONDS=0;
@@ -1101,6 +1107,7 @@ jobs:
           --project ${{ matrix.browser }}
           --config ${{ matrix.config }}
           ${{ join(matrix.specs, ' ') }}
+          --workers ${{ matrix.workers }}
           ${{ matrix.shardArgs }};
           echo "e2e-leg ${{ matrix.name }} profile=${{ matrix.profile }} browser=${{ matrix.browser }} ${{ matrix.config }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 

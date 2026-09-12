@@ -45,6 +45,56 @@ Root suite: 884 tests / 5 shards ≈ 177 tests per shard; page-complexity spread
 Strictly measured floor: goto alone for a 177-test shard = 262s = 4.4m,
 already 2.2× over the 2m budget, before CI factor. **No combination of B1–B3
 reaches 2m.** B4 reaches ~2m only at a compute multiple the org has capped.
+B1's host factor cannot be booked as wall saving regardless of its
+arithmetic: the swept artifact is the built site — the generated token/API
+tables render only there — so an axe pass against harness demos measures a
+different artifact, not the same one faster. (The per-rule measurement under
+C2 also breaks the per-test extrapolation it was priced from.) Its ≤ 2m
+verdict is unchanged either way.
+
+B5. Navigation reuse — collapse each page's light+dark pair into one goto
+(implemented behind `LOOM_E2E_REUSE_THEME=1`, `e2e/theme.ts`; PR #368).
+
+- accessibility light+dark and contrast light+dark each collapse to one
+  navigation per page; dark is reached through VitePress's own appearance
+  toggle under a byte-identity gate on the DOM between themes, so the
+  collapse cannot silently weaken the dark pass. ≈ −4.5m of goto wall per
+  standard project, projected from §0's goto attribution (868 → 434 gotos).
+- **Adopted on the root legs** (ci.yml since 606b79c): the off/on A/B
+  measures phase wall −9…−50% per shard at unchanged coverage (the table
+  and the three gate-caught mechanisms in analysis §11; contrast firefox
+  297/286s → 147/148s at zero fallbacks, run 34647896802).
+
+B6. Shared-page check merge — the next reuse step beyond B5: one loaded
+page per docs page carries all four per-page check groups (accessibility,
+contrast, target-size, keyboard's phone-width table check) instead of one
+navigation per group (`e2e/b2-shared-page.e2e.ts`, issue #381, PR #382).
+The bench runs today's four-navigation shape (`off`) against three merged
+variants — a11y+contrast (`a`), + target-size (`b`), + keyboard at 375px
+(`c`) — with the checks imported from `e2e/checks.ts`, the same
+single-sourced bodies the production specs assert, so a variant cannot pass
+on weaker evidence than the gate it is meant to replace.
+
+- **Measured** on the bench subset (8 representative pages, workers=1,
+  built site, standard profile, runs 34677213048…34677631967, 2026-09-12):
+  navigations 4 → 1 per page on every engine; navigation wall chromium
+  56.5 → 14.3s, firefox 54.1 → 16.7s, webkit 16.2 → 5.8s (−75% / −69% /
+  −64%); subset run wall chromium 87.8 → 36.9s, firefox 89.8 → 36.1–46.5s,
+  webkit 56.5 → 36.0s (−58% / −48…−60% / −36%).
+- **Equivalence (measured)**: every check's result payload joined on
+  (page, check) is byte-identical between the baseline and the merged
+  variant — 288 of 288 joins across the three engines, including keyboard's
+  table verdicts on WebKit, the engine that check speaks for, run dark at
+  375px off a 1280px resize instead of on a fresh light page.
+- **State-leak evidence (measured)**: the only `stateBefore` fingerprint
+  keys that ever differ are VitePress's prefetch-link injection timing (a
+  time marker none of the checks read) and keyboard's designed theme delta
+  (shared dark page vs fresh light page) — no scroll, focus, storage, or
+  theme leakage reached any light check, and payloads stayed identical
+  despite the delta.
+- **Verdict B2-STRONG**: all four groups may share the page; the production
+  merge and root-plan re-cut are the follow-up implementation PR's work,
+  with the full-suite CI benchmark as its acceptance evidence.
 
 ## 3. Scenario C — coverage-class rerouting (projected, changes semantics)
 
@@ -62,10 +112,19 @@ a working cascade, these legs could drop the full browser host.
 
 C2. Split the axe pass: run BROWSERLESS_RULES browserlessly (already gated
 there — the root re-run duplicates it) and BROWSER_REQUIRED_RULES in browser.
+**Refuted by measurement** (2026-09-12, the benched legs' timings JSONL —
+runs 34593135967 / 34593707946): cost is not linear in rule count. The dark
+pass already runs `color-contrast` alone, and that single rule is ≈ 60% of
+the light pass's 68-rule axe wall on both benched engines (p50 1378ms light
+vs 850ms dark on chromium, 1777 vs 1073ms on firefox), so the 51 browserless
+rules' browser-side share is at most the remaining ≈ 40% — ≈ 1.5m on the a11y
+leg, not the linear projection's −4.3m. And the sweep's authority argues
+against taking even that: the root sweep is the only check that casts
+verdicts on the generated token/API tables, which render only on the built
+pages it exists to sweep (analysis §11).
 
-- axe time 345s → browser-side only 17-rule cost ≈ 345 × (17/68) ≈ 86s plus
-  browserless host cost (small). Leg −4.3m.
-- **≤ 2m: no** — goto floor.
+- **≤ 2m: no** — goto floor, and the saving does not exist at the projected
+  size.
 
 ## 4. Scenario D — coverage reduction (out of scope, for completeness)
 
@@ -77,18 +136,27 @@ proposal.
 
 ## 5. Verdict
 
-| scenario       | wall P50 (projected)  | ≤ 2m?                         | cost                              |
-| -------------- | --------------------- | ----------------------------- | --------------------------------- |
-| A status quo   | 10.5–13.0m (measured) | no                            | —                                 |
-| B1+B2+B3       | ~6–8m                 | no                            | none (B2 needs a tryout)          |
-| B4 20 shards   | ~2m                   | barely, at compute cap breach | 2.5× E2E compute                  |
-| C1+C2          | ~5–6m                 | no                            | architecture work, coverage moves |
-| D coverage cut | ~2.5–3m               | no                            | deletes the gate's purpose        |
+| scenario        | wall P50 (projected)  | ≤ 2m?                         | cost                          |
+| --------------- | --------------------- | ----------------------------- | ----------------------------- |
+| A status quo    | 10.5–13.0m (measured) | no                            | —                             |
+| B1+B2+B3        | ~6–8m                 | no                            | none (B2 needs a tryout)      |
+| B4 20 shards    | ~2m                   | barely, at compute cap breach | 2.5× E2E compute              |
+| C1 (C2 refuted) | ~10m                  | no                            | future engine, coverage moves |
+| D coverage cut  | ~2.5–3m               | no                            | deletes the gate's purpose    |
 
 **CI wall P50 ≤ 2 minutes is not reachable without either breaching the shard
-cap (B4) or deleting coverage (D).** The measured, defensible goals are: keep
-the pole leg under ~10m (already true), take B1 (−3.9m, no coverage change) and
-B2 (needs a small tryout PR), and treat Lightpanda as a future cost-reduction
-candidate for geometry-class specs **only after it gains a working stylesheet
-cascade** — never for the shipped gates, whose verdicts this study does not
-change.
+cap (B4) or deleting coverage (D).** The measured, defensible goals, in
+adoption order: navigation reuse (B5, adopted: −9…−50% per shard at
+unchanged coverage — the one lever that moves the supply-bound fleet wall,
+because it cuts compute), then operator-side supply or B2's compute cut;
+the queueing/topology candidates are **refuted by the 2026-09-12 burst**
+(analysis §11): the org's measured supply is ≈6–8 runners, so the
+17.1m wall was supply-bound, `max-parallel: 16` never binds, and no leg
+re-cut moves wall ≈ compute ÷ supply. B2 (needs a small tryout PR), and
+Lightpanda as a future cost-reduction candidate for geometry-class specs
+**only after it clears the capability contract**
+(`perf/browser-capability-contract.md`) — never for the shipped gates,
+whose verdicts this study does not change. B1 and C2, the two
+harness-routing levers this model projected, are refuted (C2 above; B1 loses
+the generated tables' authority, and C2's per-rule measurement breaks the
+per-test extrapolation B1 was priced from).

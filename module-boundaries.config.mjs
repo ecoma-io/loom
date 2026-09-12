@@ -355,6 +355,12 @@ export const boundarySuppressions = [
       "the four instrumented root specs (accessibility, contrast, keyboard, target-size) import the shared timing helper from ../playwright/timings. playwright/ is a Moon project but not an npm package: it has no package.json, so no published name exists to import instead — the same reach-as-data shape the tools row accepts, and the same reason wording applies. The helper is env-gated and contributes nothing to a production build; giving playwright/ a package.json and an export map so that four import statements could be spelled differently would be restructuring the repository to suit the spelling, so the reach is accepted and named instead.",
   },
   {
+    path: "e2e/checks.ts",
+    messageId: "noRelativeOrAbsoluteImportsAcrossLibraries",
+    reason:
+      "checks.ts single-sources the four per-page check bodies so the B2 bench (b2-shared-page.e2e.ts) asserts the same ones a production spec would adopt — a bench variant cannot pass on weaker evidence than the gate it is meant to replace (ecoma-io/loom#381). It times its phases with the same shared timing helper the specs import from ../playwright/timings. playwright/ is a Moon project but not an npm package: it has no package.json, so no published name exists to import instead — the same reach-as-data shape the tools row accepts, and the same reason wording applies. The helper is env-gated and contributes nothing to a production build; giving playwright/ a package.json and an export map so that one import statement could be spelled differently would be restructuring the repository to suit the spelling, so the reach is accepted and named instead.",
+  },
+  {
     path: "playwright/harness/vite.config.mts",
     messageId: "noRelativeOrAbsoluteExternals",
     reason:

@@ -1,0 +1,1172 @@
+name: E2E topology bench
+
+# The instrument for the queueing question behind PR #368: the spec-group
+# topology fans out more legs than the org has runner slots for, and the two
+# pw-infra CI runs of that PR (34597507798/34606614010, 40+3 legs each) both
+# hit a hard plateau of 20 concurrent legs for ~7 minutes — leg starts spread
+# over ~9m and 24-25 of 43 legs waited over a minute in queue, so the 17.1m
+# run wall was set by the slot ceiling and the start spread, not by test work
+# (Σ leg walls ÷ 20 ≈ 12m of it is saturated drain). Which leg cut is best is
+# therefore a question about queueing, and queueing only shows up on real
+# runners: one dispatch of this workflow runs the EXACT leg set a given
+# topology would emit for a docs-class PR, on production runner images, so the
+# concurrency curve can be read off the Actions API without opening a PR.
+#
+# This workflow is a benchmark, not a gate: nothing in `ci.yml` references it,
+# no job of a pull-request run waits on it, and a red bench answers a
+# measurement question rather than blocking a merge.
+#
+# Reading the result: created_at / started_at / completed_at / runner_name per
+# leg come only from the Actions API —
+#   gh api 'repos/ecoma-io/loom/actions/runs/<run-id>/jobs?per_page=100'
+# (queue wait = started_at − created_at; a leg is running when
+# started_at ≤ t < completed_at). The `bench-report` job at the bottom prints
+# exactly that curve into the run summary so a dispatch answers on its own.
+
+on:
+  workflow_dispatch:
+    inputs:
+      topology:
+        # One dispatch = one rep. The four cuts, and what each is for:
+        # - grouped-8       the plan PR #368 ships (3 desktop browsers × 8
+        #                   spec-group legs = 24) — the incumbent to beat.
+        # - grouped-8-capped the same 24 legs with a job-level max-parallel:
+        #                   16, the candidate that trades wall for leaving
+        #                   ~4 slots free for the rest of CI.
+        # - flat-5          the legacy 5 shards × 3 browsers = 15 legs, the
+        #                   pre-#368 baseline whose docs-PR P50 was 15.23m.
+        # - reduced-6       the candidate cut that fights queueing by
+        #                   shrinking the fleet instead of capping it:
+        #                   a11y×2, contrast×2, keyboard×1, and target-size
+        #                   merged with small — 18 legs.
+        description: Leg topology to fan out
+        required: true
+        default: grouped-8
+        type: choice
+        options:
+          - grouped-8
+          - grouped-8-capped
+          - flat-5
+          - reduced-6
+
+permissions:
+  contents: read
+
+concurrency:
+  # Keyed by topology, not just the ref, for the reason e2e-bench.yml
+  # recorded (2026-09-11: a ref-only group let one dispatch cancel another);
+  # two benches of different topologies are different measurements and must
+  # not cancel each other.
+  group: e2e-topology-bench-${{ github.ref }}-${{ inputs.topology }}
+  cancel-in-progress: true
+
+jobs:
+  # Identical to `bench-build-docs` in e2e-bench.yml, which is itself the
+  # production `e2e-build-docs` shape: one build per run, the site travels
+  # under the same immutable `docs-dist-<sha>` key, and the legs restore it
+  # with fail-on-cache-miss so a silently missing build turns a leg red
+  # instead of quietly rebuilding inside every leg.
+  bench-build-docs:
+    name: Bench · build docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Full history because `moon run` resolves `main` against the
+      # remote-tracking ref (the failure is recorded in ci.yml's
+      # `e2e-build-docs` checkout comment — this is that same price).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Split restore/save (not combined `actions/cache`): a failed build must
+      # not freeze a partial dist under the immutable key — same reason
+      # `e2e-build-docs` spells it this way.
+      - name: Restore an already-built site
+        id: docs-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+
+      - name: Build the docs site
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        env:
+          MOON_CONCURRENCY: "4"
+        run: pnpm exec moon run docs:build
+
+      - name: Save the built site
+        if: steps.docs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+
+  # The uncapped topologies. There is deliberately NO max-parallel here: the
+  # point of running them is to observe where the org's runner ceiling bites,
+  # and a job-level cap of any size would make a ceiling above that number
+  # unmeasurable. Production `e2e-run` carries no cap either, so this is the
+  # faithful shape.
+  #
+  # `max-parallel` cannot be switched per dispatch without an expression, and
+  # the capped variant is its own job below with the literal 16 — the two
+  # jobs' step bodies are byte-identical on purpose, so a change to one is
+  # visible as a diff against the other.
+  bench-run:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: bench-build-docs
+    if: inputs.topology != 'grouped-8-capped'
+    # Sized from measured leg walls, and the queue allowance deliberately does
+    # NOT appear in the number: GitHub starts a job's timeout clock at
+    # started_at, which is after the queue, so the queue wait is bounded by
+    # the cap (or the org ceiling) rather than by this budget. What this number
+    # must cover is the pole leg: 10.25m measured on the #368 spec-group legs
+    # (34597507798, firefox a11y w=2), 14.8m on the flat-5 shards (34583209459),
+    # plus ~1m per-leg setup and headroom for Playwright's two CI retries —
+    # the same arithmetic ci.yml's `e2e-run` used for its 20.
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      # The spec→leg map is literals because dispatch inputs are static — the
+      # same trade e2e-bench.yml records on its GROUP_SHARDS/GROUP_SPECS env:
+      # re-cutting a topology must update this matrix in the same commit.
+      # Three topologies share this job and a row's `topology` field is what
+      # the steps gate on; unselected rows report as jobs with skipped steps,
+      # which is the right shape for a benchmark (and a job-level `if` cannot
+      # do it — `matrix` does not exist when the job-level `if` evaluates, the
+      # dispatch API rejected exactly that in e2e-bench.yml).
+      matrix:
+        include:
+          # ---- grouped-8: 3 desktop browsers × 8 spec-group legs = 24 ----
+          # Spec lists restated from tools/e2e-plan.ts ROOT_SHARD_PLAN; a11y
+          # runs workers 2 on chromium and firefox (ROOT_WORKERS), webkit stays
+          # at 1 — the measured leg shape, not a knob.
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-a11y-s1,
+              browser: chromium,
+              group: a11y,
+              shard: 1,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-a11y-s2,
+              browser: chromium,
+              group: a11y,
+              shard: 2,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-a11y-s3,
+              browser: chromium,
+              group: a11y,
+              shard: 3,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-contrast-s1,
+              browser: chromium,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-contrast-s2,
+              browser: chromium,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-keyboard-s1,
+              browser: chromium,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-target-size-s1,
+              browser: chromium,
+              group: target-size,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-chromium-small-s1,
+              browser: chromium,
+              group: small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-a11y-s1,
+              browser: firefox,
+              group: a11y,
+              shard: 1,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-a11y-s2,
+              browser: firefox,
+              group: a11y,
+              shard: 2,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-a11y-s3,
+              browser: firefox,
+              group: a11y,
+              shard: 3,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-contrast-s1,
+              browser: firefox,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-contrast-s2,
+              browser: firefox,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-keyboard-s1,
+              browser: firefox,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-target-size-s1,
+              browser: firefox,
+              group: target-size,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-firefox-small-s1,
+              browser: firefox,
+              group: small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-a11y-s1,
+              browser: webkit,
+              group: a11y,
+              shard: 1,
+              shards: 3,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-a11y-s2,
+              browser: webkit,
+              group: a11y,
+              shard: 2,
+              shards: 3,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-a11y-s3,
+              browser: webkit,
+              group: a11y,
+              shard: 3,
+              shards: 3,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-contrast-s1,
+              browser: webkit,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-contrast-s2,
+              browser: webkit,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-keyboard-s1,
+              browser: webkit,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-target-size-s1,
+              browser: webkit,
+              group: target-size,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts",
+            }
+          - {
+              topology: grouped-8,
+              name: topo-grouped-8-webkit-small-s1,
+              browser: webkit,
+              group: small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+          # ---- flat-5: the legacy 5 shards × 3 browsers = 15, no groups ----
+          # Empty specs: the config's own testMatch scopes each shard, exactly
+          # as the pre-#368 legs ran (their API names carried no group either,
+          # which is why the name pattern drops the group segment here).
+          - {
+              topology: flat-5,
+              name: topo-flat-5-chromium-s1,
+              browser: chromium,
+              group: flat,
+              shard: 1,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-chromium-s2,
+              browser: chromium,
+              group: flat,
+              shard: 2,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-chromium-s3,
+              browser: chromium,
+              group: flat,
+              shard: 3,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-chromium-s4,
+              browser: chromium,
+              group: flat,
+              shard: 4,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-chromium-s5,
+              browser: chromium,
+              group: flat,
+              shard: 5,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-firefox-s1,
+              browser: firefox,
+              group: flat,
+              shard: 1,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-firefox-s2,
+              browser: firefox,
+              group: flat,
+              shard: 2,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-firefox-s3,
+              browser: firefox,
+              group: flat,
+              shard: 3,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-firefox-s4,
+              browser: firefox,
+              group: flat,
+              shard: 4,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-firefox-s5,
+              browser: firefox,
+              group: flat,
+              shard: 5,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-webkit-s1,
+              browser: webkit,
+              group: flat,
+              shard: 1,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-webkit-s2,
+              browser: webkit,
+              group: flat,
+              shard: 2,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-webkit-s3,
+              browser: webkit,
+              group: flat,
+              shard: 3,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-webkit-s4,
+              browser: webkit,
+              group: flat,
+              shard: 4,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          - {
+              topology: flat-5,
+              name: topo-flat-5-webkit-s5,
+              browser: webkit,
+              group: flat,
+              shard: 5,
+              shards: 5,
+              workers: 1,
+              specs: "",
+            }
+          # ---- reduced-6: 6 legs per browser = 18 ----
+          # a11y re-cut from 3 shards to 2 (same total work, half per leg),
+          # target-size merged with `small` — the merged leg passes the union
+          # of the two spec lists positionally, so Playwright runs one browser
+          # pass over four files instead of two browser passes over one each.
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-chromium-a11y-s1,
+              browser: chromium,
+              group: a11y,
+              shard: 1,
+              shards: 2,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-chromium-a11y-s2,
+              browser: chromium,
+              group: a11y,
+              shard: 2,
+              shards: 2,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-chromium-contrast-s1,
+              browser: chromium,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-chromium-contrast-s2,
+              browser: chromium,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-chromium-keyboard-s1,
+              browser: chromium,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-chromium-ts-small-s1,
+              browser: chromium,
+              group: ts-small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-firefox-a11y-s1,
+              browser: firefox,
+              group: a11y,
+              shard: 1,
+              shards: 2,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-firefox-a11y-s2,
+              browser: firefox,
+              group: a11y,
+              shard: 2,
+              shards: 2,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-firefox-contrast-s1,
+              browser: firefox,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-firefox-contrast-s2,
+              browser: firefox,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-firefox-keyboard-s1,
+              browser: firefox,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-firefox-ts-small-s1,
+              browser: firefox,
+              group: ts-small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-webkit-a11y-s1,
+              browser: webkit,
+              group: a11y,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-webkit-a11y-s2,
+              browser: webkit,
+              group: a11y,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-webkit-contrast-s1,
+              browser: webkit,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-webkit-contrast-s2,
+              browser: webkit,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-webkit-keyboard-s1,
+              browser: webkit,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: reduced-6,
+              name: topo-reduced-6-webkit-ts-small-s1,
+              browser: webkit,
+              group: ts-small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      # CAP_SYS_ADMIN is Firefox's sandbox requirement inside the job
+      # container (measured 2026-08-26, recorded in ci.yml's `e2e-run`).
+      options: --cap-add SYS_ADMIN
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      # The container user never matches the workspace mount's owner — recorded
+      # in ci.yml's `e2e-run`, every leg died on "dubious ownership" without it.
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - run: pnpm install --frozen-lockfile
+
+      # actions/cache compresses with zstd and the Playwright image does not
+      # ship it — the same one-package step `e2e-run` carries.
+      - name: Install zstd for the site cache
+        run: apt-get update -qq && apt-get install -y -qq zstd
+
+      - name: Restore the built site
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      # `set -e` before the timing echo, or a red playwright run would print
+      # its own seconds and pass — the failure mode ci.yml's step documents.
+      #
+      # The machine-readable line carries the Playwright-step SECONDS only:
+      # created/started/completed times do not exist inside the step, they come
+      # from the Actions API job record (queue wait = started_at − created_at
+      # there), and analysis joins that record on the leg name.
+      #
+      # HOME=/root reaches the browser process where container-scoped env does
+      # not (the runner overrides HOME; Firefox refuses to run as root
+      # otherwise — measured, recorded in ci.yml).
+      - name: Run Playwright
+        if: matrix.topology == inputs.topology
+        env:
+          HOME: /root
+          PW_PROFILE: standard
+          PW_PREBUILT_DOCS: "1"
+          # Mirrors ci.yml's root legs (the A/B adopted the reuse mode there);
+          # the topology comparison is only about queueing, but its walls must
+          # stay comparable with the production shape they will price.
+          LOOM_E2E_REUSE_THEME: "1"
+        run: >-
+          set -e;
+          SECONDS=0;
+          pnpm exec playwright test
+          --project ${{ matrix.browser }}
+          --config playwright.config.ts
+          --workers ${{ matrix.workers }}
+          ${{ matrix.specs }}
+          ${{ matrix.shards > 1 && format('--shard={0}/{1}', matrix.shard, matrix.shards) || '' }};
+          echo "topo-leg name=${{ matrix.name }} topology=${{ matrix.topology }} browser=${{ matrix.browser }} group=${{ matrix.group }} shard=${{ matrix.shard }}/${{ matrix.shards }} workers=${{ matrix.workers }} playwright_seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
+
+  # The capped variant of grouped-8: byte-identical rows and steps to
+  # `bench-run`'s grouped-8 block, plus the literal cap under test. A separate
+  # job because `strategy.max-parallel` cannot be switched by a dispatch
+  # input without an expression, and this workflow's validity should not rest
+  # on expression support in that one field.
+  bench-run-capped:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: bench-build-docs
+    if: inputs.topology == 'grouped-8-capped'
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      # 16 = two thirds of the measured ~20-slot org ceiling (see the header):
+      # the candidate value that would leave ~4 slots free for every other
+      # workflow on the org while only one extra wave of 8 legs pays for it.
+      max-parallel: 16
+      matrix:
+        include:
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-a11y-s1,
+              browser: chromium,
+              group: a11y,
+              shard: 1,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-a11y-s2,
+              browser: chromium,
+              group: a11y,
+              shard: 2,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-a11y-s3,
+              browser: chromium,
+              group: a11y,
+              shard: 3,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-contrast-s1,
+              browser: chromium,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-contrast-s2,
+              browser: chromium,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-keyboard-s1,
+              browser: chromium,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-target-size-s1,
+              browser: chromium,
+              group: target-size,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-chromium-small-s1,
+              browser: chromium,
+              group: small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-a11y-s1,
+              browser: firefox,
+              group: a11y,
+              shard: 1,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-a11y-s2,
+              browser: firefox,
+              group: a11y,
+              shard: 2,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-a11y-s3,
+              browser: firefox,
+              group: a11y,
+              shard: 3,
+              shards: 3,
+              workers: 2,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-contrast-s1,
+              browser: firefox,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-contrast-s2,
+              browser: firefox,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-keyboard-s1,
+              browser: firefox,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-target-size-s1,
+              browser: firefox,
+              group: target-size,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-firefox-small-s1,
+              browser: firefox,
+              group: small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-a11y-s1,
+              browser: webkit,
+              group: a11y,
+              shard: 1,
+              shards: 3,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-a11y-s2,
+              browser: webkit,
+              group: a11y,
+              shard: 2,
+              shards: 3,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-a11y-s3,
+              browser: webkit,
+              group: a11y,
+              shard: 3,
+              shards: 3,
+              workers: 1,
+              specs: "e2e/accessibility.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-contrast-s1,
+              browser: webkit,
+              group: contrast,
+              shard: 1,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-contrast-s2,
+              browser: webkit,
+              group: contrast,
+              shard: 2,
+              shards: 2,
+              workers: 1,
+              specs: "e2e/contrast.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-keyboard-s1,
+              browser: webkit,
+              group: keyboard,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/keyboard.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-target-size-s1,
+              browser: webkit,
+              group: target-size,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/target-size.e2e.ts",
+            }
+          - {
+              topology: grouped-8-capped,
+              name: topo-grouped-8-capped-webkit-small-s1,
+              browser: webkit,
+              group: small,
+              shard: 1,
+              shards: 1,
+              workers: 1,
+              specs: "e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts",
+            }
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --cap-add SYS_ADMIN
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install zstd for the site cache
+        run: apt-get update -qq && apt-get install -y -qq zstd
+
+      - name: Restore the built site
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: docs/.vitepress/dist
+          key: docs-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      # No step-level topology gate here, unlike `bench-run`: the job-level
+      # `if` already restricts this job to the grouped-8-capped dispatch, so
+      # every row of its matrix is a leg that runs.
+      - name: Run Playwright
+        env:
+          HOME: /root
+          PW_PROFILE: standard
+          PW_PREBUILT_DOCS: "1"
+          # Mirrors ci.yml's root legs (the A/B adopted the reuse mode there);
+          # the topology comparison is only about queueing, but its walls must
+          # stay comparable with the production shape they will price.
+          LOOM_E2E_REUSE_THEME: "1"
+        run: >-
+          set -e;
+          SECONDS=0;
+          pnpm exec playwright test
+          --project ${{ matrix.browser }}
+          --config playwright.config.ts
+          --workers ${{ matrix.workers }}
+          ${{ matrix.specs }}
+          ${{ matrix.shards > 1 && format('--shard={0}/{1}', matrix.shard, matrix.shards) || '' }};
+          echo "topo-leg name=${{ matrix.name }} topology=${{ matrix.topology }} browser=${{ matrix.browser }} group=${{ matrix.group }} shard=${{ matrix.shard }}/${{ matrix.shards }} workers=${{ matrix.workers }} playwright_seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
+
+  # The digest that turns one dispatch into the answer: the Actions API job
+  # record is the only place created_at / started_at / completed_at exist, and
+  # this job is the one allowed to read it (actions: read — the workflow's
+  # contents: read alone cannot). Runs even when legs fail: a bench whose leg
+  # went red still carries its concurrency curve, which is often the point.
+  bench-report:
+    name: Bench · report
+    runs-on: ubuntu-latest
+    needs: [bench-run, bench-run-capped]
+    if: always()
+    permissions:
+      actions: read
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      # No checkout: the report reads the API and nothing else.
+      - name: Print the concurrency curve
+        run: |
+          # --slurp wraps every page's array in one outer array, so the parse
+          # stays valid however many pages the fan-out grows to — --paginate
+          # with --jq concatenates pages without separators and yields invalid
+          # JSON the moment a second page appears.
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" > /tmp/jobs.json
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from datetime import datetime, timedelta
+
+          def ts(s):
+              return datetime.fromisoformat(s.replace("Z", "+00:00"))
+
+          pages = json.load(open("/tmp/jobs.json"))
+          jobs = [j for page in pages for j in page
+                  if j["name"].startswith("topo-") and j["conclusion"] != "skipped"]
+          if not jobs:
+              print("no legs ran")
+              raise SystemExit(0)
+          print("## Topology bench — legs ran: %d" % len(jobs))
+          print()
+          print("| leg | queue wait s | wall m |")
+          print("| --- | ---: | ---: |")
+          for j in sorted(jobs, key=lambda x: x["started_at"]):
+              q = (ts(j["started_at"]) - ts(j["created_at"])).total_seconds()
+              w = (ts(j["completed_at"]) - ts(j["started_at"])).total_seconds() / 60
+              print("| %s | %.0f | %.2f |" % (j["name"], q, w))
+          t = min(ts(j["started_at"]) for j in jobs).replace(second=0)
+          end = max(ts(j["completed_at"]) for j in jobs)
+          pts = []
+          while t < end:
+              pts.append((t, sum(1 for j in jobs if ts(j["started_at"]) <= t < ts(j["completed_at"]))))
+              t += timedelta(minutes=1)
+          spread = (max(ts(j["started_at"]) for j in jobs) - min(ts(j["started_at"]) for j in jobs)).total_seconds() / 60
+          waiters = sum(1 for j in jobs if (ts(j["started_at"]) - ts(j["created_at"])).total_seconds() > 60)
+          print()
+          print("- start spread: %.1f min; legs queuing > 60s: %d" % (spread, waiters))
+          print("- concurrency curve: %s" % " ".join("%s=%d" % (t.strftime("%H:%M"), c) for t, c in pts))
+          print("- max concurrent: %d" % max(c for _, c in pts))
+          PY
