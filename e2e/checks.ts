@@ -19,6 +19,7 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { BROWSERLESS_RULES, BROWSER_REQUIRED_RULES } from "@ecoma-io/loom/a11y";
 import { timed } from "../playwright/timings";
+import { settleMotion } from "./motion-settle";
 
 // Tell VitePress to start in light mode. The `vitepress-theme-appearance`
 // key is the one VitePress's own toggle writes to; its inline script reads
@@ -38,6 +39,10 @@ export async function loadInLight(browserPage: Page, target: string): Promise<vo
       return match && Number(match[1]) > 200;
     }),
   );
+  // And that no entrance animation is still carrying an element toward its
+  // resting opacity — a colour verdict read mid-flight is timing, not truth
+  // (#396; e2e/motion-settle.ts for the contract).
+  await timed("wait-motion-settled", () => settleMotion(browserPage));
 }
 
 // Tell VitePress to start in dark mode. Setting the localStorage key before
@@ -437,6 +442,10 @@ export async function sweepInTheme(browserPage: Page, target: string, theme: "li
     localStorage.setItem("vitepress-theme-appearance", t);
   }, theme);
   await timed("goto", () => browserPage.goto(target));
+  // The same settle the production loader applies: this sweep reads colours
+  // too, and both arms of the bench it feeds must settle identically or the
+  // byte-compare it exists for measures timing instead of verdicts.
+  await timed("wait-motion-settled", () => settleMotion(browserPage));
   return sweepLoadedPage(browserPage);
 }
 
