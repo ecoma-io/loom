@@ -65,6 +65,37 @@ B5. Navigation reuse — collapse each page's light+dark pair into one goto
   and the three gate-caught mechanisms in analysis §11; contrast firefox
   297/286s → 147/148s at zero fallbacks, run 34647896802).
 
+B6. Shared-page check merge — the next reuse step beyond B5: one loaded
+page per docs page carries all four per-page check groups (accessibility,
+contrast, target-size, keyboard's phone-width table check) instead of one
+navigation per group (`e2e/b2-shared-page.e2e.ts`, issue #381, PR #382).
+The bench runs today's four-navigation shape (`off`) against three merged
+variants — a11y+contrast (`a`), + target-size (`b`), + keyboard at 375px
+(`c`) — with the checks imported from `e2e/checks.ts`, the same
+single-sourced bodies the production specs assert, so a variant cannot pass
+on weaker evidence than the gate it is meant to replace.
+
+- **Measured** on the bench subset (8 representative pages, workers=1,
+  built site, standard profile, runs 34677213048…34677631967, 2026-09-12):
+  navigations 4 → 1 per page on every engine; navigation wall chromium
+  56.5 → 14.3s, firefox 54.1 → 16.7s, webkit 16.2 → 5.8s (−75% / −69% /
+  −64%); subset run wall chromium 87.8 → 36.9s, firefox 89.8 → 36.1–46.5s,
+  webkit 56.5 → 36.0s (−58% / −48…−60% / −36%).
+- **Equivalence (measured)**: every check's result payload joined on
+  (page, check) is byte-identical between the baseline and the merged
+  variant — 288 of 288 joins across the three engines, including keyboard's
+  table verdicts on WebKit, the engine that check speaks for, run dark at
+  375px off a 1280px resize instead of on a fresh light page.
+- **State-leak evidence (measured)**: the only `stateBefore` fingerprint
+  keys that ever differ are VitePress's prefetch-link injection timing (a
+  time marker none of the checks read) and keyboard's designed theme delta
+  (shared dark page vs fresh light page) — no scroll, focus, storage, or
+  theme leakage reached any light check, and payloads stayed identical
+  despite the delta.
+- **Verdict B2-STRONG**: all four groups may share the page; the production
+  merge and root-plan re-cut are the follow-up implementation PR's work,
+  with the full-suite CI benchmark as its acceptance evidence.
+
 ## 3. Scenario C — coverage-class rerouting (projected, changes semantics)
 
 C1. Per-class authority (matrix §2): geometry-only assertions
