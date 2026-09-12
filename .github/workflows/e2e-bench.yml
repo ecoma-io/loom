@@ -65,6 +65,7 @@ on:
           - contrast
           - keyboard
           - target-size
+          - b2
           - small
       reuse_theme:
         # The specs' collapsed light+dark shape (LOOM_E2E_REUSE_THEME in
