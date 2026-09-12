@@ -34,7 +34,7 @@ on:
         required: true
         default: "1"
       only_shard:
-        description: Run a single shard (1-5), or "all" for the full split
+        description: Run a single shard (1-6), or "all" for the full split
         required: true
         default: all
         type: string
@@ -164,7 +164,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5]
+        # Six because the plan cuts page-sweep at six (tools/e2e-plan.ts
+        # ROOT_SHARD_PLAN) and the shard guards below admit up to GROUP_SHARDS:
+        # a matrix narrower than the largest arm leaves shard 6 a dispatch
+        # input that silently runs nothing (ecoma-io/loom#389).
+        shard: [1, 2, 3, 4, 5, 6]
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
       options: --cap-add SYS_ADMIN

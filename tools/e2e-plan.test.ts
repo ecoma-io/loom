@@ -347,6 +347,16 @@ describe("e2e-plan: bench workflow ↔ plan consistency", () => {
     return Number(match[1]);
   };
 
+  /** The `shard: [...]` matrix literal, parsed the same text-only way. */
+  const benchMatrixShards = (): number[] => {
+    // Comment lines may sit between `matrix:` and the literal, so the scope
+    // skips them instead of assuming adjacency.
+    const match = /matrix:\n(?:\s*#[^\n]*\n)*\s+shard: \[([0-9, ]+)\]/.exec(BENCH_YML);
+    const captured = match?.[1];
+    if (captured === undefined) throw new Error("no shard matrix in e2e-bench.yml");
+    return captured.split(",").map((s) => Number(s.trim()));
+  };
+
   it("the bench's GROUP_SPECS maps every group to the plan's specs", () => {
     for (const g of GROUPS) {
       expect(benchSpecsFor(g.group).sort()).toEqual([...g.specs].sort());
@@ -357,6 +367,21 @@ describe("e2e-plan: bench workflow ↔ plan consistency", () => {
     for (const g of GROUPS) {
       if (g.shards === 1) continue;
       expect(benchShardsFor(g.group)).toBe(g.shards);
+    }
+  });
+
+  it("the bench's shard matrix covers every shard a GROUP_SHARDS arm can demand", () => {
+    // The shard guards admit `matrix.shard <= GROUP_SHARDS`, so a matrix
+    // narrower than the largest arm leaves the top shard reachable by neither
+    // `only_shard` (which silently runs nothing) nor `all` (which silently
+    // measures 5/6) — exactly how shard 6 went missing while page-sweep ran
+    // six (ecoma-io/loom#389). Covering rather than equalling keeps a
+    // re-cut that shrinks the plan from forcing matrix churn: extra shards
+    // are skipped jobs, missing shards are unmeasurable ones.
+    const matrix = benchMatrixShards();
+    const maxArm = Math.max(...[...shardsLine.matchAll(/'(\d+)'/g)].map((m) => Number(m[1])));
+    for (let shard = 1; shard <= maxArm; shard++) {
+      expect(matrix).toContain(shard);
     }
   });
 
