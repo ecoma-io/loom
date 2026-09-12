@@ -196,7 +196,14 @@ export default tseslint.config(
   // nobody ran — a focused test that silences its siblings, and a skipped one
   // that silences itself — plus assertions that can never fail.
   {
-    files: ["packages/**/*.test.ts", "e2e/**/*.e2e.ts", "playwright/harness/**/*.e2e.ts"],
+    // e2e/checks.ts is not a spec but carries the specs' in-page closures and
+    // page helpers — the same host-context code this exception exists for.
+    files: [
+      "packages/**/*.test.ts",
+      "e2e/**/*.e2e.ts",
+      "e2e/checks.ts",
+      "playwright/harness/**/*.e2e.ts",
+    ],
     plugins: { vitest },
     rules: {
       ...vitest.configs.recommended.rules,
@@ -218,6 +225,20 @@ export default tseslint.config(
   {
     files: ["e2e/**/*.e2e.ts", "playwright/harness/**/*.e2e.ts"],
     ...playwright.configs["flat/recommended"],
+  },
+
+  // The B2 bench (e2e/b2-shared-page.e2e.ts) asserts through helpers shared
+  // with the production specs (e2e/checks.ts and its own runners) — each ends
+  // in the same verdict call the specs state inline with expect(). The rule
+  // cannot see through that indirection, and its configured names match
+  // exactly unless given a RegExp, so the assert-prefixed names are declared.
+  // darkToggle carries no verdict and is deliberately absent: a test whose
+  // only callee is darkToggle still deserves this warning.
+  {
+    files: ["e2e/b2-shared-page.e2e.ts"],
+    rules: {
+      "playwright/expect-expect": ["warn", { assertFunctionNames: ["expect", /^assert/] }],
+    },
   },
 
   // Node context: config files, build plugins, repository checks and hooks all

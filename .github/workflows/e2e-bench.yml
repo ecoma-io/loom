@@ -75,6 +75,22 @@ on:
         required: false
         default: false
         type: boolean
+      b2_variant:
+        # The B2 shared-page bench's variant (e2e/b2-shared-page.e2e.ts):
+        # "off" is the production shape — four navigations per page; a/b/c
+        # merge the four check groups onto one loaded page per page — a11y +
+        # contrast (a), + target-size (b), + keyboard at 375px (c). Read only
+        # when group is b2; empty means the bench registers nothing.
+        description: B2 bench variant (group=b2 only)
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - "off"
+          - a
+          - b
+          - c
 
 permissions:
   contents: read
@@ -90,7 +106,10 @@ concurrency:
   # s1, s2, s3 as three dispatches seconds apart — and the key without it let
   # each shard dispatch cancel the previous one (observed 2026-09-12: 9 of the
   # 24 burst runs cancelled, every a11y s1/s2 and contrast s1 leg among them).
-  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-r${{ inputs.reuse_theme }}-s${{ inputs.only_shard }}
+  # The b2 variant joins the key for the same reason — off/a/b/c are four
+  # concurrent-eligible benches of one page set (ecoma-io/loom#381), and the
+  # off-vs-variant comparison wants them running at the same time.
+  group: e2e-bench-${{ github.ref }}-${{ inputs.project }}-w${{ inputs.workers }}-${{ inputs.group }}-${{ inputs.profile }}-r${{ inputs.reuse_theme }}-s${{ inputs.only_shard }}-b2${{ inputs.b2_variant }}
   cancel-in-progress: true
 
 jobs:
@@ -152,7 +171,7 @@ jobs:
       # `small` list is the same computed catch-all (every root spec not in
       # the plan). Empty group = the legacy flat 5-shard split.
       GROUP_SHARDS: ${{ inputs.group == 'a11y' && '3' || inputs.group == 'contrast' && '2' || inputs.group != '' && '1' || '5' }}
-      GROUP_SPECS: ${{ inputs.group == 'a11y' && 'e2e/accessibility.e2e.ts' || inputs.group == 'contrast' && 'e2e/contrast.e2e.ts' || inputs.group == 'keyboard' && 'e2e/keyboard.e2e.ts' || inputs.group == 'target-size' && 'e2e/target-size.e2e.ts' || inputs.group == 'small' && 'e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
+      GROUP_SPECS: ${{ inputs.group == 'a11y' && 'e2e/accessibility.e2e.ts' || inputs.group == 'contrast' && 'e2e/contrast.e2e.ts' || inputs.group == 'keyboard' && 'e2e/keyboard.e2e.ts' || inputs.group == 'target-size' && 'e2e/target-size.e2e.ts' || inputs.group == 'b2' && 'e2e/b2-shared-page.e2e.ts' || inputs.group == 'small' && 'e2e/b2-shared-page.e2e.ts e2e/focus-not-obscured.e2e.ts e2e/layout-responsive.e2e.ts e2e/reduced-motion.e2e.ts' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -210,6 +229,12 @@ jobs:
           # shape — the flag is read with the same unset-means-off contract as
           # LOOM_E2E_TIMINGS.
           LOOM_E2E_REUSE_THEME: ${{ inputs.reuse_theme && '1' || '' }}
+          # The B2 bench's variant and records file. The bench treats an
+          # empty variant as absent (the same unset-means-absent contract as
+          # LOOM_E2E_TIMINGS), so a non-b2 dispatch leaves the specs' shape
+          # untouched even though the variables are still in the environment.
+          LOOM_E2E_B2_VARIANT: ${{ inputs.b2_variant }}
+          LOOM_E2E_B2_RESULTS: /tmp/b2-results.jsonl
         run: >-
           set -e;
           SECONDS=0;
@@ -219,7 +244,7 @@ jobs:
           --workers ${{ inputs.workers }}
           ${{ env.GROUP_SPECS }}
           --shard=${{ matrix.shard }}/${{ env.GROUP_SHARDS }};
-          echo "e2e-bench ${{ inputs.project }} group=${{ inputs.group || 'flat' }} shard=${{ matrix.shard }}/${{ env.GROUP_SHARDS }} workers=${{ inputs.workers }} profile=${{ inputs.profile }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
+          echo "e2e-bench ${{ inputs.project }} group=${{ inputs.group || 'flat' }}${{ inputs.b2_variant && format(' variant={0}', inputs.b2_variant) || '' }} shard=${{ matrix.shard }}/${{ env.GROUP_SHARDS }} workers=${{ inputs.workers }} profile=${{ inputs.profile }} seconds=$SECONDS" >> "$GITHUB_STEP_SUMMARY"
 
       # Uploaded on every outcome: a bench that fails mid-shard still carries
       # the phase records written before the failure, which is often the
@@ -232,3 +257,16 @@ jobs:
           path: /tmp/timings.jsonl
           retention-days: 14
           if-no-files-found: warn
+
+      # The equivalence evidence: the per-check state fingerprints and result
+      # payloads the off-vs-variant join diffs. Only the b2 group produces
+      # them, and a b2 run that produced none failed as a measurement —
+      # which is why this is an error where the timings upload above warns.
+      - name: Upload B2 records
+        if: always() && inputs.group == 'b2' && (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: b2-results-${{ inputs.project }}-${{ inputs.b2_variant }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/b2-results.jsonl
+          retention-days: 14
+          if-no-files-found: error

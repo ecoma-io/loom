@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 
 import { timed } from "../playwright/timings";
 import { documentationPages } from "./docs-pages";
+import { keyboardReport, keyboardTableResults } from "./checks";
 
 // Component-owned keyboard traversal cases live beside their primitives. What
 // remains here is cross-cutting browser evidence: input-modality styling and
@@ -78,23 +79,13 @@ for (const path of documentationPages()) {
     // otherwise be a conditional in the test body, which
     // `playwright/no-conditional-in-test` rejects — and rightly, since a skipped
     // iteration and a passing one look identical from the outside.
-    const results = await timed("evaluate", () =>
-      page.evaluate(() =>
-        [...document.querySelectorAll<HTMLElement>(".vp-doc table")]
-          .map((table, index) => ({ table, index }))
-          .filter(({ table }) => table.scrollWidth > table.clientWidth)
-          .map(({ table, index }) => {
-            table.focus();
-            return { index, focused: document.activeElement === table };
-          }),
-      ),
-    );
+    const results = await keyboardTableResults(page);
 
     const unreachable = results
       .filter((result) => !result.focused)
       .map((result) => `table[${String(result.index)}]`);
 
-    expect(unreachable, `scrollable but not focusable:\n${unreachable.join("\n")}`).toEqual([]);
+    expect(unreachable, keyboardReport(unreachable)).toEqual([]);
   });
 }
 
