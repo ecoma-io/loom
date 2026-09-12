@@ -32,7 +32,25 @@ import type { Page } from "@playwright/test";
  * - **Everything else must be past its `endTime`** — delay, active duration
  *   and end delay together — which covers entrance *delays* too: a
  *   `both`-filled element sitting invisibly inside its stagger delay is
- *   in flight exactly like one mid-keyframe.
+ *   in flight exactly like one mid-keyframe. An entrance *delay* is not
+ *   the same as pending play: a delayed animation's start time is
+ *   resolved and its clock counts through the delay, so it gates as
+ *   travelled distance, not as "not started yet".
+ * - **Pending play never gates.** An animation that is `running` with an
+ *   unresolved start time has never ticked: it holds only its fill state
+ *   and produces no frames. Beyond the first-frame window of an animation
+ *   about to run, this is also — permanently — a CSS animation on an
+ *   element that is not being rendered, which Firefox leaves pending
+ *   forever while Chromium resolves the same situation without leaving
+ *   the animation in the list (the closed Collapse region Reka conceals
+ *   with `hidden="until-found"`: run 34720387853, firefox page-sweep s2,
+ *   `collapse` 140ms `running` at localTime 0 across all three retries).
+ *   Gating on an animation that never advances would make the verdict
+ *   depend on an interop artifact — this defect class from the mirror
+ *   side. A *paused* animation is deliberately outside this exemption:
+ *   paused also reports a null start time, but it can be holding a
+ *   mid-flight frame at its paused progress, which is exactly the state
+ *   a colour verdict must not sample.
  * - **Theme transitions included.** `getAnimations()` returns CSS transitions
  *   as well, so the dark pass also waits out the colour transitions the
  *   appearance flip starts — the same race one step earlier.
@@ -82,6 +100,17 @@ const finiteMotionSettled = () =>
     if (timing.iterations === Infinity) {
       return true;
     }
+    // Pending play: `running` with an unresolved start time has never
+    // ticked — no frame has been produced, so no colour read samples a
+    // transient. In Firefox this is also the permanent state of a CSS
+    // animation on an element Reka conceals with `hidden="until-found"`
+    // (Collapse keeps its closed region mounted on purpose), where the
+    // same page settles in Chromium — see the contract block above. A
+    // paused animation is not exempted: `paused` too reports a null start
+    // time, but it can be holding a mid-flight frame.
+    if (animation.playState === "running" && animation.startTime === null) {
+      return true;
+    }
     const now = animation.currentTime;
     return now !== null && Number(now) >= Number(timing.endTime ?? Infinity);
   });
@@ -96,26 +125,53 @@ export const inFlightFiniteAnimations = () =>
     if (animation.playState === "idle" || animation.playState === "finished") {
       return false;
     }
+    // Pending play mirrors the predicate's exemption — lockstep with
+    // `finiteMotionSettled`, which the contract block above explains.
+    if (animation.playState === "running" && animation.startTime === null) {
+      return false;
+    }
     const timing = animation.effect?.getComputedTiming();
     if (!timing || timing.iterations === Infinity) {
       return false;
     }
     const now = animation.currentTime;
-    return now !== null && Number(now) < Number(timing.endTime ?? Infinity);
+    return now === null || Number(now) < Number(timing.endTime ?? Infinity);
   }).length;
 
 /**
- * The names of animations still in flight at the bound — the fail-closed
- * message's payload, so a red gate says which animation outgrew the motion
- * vocabulary instead of saying only that two seconds passed.
+ * The animations still gating at the bound — the fail-closed message's
+ * payload, so a red gate names what outgrew the contract instead of saying
+ * only that two seconds passed. Filtered by the predicate's own exemptions
+ * (a finished or pending-play animation is not the stall), and carrying
+ * `startTime` because that one field separated the two stalls this file has
+ * met: `null` with `running` is pending play on an unrendered element,
+ * while a number mid-count is a duration genuinely outrunning the bound.
  */
 const stuckMotionReport = () =>
   JSON.stringify(
-    document.getAnimations().map((animation) => ({
-      name: animation instanceof CSSAnimation ? animation.animationName : "transition",
-      state: animation.playState,
-      timing: animation.effect?.getComputedTiming(),
-    })),
+    document
+      .getAnimations()
+      .filter((animation) => {
+        if (animation.playState === "idle" || animation.playState === "finished") {
+          return false;
+        }
+        if (animation.playState === "running" && animation.startTime === null) {
+          return false;
+        }
+        const timing = animation.effect?.getComputedTiming();
+        if (!timing || timing.iterations === Infinity) {
+          return false;
+        }
+        const now = animation.currentTime;
+        return now === null || Number(now) < Number(timing.endTime ?? Infinity);
+      })
+      .map((animation) => ({
+        name: animation instanceof CSSAnimation ? animation.animationName : "transition",
+        state: animation.playState,
+        startTime: animation.startTime,
+        currentTime: animation.currentTime,
+        timing: animation.effect?.getComputedTiming(),
+      })),
   );
 
 /**
