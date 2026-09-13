@@ -108,29 +108,36 @@ jobs:
       # as stale evidence on every run. The workspace itself stays
       # untouched: it is the review's subject, never Archkeep's.
       #
-      # This repository's one asymmetry: the Vue workspace bridge. Archkeep
-      # resolves `vue/compiler-sfc` from its own install location
-      # (archkeep#939), so under the recipe's global install a tree full of
-      # `.vue` files measures as unanalyzed and the capture refuses — exit
-      # 3, law 3 red. The bridge is the workspace's own install plus
-      # `NODE_PATH` on the two Archkeep steps, so the compiler resolves from
-      # here. The skew it carries is disclosed, not hidden: the compiler
-      # that judges both sides is the merge preview's, so a pull request
-      # that bumps Vue judges the baseline tree with the new compiler —
-      # acceptable for review evidence because the verdict is recorded and
-      # never enforced, and because the delta still pins both commits and
-      # both policy fingerprints.
-      - uses: pnpm/action-setup@0977fd99725f1db4007909c06cc86 # v6.0.10
+      # This repository's one asymmetry: two bridges a Vue-on-Moon workspace
+      # needs, both disclosed rather than hidden. First, the Moon bridge:
+      # archkeep reads this workspace's project graph with the Moon CLI,
+      # looking for `moon` in the analyzed tree's node_modules/.bin and then
+      # on PATH. The base and head worktrees the recipe judges are committed
+      # trees — no node_modules — so the only source for this workspace's
+      # pinned `moon` (a devDependency) is the merge preview's own install,
+      # put on PATH below. Second, the Vue bridge: archkeep resolves
+      # `vue/compiler-sfc` from its own install location (archkeep#939), so
+      # under the recipe's global install a tree full of `.vue` files
+      # measures as unanalyzed and the capture refuses — exit 3, law 3 red;
+      # `NODE_PATH` on the two Archkeep steps points the compiler at this
+      # workspace's install. The skew both bridges carry is the same and is
+      # disclosed: the `moon` and the compiler that judge both sides are the
+      # merge preview's, so a pull request that bumps either judges the
+      # baseline tree with the new version — acceptable for review evidence
+      # because the verdict is recorded and never enforced, and because the
+      # delta still pins both commits and both policy fingerprints. A pull
+      # request that breaks its own install breaks these steps — law 3
+      # behaving exactly as stated.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
 
-      # The Vue bridge's first half: the workspace's own install, from this
-      # repository's lockfile. A pull request that breaks its own install
-      # breaks this step — which is law 3 behaving exactly as stated: a
-      # failed capture is a red run and the review never starts.
-      - name: Install the workspace dependencies (Vue bridge)
+      - name: Install the workspace dependencies (Moon and Vue bridges)
         run: pnpm install --frozen-lockfile
+
+      - name: Put the workspace's pinned Moon on PATH
+        run: echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
 
       # Consumer-pinned, exactly as the action-agents guide ships it. The
       # action never learns this happened: no dependency edge is created.
@@ -147,7 +154,7 @@ jobs:
       # `continue-on-error`: a failed capture is a red run and the review
       # never starts — the one line here a frightened consumer must not
       # "fix" with `continue-on-error: true`, which reopens the planted-file
-      # channel of law 1. `NODE_PATH` is the Vue bridge's second half.
+      # channel of law 1. `NODE_PATH` is the Vue bridge's other half.
       - name: Capture the baseline at the live merge-base (recipe laws 3-4)
         env:
           BASE_REF: ${{ github.base_ref }}
