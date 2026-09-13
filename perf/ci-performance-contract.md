@@ -27,7 +27,19 @@ Three browser suites share one profile source (`playwright/profiles.ts`):
   the mobile rows (the sub-1280px `reachDark` fallback pays a second, dark
   navigation — designed, not a defect). The check bodies are single-sourced in
   `e2e/checks.ts`; the dark pass runs under a byte-identity premise gate on the
-  DOM between themes.
+  DOM between themes. Every colour verdict — light and dark, sweep and bench —
+  reads settled pixels: `e2e/motion-settle.ts` holds each scan until the page's
+  finite animations are past their `endTime` (entrance animations carry elements
+  from `opacity: 0`, and a scan landing mid-flight measures a transitional
+  foreground — the #396 race, where one SHA read pass, flaky and failed). The
+  wait is bounded at 2000 ms ≈ 3× the motion vocabulary's worst legal end
+  (480 ms duration + 180 ms stagger), polls per animation frame, fails closed
+  naming what stuck, and exempts only what cannot tick: infinite iterations
+  (loaders) and pending play on an element that is not being rendered (the
+  Firefox `hidden="until-found"` interop the first run caught). Its price is
+  already inside every post-#398 wall in this file's tables (MEASURED, e.g. the
+  2026-09-13 chromium-mobile ledger arms); isolating the settle's own
+  milliseconds would compare different SHAs and is not claimed.
 - **Harness** (`playwright/harness/`) — component `e2e/*.e2e.ts` against a
   Vite-mounted demo; never pays for a VitePress build.
 - **Template** (`playwright/template/`) — every directory under `templates/`
