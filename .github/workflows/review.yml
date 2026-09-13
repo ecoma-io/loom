@@ -5,7 +5,10 @@ name: Review
 # (strictness medium, strategy standard, language en, maxDiffLines 5000, no
 # ignore) — the rollout's first question, are the default reviewer's findings
 # worth reading here, answered unconfounded by a local rubric. The flip to
-# live has been taken.
+# live has been taken. The action ref is digest-pinned to the released tag it
+# names, re-pinned to v0.14.0 by this pull request — the first release whose
+# review action declares the `architecture-report` input the evidence recipe
+# below wires (verified against the tag's action.yaml).
 #
 # Since the Archkeep runtime integration (action-agents #518) this workflow
 # also runs the evidence recipe ahead of the action: pinned Archkeep steps
@@ -207,7 +210,7 @@ jobs:
               head: {commit: $headCommit}}' > .archkeep/run.json
 
       - id: review
-        uses: ecoma-io/action-agents/review@2f0e18a8e1ea5bdfa8fc690057ca1bbdfaa4f3a4 # v0.12.1
+        uses: ecoma-io/action-agents/review@ae384f9f4808cd9ca871f642178b5c939a958f6e # v0.14.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
