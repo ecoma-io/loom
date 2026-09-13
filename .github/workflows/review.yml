@@ -1,12 +1,23 @@
 name: Review
 
 # Dogfood enrollment (ecoma-io/action-agents docs/dogfood.md @ v0.12.1, issue
-# #261): review in its documented starting posture — dry-run, and no policy
-# file, so the built-in defaults apply (strictness medium, strategy standard,
-# language en, maxDiffLines 5000, no ignore). The rollout's first question —
-# are the default reviewer's findings worth reading here? — is answered
-# unconfounded by a local rubric. The flip to live is one line, after the
-# first-run checklist has passed twice.
+# #261): review with no policy file, so the built-in defaults apply
+# (strictness medium, strategy standard, language en, maxDiffLines 5000, no
+# ignore) — the rollout's first question, are the default reviewer's findings
+# worth reading here, answered unconfounded by a local rubric. The flip to
+# live has been taken. The action ref is digest-pinned to the released tag it
+# names, re-pinned to v0.14.0 by this pull request — the first release whose
+# review action declares the `architecture-report` input the evidence recipe
+# below wires (verified against the tag's action.yaml).
+#
+# Since the Archkeep runtime integration (action-agents #518) this workflow
+# also runs the evidence recipe ahead of the action: pinned Archkeep steps
+# leave a delta report in the workspace, the `architecture-report` input
+# names it, and the run records what it says as the architecture family —
+# records, never enforces. The recipe this job runs is the dogfood copy of
+# the one action-agents' docs/guides/review.md ships, with one
+# Vue-workspace bridge this repository needs (noted at the install step
+# below) and the five frozen lines quoted verbatim.
 #
 # No SARIF upload and no `security-events: write`: the Code Scanning surface
 # is action-agents's own merge-enforcement story, and the targets start
@@ -43,19 +54,175 @@ jobs:
       # Unlike triage, review's subject IS the working tree. No credential is
       # left in a workspace the checkout fills with pull-request content —
       # under `pull_request` that content is untrusted input.
+      # `fetch-depth: 0` is recipe law 4 below: the baseline commit the
+      # delta judges must resolve in this clone, and a depth-1 checkout
+      # makes the merge-base step dead on arrival.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 1
+          fetch-depth: 0
+
+      # ── The Archkeep evidence recipe ─────────────────────────────────────
+      #
+      # Architecture evidence enters this run as a report file produced
+      # before the action starts, by workflow steps rather than by the
+      # action: the zero-runtime-dependency law is untouched — the action
+      # neither spawns, installs nor imports Archkeep, and the evidence
+      # steps are outside the run contract's retry surface. Five of this
+      # recipe's lines are normative ("Architecture evidence at runtime" in
+      # action-agents' docs/run-contract.md), and they are quoted here so
+      # this dogfood copy cannot drift from the words a consumer's copy is
+      # judged against:
+      #
+      # 1. Clear, then delete. The evidence directory is cleared before
+      #    capture, and the report file is deleted on any delta exit outside
+      #    {1, 3} — the exits where Archkeep died without a coherent
+      #    envelope, which is the whole planted-file channel: Archkeep
+      #    leaves `--output` files untouched when a run dies before building
+      #    one, so stale bytes beside a dead run would otherwise be read as
+      #    its verdict. On 1 and 3 the envelope is the verdict carrier and
+      #    stays: the reader pins its exit code to the manifest's recorded
+      #    exit — a coin-flip read is not admissible — and deleting it there
+      #    would collapse every findings run into the report-absent
+      #    `incomplete` lane, making law 2's "verdict: fail" unreachable.
+      #    The exit file is append-only, so a plant can only ever contribute
+      #    a nonzero exit line: plants can make evidence look worse, never
+      #    better.
+      # 2. Tolerate exactly {1, 3}. Exit 1 (verdict: fail) and exit 3 (no
+      #    verdict) are recorded, not red. Exit 2 — a usage error, a
+      #    mis-wiring, not a verdict — and everything else redden the step.
+      # 3. Capture steps never `||`, never `continue-on-error`. A failed
+      #    capture is a red run: evidence absent, review never starts.
+      #    `continue-on-error` is not a degradation mechanism — it reopens
+      #    the planted-file channel of law 1.
+      # 4. The baseline commit is the live merge-base, fetched. Never the
+      #    payload's `base.sha` alone — it can be stale, and a moved base
+      #    makes the delta attribute other people's merged changes to this
+      #    pull request as `introduced`: loud but wrong. The fetch strategy
+      #    must make the commit resolvable — `fetch-depth: 0` above is that.
+      # 5. The manifest is freshly written from the append-only exit file,
+      #    overwriting any plant, at the end of the evidence steps.
+      #
+      # One wiring fact the recipe rides on: the delta judges the pull
+      # request's head commit — `pull_request.head.sha`, the head the action
+      # pins its evidence expectation to — in a worktree of its own. The
+      # workspace checkout is the merge preview, and a report judged there
+      # pins a different head than the one the action expects, which reads
+      # as stale evidence on every run. The workspace itself stays
+      # untouched: it is the review's subject, never Archkeep's.
+      #
+      # This repository's one asymmetry: two bridges a Vue-on-Moon workspace
+      # needs, both disclosed rather than hidden. First, the Moon bridge:
+      # archkeep reads this workspace's project graph with the Moon CLI,
+      # looking for `moon` in the analyzed tree's node_modules/.bin and then
+      # on PATH. The base and head worktrees the recipe judges are committed
+      # trees — no node_modules — so the only source for this workspace's
+      # pinned `moon` (a devDependency) is the merge preview's own install,
+      # put on PATH below. Second, the Vue bridge: archkeep resolves
+      # `vue/compiler-sfc` from its own install location (archkeep#939), so
+      # under the recipe's global install a tree full of `.vue` files
+      # measures as unanalyzed and the capture refuses — exit 3, law 3 red;
+      # `NODE_PATH` on the two Archkeep steps points the compiler at this
+      # workspace's install. The skew both bridges carry is the same and is
+      # disclosed: the `moon` and the compiler that judge both sides are the
+      # merge preview's, so a pull request that bumps either judges the
+      # baseline tree with the new version — acceptable for review evidence
+      # because the verdict is recorded and never enforced, and because the
+      # delta still pins both commits and both policy fingerprints. A pull
+      # request that breaks its own install breaks these steps — law 3
+      # behaving exactly as stated.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+
+      - name: Install the workspace dependencies (Moon and Vue bridges)
+        run: pnpm install --frozen-lockfile
+
+      - name: Put the workspace's pinned Moon on PATH
+        run: echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+
+      # Consumer-pinned, exactly as the action-agents guide ships it. The
+      # action never learns this happened: no dependency edge is created.
+      - name: Install the pinned Archkeep
+        run: npm install --global @ecoma-io/archkeep@0.29.0
+
+      # Recipe law 1, first half: whatever a pull request planted under
+      # `.archkeep/` is gone before anything writes there.
+      - name: Clear the evidence directory (recipe law 1)
+        run: rm -rf .archkeep && mkdir .archkeep
+
+      # Recipe laws 3 and 4: the baseline is an evidence snapshot captured at
+      # the live merge-base of the pull request's head. No `||`, no
+      # `continue-on-error`: a failed capture is a red run and the review
+      # never starts — the one line here a frightened consumer must not
+      # "fix" with `continue-on-error: true`, which reopens the planted-file
+      # channel of law 1. `NODE_PATH` is the Vue bridge's other half.
+      - name: Capture the baseline at the live merge-base (recipe laws 3-4)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          NODE_PATH: ${{ github.workspace }}/node_modules
+        run: |
+          base_sha="$(git merge-base "origin/$BASE_REF" "$HEAD_SHA")"
+          git worktree add --detach ../archkeep-base "$base_sha"
+          (cd ../archkeep-base && archkeep delta --capture --output "$GITHUB_WORKSPACE/.archkeep/base.json")
+          printf '%s\n' "$base_sha" > .archkeep/base-commit
+
+      # Recipe laws 1-3: the delta at the pull request's head, judged in a
+      # worktree at that commit. `set +e` exists only so the case arm can
+      # read the exit; every exit outside {1, 3} leaves the step with
+      # Archkeep's own code (law 2's red) after deleting the report (law 1's
+      # second half), while 1 and 3 append their exit line — append-only —
+      # and keep the envelope as the verdict carrier.
+      - name: Run the delta at the head (recipe laws 1-3)
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          NODE_PATH: ${{ github.workspace }}/node_modules
+        run: |
+          git worktree add --detach ../archkeep-head "$HEAD_SHA"
+          set +e
+          (cd ../archkeep-head && archkeep delta "$GITHUB_WORKSPACE/.archkeep/base.json" --format json --output "$GITHUB_WORKSPACE/.archkeep/delta.json") 2> .archkeep/delta.stderr
+          code=$?
+          set -e
+          case "$code" in
+            0) ;;
+            1|3) printf 'exit=%s\n' "$code" >> .archkeep/exit ;;
+            *) rm -f .archkeep/delta.json; exit "$code" ;;
+          esac
+
+      # Recipe law 5: the manifest, freshly written from the append-only
+      # exit file — overwriting any plant — with the delta's stderr digest
+      # and both commits. The read takes the last nonzero exit line, so a
+      # plant's line can only ever make the recorded exit worse, never
+      # better: an empty file means the step exited zero.
+      - name: Write the manifest (recipe law 5)
+        run: |
+          exit_code="$(grep -oE 'exit=[0-9]+' .archkeep/exit 2>/dev/null | cut -d= -f2 | grep -v '^0$' | tail -n 1)"
+          [ -n "$exit_code" ] || exit_code=0
+          jq -n \
+            --argjson exitCode "$exit_code" \
+            --arg stderrDigest "$(sha256sum .archkeep/delta.stderr | cut -d' ' -f1)" \
+            --arg baseCommit "$(cat .archkeep/base-commit)" \
+            --arg headCommit "$(git -C ../archkeep-head rev-parse HEAD)" \
+            '{exitCode: $exitCode, stderrDigest: $stderrDigest,
+              base: {capturePath: "base.json", commit: $baseCommit},
+              head: {commit: $headCommit}}' > .archkeep/run.json
 
       - id: review
-        uses: ecoma-io/action-agents/review@2f0e18a8e1ea5bdfa8fc690057ca1bbdfaa4f3a4 # v0.12.1
+        uses: ecoma-io/action-agents/review@ae384f9f4808cd9ca871f642178b5c939a958f6e # v0.14.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
           api-key: ${{ secrets.ECOMA_LLM_API_KEY }}
           model: review
           dry-run: "false"
+          # The evidence the recipe above left: the delta report, with the
+          # manifest read from the run.json beside it — the sibling
+          # convention the input pins. Naming it makes this run
+          # architecture-aware: the verdict is recorded in the artifact's
+          # architecture section and never enforced anywhere.
+          architecture-report: .archkeep/delta.json
 
       # The exact file the run declared — set on green runs and on the red
       # boundary's record alike, and empty on terminals that declare none,
@@ -67,5 +234,21 @@ jobs:
         with:
           name: review-run-artifact
           path: ${{ steps.review.outputs.artifact-file }}
+          include-hidden-files: true
+          if-no-files-found: warn
+
+      # The recipe's evidence — baseline snapshot, delta report, stderr, the
+      # append-only exit file, the manifest — for every run, green or red, so
+      # the bytes the reader judged survive provider outages and runner loss
+      # and can be re-read by hand exactly as the run read them. The same two
+      # load-bearing knobs the record upload above carries: hidden files
+      # included (`.archkeep` is hidden by design), and a declared directory
+      # that lands nowhere is loud rather than a green step over nothing.
+      - name: Upload the Archkeep evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: review-architecture-evidence
+          path: .archkeep/
           include-hidden-files: true
           if-no-files-found: warn
