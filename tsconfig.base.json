@@ -146,6 +146,7 @@
       "@ecoma-io/loom-otp-input": ["./packages/primitives/otp-input/src/index.ts"],
       "@ecoma-io/loom-radio-group": ["./packages/primitives/radio-group/src/index.ts"],
       "@ecoma-io/loom-rating": ["./packages/primitives/rating/src/index.ts"],
+      "@ecoma-io/loom-resizable-split": ["./packages/primitives/resizable-split/src/index.ts"],
       "@ecoma-io/loom-segmented-control": ["./packages/primitives/segmented-control/src/index.ts"],
       "@ecoma-io/loom-select": ["./packages/primitives/select/src/index.ts"],
       "@ecoma-io/loom-slider": ["./packages/primitives/slider/src/index.ts"],

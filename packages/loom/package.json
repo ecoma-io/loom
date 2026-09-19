@@ -89,6 +89,7 @@
     "@ecoma-io/loom-radial-progress": "workspace:*",
     "@ecoma-io/loom-radio-group": "workspace:*",
     "@ecoma-io/loom-rating": "workspace:*",
+    "@ecoma-io/loom-resizable-split": "workspace:*",
     "@ecoma-io/loom-reading": "workspace:*",
     "@ecoma-io/loom-row-actions": "workspace:*",
     "@ecoma-io/loom-scroll-area": "workspace:*",

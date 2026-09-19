@@ -105,6 +105,7 @@ export default defineConfig({
       "@ecoma-io/loom-otp-input": pkg("primitives/otp-input/src/index.ts"),
       "@ecoma-io/loom-radio-group": pkg("primitives/radio-group/src/index.ts"),
       "@ecoma-io/loom-rating": pkg("primitives/rating/src/index.ts"),
+      "@ecoma-io/loom-resizable-split": pkg("primitives/resizable-split/src/index.ts"),
       "@ecoma-io/loom-segmented-control": pkg("primitives/segmented-control/src/index.ts"),
       "@ecoma-io/loom-select": pkg("primitives/select/src/index.ts"),
       "@ecoma-io/loom-slider": pkg("primitives/slider/src/index.ts"),
