@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.7.0](https://github.com/ecoma-io/loom/compare/v0.6.0...v0.7.0) (2026-09-19)
+
+
+### Features
+
+* **e2e:** aggregate same-page gate failures in the page sweep ([#388](https://github.com/ecoma-io/loom/issues/388)) ([cd781dc](https://github.com/ecoma-io/loom/commit/cd781dc0864f50ee6105af84c90123672a7d0eb5)), closes [#384](https://github.com/ecoma-io/loom/issues/384)
+* **patterns:** time track — proportional duration bars on a shared ruler ([#411](https://github.com/ecoma-io/loom/issues/411)) ([71d9673](https://github.com/ecoma-io/loom/commit/71d96739531cb75d35b5a1a197439f1114ca5fae))
+* **primitives:** virtual list — windowed rendering with roving keyboard focus ([#406](https://github.com/ecoma-io/loom/issues/406)) ([3c9a109](https://github.com/ecoma-io/loom/commit/3c9a10914b8e5502d3c6c6b8d906a0f6a7a56fdb))
+* **primitives:** windowed scale mode for DataGrid with aria-rowcount (ref [#375](https://github.com/ecoma-io/loom/issues/375)) ([#412](https://github.com/ecoma-io/loom/issues/412)) ([19ef2d3](https://github.com/ecoma-io/loom/commit/19ef2d37ad38a951cbea57df783d9807d1af5715))
+
+
+### Bug Fixes
+
+* **ci:** disable triage and review while the gateway answers without content ([#408](https://github.com/ecoma-io/loom/issues/408)) ([ae00fb4](https://github.com/ecoma-io/loom/commit/ae00fb43786bea9211bef0c953f5d6006f3bd0f1))
+* **ci:** pass gateway model ids to triage and review ([#407](https://github.com/ecoma-io/loom/issues/407)) ([5f3df9e](https://github.com/ecoma-io/loom/commit/5f3df9ec4f118f583f70bddd320bc0d9d21c0f7c))
+* **e2e:** settle finite motion before colour verdicts ([#398](https://github.com/ecoma-io/loom/issues/398)) ([1d90b93](https://github.com/ecoma-io/loom/commit/1d90b93cf61f556f96b3d14a7bf4b3e4f987c2b8))
+* **layouts:** make the wrapped-panel contract one story — declared width ([#409](https://github.com/ecoma-io/loom/issues/409)) ([9004c2a](https://github.com/ecoma-io/loom/commit/9004c2a99c11800169ccc267f97e81600528cb1b))
+
+
+### Performance
+
+* **e2e:** merge the four per-page root gates onto one shared page ([#383](https://github.com/ecoma-io/loom/issues/383)) ([94e6205](https://github.com/ecoma-io/loom/commit/94e6205b147e2e707e14cd75f7a84a11ee663d98))
+
+
+### Documentation
+
+* **e2e:** make the pole trigger executable and re-derive the e2e timeout arithmetic ([#393](https://github.com/ecoma-io/loom/issues/393)) ([6f1cc89](https://github.com/ecoma-io/loom/commit/6f1cc89d7fcde2bd6790c6b4b819a9426007e546))
+* **e2e:** make the pole trigger's instrument executable and re-derive the e2e timeout arithmetic ([6f1cc89](https://github.com/ecoma-io/loom/commit/6f1cc89d7fcde2bd6790c6b4b819a9426007e546))
+* **e2e:** record the chromium-mobile workers re-run (ref [#374](https://github.com/ecoma-io/loom/issues/374)) ([#399](https://github.com/ecoma-io/loom/issues/399)) ([9b64068](https://github.com/ecoma-io/loom/commit/9b64068aad8160177d9544747afd81b7533cddab))
+* **e2e:** record the CI performance contract the program closed on ([#387](https://github.com/ecoma-io/loom/issues/387)) ([91e815f](https://github.com/ecoma-io/loom/commit/91e815f15a2d0049ef04f4b7f09fa616e59e4df6)), closes [#386](https://github.com/ecoma-io/loom/issues/386)
+* **e2e:** record the workers A/B plan for the w1 page-sweep rows ([#394](https://github.com/ecoma-io/loom/issues/394)) ([12084dd](https://github.com/ecoma-io/loom/commit/12084dd45d1f946ca2a2b44b39eb018974731e64))
+* **e2e:** record the workers A/B verdicts — no row adopts ([#397](https://github.com/ecoma-io/loom/issues/397)) ([3e1c77c](https://github.com/ecoma-io/loom/commit/3e1c77ce672b04cd0d47f6531e9125d9dbde87f4))
+* **e2e:** record the workers A/B verdicts — no row adopts (ref [#374](https://github.com/ecoma-io/loom/issues/374)) ([3e1c77c](https://github.com/ecoma-io/loom/commit/3e1c77ce672b04cd0d47f6531e9125d9dbde87f4))
+
 ## [0.6.0](https://github.com/ecoma-io/loom/compare/v0.5.0...v0.6.0) (2026-09-11)
 
 
