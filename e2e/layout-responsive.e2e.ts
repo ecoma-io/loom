@@ -5,8 +5,9 @@ import { test, expect } from "@playwright/test";
 // drives all nine layouts and pins three behaviours:
 //
 // 1. **Stack/split**: AppShell, MasterDetail, SplitLayout, Dashboard and
-//    Settings wrap their panels to full width below the collapse width and
-//    sit side by side above it.
+//    Settings stack their panels below the collapse width — the side panel at
+//    its declared width, the content at full width — and sit side by side
+//    above it.
 // 2. **Bound**: Centered, Reading and FormLayout cap content at a readable
 //    max-width on ultrawide viewports instead of stretching to the full
 //    viewport width.
@@ -36,7 +37,8 @@ const NARROW = 360;
 const FLEX_WRAP = '[style*="flex-wrap:wrap"]';
 
 test("AppShell sidebar stacks below collapse width and splits above", async ({ page }) => {
-  // At narrow width, the sidebar and content should stack (both full-width).
+  // At narrow width, the sidebar and content should stack: the sidebar at its
+  // declared width, the content at full width.
   await page.setViewportSize({ width: NARROW, height: 800 });
   await page.goto("layouts/app-shell");
 

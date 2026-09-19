@@ -385,6 +385,8 @@ export { Toast, ToastItem, TOAST_LABELS } from "@ecoma-io/loom-toast";
 export type { ToastVariant, ToastLabels } from "@ecoma-io/loom-toast";
 export { default as TreeView, TREE_VIEW_LABELS } from "@ecoma-io/loom-tree-view";
 export type { TreeNode, TreeViewLabels, TreeViewSelectionMode } from "@ecoma-io/loom-tree-view";
+export { default as VirtualList, virtualWindow } from "@ecoma-io/loom-virtual-list";
+export type { VirtualWindow } from "@ecoma-io/loom-virtual-list";
 export { default as VisuallyHidden } from "@ecoma-io/loom-visually-hidden";
 export type { VisuallyHiddenElement } from "@ecoma-io/loom-visually-hidden";
 export { default as WindowControls, WINDOW_CONTROLS_LABELS } from "@ecoma-io/loom-window-controls";
