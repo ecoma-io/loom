@@ -1,6 +1,6 @@
 {
   "role": "grid",
-  "basis": "renders role=\"grid\" with role=\"row\"/\"columnheader\"/\"gridcell\" semantics over a native <table>, sortable headers as labelled <button>s and row-selection checkboxes.",
+  "basis": "renders role=\"grid\" with role=\"row\"/\"columnheader\"/\"gridcell\" semantics over a native <table> by default, or over a windowed div-grid when virtualized — the windowed grid re-states the full size with aria-rowcount/aria-colcount plus per-row aria-rowindex so the partial DOM reads as the whole grid; sortable headers are labelled <button>s and selection rides row checkboxes.",
   "evidence": {
     "browserless": [
       "docs/demos/DataGridDemo.vue",
@@ -17,7 +17,7 @@
   ],
   "interaction": {
     "class": "composite",
-    "basis": "cells, sort headers and selection managed as one grid contract.",
+    "basis": "cells, sort headers and selection managed as one grid contract; PageUp/PageDown page the roving stop a window at a time and scroll the focused row into view, Ctrl+End jumps to the last row.",
     "evidence": {
       "harness": ["packages/primitives/data-grid/e2e/data-grid.e2e.ts"],
       "browserless": ["packages/primitives/data-grid/tests/DataGrid.test.ts"]

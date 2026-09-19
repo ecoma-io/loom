@@ -68,3 +68,53 @@ test("space selects the focused row and select-all reports mixed mid-selection",
   await page.keyboard.press("Enter");
   await expect(page.getByText(/Picked:/)).toContainText("api");
 });
+
+// The windowed grid shares the demo's checkbox slot and selection state but
+// renders a fraction of its rows — a contract only a real browser can prove,
+// because the scroll event is what moves the window.
+test.describe("virtualized", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.getByRole("checkbox", { name: /Window 50 rows/ }).click();
+    await expect(page.getByRole("grid")).toHaveAttribute("aria-rowcount", "51");
+  });
+
+  test("renders a window of the 50 rows, not all of them", async ({ page }) => {
+    // 17rem viewport (272px) ≈ 7 visible rows + 8 overscan — nowhere near 51.
+    await expect(page.getByRole("grid").locator('[role="row"]')).toHaveCount(1 + 15);
+  });
+
+  test("scrolling the region moves the window and re-stamps row indices", async ({ page }) => {
+    await page
+      .locator('[role="region"]')
+      .first()
+      .evaluate((el) => {
+        el.scrollTop = 440;
+      });
+    // Row 10 at the top → the window starts at row 2; the first body row
+    // carries data-r='2' and restates its position through aria-rowindex.
+    const bodyRows = page.getByRole("grid").locator('[role="row"]');
+    await expect(page.getByRole("grid").locator('[role="gridcell"]').first()).toHaveAttribute(
+      "data-r",
+      "2",
+    );
+    await expect(bodyRows.nth(1)).toHaveAttribute("aria-rowindex", "4");
+  });
+
+  test("PageDown pages the roving stop one window at a time", async ({ page }) => {
+    const grid = page.getByRole("grid");
+    // The 17rem viewport (272px) is six rows tall: PageDown skips a window.
+    await grid.locator(`[data-r='0'][data-c='1']`).focus();
+    await page.keyboard.press("PageDown");
+    await expect(grid.locator(`[data-r='6'][data-c='1']`)).toHaveAttribute("tabindex", "0");
+    await expect(grid.locator('[data-r][tabindex="0"]')).toHaveCount(1);
+  });
+
+  test("Ctrl+End scrolls the last row into view and focuses it", async ({ page }) => {
+    const grid = page.getByRole("grid");
+    const lastCell = grid.locator(`[data-r='49'][data-c='3']`);
+    await grid.locator(`[data-r='0'][data-c='1']`).focus();
+    await page.keyboard.press("Control+End");
+    await expect(lastCell).toBeFocused();
+    await expect(lastCell).toHaveAttribute("tabindex", "0");
+  });
+});
