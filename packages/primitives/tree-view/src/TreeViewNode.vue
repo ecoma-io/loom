@@ -2,11 +2,14 @@
 import { computed, inject } from "vue";
 import { cn } from "@ecoma-io/loom-core";
 import type { TreeNode } from "./TreeView.vue";
-import { TREE_VIEW_CONTEXT } from "./context";
+import { TREE_VIEW_CONTEXT, type TreeViewNodeState } from "./context";
 
 const props = defineProps<{
-  /** The node this row renders, with its subtree beneath it. */
-  node: TreeNode;
+  /**
+   * The node this row renders, with its subtree beneath it. Named `row` so
+   * the public `node` slot can forward by object spread without colliding.
+   */
+  row: TreeNode;
   /** One-based depth — what `aria-level` says. */
   level: number;
   /** How many siblings this row has — what `aria-setsize` says. */
@@ -15,11 +18,30 @@ const props = defineProps<{
   posinset: number;
 }>();
 
+// Declared, not inferred: the recursive render hands this component's own
+// `node` slot back to itself, so a type inferred from the template would have
+// to already exist to be inferred. Naming it here ends the cycle and types
+// every depth of the recursion the same way. This is the internal row — Loom
+// keeps its public slots untyped, per house style.
+defineSlots<{
+  /**
+   * One row's content, forwarded from the TreeView that owns the tree — see
+   * that component's `node` slot.
+   *
+   * The parameter exists only to type the scoped-slot props; the template
+   * re-emits the scope whole, so the name itself is never read — a
+   * type-position parameter is neither arg nor var to the base rule's
+   * underscore patterns, so a narrow disable is the honest suppression.
+   */
+  // eslint-disable-next-line no-unused-vars
+  node?: (slotProps: { node: TreeNode; state: TreeViewNodeState }) => unknown;
+}>();
+
 const ctx = inject(TREE_VIEW_CONTEXT);
 if (!ctx) throw new Error("TreeViewNode must be rendered inside a TreeView.");
 
-const state = computed(() => ctx.stateFor(props.node));
-const children = computed(() => ctx.childrenOf(props.node));
+const state = computed(() => ctx.stateFor(props.row));
+const children = computed(() => ctx.childrenOf(props.row));
 // `aria-expanded` and `aria-selected` want the literal strings "true"/"false";
 // `String()` widens to `string`, which the ARIA types refuse.
 const ariaExpanded = computed(() =>
@@ -47,7 +69,7 @@ const ariaSelected = computed(() => (state.value.selected ? "true" : "false"));
   >
     <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -- the row answers the keyboard through the one keydown on the root `<ul>` every keydown bubbles to; a per-row listener would duplicate it. -->
     <div
-      :data-tree-value="String(node.value)"
+      :data-tree-value="String(row.value)"
       :tabindex="state.focusable ? 0 : -1"
       :class="
         cn(
@@ -59,8 +81,8 @@ const ariaSelected = computed(() => (state.value.selected ? "true" : "false"));
           state.disabled && 'cursor-not-allowed',
         )
       "
-      @focusin="ctx.onRowFocus(node)"
-      @click="ctx.onRowActivate(node)"
+      @focusin="ctx.onRowFocus(row)"
+      @click="ctx.onRowActivate(row)"
     >
       <!--
         The disclosure control is a glyph, not a button: a real `<button>`
@@ -73,7 +95,7 @@ const ariaSelected = computed(() => (state.value.selected ? "true" : "false"));
         v-if="state.expandable"
         class="flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground"
         aria-hidden="true"
-        @click.stop="ctx.onChevronActivate(node)"
+        @click.stop="ctx.onChevronActivate(row)"
       >
         <svg
           viewBox="0 0 16 16"
@@ -98,9 +120,15 @@ const ariaSelected = computed(() => (state.value.selected ? "true" : "false"));
       <!-- The same slot, left empty on a leaf, keeps every label on one axis. -->
       <span v-else class="h-4 w-4 shrink-0" aria-hidden="true"></span>
 
-      <span class="truncate" :class="state.disabled && 'text-muted-foreground'">{{
-        node.label
-      }}</span>
+      <!-- @slot One row's content — the label, or anything a caller builds from
+           the node — with `node` (the TreeNode) and `state` (expandable,
+           expanded, selected, busy, disabled, focusable) scoped in. Falls
+           back to the node's label. -->
+      <slot name="node" :node="row" :state="state">
+        <span class="truncate" :class="state.disabled && 'text-muted-foreground'">{{
+          row.label
+        }}</span>
+      </slot>
       <span v-if="state.busy" class="shrink-0 text-small text-muted-foreground">{{
         ctx.loadingText.value
       }}</span>
@@ -110,11 +138,15 @@ const ariaSelected = computed(() => (state.value.selected ? "true" : "false"));
       <TreeViewNode
         v-for="(child, index) in children"
         :key="child.value"
-        :node="child"
+        :row="child"
         :level="level + 1"
         :setsize="children.length"
         :posinset="index + 1"
-      />
+      >
+        <template #node="slotProps">
+          <slot name="node" v-bind="slotProps" />
+        </template>
+      </TreeViewNode>
     </ul>
   </li>
 </template>

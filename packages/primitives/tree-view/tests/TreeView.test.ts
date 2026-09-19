@@ -1,8 +1,14 @@
-import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils";
+import {
+  enableAutoUnmount,
+  flushPromises,
+  mount,
+  type ComponentMountingOptions,
+} from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, type Component, type VNode } from "vue";
 import { provideLoomLabels } from "@ecoma-io/loom-labels";
 import TreeView, { TREE_VIEW_LABELS, type TreeNode } from "../src/TreeView.vue";
+import type { TreeViewNodeState } from "../src/context";
 
 enableAutoUnmount(afterEach);
 
@@ -48,11 +54,17 @@ const treeNodes: TreeNode[] = [
 const pendingChildren = new Promise<TreeNode[]>(() => undefined);
 
 type TreeProps = InstanceType<typeof TreeView>["$props"];
-
-function mountTree(props: Partial<TreeProps> = {}) {
+function mountTree(
+  props: Partial<TreeProps> = {},
+  slots: ComponentMountingOptions<typeof TreeView>["slots"] = {},
+) {
   // `nodes` is the one required prop, seeded like Combobox seeds `options`;
   // a caller passing its own `nodes` overrides it through the spread.
-  return mount(TreeView, { props: { nodes: treeNodes, ...props }, attachTo: document.body });
+  return mount(TreeView, {
+    props: { nodes: treeNodes, ...props },
+    attachTo: document.body,
+    slots,
+  });
 }
 
 function mountHost(render: () => VNode) {
@@ -360,6 +372,85 @@ describe("TreeView — selection", () => {
     await clickChevron("plants");
     expect(li("plants").getAttribute("aria-expanded")).toBe("true");
     expect(wrapper.emitted("update:modelValue")?.length).toBe(1);
+  });
+});
+
+describe("TreeView — controlled expansion", () => {
+  it("opens branches the `expanded` prop names, without defaultExpanded", () => {
+    mountTree({ nodes: treeNodes, expanded: ["animals"] });
+    expect(item("birds")).not.toBeNull();
+    expect(li("animals").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("emits the whole expanded list on a chevron toggle", async () => {
+    const wrapper = mountTree({ nodes: treeNodes });
+    await clickChevron("animals");
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual(["animals"]);
+    await clickChevron("animals");
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual([]);
+  });
+
+  it("emits on the disclosure keys, ArrowRight and ArrowLeft", async () => {
+    const wrapper = mountTree({ nodes: treeNodes });
+    item("animals").focus();
+    await press("ArrowRight");
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual(["animals"]);
+    await press("ArrowLeft");
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual([]);
+  });
+
+  it("lands a parent edit to the `expanded` prop", async () => {
+    const wrapper = mountTree({ nodes: treeNodes, expanded: ["animals"] });
+    await wrapper.setProps({ expanded: ["animals", "plants"] });
+    expect(item("fern")).not.toBeNull();
+    expect(li("plants").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("works uncontrolled, seeding from defaultExpanded and emitting like selection does", async () => {
+    const wrapper = mountTree({ nodes: treeNodes, defaultExpanded: ["animals"] });
+    expect(li("animals").getAttribute("aria-expanded")).toBe("true");
+    expect(wrapper.emitted("update:expanded")).toBeUndefined();
+    await clickChevron("plants");
+    expect(li("plants").getAttribute("aria-expanded")).toBe("true");
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual(["animals", "plants"]);
+    await clickChevron("animals");
+    expect(li("animals").getAttribute("aria-expanded")).toBe("false");
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual(["plants"]);
+  });
+});
+
+describe("TreeView — the node slot", () => {
+  it("renders slot content in place of the label, with node and state scoped in", () => {
+    mountTree(
+      { nodes: treeNodes, defaultExpanded: ["animals", "mammals"] },
+      {
+        node: ({ node, state }: { node: TreeNode; state: TreeViewNodeState }) =>
+          h(
+            "span",
+            { "data-slot-label": "" },
+            `${node.label}:${state.expanded ? "open" : "closed"}`,
+          ),
+      },
+    );
+    expect(item("animals").textContent).toContain("Animals:open");
+    expect(item("dog").textContent).toContain("Dog:closed");
+    expect(item("plants").textContent).toContain("Plants:closed");
+  });
+
+  it("reaches nested rows through the recursion", () => {
+    mountTree(
+      { nodes: treeNodes, defaultExpanded: ["animals"] },
+      {
+        node: ({ node }: { node: TreeNode }) => h("span", { "data-slot-label": "" }, node.label),
+      },
+    );
+    expect(item("mammals").querySelector("[data-slot-label]")?.textContent).toBe("Mammals");
+    expect(item("birds").querySelector("[data-slot-label]")?.textContent).toBe("Birds");
+  });
+
+  it("falls back to the node's label when no slot is supplied", () => {
+    mountTree({ nodes: treeNodes });
+    expect(rowText("animals")).toBe("Animals");
   });
 });
 

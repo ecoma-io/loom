@@ -61,6 +61,13 @@ const props = withDefaults(
     /** Node values expanded on mount. After mount the tree owns the state. */
     defaultExpanded?: Array<string | number>;
     /**
+     * The expanded nodes' values, every one that has any. Supplied, the
+     * parent owns the set — `v-model:expanded` — the same mirror contract
+     * `modelValue` keeps for selection; omitted, the tree owns it, seeded
+     * from `defaultExpanded`.
+     */
+    expanded?: Array<string | number> | undefined;
+    /**
      * Unavailable: the rows dim, refuse selection and expansion, and drop out
      * of the tab order. Unset defers to an enclosing `<fieldset disabled>`
      * read straight off the DOM.
@@ -75,12 +82,15 @@ const props = withDefaults(
     defaultExpanded: () => [],
     disabled: undefined,
     labels: undefined,
+    expanded: undefined,
   },
 );
 
 const emit = defineEmits<{
   /** The chosen node's `value` — or the whole chosen list, when `selectionMode` is "multiple". */
   "update:modelValue": [value: string | number | Array<string | number>];
+  /** The expanded nodes' values, after an expand or collapse. */
+  "update:expanded": [value: Array<string | number>];
 }>();
 
 /**
@@ -109,9 +119,17 @@ const controlDisabled = computed(() => (props.disabled ?? false) || ancestorDisa
 
 const text = useLabels("treeView", TREE_VIEW_LABELS, () => props.labels);
 
-// Seeded once from `defaultExpanded`, then the tree owns it — a prop the user
-// edits after mount silently losing their edits is worse than a seed.
-const expandedKeys = ref(new Set<string | number>(props.defaultExpanded));
+// Expansion keeps a mirror rather than a read-through — the same contract
+// selection keeps: `v-model:expanded` when the parent owns the set, seeding
+// from `defaultExpanded` when it does not, and a parent edit landing through
+// the watch instead of being silently lost.
+const expandedKeys = ref<Set<string | number>>(new Set(props.expanded ?? props.defaultExpanded));
+watch(
+  () => props.expanded,
+  (next) => {
+    if (next !== undefined) expandedKeys.value = toKeySet(next);
+  },
+);
 const loadingKeys = ref(new Set<string | number>());
 const lazyChildren = ref(new Map<string | number, TreeNode[]>());
 const focusValue = ref<string | number | null>(null);
@@ -239,12 +257,14 @@ async function expandRow(row: FlatRow): Promise<void> {
     }
   }
   expandedKeys.value = new Set(expandedKeys.value).add(value);
+  emit("update:expanded", [...expandedKeys.value]);
 }
 
 function collapseRow(value: string | number): void {
   const next = new Set(expandedKeys.value);
   next.delete(value);
   expandedKeys.value = next;
+  emit("update:expanded", [...next]);
 }
 
 function selectRow(node: TreeNode): void {
@@ -438,10 +458,14 @@ provide(TREE_VIEW_CONTEXT, {
     <TreeViewNode
       v-for="(node, index) in nodes"
       :key="node.value"
-      :node="node"
+      :row="node"
       :level="1"
       :setsize="nodes.length"
       :posinset="index + 1"
-    />
+    >
+      <template #node="slotProps: { node: TreeNode; state: TreeViewNodeState }">
+        <slot name="node" v-bind="slotProps" />
+      </template>
+    </TreeViewNode>
   </ul>
 </template>

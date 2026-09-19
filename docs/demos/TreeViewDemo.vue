@@ -75,7 +75,16 @@ function fetchBranch(node: TreeNode): Promise<TreeNode[]> {
 
 <template>
   <div class="grid gap-6 lg:grid-cols-3">
-    <TreeView v-model="chosen" :nodes="project" aria-label="Project files" />
+    <TreeView v-model="chosen" :nodes="project" aria-label="Project files">
+      <template #node="{ node, state }">
+        <span class="truncate" :class="state.disabled && 'text-muted-foreground'">{{
+          node.label
+        }}</span>
+        <span v-if="node.value !== node.label" class="shrink-0 text-small text-muted-foreground">
+          {{ node.value }}
+        </span>
+      </template>
+    </TreeView>
     <TreeView
       v-model="tagged"
       :nodes="taxonomy"

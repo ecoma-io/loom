@@ -75,6 +75,60 @@ property is the only thing that marks a row as a branch still to fetch.
 into the whole chosen list, in the order it was chosen: picking adds, picking
 again removes, and every change emits the full array.
 
+## Controlling what is open
+
+Expansion is owned either by the tree or by you, and the prop that changes
+hands is `expanded`:
+
+- **The tree owns it** — that is the default. Omit `expanded` and the tree
+  keeps its own open set, seeded from `defaultExpanded` on mount.
+  `defaultExpanded` is a seed, not a contract: after mount the tree answers
+  to nobody, so editing the prop does nothing.
+- **You own it** — pass `expanded` with `v-model:expanded`, the same mirror
+  contract `modelValue` keeps for selection: every open or close emits the
+  whole open set, and an edit you make to the prop lands in the tree through
+  a watcher instead of being silently lost.
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { TreeView, type TreeNode } from "@ecoma-io/loom";
+
+const nodes: TreeNode[] = [/* … */];
+const open = ref<Array<string | number>>(["src"]);
+</script>
+
+<template>
+  <TreeView v-model:expanded="open" :nodes="nodes" aria-label="Project files" />
+</template>
+```
+
+Both directions work: open the tree with the chevron or the arrow keys and it
+emits `["src", "…"]`; set the prop and the row opens. The chevron and
+ArrowRight/ArrowLeft are the same control, so a keyboard user moves the same
+set a pointer user does.
+
+## Custom rows
+
+A row is a label until you say otherwise. The `node` slot replaces it, with
+the node and its state scoped in:
+
+```vue
+<TreeView :nodes="nodes" aria-label="Project files">
+  <template #node="{ node, state }">
+    <span :class="state.disabled && 'text-muted-foreground'">{{ node.label }}</span>
+    <span class="text-small text-muted-foreground">{{ node.value }}</span>
+  </template>
+</TreeView>
+```
+
+Scoped in are `node` — the `TreeNode` itself — and `state`, the live row
+state: `expandable`, `expanded`, `selected`, `busy`, `disabled` and
+`focusable`. The slot reaches every depth: the tree forwards it down the
+recursion, so a nested row renders the same content a root row does. Leave
+the slot out and the row renders the label, dimmed when disabled — which is
+exactly what the demo's first panel replaces with a label plus the value.
+
 ## Lazy branches
 
 <Demo title="Loaded on first expansion" :source="treeViewDemoSource">
