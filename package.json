@@ -71,7 +71,7 @@
     "prepare": "lefthook install",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0 && node tools/check-component-artifacts.ts && node --experimental-strip-types tools/check-pattern-records.ts && node --experimental-strip-types tools/check-layout-obligations.ts && node --experimental-strip-types tools/check-a11y-evidence.ts && node --experimental-strip-types tools/check-responsive-evidence.ts && node --experimental-strip-types tools/check-composition-conformance.ts && node --experimental-strip-types tools/check-token-allowlist.ts && node --experimental-strip-types tools/check-interaction-evidence.ts && node tools/check-manifest-privacy.ts && node tools/check-template-artifacts.ts && node --experimental-strip-types tools/check-architecture.ts && node --experimental-strip-types tools/check-api-parity.ts && node --experimental-strip-types tools/check-doc-claims.ts && pnpm archkeep:check && pnpm check-skills",
+    "lint": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint --max-warnings 0 && node tools/check-component-artifacts.ts && node --experimental-strip-types tools/check-pattern-records.ts && node --experimental-strip-types tools/check-layout-obligations.ts && node --experimental-strip-types tools/check-a11y-evidence.ts && node --experimental-strip-types tools/check-responsive-evidence.ts && node --experimental-strip-types tools/check-composition-conformance.ts && node --experimental-strip-types tools/check-token-allowlist.ts && node --experimental-strip-types tools/check-interaction-evidence.ts && node tools/check-manifest-privacy.ts && node --experimental-strip-types tools/check-icon-dependency.ts && node tools/check-template-artifacts.ts && node --experimental-strip-types tools/check-architecture.ts && node --experimental-strip-types tools/check-api-parity.ts && node --experimental-strip-types tools/check-doc-claims.ts && pnpm archkeep:check && pnpm check-skills",
     "archkeep:check": "archkeep check",
     "archkeep:mutations": "node --experimental-strip-types tools/check-archkeep-mutations.ts",
     "sync-skills": "node --experimental-strip-types tools/sync-skills.ts",
@@ -97,6 +97,7 @@
     "@commitlint/config-conventional": "^21.2.2",
     "@ecoma-io/archkeep": "0.28.1",
     "@eslint/js": "^10.0.1",
+    "@lucide/vue": "^1.40.0",
     "@moonrepo/cli": "^2.5.4",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.3",
@@ -132,13 +133,13 @@
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
-    "@lucide/vue": "^1.40.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "reka-ui": "^2.10.4",
     "tailwind-merge": "^3.6.0"
   },
   "peerDependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "@lucide/vue": "^1.40.0"
   }
 }

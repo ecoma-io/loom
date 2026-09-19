@@ -14,11 +14,11 @@
     "@ecoma-io/loom-core": "workspace:*",
     "@ecoma-io/loom-labels": "workspace:*",
     "@ecoma-io/loom-table": "workspace:*",
-    "@ecoma-io/loom-virtual-list": "workspace:*",
-    "@lucide/vue": "^1.40.0"
+    "@ecoma-io/loom-virtual-list": "workspace:*"
   },
   "peerDependencies": {
     "reka-ui": "^2.10.0",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "@lucide/vue": "^1.40.0"
   }
 }
