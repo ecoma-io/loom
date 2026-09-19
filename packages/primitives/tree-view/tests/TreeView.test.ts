@@ -528,3 +528,84 @@ describe("TreeView — labels", () => {
     expect(rowText("root")).toContain("Lädt…");
   });
 });
+
+describe("TreeView — controlled expansion", () => {
+  it("opens rows named by a controlled expandedKeys", () => {
+    mountTree({ expandedKeys: ["animals"] });
+    expect(li("animals").getAttribute("aria-expanded")).toBe("true");
+    const values = items().map((el) =>
+      el.querySelector<HTMLElement>("[data-tree-value]")?.getAttribute("data-tree-value"),
+    );
+    expect(values).toEqual(["animals", "birds", "mammals", "plants", "minerals", "rocks"]);
+    expect(li("plants").getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("adopts the host's expandedKeys when the prop changes", async () => {
+    const wrapper = mountTree({ expandedKeys: ["animals"] });
+    expect(li("animals").getAttribute("aria-expanded")).toBe("true");
+    await wrapper.setProps({ expandedKeys: ["plants"] });
+    expect(li("animals").getAttribute("aria-expanded")).toBe("false");
+    expect(li("plants").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("emits the full open list when the tree opens and closes", async () => {
+    const wrapper = mountTree({ nodes: treeNodes });
+    item("animals").focus();
+    await press("ArrowRight");
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["animals"]);
+    item("mammals").focus();
+    await press("ArrowRight");
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["animals", "mammals"]);
+    await press("ArrowLeft");
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["animals"]);
+  });
+
+  it("keeps the uncontrolled contract: defaultExpanded seeds a tree no expandedKeys governs", () => {
+    mountTree({ defaultExpanded: ["animals"] });
+    expect(li("animals").getAttribute("aria-expanded")).toBe("true");
+  });
+});
+
+describe("TreeView — the #node slot", () => {
+  it("replaces the row text with the slot's content and passes the resolved state", () => {
+    mount(TreeView, {
+      props: { nodes: treeNodes, defaultExpanded: ["animals"] },
+      slots: {
+        node: `<template #node="{ node, level, expanded, selected, busy }">
+          <span data-slot-text>{{ node.label }}|{{ level }}|{{ expanded }}|{{ selected }}|{{ busy }}</span>
+        </template>`,
+      },
+      attachTo: document.body,
+    });
+    expect(rowText("animals")).toBe("Animals|1|true|false|false");
+    expect(rowText("birds")).toBe("Birds|2|false|false|false");
+  });
+
+  it("keeps the tree's keyboard and roving semantics under a custom row", async () => {
+    mount(TreeView, {
+      props: { nodes: treeNodes, defaultExpanded: ["animals"] },
+      slots: {
+        node: `<template #node="{ node }"><span data-slot-text>{{ node.label }}</span></template>`,
+      },
+      attachTo: document.body,
+    });
+    expect(tabStops()).toEqual(["animals"]);
+    item("animals").focus();
+    await press("ArrowDown");
+    expect(focusedValue()).toBe("birds");
+  });
+
+  it("hands the busy flag to a custom row while a fetch is in flight", async () => {
+    const lazyNodes: TreeNode[] = [{ value: "root", label: "Root" }];
+    mount(TreeView, {
+      props: { nodes: lazyNodes, loadChildren: () => pendingChildren },
+      slots: {
+        node: `<template #node="{ busy }"><span data-slot-text>{{ busy }}</span></template>`,
+      },
+      attachTo: document.body,
+    });
+    item("root").focus();
+    await press("ArrowRight");
+    expect(rowText("root")).toBe("true");
+  });
+});
