@@ -93,6 +93,23 @@ const emit = defineEmits<{
   "update:expanded": [value: Array<string | number>];
 }>();
 
+/*
+ * Actually public, where the recursion's typed by declaration in
+ * TreeViewNode: consumers type their `#node` rows through THIS declaration,
+ * so the slot props — and the state type they carry — are part of the
+ * component's public surface, not an artifact of an internal file.
+ */
+defineSlots<{
+  /**
+   * One row's content, in place of the node's label. The props are the
+   * `node` itself and `state` — its live `expandable`, `expanded`,
+   * `selected`, `busy`, `disabled` and `focusable` — and the slot reaches
+   * every depth: the tree forwards it down the recursion. Leave it out and
+   * the row renders the label.
+   */
+  node?: (slotProps: { node: TreeNode; state: TreeViewNodeState }) => unknown;
+}>();
+
 /**
  * A row as the keyboard sees it: one step of the depth-first walk of the
  * visible tree, with everything the key map needs resolved once per change
@@ -235,6 +252,14 @@ async function expandRow(row: FlatRow): Promise<void> {
   ) {
     return;
   }
+  // The disclosure commits optimistically, before any fetch runs: in a
+  // controlled tree (`v-model:expanded`) the parent's set is the truth, so
+  // the intent must reach it now rather than after the network settles — a
+  // resolution that re-added the value later could repopulate a set the
+  // parent had already emptied or vetoed. A failed or empty fetch reverts
+  // the commit below.
+  expandedKeys.value = new Set(expandedKeys.value).add(value);
+  emit("update:expanded", [...expandedKeys.value]);
   const isLazy =
     !Array.isArray(row.node.children) &&
     props.loadChildren != null &&
@@ -246,9 +271,18 @@ async function expandRow(row: FlatRow): Promise<void> {
       const next = new Map(lazyChildren.value);
       next.set(value, children);
       lazyChildren.value = next;
+      if (children.length === 0 && expandedKeys.value.has(value)) {
+        // An empty branch is a leaf: the open set must not keep a row that
+        // can never open again, so the optimistic commit is reverted — and
+        // every open/close still announcing the whole set stays true.
+        collapseRow(value);
+      }
     } catch {
-      // The fetch failed: leave the row collapsed and still expandable, so
-      // the next activation retries rather than caching a broken branch.
+      // The fetch failed: revert the optimistic disclosure and leave the row
+      // collapsed and still expandable, so the next activation retries
+      // rather than caching a broken branch — or, in a controlled tree,
+      // keeping a value the parent never accepted.
+      if (expandedKeys.value.has(value)) collapseRow(value);
       return;
     } finally {
       const settled = new Set(loadingKeys.value);
@@ -256,8 +290,6 @@ async function expandRow(row: FlatRow): Promise<void> {
       loadingKeys.value = settled;
     }
   }
-  expandedKeys.value = new Set(expandedKeys.value).add(value);
-  emit("update:expanded", [...expandedKeys.value]);
 }
 
 function collapseRow(value: string | number): void {

@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, type Component, type VNode } from "vue";
 import { provideLoomLabels } from "@ecoma-io/loom-labels";
 import TreeView, { TREE_VIEW_LABELS, type TreeNode } from "../src/TreeView.vue";
-import type { TreeViewNodeState } from "../src/context";
+import type { TreeViewNodeState } from "../src/index";
 
 enableAutoUnmount(afterEach);
 
@@ -404,6 +404,65 @@ describe("TreeView — controlled expansion", () => {
     await wrapper.setProps({ expanded: ["animals", "plants"] });
     expect(item("fern")).not.toBeNull();
     expect(li("plants").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("commits the disclosure before a lazy fetch settles, and the parent's set stays the truth", async () => {
+    let resolveLoad!: (children: TreeNode[]) => void;
+    const loadChildren = vi.fn(
+      () =>
+        new Promise<TreeNode[]>((resolve) => {
+          resolveLoad = resolve;
+        }),
+    );
+    const wrapper = mountTree({
+      nodes: [{ value: "root", label: "Root" }],
+      expanded: [],
+      loadChildren,
+    });
+    item("root").focus();
+    await press("ArrowRight");
+    // The intent reached the parent before the network did — in a controlled
+    // tree the set is the parent's to own, and an optimistic commit hidden
+    // behind an await could repopulate a set the parent had already emptied.
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual(["root"]);
+    // The parent empties the set while the fetch is in flight.
+    await wrapper.setProps({ expanded: ["other"] });
+    resolveLoad([{ value: "child", label: "Child" }]);
+    await flushPromises();
+    await nextTick();
+    // The resolution never re-populated the set: the only event is the
+    // optimistic commit itself, and the row answers to the parent's truth.
+    expect(wrapper.emitted("update:expanded")).toHaveLength(1);
+    expect(li("root").getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("reverts a lazy fetch that resolves empty, back to the parent's set", async () => {
+    const wrapper = mountTree({
+      nodes: [{ value: "root", label: "Root" }],
+      expanded: [],
+      loadChildren: () => Promise.resolve<TreeNode[]>([]),
+    });
+    item("root").focus();
+    await press("ArrowRight");
+    await flushPromises();
+    await nextTick();
+    // The empty answer reverted the optimistic commit: the open set is back
+    // to the parent truth, and the row is a leaf — never expanded-onto-nothing.
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual([]);
+    expect(li("root").hasAttribute("aria-expanded")).toBe(false);
+  });
+
+  it("reverts the disclosure when the fetch fails, in a controlled tree too", async () => {
+    const wrapper = mountTree({
+      nodes: [{ value: "root", label: "Root" }],
+      expanded: [],
+      loadChildren: () => Promise.reject(new Error("boom")),
+    });
+    item("root").focus();
+    await press("ArrowRight");
+    await flushPromises();
+    expect(wrapper.emitted("update:expanded")?.at(-1)?.[0]).toEqual([]);
+    expect(li("root").getAttribute("aria-expanded")).toBe("false");
   });
 
   it("works uncontrolled, seeding from defaultExpanded and emitting like selection does", async () => {

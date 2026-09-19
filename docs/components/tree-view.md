@@ -124,10 +124,12 @@ the node and its state scoped in:
 
 Scoped in are `node` — the `TreeNode` itself — and `state`, the live row
 state: `expandable`, `expanded`, `selected`, `busy`, `disabled` and
-`focusable`. The slot reaches every depth: the tree forwards it down the
-recursion, so a nested row renders the same content a root row does. Leave
-the slot out and the row renders the label, dimmed when disabled — which is
-exactly what the demo's first panel replaces with a label plus the value.
+`focusable` — typed as `TreeViewNodeState` and importable from
+`@ecoma-io/loom` at your call site. The slot reaches every depth: the tree
+forwards it down the recursion, so a nested row renders the same content a
+root row does. Leave the slot out and the row renders the label, dimmed when
+disabled — which is exactly what the demo's first panel replaces with a
+label plus the value.
 
 ## Lazy branches
 
@@ -143,9 +145,13 @@ answers a fetch can give:
   made again: collapsing and reopening serves the cache.
 - **An empty array arrives** — that _is_ the answer. The row becomes a leaf
   and loses its chevron, rather than offering a branch that opens onto
-  nothing.
 - **The fetch rejects** — the row stays collapsed and still expandable, so
   the next activation retries instead of caching a failure.
+
+In a controlled tree (`v-model:expanded`) the disclosure commits before the
+fetch runs — the open set is the parent's to veto — and reverts when the
+answer is empty or the fetch fails, so the set never keeps a value that has
+nothing to open.
 
 While a fetch is in flight the row carries `aria-busy` and the string from
 `labels.loading`, because an expand that produces nothing yet reads as a
