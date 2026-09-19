@@ -145,7 +145,10 @@ function onDoubleClick(): void {
         <slot name="panel" />
       </div>
       <!-- The separator is the keyboard surface: role, tabindex and the arrow
-           keys make it an interactive element, not a painted rule. -->
+           keys make it an interactive element, not a painted rule. Its width is
+           24px — the WCAG 2.5.8 target floor the page sweep enforces — while
+           the visible rule stays a 1px line centred inside it; narrowing the
+           hit area back toward the line's width fails the sweep. -->
       <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
       <div
         ref="separator"
@@ -157,7 +160,7 @@ function onDoubleClick(): void {
         :aria-valuemax="props.max"
         :aria-label="ariaLabel"
         :data-dragging="dragging || undefined"
-        class="group relative z-10 flex w-2.5 cursor-col-resize touch-none select-none items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        class="group relative z-10 flex w-6 cursor-col-resize touch-none select-none items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
@@ -191,7 +194,7 @@ function onDoubleClick(): void {
         :aria-valuemax="props.max"
         :aria-label="ariaLabel"
         :data-dragging="dragging || undefined"
-        class="group relative z-10 flex w-2.5 cursor-col-resize touch-none select-none items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        class="group relative z-10 flex w-6 cursor-col-resize touch-none select-none items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
