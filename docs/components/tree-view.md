@@ -2,6 +2,10 @@
 import { TreeView } from "@ecoma-io/loom";
 import TreeViewDemo from "../demos/TreeViewDemo.vue";
 import treeViewDemoSource from "../demos/TreeViewDemo.vue?raw";
+import TreeViewNodeDemo from "../demos/TreeViewNodeDemo.vue";
+import treeViewNodeDemoSource from "../demos/TreeViewNodeDemo.vue?raw";
+import TreeViewExpandedDemo from "../demos/TreeViewExpandedDemo.vue";
+import treeViewExpandedDemoSource from "../demos/TreeViewExpandedDemo.vue?raw";
 </script>
 
 A TreeView shows a hierarchy — files in a project, a department chart, a
@@ -96,6 +100,81 @@ answers a fetch can give:
 While a fetch is in flight the row carries `aria-busy` and the string from
 `labels.loading`, because an expand that produces nothing yet reads as a
 broken control to the person waiting.
+
+## Custom rows
+
+The text run of a row — the tree's own label plus the busy string while a
+fetch is in flight — is the `#node` slot's default content. Hand it a
+template and the row becomes yours: the slot receives a
+`TreeViewNodeSlotProps` object carrying the `node` itself and everything the
+tree has resolved about it (`level`, `expanded`, `selected`, `busy`), and
+the chevron, the indent, the roving tab stop and the selection highlight all
+stay the tree's.
+
+<Demo title="A row that says what it holds" :source="treeViewNodeDemoSource">
+  <TreeViewNodeDemo />
+</Demo>
+
+```vue
+<script setup lang="ts">
+import { TreeView, type TreeNode } from "@ecoma-io/loom";
+
+const nodes: TreeNode[] = [
+  {
+    value: "src",
+    label: "src",
+    children: [
+      { value: "components", label: "components" },
+      { value: "index", label: "index.ts" },
+    ],
+  },
+];
+</script>
+
+<template>
+  <TreeView :nodes="nodes" aria-label="Project files">
+    <template #node="{ node, expanded }">
+      <span>{{ node.label }}</span>
+      <span v-if="node.children?.length" class="text-muted-foreground">
+        {{ expanded ? "open" : `${node.children.length} files` }}
+      </span>
+    </template>
+  </TreeView>
+</template>
+```
+
+## Controlled expansion
+
+Uncontrolled, the tree owns its open rows — seeded from `defaultExpanded`
+once, then internal. Pass `v-model:expanded-keys` and the tree becomes a
+mirror: it renders exactly the rows your list names and emits the full open
+list on every open and close, so the state lives beside the data instead of
+inside a control your page cannot reach.
+
+<Demo title="The host keeps the open list" :source="treeViewExpandedDemoSource">
+  <TreeViewExpandedDemo />
+</Demo>
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { TreeView, type TreeNode } from "@ecoma-io/loom";
+
+const opened = ref<Array<string | number>>(["reports"]);
+const nodes: TreeNode[] = [
+  { value: "reports", label: "Reports", children: [{ value: "weekly", label: "Weekly" }] },
+  { value: "settings", label: "Settings", children: [{ value: "team", label: "Team" }] },
+];
+</script>
+
+<template>
+  <button type="button" @click="opened = []">Collapse all</button>
+  <TreeView v-model:expanded-keys="opened" :nodes="nodes" aria-label="Sections" />
+</template>
+```
+
+Leave `expanded-keys` out and `defaultExpanded` seeds the uncontrolled tree;
+the two props never mix — whichever the host supplies is the one that counts.
 
 ## Disabled
 

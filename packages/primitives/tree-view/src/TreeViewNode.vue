@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { cn } from "@ecoma-io/loom-core";
-import type { TreeNode } from "./TreeView.vue";
+import type { TreeNode, TreeViewNodeSlotProps } from "./TreeView.vue";
 import { TREE_VIEW_CONTEXT } from "./context";
 
 const props = defineProps<{
@@ -13,6 +13,15 @@ const props = defineProps<{
   setsize: number;
   /** This row's one-based position among those siblings — what `aria-posinset` says. */
   posinset: number;
+}>();
+
+defineSlots<{
+  // Like VirtualList's slot type, the parameter's name is part of the
+  // function type's signature — there is no body to consume it, so the
+  // unused-variable rule must look away. The type still drives the
+  // template's typed slot props.
+  // eslint-disable-next-line no-unused-vars
+  node?: (slotProps: TreeViewNodeSlotProps) => unknown;
 }>();
 
 const ctx = inject(TREE_VIEW_CONTEXT);
@@ -98,12 +107,21 @@ const ariaSelected = computed(() => (state.value.selected ? "true" : "false"));
       <!-- The same slot, left empty on a leaf, keeps every label on one axis. -->
       <span v-else class="h-4 w-4 shrink-0" aria-hidden="true"></span>
 
-      <span class="truncate" :class="state.disabled && 'text-muted-foreground'">{{
-        node.label
-      }}</span>
-      <span v-if="state.busy" class="shrink-0 text-small text-muted-foreground">{{
-        ctx.loadingText.value
-      }}</span>
+      <slot
+        name="node"
+        :node="node"
+        :level="level"
+        :expanded="state.expanded"
+        :selected="state.selected"
+        :busy="state.busy"
+      >
+        <span class="truncate" :class="state.disabled && 'text-muted-foreground'">{{
+          node.label
+        }}</span>
+        <span v-if="state.busy" class="shrink-0 text-small text-muted-foreground">{{
+          ctx.loadingText.value
+        }}</span>
+      </slot>
     </div>
 
     <ul v-if="state.expanded" role="group" class="m-0 list-none p-0 pl-4">
@@ -114,7 +132,11 @@ const ariaSelected = computed(() => (state.value.selected ? "true" : "false"));
         :level="level + 1"
         :setsize="children.length"
         :posinset="index + 1"
-      />
+      >
+        <template #node="slotProps">
+          <slot name="node" v-bind="slotProps" />
+        </template>
+      </TreeViewNode>
     </ul>
   </li>
 </template>
