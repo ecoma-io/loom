@@ -78,6 +78,7 @@ deps:
   - "radial-progress"
   - "radio-group"
   - "rating"
+  - "resizable-split"
   - "reading"
   - "row-actions"
   - "scroll-area"

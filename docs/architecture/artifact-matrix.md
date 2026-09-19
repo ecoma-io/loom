@@ -7,7 +7,7 @@ Every shipped artifact classified against the seven-kind model in
 layer tag, intended type under the model, whether the facade exports it, evidence,
 gap, and the recorded action. "Unknown" appears where the classification needs a
 decision the audit deliberately does not take. Counts were generated, not recalled:
-77 primitives, 9 compositions, 14 patterns, 9 layouts, 3 templates.
+78 primitives, 9 compositions, 14 patterns, 9 layouts, 3 templates.
 
 This document is the **classification ledger of record**: migrations that
 reclassify artifacts update it in the same PR, and the [terminology status
@@ -18,7 +18,7 @@ enumerable from the index, not recalled — `tools/check-doc-claims.ts` recounts
 the sentence against the tracked directories on every lint and CI run:
 
 ```bash
-git ls-tree HEAD --name-only packages/primitives/ | wc -l   # 77 primitives
+git ls-tree HEAD --name-only packages/primitives/ | wc -l   # 78 primitives
 git ls-tree HEAD --name-only packages/composition/ | wc -l  # 9 compositions
 git ls-tree HEAD --name-only packages/patterns/ | wc -l     # 14 patterns (the Blocks family, renamed in 2C)
 git ls-tree HEAD --name-only packages/layouts/ | wc -l      # 9 layouts
@@ -105,11 +105,11 @@ All `layer-layouts`, all facade-exported, all shell-geometry by exports.
 | Settings        | root responsive suite + harness spec                                               | None | **Closed** — Phase 3B (#277): `responsive` claim in `a11y.json` |
 | DesktopAppShell | root responsive suite (`md` media query) + harness spec (rail width)               | None | **Closed** — Phase 3B (#277): `responsive` claim in `a11y.json` |
 
-## Primitives (77)
+## Primitives (78)
 
 | Family                                                         | Current layer      | Intended type | Public?                                                       | Evidence                                                                                                                                                                     | Gap                                                                                                                             | Action                                                                            |
 | -------------------------------------------------------------- | ------------------ | ------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `packages/primitives/*` (77 directories, each facade-exported) | `layer-primitives` | Primitive     | All 107 component re-exports verified 1:1 against facade deps | `check-component-artifacts.ts` pairing gate; per-component `a11y.json` role claims held to `packages/core/src/a11y-contract.ts` by `tools/check-a11y-evidence.ts` (Phase 3A) | 29/77 role claims carry a named keyboard exception (no component-owned harness spec); `tree-view` manifest defect filed as #238 | Phase 3B/3D: the interaction-spec floor the exception records name, per component |
+| `packages/primitives/*` (78 directories, each facade-exported) | `layer-primitives` | Primitive     | All 108 component re-exports verified 1:1 against facade deps | `check-component-artifacts.ts` pairing gate; per-component `a11y.json` role claims held to `packages/core/src/a11y-contract.ts` by `tools/check-a11y-evidence.ts` (Phase 3A) | 29/78 role claims carry a named keyboard exception (no component-owned harness spec); `tree-view` manifest defect filed as #238 | Phase 3B/3D: the interaction-spec floor the exception records name, per component |
 
 ## The accessibility claims (107) — Phase 3A
 

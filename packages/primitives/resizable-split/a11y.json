@@ -1,0 +1,25 @@
+{
+  "role": "separator",
+  "basis": "renders role=\"separator\" with aria-orientation=\"vertical\" and aria-valuenow/min/max on the drag- and keyboard-resizable handle between the two panels.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/ResizableSplitDemo.vue",
+      "packages/primitives/resizable-split/tests/ResizableSplit.test.ts"
+    ],
+    "harness": [
+      {
+        "path": "packages/primitives/resizable-split/e2e/resizable-split.e2e.ts",
+        "because": "pins the separator's aria-valuenow/min/max as the gestures drive it — the value the role reports under real keydowns and pointer drag"
+      }
+    ],
+    "sweep": ["docs/components/resizable-split.md"]
+  },
+  "interaction": {
+    "class": "interactive",
+    "basis": "a focusable separator whose arrows, Home/End, pointer drag and double-click resize one panel — Loom's own keydown and pointer handlers, not a wrapped primitive.",
+    "evidence": {
+      "harness": ["packages/primitives/resizable-split/e2e/resizable-split.e2e.ts"],
+      "browserless": ["packages/primitives/resizable-split/tests/ResizableSplit.test.ts"]
+    }
+  }
+}

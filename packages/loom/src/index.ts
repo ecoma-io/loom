@@ -357,6 +357,7 @@ export { default as RadioGroup } from "@ecoma-io/loom-radio-group";
 export type { RadioOption } from "@ecoma-io/loom-radio-group";
 export { default as Rating, RATING_LABELS } from "@ecoma-io/loom-rating";
 export type { RatingLabels, RatingSize } from "@ecoma-io/loom-rating";
+export { default as ResizableSplit } from "@ecoma-io/loom-resizable-split";
 export { default as SegmentedControl } from "@ecoma-io/loom-segmented-control";
 export type { SegmentedControlOption } from "@ecoma-io/loom-segmented-control";
 export { default as Select, selectVariants } from "@ecoma-io/loom-select";
