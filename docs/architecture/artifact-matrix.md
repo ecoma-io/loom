@@ -7,7 +7,7 @@ Every shipped artifact classified against the seven-kind model in
 layer tag, intended type under the model, whether the facade exports it, evidence,
 gap, and the recorded action. "Unknown" appears where the classification needs a
 decision the audit deliberately does not take. Counts were generated, not recalled:
-77 primitives, 9 compositions, 13 patterns, 9 layouts, 3 templates.
+77 primitives, 9 compositions, 14 patterns, 9 layouts, 3 templates.
 
 This document is the **classification ledger of record**: migrations that
 reclassify artifacts update it in the same PR, and the [terminology status
@@ -65,7 +65,7 @@ question was resolved in writing.
 | ScrollReel    | no — by design            | behavioural e2e (3B) + jsdom pins; ADR-002 is the record                   | Composition   | None — the arrangement's essence (scroll container, snap) has no static-geometry footprint                                                                                      | Declared CSS-only in writing (ADR-002, #313); reopens only where the engine changes |
 | DashboardGrid | yes                       | engine-vs-DOM conformance (#315): span resolves adapter-side to area width | Composition   | Row auto-placement / implicit tracks outside the IR — counted absence (`DASHBOARD_ROW_AUTO_PLACEMENT` / `DASHBOARD_IMPLICIT_TRACKS`), owner Engine (line collection, with WRAP) | Landed (4A)                                                                         |
 
-## Patterns (13) — the Blocks family after 2C's rename
+## Patterns (14) — the Blocks family after 2C's rename
 
 The two rows this table carried for DesktopAppShell and DashboardGrid now sit
 in the Layouts and Compositions sections. ADR-001 decided that
