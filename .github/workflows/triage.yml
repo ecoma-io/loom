@@ -45,20 +45,12 @@ jobs:
       # No checkout step: a target references the released action by ref, and
       # triage reads everything through the API — one less thing in the
       # workspace.
+      # Disabled 2026-09-19 while the gateway's glm-5.3-flash answers with
+      # reasoning but no content and triage — unlike review (#502/#516) — has
+      # no corrective re-ask, so every run ends red (ecoma-io/action-agents
+      # #576). Temporary unblock; re-enable by deleting the `if: false` below.
       - uses: ecoma-io/action-agents/triage@2f0e18a8e1ea5bdfa8fc690057ca1bbdfaa4f3a4 # v0.12.1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
-          api-key: ${{ secrets.ECOMA_LLM_API_KEY }}
-          # The gateway's model id — `triage` was a label, not an id the
-          # catalog serves, so every run refused with HTTP 404 at
-          # chat/completions (ecoma-io/action-agents#573).
-          model: glm-5.3-flash
-          dry-run: "false"
-
-      # The run record — a dry run's record is the run's whole output. Hidden
-      # by design, so `include-hidden-files: true` is load-bearing:
-      # upload-artifact prunes hidden files by default and the glob would
+        if: false
       # match zero files while the step reports success. `if-no-files-found:
       # warn` keeps a declared write that lands nowhere loud instead of green
       # over nothing.
