@@ -1,13 +1,13 @@
 {
   "name": "@ecoma-io/loom-data-grid",
   "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "files": [
-    "dist"
-  ],
   "exports": {
-    ".": "./dist/index.js",
-    "./style.css": "./dist/style.css"
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
   },
   "dependencies": {
     "@ecoma-io/loom-checkbox": "workspace:*",
