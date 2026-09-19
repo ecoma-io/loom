@@ -207,6 +207,7 @@
       "@ecoma-io/loom-page-header": ["./packages/patterns/page-header/src/index.ts"],
       "@ecoma-io/loom-row-actions": ["./packages/patterns/row-actions/src/index.ts"],
       "@ecoma-io/loom-sidebar-nav": ["./packages/patterns/sidebar-nav/src/index.ts"],
+      "@ecoma-io/loom-time-track": ["./packages/patterns/time-track/src/index.ts"],
       "@ecoma-io/loom-title-bar": ["./packages/patterns/title-bar/src/index.ts"],
       "@ecoma-io/loom-toast-stack": ["./packages/patterns/toast-stack/src/index.ts"]
     }

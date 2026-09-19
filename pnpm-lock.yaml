@@ -657,6 +657,9 @@ importers:
       '@ecoma-io/loom-time-picker':
         specifier: workspace:*
         version: link:../primitives/time-picker
+      '@ecoma-io/loom-time-track':
+        specifier: workspace:*
+        version: link:../patterns/time-track
       '@ecoma-io/loom-timeline':
         specifier: workspace:*
         version: link:../primitives/timeline
@@ -801,6 +804,15 @@ importers:
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/patterns/time-track:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)

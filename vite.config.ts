@@ -166,6 +166,7 @@ export default defineConfig({
       "@ecoma-io/loom-page-header": pkg("patterns/page-header/src/index.ts"),
       "@ecoma-io/loom-row-actions": pkg("patterns/row-actions/src/index.ts"),
       "@ecoma-io/loom-sidebar-nav": pkg("patterns/sidebar-nav/src/index.ts"),
+      "@ecoma-io/loom-time-track": pkg("patterns/time-track/src/index.ts"),
       "@ecoma-io/loom-title-bar": pkg("patterns/title-bar/src/index.ts"),
       "@ecoma-io/loom-toast-stack": pkg("patterns/toast-stack/src/index.ts"),
       // Needed by packages/labels/src/label-registry.ts, which imports
