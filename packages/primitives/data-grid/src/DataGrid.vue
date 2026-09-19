@@ -49,20 +49,28 @@ export type DataGridSortState = { key: string; direction: DataGridSort } | undef
  * Home/End and their Ctrl variants move focus cell to cell. Focus — not
  * the pointer — is what a grid sells.
  *
- * There is no `aria-rowcount` on purpose: every row is in the DOM, so the
- * count is the DOM's to state. The attribute earns its place the day the
- * grid virtualizes, not before — an asserted virtual size over a real
- * partial DOM is the lie `aria-rowcount` exists to correct.
+ * Every row is in the DOM unless `virtualized` opts in: then only the
+ * viewport's rows (plus an overscan buffer) are mounted, a spacer owns the
+ * scroll length, and `aria-rowcount`/`aria-rowindex` re-state the full size
+ * the partial DOM can no longer. A virtual size asserted over a real partial
+ * DOM is the lie `aria-rowcount` exists to correct — and the windowed grid
+ * is where the attribute finally earns its place, not before.
+ *
+ * The windowed mode keeps the same keyboard contract, adds Page Up/Page Down
+ * (a viewport of rows at a time, revealing the focused row), and borrows its
+ * geometry from VirtualList — the two are one windowing story, consumable as
+ * a standalone list or a grid, per the scale-mode sketch in #375.
  */
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ChevronDown, ChevronsUpDown, ChevronUp } from "@lucide/vue";
 import { cn } from "@ecoma-io/loom-core";
 import Checkbox from "@ecoma-io/loom-checkbox";
 import { useLabels, type LabelOverrides } from "@ecoma-io/loom-labels";
 import { headAlignClass, nextSort, tableRowVariants } from "@ecoma-io/loom-table";
+import { virtualWindow } from "@ecoma-io/loom-virtual-list";
 
 const props = withDefaults(
   defineProps<{
@@ -85,23 +93,39 @@ const props = withDefaults(
      * and the headers cycle on their own while still reporting each change.
      */
     sort?: DataGridSortState;
-    /** Row padding. Compact suits dense application chrome. */
     density?: TableDensity;
+    /**
+     * Scales the grid from a native table to a windowed grid: only the rows
+     * the viewport can show (plus `overscan`) are mounted, and a spacer owns
+     * the scroll length. `aria-rowcount`/`aria-rowindex` state the full size
+     * the partial DOM can no longer, and Page Up/Page Down move focus a
+     * viewport at a time, revealing the focused row.
+     */
+    virtualized?: boolean;
+    /** Rows rendered above and below the viewport to cover scroll lag. */
+    overscan?: number;
+    /** Caps the scroll region's height; virtualization needs a bounded viewport. */
+    maxHeight?: string;
     /** The grid's accessible name, read before a screen reader enters it. */
     caption?: string;
     /** Names what the grid says on its own account, as any subset of `DataGridLabels`. */
     labels?: LabelOverrides<DataGridLabels>;
   }>(),
-  { rowKey: "id", selectable: false, density: "comfortable" },
+  {
+    rowKey: "id",
+    selectable: false,
+    density: "comfortable",
+    virtualized: false,
+    overscan: 8,
+    maxHeight: "24rem",
+  },
 );
-
 const emit = defineEmits<{
   "update:selectedRowKeys": [value: Array<string | number>];
   "update:sort": [value: DataGridSortState];
   "sort-change": [value: DataGridSortState];
   rowActivate: [row: Record<string, unknown>];
 }>();
-
 // `text`, not `labels`: the prop of that name is one of the three sources
 // this resolves (own prop, then the host vocabulary from
 // `provideLoomLabels`, then these English defaults), and a template reading
@@ -185,14 +209,69 @@ function toggleSort(col: DataGridColumn): void {
 
 const colCount = computed(() => props.columns.length + (props.selectable ? 1 : 0));
 
+// ---------- windowed rows (opt-in) ----------
+
+// The density classes pin a row's rendered height: py-3 + the text-sm line
+// box is 44px comfortable, py-1.5 makes 32px compact. A fixed height is the
+// windowing contract — the same one VirtualList sells with `itemHeight` — and
+// the windowed row clips overflow instead of growing.
+const ROW_HEIGHT: Record<TableDensity, number> = { comfortable: 44, compact: 32 };
+const rowHeight = computed(() => ROW_HEIGHT[props.density]);
+const scrollTop = ref(0);
+const viewportHeight = ref(0);
+
+// VirtualList's geometry, intact: which row range a bounded viewport must
+// render. The same pure function drives both primitives — one windowing story.
+const range = computed(() =>
+  props.virtualized
+    ? virtualWindow(
+        scrollTop.value,
+        viewportHeight.value,
+        rowHeight.value,
+        props.rows.length,
+        props.overscan,
+      )
+    : { start: 0, end: props.rows.length },
+);
+const visibleRows = computed(() => props.rows.slice(range.value.start, range.value.end));
+const totalHeight = computed(() => props.rows.length * rowHeight.value);
+
+// Native tables size columns from their content; the windowed grid cannot
+// (only a slice of rows exists), so columns take explicit widths or share the
+// remaining space equally. The selection column stays content-sized.
+const gridColumns = computed(() => {
+  const widths = props.columns.map((col) => col.width ?? "minmax(0, 1fr)");
+  if (props.selectable) widths.unshift("auto");
+  return widths.join(" ");
+});
+
 // Rows: -1 is the header row, 0.. are body rows. Columns count the selection
 // column first when `selectable`. Exactly one cell carries tabindex 0 — the
 // active cell — so Tab enters and leaves the grid once; everything else is
 // -1 and reachable only through the matrix moves.
 const activeCell = ref({ row: props.rows.length > 0 ? 0 : -1, col: 0 });
 const bodyColumnIndex = (i: number): number => (props.selectable ? i + 1 : i);
-const isCellActive = (row: number, col: number): boolean =>
-  activeCell.value.row === row && activeCell.value.col === col;
+
+// The Tab stop follows the active cell — except in the windowed grid, where
+// a wheel scroll can push the active row out of the DOM. The stop then
+// clamps into the rendered window, like VirtualList's, so the grid keeps
+// exactly one reachable cell whatever the scroll position. The header (row
+// -1) is a real stop only while it is rendered (start === 0).
+const tabStopRow = computed(() => {
+  const active = activeCell.value.row;
+  if (!props.virtualized) return active;
+  const { start, end } = range.value;
+  if (end <= start) return -1;
+  if (active === -1) return start === 0 ? -1 : start;
+  return Math.min(Math.max(active, start), end - 1);
+});
+const isTabStop = (row: number, col: number): boolean =>
+  tabStopRow.value === row && activeCell.value.col === col;
+
+// Rows: -1 is the header row, 0.. are body rows. Columns count the selection
+// column first when `selectable`. Exactly one cell carries tabindex 0 — the
+// active cell — so Tab enters and leaves the grid once; everything else is
+// -1 and reachable only through the matrix moves.
 
 // Rows arriving or leaving can strand the active cell outside the matrix. The
 // floor is -1, not 0: the header row is a valid roving stop too, and a floor
@@ -225,7 +304,21 @@ const region = ref<HTMLElement | null>(null);
 
 function focusCell(row: number, col: number): void {
   activeCell.value = { row, col };
-  table.value?.querySelector<HTMLElement>(`[data-r='${row}'][data-c='${col}']`)?.focus();
+  const existing = table.value?.querySelector<HTMLElement>(`[data-r='${row}'][data-c='${col}']`);
+  if (existing) {
+    existing.focus();
+    return;
+  }
+  // The windowed grid: the target row left the DOM with a scrolled window.
+  // Reveal it, then re-derive the window from the new scroll position
+  // synchronously — the browser's own scroll event lands later, and the row
+  // would not be mounted in time for the nextTick below (Ctrl+End raced
+  // exactly that way). Re-measuring here makes the mount deterministic.
+  reveal(row);
+  measure();
+  void nextTick(() =>
+    table.value?.querySelector<HTMLElement>(`[data-r='${row}'][data-c='${col}']`)?.focus(),
+  );
 }
 
 function moveTo(row: number, col: number): void {
@@ -237,19 +330,6 @@ function moveTo(row: number, col: number): void {
     Math.min(Math.max(col, 0), colCount.value - 1),
   );
 }
-
-// Focus can also arrive outside the keymap — a pointer tap lands directly on
-// a cell — and the roving Tab stop has to follow whoever actually holds it.
-function onFocusin(event: FocusEvent): void {
-  const cell = (event.target as Element).closest("[data-r]");
-  if (cell) {
-    activeCell.value = {
-      row: Number(cell.getAttribute("data-r")),
-      col: Number(cell.getAttribute("data-c")),
-    };
-  }
-}
-
 function activateCell(row: number, col: number): void {
   if (row < 0) {
     const col_ = props.columns[col - (props.selectable ? 1 : 0)];
@@ -270,6 +350,19 @@ function spaceCell(row: number, col: number): void {
   if (target) toggleRow(target);
 }
 
+/** Scroll the region so the row at `index` is fully visible. Windowed only. */
+function reveal(row: number): void {
+  const el = region.value;
+  if (!el || !props.virtualized) return;
+  const top = row * rowHeight.value;
+  const bottom = top + rowHeight.value;
+  if (top < el.scrollTop) {
+    el.scrollTop = top;
+  } else if (bottom > el.scrollTop + el.clientHeight) {
+    el.scrollTop = bottom - el.clientHeight;
+  }
+}
+
 function onKeydown(event: KeyboardEvent): void {
   const cell = (event.target as Element).closest("[data-r]");
   if (!cell) return;
@@ -277,6 +370,8 @@ function onKeydown(event: KeyboardEvent): void {
   const col = Number(cell.getAttribute("data-c"));
   const lastRow = Math.max(props.rows.length - 1, 0);
   const lastCol = colCount.value - 1;
+  // A viewport of rows, for Page Up/Page Down: rows the region can show.
+  const page = Math.max(1, Math.floor((viewportHeight.value || rowHeight.value) / rowHeight.value));
 
   switch (event.key) {
     case "ArrowRight":
@@ -297,6 +392,12 @@ function onKeydown(event: KeyboardEvent): void {
     case "End":
       event.ctrlKey || event.metaKey ? moveTo(lastRow, lastCol) : moveTo(row, lastCol);
       break;
+    case "PageDown":
+      moveTo(Math.min(lastRow, row + page), col);
+      break;
+    case "PageUp":
+      moveTo(Math.max(-1, row - page), col);
+      break;
     case "Enter":
       activateCell(row, col);
       break;
@@ -309,30 +410,56 @@ function onKeydown(event: KeyboardEvent): void {
   event.preventDefault();
 }
 
+// Focus can also arrive outside the keymap — a pointer tap lands directly on
+// a cell — and the roving Tab stop has to follow whoever actually holds it.
+function onFocusin(event: FocusEvent): void {
+  const cell = (event.target as Element).closest("[data-r]");
+  if (cell) {
+    activeCell.value = {
+      row: Number(cell.getAttribute("data-r")),
+      col: Number(cell.getAttribute("data-c")),
+    };
+  }
+}
 // ---------- scroll region (Table's mechanism, verbatim in spirit) ----------
 
 // The region is focusable only while it can actually scroll: a Tab stop that
 // never moves is a dead one. Overflow is measured, not assumed.
-const scrollable = ref(false);
-
 function measure(): void {
   const el = region.value;
-  if (el) scrollable.value = el.scrollWidth > el.clientWidth;
+  if (!el) return;
+  // The windowed grid reads its vertical position here too — scrollTop and
+  // clientHeight are exactly what virtualWindow consumes, from the same
+  // element, so the maths and the DOM can never disagree about the viewport.
+  scrollTop.value = el.scrollTop;
+  viewportHeight.value = el.clientHeight;
+  // The region is focusable only while it can actually scroll: a Tab stop
+  // that never moves is a dead one. The windowed grid earns the stop from
+  // its spacer whenever the spacer outgrows the viewport.
+  scrollable.value =
+    el.scrollWidth > el.clientWidth || (props.virtualized && totalHeight.value > el.clientHeight);
 }
+
+function onScroll(): void {
+  measure();
+}
+
+const scrollable = ref(false);
 
 let observer: ResizeObserver | undefined;
 onMounted(() => {
   measure();
   observer = new ResizeObserver(measure);
   if (table.value) observer.observe(table.value);
+  // The windowed grid resizes with its rows too: the region's height is the
+  // viewport the window derives from.
+  if (region.value) observer.observe(region.value);
   window.addEventListener("resize", measure, { passive: true });
 });
 onBeforeUnmount(() => {
   observer?.disconnect();
-  window.removeEventListener("resize", measure);
 });
 </script>
-
 <template>
   <!-- A scroll container, not the table itself, for the reason Table's
        wrapper documents: a wide grid overflows its region instead of
@@ -342,7 +469,14 @@ onBeforeUnmount(() => {
     role="region"
     :aria-label="caption ?? text.region"
     :tabindex="scrollable ? 0 : undefined"
-    class="w-full overflow-x-auto rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo"
+    :style="virtualized ? { maxHeight } : undefined"
+    :class="
+      cn(
+        'w-full rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo',
+        virtualized ? 'overflow-auto' : 'overflow-x-auto',
+      )
+    "
+    @scroll="onScroll"
   >
     <!-- Roving focus ring, not focus-visible: the moves that matter here are
          programmatic (arrow keys), and a ring that only answers
@@ -352,6 +486,7 @@ onBeforeUnmount(() => {
          Tab stop: the cells own the single roving stop, the container is
          only a target for programmatic/assistive-tech focus. -->
     <table
+      v-if="!virtualized"
       ref="table"
       role="grid"
       tabindex="-1"
@@ -372,7 +507,7 @@ onBeforeUnmount(() => {
             role="columnheader"
             data-r="-1"
             :data-c="0"
-            :tabindex="isCellActive(-1, 0) ? 0 : -1"
+            :tabindex="isTabStop(-1, 0) ? 0 : -1"
             class="focus:outline-2 focus:-outline-offset-2 focus:outline-ring"
           >
             <Checkbox
@@ -391,8 +526,8 @@ onBeforeUnmount(() => {
             :aria-sort="ariaSortOf(col)"
             :data-r="-1"
             :data-c="bodyColumnIndex(i)"
-            :tabindex="isCellActive(-1, bodyColumnIndex(i)) ? 0 : -1"
             :style="col.width ? { width: col.width } : undefined"
+            :tabindex="isTabStop(-1, bodyColumnIndex(i)) ? 0 : -1"
             :class="
               cn(
                 headAlignClass(col.align),
@@ -443,11 +578,10 @@ onBeforeUnmount(() => {
             role="gridcell"
             :data-r="r"
             :data-c="0"
-            :tabindex="isCellActive(r, 0) ? 0 : -1"
+            :tabindex="isTabStop(r, 0) ? 0 : -1"
             class="focus:outline-2 focus:-outline-offset-2 focus:outline-ring"
           >
             <Checkbox
-              :model-value="isSelected(row)"
               :aria-label="text.selectRow"
               tabindex="-1"
               @update:model-value="toggleRow(row)"
@@ -459,7 +593,7 @@ onBeforeUnmount(() => {
             role="gridcell"
             :data-r="r"
             :data-c="bodyColumnIndex(i)"
-            :tabindex="isCellActive(r, bodyColumnIndex(i)) ? 0 : -1"
+            :tabindex="isTabStop(r, bodyColumnIndex(i)) ? 0 : -1"
             :class="
               cn(
                 headAlignClass(col.align),
@@ -476,5 +610,144 @@ onBeforeUnmount(() => {
         </tr>
       </tbody>
     </table>
+    <!-- The windowed grid is a role="grid" div, not a table: a <tr> cannot be
+         absolutely positioned, and virtualization is positioning. The row
+         strip is translated over a spacer that owns the scroll length —
+         VirtualList's trick, with the selection column and sorting on top. -->
+    <div
+      v-else
+      ref="table"
+      role="grid"
+      :aria-rowcount="rows.length + 1"
+      :aria-colcount="colCount"
+      tabindex="-1"
+      :data-density="density"
+      class="w-full text-left text-sm focus:outline-none"
+      @keydown="onKeydown"
+      @focusin="onFocusin"
+    >
+      <!-- aria-rowindex starts at 1 for the header; the other roles are real
+           row/columnheader members of this grid, so only the indices need
+           stating — the partial DOM makes them worth stating. -->
+      <div
+        role="row"
+        aria-rowindex="1"
+        class="grid border-b border-border-strong"
+        :style="{ gridTemplateColumns: gridColumns }"
+      >
+        <div
+          v-if="selectable"
+          role="columnheader"
+          aria-colindex="1"
+          data-r="-1"
+          :data-c="0"
+          :tabindex="isTabStop(-1, 0) ? 0 : -1"
+          class="flex items-center px-3 py-2.5 text-xs font-semibold text-muted-foreground whitespace-nowrap focus:outline-2 focus:-outline-offset-2 focus:outline-ring"
+        >
+          <Checkbox
+            :model-value="selectAllState"
+            :aria-label="text.selectAll"
+            tabindex="-1"
+            @update:model-value="toggleAll()"
+          />
+        </div>
+        <div
+          v-for="(col, i) in columns"
+          :key="col.key"
+          role="columnheader"
+          :aria-colindex="bodyColumnIndex(i) + 1"
+          :aria-sort="ariaSortOf(col)"
+          data-r="-1"
+          :data-c="bodyColumnIndex(i)"
+          :tabindex="isTabStop(-1, bodyColumnIndex(i)) ? 0 : -1"
+          :class="
+            cn(
+              headAlignClass(col.align),
+              'flex items-center px-3 py-2.5 text-xs font-semibold text-muted-foreground whitespace-nowrap focus:outline-2 focus:-outline-offset-2 focus:outline-ring',
+            )
+          "
+        >
+          <button
+            v-if="col.sortable"
+            type="button"
+            tabindex="-1"
+            class="inline-flex min-h-6 items-center gap-1 rounded-sm px-1 transition-colors duration-fast ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:shadow-halo"
+            @click="toggleSort(col)"
+          >
+            <span class="inline-flex items-center gap-1 font-semibold">{{ col.header }}</span>
+            <component
+              :is="sortIconOf(col)"
+              class="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <span class="sr-only">{{ sortWordsOf(col) }}</span>
+          </button>
+          <template v-else>{{ col.header }}</template>
+        </div>
+      </div>
+      <div class="relative" :style="{ height: `${totalHeight}px` }">
+        <div
+          class="absolute inset-x-0 top-0"
+          :style="{ transform: `translateY(${range.start * rowHeight}px)` }"
+        >
+          <div
+            v-for="(row, i) in visibleRows"
+            :key="String(keyOf(row))"
+            role="row"
+            tabindex="-1"
+            :aria-rowindex="range.start + i + 2"
+            :aria-selected="selectable ? isSelected(row) : undefined"
+            :class="
+              cn(
+                'grid overflow-hidden',
+                range.start + i === rows.length - 1 ? 'border-b-0' : 'border-b',
+                'border-border',
+                tableRowVariants({
+                  state: selectable ? (isSelected(row) ? 'selected' : 'interactive') : 'none',
+                }),
+              )
+            "
+            :style="{ height: `${rowHeight}px`, gridTemplateColumns: gridColumns }"
+            @dblclick="emit('rowActivate', row)"
+          >
+            <div
+              v-if="selectable"
+              role="gridcell"
+              :aria-colindex="1"
+              :data-r="range.start + i"
+              :data-c="0"
+              :tabindex="isTabStop(range.start + i, 0) ? 0 : -1"
+              class="flex items-center px-3 focus:outline-2 focus:-outline-offset-2 focus:outline-ring"
+            >
+              <Checkbox
+                :model-value="isSelected(row)"
+                :aria-label="text.selectRow"
+                tabindex="-1"
+                @update:model-value="toggleRow(row)"
+              />
+            </div>
+            <div
+              v-for="(col, j) in columns"
+              :key="col.key"
+              role="gridcell"
+              :aria-colindex="bodyColumnIndex(j) + 1"
+              :data-r="range.start + i"
+              :data-c="bodyColumnIndex(j)"
+              :tabindex="isTabStop(range.start + i, bodyColumnIndex(j)) ? 0 : -1"
+              :class="
+                cn(
+                  headAlignClass(col.align),
+                  'flex items-center overflow-hidden px-3 focus:outline-2 focus:-outline-offset-2 focus:outline-ring',
+                )
+              "
+            >
+              <slot name="cell" :row="row" :column="col" :value="row[col.key]">
+                {{ row[col.key] ?? "" }}
+              </slot>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

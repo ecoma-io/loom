@@ -1146,6 +1146,9 @@ importers:
       '@ecoma-io/loom-table':
         specifier: workspace:*
         version: link:../table
+      '@ecoma-io/loom-virtual-list':
+        specifier: workspace:*
+        version: link:../virtual-list
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))

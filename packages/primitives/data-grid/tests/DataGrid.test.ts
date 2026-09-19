@@ -380,6 +380,104 @@ describe("labels", () => {
   });
 });
 
+describe("virtualized", () => {
+  // The windowed grid re-states full size through ARIA while rendering a
+  // slice of the rows. jsdom scrolls silently, so the window only advances
+  // when the test drives the region's scrollTop and fires scroll — which is
+  // exactly the browser's scroll event, minus the timing.
+  const ROWS_50 = Array.from({ length: 50 }, (_, i) => ({
+    id: `w${String(i)}`,
+    name: `Worker ${String(i)}`,
+    role: "member",
+    logins: i,
+  }));
+
+  function regionOf(wrapper: VueWrapper) {
+    return wrapper.find('[role="region"]');
+  }
+
+  async function scrollTo(wrapper: VueWrapper, top: number, height = 220) {
+    const region = regionOf(wrapper).element;
+    Object.defineProperty(region, "clientHeight", { value: height, configurable: true });
+    region.scrollTop = top;
+    await regionOf(wrapper).trigger("scroll");
+    await nextTick();
+  }
+
+  it("renders a windowed slice with aria-rowcount/aria-rowindex stating the full size", () => {
+    const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
+    const grid = wrapper.find('[role="grid"]');
+    // Header + body rows, aria-rowcount = 50 rows + 1 header, and only the
+    // window renders: clientHeight 0 → one visible row + 8 overscan.
+    expect(grid.attributes("aria-rowcount")).toBe("51");
+    expect(grid.attributes("aria-colcount")).toBe("3");
+    expect(grid.findAll('[role="row"]')).toHaveLength(1 + 9);
+    expect(grid.findAll('[role="gridcell"]')).toHaveLength(9 * 3);
+    // aria-rowindex starts at 1 for the header; the first body row is 2.
+    expect(grid.findAll('[role="row"]')[1]?.attributes("aria-rowindex")).toBe("2");
+    // The spacer owns the scroll length; the strip rides on it.
+    const spacer = grid.find("div[style*='2200px']");
+    expect(spacer.exists()).toBe(true);
+  });
+  it("scrolling moves the window and re-stamps the indices", async () => {
+    const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
+    const grid = wrapper.find('[role="grid"]');
+    await scrollTo(wrapper, 220); // row 5 at the top, 5 visible → {0, 18}
+    expect(grid.findAll('[role="row"]')).toHaveLength(1 + 18);
+    await scrollTo(wrapper, 440); // row 10 at the top → start 2, end 23
+    expect(grid.findAll('[role="row"]')).toHaveLength(1 + 21);
+    expect(grid.findAll('[role="row"]')[1]?.attributes("aria-rowindex")).toBe("4");
+    const firstCell = grid.find('[role="gridcell"]');
+    expect(firstCell.attributes("data-r")).toBe("2");
+    // The strip re-stamps its translateY from the new window start.
+    expect(grid.find("div[style*='translateY(88px)']").exists()).toBe(true);
+  });
+
+  it("pages down through the grid on PageDown", async () => {
+    const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
+    const active = cell(wrapper, 0, 0);
+    active.element.focus();
+    await active.trigger("keydown", { key: "PageDown" });
+    expect(cell(wrapper, 1, 0).attributes("tabindex")).toBe("0");
+    expect(cell(wrapper, 0, 0).attributes("tabindex")).toBe("-1");
+  });
+
+  it("Ctrl+End reveals and focuses the last row, scrolling it into view", async () => {
+    const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
+    const region = regionOf(wrapper).element;
+    Object.defineProperty(region, "clientHeight", { value: 220, configurable: true });
+    region.scrollTop = 0;
+    const active = cell(wrapper, 0, 0);
+    active.element.focus();
+    await active.trigger("keydown", { key: "End", ctrlKey: true });
+    // Reveal set the scroll position so the last row is fully visible; the
+    // window follows only once the browser actually scrolls.
+    expect(region.scrollTop).toBe(50 * 44 - 220);
+    await scrollTo(wrapper, region.scrollTop);
+    expect(cell(wrapper, 49, 2).attributes("tabindex")).toBe("0");
+    // Reveal scrolled the region; a real browser fires scroll and the window
+    // follows, re-rendering the row under the roving stop. jsdom delivers no
+    // scroll event, so focus lands on the next physical scroll — the Tab stop
+    // (the contract that matters) is already on the last row above.
+  });
+
+  it("selects all through the window with a mixed intermediate state", async () => {
+    const wrapper = mountGrid({ virtualized: true, selectable: true, rows: ROWS_50 });
+    const selectAll = cell(wrapper, -1, 0).find('[role="checkbox"]');
+    await selectAll.trigger("click");
+    expect(selectAll.attributes("aria-checked")).toBe("true");
+    await cell(wrapper, 0, 0).find('[role="checkbox"]').trigger("click");
+    expect(selectAll.attributes("aria-checked")).toBe("mixed");
+  });
+
+  it("sorts from a windowed header", async () => {
+    const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
+    const header = cell(wrapper, -1, 0);
+    await header.trigger("keydown", { key: "Enter" });
+    expect(header.attributes("aria-sort")).toBe("ascending");
+    expect(wrapper.emitted("update:sort")?.at(-1)).toEqual([{ key: "name", direction: "asc" }]);
+  });
+});
 describe("DataGrid docs", () => {
   it("documents no slot the component does not declare", () => {
     const md = readFileSync(

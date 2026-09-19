@@ -60,6 +60,7 @@ The keyboard map, straight from the APG grids pattern:
 | ----------------------- | ---------------------------------------------------------------------------- |
 | `Tab` / `Shift+Tab`     | Enters the grid once, lands on the active cell; leaves it once               |
 | Arrow keys              | Move focus one cell, clamped at the edges                                    |
+| `Page Up` / `Page Down` | Move focus a window at a time, scrolling the focused row into view           |
 | `Home` / `End`          | First / last cell of the focused row                                         |
 | `Ctrl/Cmd+Home` / `End` | First / last cell of the grid                                                |
 | `Space`                 | Toggles the focused row's selection (the select-all cell toggles everything) |
@@ -101,16 +102,27 @@ glyph — chevrons are shape-only semantics.
 Cells render `row[column.key]` by default; the `#cell` slot (scoped with
 `row`, `column`, `value`) takes over for Badges, links or action clusters.
 
+## Virtualized rows
+
+`virtualized: true` trades the DOM for a scroll window. The grid stops
+rendering every row: a spacer owns the scroll length, a positioned strip
+renders only the rows in the viewport plus `overscan` either side, and the
+region's height is capped by `maxHeight`. Everything else — the column
+matrix, selection, sorting, the keyboard map above — behaves identically;
+roving focus follows the cell, and `Page Up` / `Page Down` scroll the
+focused row into view.
+
+The windowed grid restates what virtualization hides. `aria-rowcount` names
+the full row count, `aria-rowindex` re-positions each rendered row, and
+`aria-colcount`/`aria-colindex` do the same for columns — a screen reader
+gets the same experience whether 3 or 3,000 rows are mounted.
+
 ## Labels
 
 The grid's self-spoken words — the region's fallback name, the two selection
 controls, and sort state in words — live in the `dataGrid` vocabulary,
 overridable per instance through the `labels` prop or host-wide through
 `provideLoomLabels`.
-
-There is no `aria-rowcount` on purpose: every row is in the DOM, so the
-count is the DOM's to state. The attribute earns its place the day the grid
-virtualizes, not before.
 
 ## API
 
