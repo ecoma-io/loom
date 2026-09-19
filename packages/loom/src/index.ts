@@ -445,6 +445,14 @@ export { default as PageHeader } from "@ecoma-io/loom-page-header";
 export { default as RowActions } from "@ecoma-io/loom-row-actions";
 export { default as SidebarNav } from "@ecoma-io/loom-sidebar-nav";
 export type { SidebarNavItem, SidebarNavSection } from "@ecoma-io/loom-sidebar-nav";
+export { default as TimeTrack } from "@ecoma-io/loom-time-track";
+export { TimeRuler, TimeBar, type TimeTrackContext } from "@ecoma-io/loom-time-track";
+// @internal clamp — %-geometry clamp helper TimeTrack and TimeBar share; the context functions are the public vocabulary
+// @internal leftWithin — window-position % helper behind the context's left; internal geometry, not an API
+// @internal widthWithin — window-width % helper behind the context's width; internal geometry, not an API
+// @internal niceStep — tick-step rounding behind TimeRuler's tick grid; internal geometry, not an API
+// @internal tickValues — tick value/left computation behind TimeRuler; internal geometry, not an API
+// @internal formatDuration — the default duration formatter behind the format prop; the prop is the public vocabulary
 export { default as TitleBar } from "@ecoma-io/loom-title-bar";
 export { default as ToastStack } from "@ecoma-io/loom-toast-stack";
 export type { ToastStackItem } from "@ecoma-io/loom-toast-stack";

@@ -105,6 +105,7 @@ deps:
   - "text-field"
   - "textarea"
   - "time-picker"
+  - "time-track"
   - "timeline"
   - "title-bar"
   - "toggle-group"
