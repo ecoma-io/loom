@@ -1,0 +1,14 @@
+deps:
+  - "core"
+tags: ["layer-primitives", "e2e"]
+project:
+  name: "virtual-list"
+  description: "VirtualList primitive — windowed rendering for long lists with roving keyboard focus"
+tasks:
+  # Inherit lint and test from .moon/tasks/*.yml.
+  e2e:
+    options:
+      runInCI: skip
+    args: ["packages/primitives/virtual-list/e2e"]
+    env:
+      PW_PROFILE: "smoke"

@@ -113,6 +113,7 @@ deps:
   - "toolbar"
   - "tooltip"
   - "tree-view"
+  - "virtual-list"
   - "visually-hidden"
   - "window-controls"
 tags: ["layer-facade"]

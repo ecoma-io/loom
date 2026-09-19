@@ -1,0 +1,26 @@
+{
+  "role": "list",
+  "basis": "renders role=\"list\" with role=\"listitem\" rows; the virtualized DOM reports aria-setsize/aria-posinset on every painted row, and the active row is the single roving tab stop.",
+  "evidence": {
+    "browserless": [
+      "docs/demos/VirtualListDemo.vue",
+      "packages/primitives/virtual-list/tests/VirtualList.test.ts"
+    ],
+    "harness": [
+      {
+        "path": "packages/primitives/virtual-list/e2e/VirtualList.e2e.ts",
+        "because": "the harness spec drives the real component: focus the first row, rove with arrow keys, jump with Home/End, and activate with Enter \u2014 the windowed DOM's interaction contract, provable only in a browser"
+      }
+    ],
+    "sweep": ["docs/components/virtual-list.md"]
+  },
+  "interaction": {
+    "class": "composite",
+    "basis": "a long list managed as one widget: arrow keys/Home/End/PageUp/PageDown move the active row across the full set \u2014 even rows not yet painted \u2014 and Enter/Space activates it.",
+    "evidence": {
+      "browserless": ["packages/primitives/virtual-list/tests/VirtualList.test.ts"],
+      "harness": ["packages/primitives/virtual-list/e2e/VirtualList.e2e.ts"]
+    },
+    "exceptions": []
+  }
+}
