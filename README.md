@@ -6,7 +6,7 @@
      does not earn a section, however fond of it we are. The checklist, with the
      referent each section must cite, lives in the governing issue
      (ecoma-io/loom#338). -->
-
+<!-- harmonise:skip-start -->
 <p align="center">
   <a href="https://github.com/ecoma-io/loom/actions/workflows/ci.yml"><img src="https://github.com/ecoma-io/loom/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/ecoma-io/loom/actions/workflows/analysis.yml"><img src="https://img.shields.io/badge/analysis-semgrep-purple.svg" alt="Analysis" /></a>
@@ -17,6 +17,13 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="TypeScript strict" />
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-7C3AED.svg" alt="Pull requests welcome" /></a>
 </p>
+<!-- harmonise:skip-end -->
+
+<!-- harmonise:skip-start -->
+
+<a href="README.md">English</a> | <a href="README.vi.md">Tiếng Việt</a> | <a href="README.zh.md">中文</a> | <a href="README.ja.md">日本語</a> | <a href="README.es.md">Español</a> | <a href="README.hi.md">हिन्दी</a> | <a href="README.ar.md">العربية</a> | <a href="README.pt.md">Português</a> | <a href="README.bn.md">বাংলা</a> | <a href="README.ru.md">Русский</a> | <a href="README.fr.md">Français</a>
+
+<!-- harmonise:skip-end -->
 
 <p align="center">
   <img src=".github/assets/banner.png" alt="Loom — an Application Interface System for Vue" width="100%" />
