@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.0](https://github.com/ecoma-io/loom/compare/v0.7.0...v0.8.0) (2026-09-19)
+
+
+### Features
+
+* adopt the multilingual README convention ([0f56eeb](https://github.com/ecoma-io/loom/commit/0f56eeb0d8c0c9a81960a8a237c82abb84f4c6f3)), closes [#370](https://github.com/ecoma-io/loom/issues/370)
+* adopt the multilingual README convention (protected badges, selector, harmonise) ([#371](https://github.com/ecoma-io/loom/issues/371)) ([0f56eeb](https://github.com/ecoma-io/loom/commit/0f56eeb0d8c0c9a81960a8a237c82abb84f4c6f3))
+* **primitives:** controlled expansion and node slot for TreeView ([#413](https://github.com/ecoma-io/loom/issues/413)) ([8eeadd5](https://github.com/ecoma-io/loom/commit/8eeadd5d5f269c9a8e97fc9f5c6910ce3c4d16c3))
+* **primitives:** controlled expansion and typed #node slot for TreeView (ref [#376](https://github.com/ecoma-io/loom/issues/376)) ([8eeadd5](https://github.com/ecoma-io/loom/commit/8eeadd5d5f269c9a8e97fc9f5c6910ce3c4d16c3))
+* **primitives:** resizable split panes — drag- and keyboard-resizable separator ([#410](https://github.com/ecoma-io/loom/issues/410)) ([016bd12](https://github.com/ecoma-io/loom/commit/016bd1205d2aff7924e986cb8d151d6ff142ccf3))
+
+
+### Bug Fixes
+
+* **deps:** hold consumers to provide the icon library ([#403](https://github.com/ecoma-io/loom/issues/403)) ([374bad0](https://github.com/ecoma-io/loom/commit/374bad03ac9447576f7598453da93d3e0e67b9ba))
+* **layouts:** assert padding as outer growth, not translation ([#402](https://github.com/ecoma-io/loom/issues/402)) ([19b7803](https://github.com/ecoma-io/loom/commit/19b7803a02fbfdd90d300a9d95ffe4ba7906ada5))
+
 ## [0.7.0](https://github.com/ecoma-io/loom/compare/v0.6.0...v0.7.0) (2026-09-19)
 
 
