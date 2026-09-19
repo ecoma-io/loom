@@ -24,7 +24,7 @@ test("sidebar-width steps change the sidebar's real width, and content still ren
   expect(lg).not.toBe(sm);
 
   // Each shell still shows its content area beside the sidebar — the contract
-  // the step is for, at the harness viewport (no wrap, no full-width collapse).
+  // the step is for, at the harness viewport (no wrap; panels side by side).
   // Exact text keeps the demo's own prose ("the content area fills the
   // remaining space") out of the count.
   await expect(page.getByText("Content area", { exact: true })).toHaveCount(3);

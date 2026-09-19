@@ -1,8 +1,9 @@
 # Sidebar
 
 Content + sidebar with intrinsic CSS collapse. The Every Layout "Sidebar"
-pattern: the layout wraps and both panels go full-width the moment the
-content can't fit its minimum — no media query, no JavaScript.
+pattern: the layout wraps by line the moment the content can't fit its
+minimum — the sidebar keeps its declared width on its own line and the
+content takes the full one. No media query, no JavaScript.
 
 <script setup lang="ts">
 import { Sidebar } from "@ecoma-io/loom";
@@ -32,8 +33,8 @@ import { Sidebar } from "@ecoma-io/loom";
 The sidebar gets a fixed `flex-basis` (its preferred width) and `flex-grow: 0`.
 The content gets `flex-grow: 999` and a `min-width` set by `contentMin`. When
 the container is too narrow for the content to fit its minimum, `flex-wrap`
-pushes the content to a new line and both panels take full width — the sidebar
-becomes a full-width section above or below the content.
+wraps the pair by line: the sidebar keeps its declared width on its own line
+above or below the content, which takes the full line.
 
 No media query, no JavaScript. The layout derives its own breakpoint from the
 container's width, so it works identically inside a sidebar-narrowed workspace

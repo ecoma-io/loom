@@ -8,11 +8,12 @@
  * region that fills the remaining space.
  *
  * The sidebar collapses intrinsically — no media query, no JavaScript. The
- * flex-wrap technique from the Sidebar composition primitive makes both panels
- * go full-width the moment the content cannot honour its `min-width`, so the
- * layout derives its own breakpoint from the container's width. The sidebar
- * width prop maps to named steps (sm/md/lg) rather than a pixel value so the
- * host names intent and the shell owns the geometry.
+ * flex-wrap technique from the Sidebar composition primitive wraps the pair
+ * by line the moment the content cannot honour its `min-width`: the sidebar
+ * keeps its declared width on its own line and the content takes the full
+ * line, so the layout derives its own breakpoint from the container's
+ * width. The sidebar width prop maps to named steps (sm/md/lg) rather than
+ * a pixel value so the host names intent and the shell owns the geometry.
  *
  * The header slot is sticky within the content area so it stays visible while
  * the content scrolls. On ultrawide viewports, the content's horizontal
@@ -47,16 +48,18 @@ withDefaults(
 <template>
   <!--
     `flex-wrap: wrap` is the intrinsic collapse mechanism. When the content
-    panel can't fit its `min-width: 50%`, both panels wrap to full-width —
-    the sidebar becomes a full-width section above the content. No media
-    query; the layout derives its own breakpoint from the container's width.
+    panel can't fit its `min-width: 50%`, the pair wraps by line: the sidebar
+    keeps its declared width on its own line above the full-line content. No
+    media query; the layout derives its own breakpoint from the container's
+    width.
   -->
   <div :class="cn('flex h-full')" :style="{ flexWrap: 'wrap' }">
     <!--
       The sidebar is a fixed-basis flex child that does not grow or shrink.
       flexShrink: 0 prevents the sidebar from compressing when the container
       narrows — instead, the content panel's min-width: 50% forces flex-wrap,
-      and both panels stack at full width. This matches MasterDetail and
+      and the panels stack: the sidebar at its declared width, the content at
+      full width. This matches MasterDetail and
       SplitLayout, whose side panels also refuse to shrink.
     -->
     <aside
@@ -66,7 +69,7 @@ withDefaults(
         flexGrow: 0,
         flexShrink: 0,
       }"
-      :class="cn('bg-sunken w-full')"
+      :class="cn('bg-sunken')"
     >
       <slot name="sidebar" />
     </aside>
