@@ -7,7 +7,7 @@ Every shipped artifact classified against the seven-kind model in
 layer tag, intended type under the model, whether the facade exports it, evidence,
 gap, and the recorded action. "Unknown" appears where the classification needs a
 decision the audit deliberately does not take. Counts were generated, not recalled:
- 78 primitives, 9 compositions, 14 patterns, 9 layouts, 3 templates.
+78 primitives, 9 compositions, 14 patterns, 9 layouts, 3 templates.
 
 This document is the **classification ledger of record**: migrations that
 reclassify artifacts update it in the same PR, and the [terminology status
