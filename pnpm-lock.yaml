@@ -681,6 +681,9 @@ importers:
       '@ecoma-io/loom-tree-view':
         specifier: workspace:*
         version: link:../primitives/tree-view
+      '@ecoma-io/loom-virtual-list':
+        specifier: workspace:*
+        version: link:../primitives/virtual-list
       '@ecoma-io/loom-visually-hidden':
         specifier: workspace:*
         version: link:../primitives/visually-hidden
@@ -1954,6 +1957,15 @@ importers:
       '@ecoma-io/loom-labels':
         specifier: workspace:*
         version: link:../../labels
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.42(typescript@5.9.3)
+
+  packages/primitives/virtual-list:
+    dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
