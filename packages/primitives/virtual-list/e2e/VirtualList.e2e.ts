@@ -43,6 +43,38 @@ test("Home and End jump across the full logical list — not just painted rows",
   await expect(list.getByRole("listitem").first()).toBeFocused();
 });
 
+test("the Tab stop survives the active row scrolling out of the window", async ({ page }) => {
+  const list = page.getByRole("list", { name: "Catalogue rows" });
+
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("End");
+  await expect(list.getByRole("listitem").last()).toBeFocused();
+
+  // Drag the scroll position back to the top without moving the active row:
+  // the maintained position (49999) is no longer painted — if the stop had
+  // pointed at it, the list would have nothing tabbable left.
+  await list.evaluate((el) => {
+    el.scrollTop = 0;
+    el.dispatchEvent(new Event("scroll"));
+  });
+
+  // Focus fell off the detached row; the next Tab lands on the visible row
+  // nearest the stale active position — the bottom of the first window —
+  // and adopts it as the roving position.
+  await page.keyboard.press("Tab");
+  const stop = list.locator('[role="listitem"][tabindex="0"]');
+  await expect(stop).toHaveCount(1);
+  await expect(stop).toBeFocused();
+  const place = await stop.getAttribute("aria-posinset");
+  expect(Number(place)).toBeGreaterThan(1);
+  expect(Number(place)).toBeLessThan(100);
+
+  // Roving continues from the adopted row, not from the stale 49999: one
+  // ArrowDown moves focus exactly one row past it.
+  await page.keyboard.press("ArrowDown");
+  await expect(list.locator(":focus")).toHaveAttribute("aria-posinset", String(Number(place) + 1));
+});
+
 test("Page Down moves by a viewport of rows, Enter activates the active row", async ({ page }) => {
   const list = page.getByRole("list", { name: "Catalogue rows" });
 

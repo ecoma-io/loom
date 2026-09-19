@@ -82,11 +82,19 @@ const visibleItems = computed(() => props.items.slice(rendered.value.start, rend
 
 const totalHeight = computed(() => props.items.length * props.itemHeight);
 
-/** The row carrying `tabindex="0"`: the active row, or the first while none is active. */
+/**
+ * The row carrying `tabindex="0"`: the active row when it is rendered, else
+ * the visible row nearest it, else the first visible row while none is
+ * active. The fallback is what keeps the list a single reachable Tab stop —
+ * an active row that the scroll container has moved out of the window is
+ * still a real position, and a list whose stop vanished under it would be a
+ * list a Tab key could never enter.
+ */
 const tabStopIndex = computed(() => {
-  if (props.items.length === 0) return -1;
-  if (props.activeIndex >= 0 && props.activeIndex < props.items.length) return props.activeIndex;
-  return 0;
+  const { start, end } = rendered.value;
+  if (end <= start) return -1;
+  if (props.activeIndex >= 0) return Math.min(Math.max(props.activeIndex, start), end - 1);
+  return start;
 });
 
 function measure(): void {

@@ -138,6 +138,53 @@ describe("VirtualList", () => {
     expect(element.querySelector('[data-virtual-index="0"]')!.getAttribute("tabindex")).toBe("-1");
   });
 
+  it("keeps a tab stop on the visible row nearest an active row outside the window", async () => {
+    const { element, active } = mountList();
+    const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    // Scroll far past the active row: the maintained position is no longer
+    // painted, so the stop must land on the visible row nearest it rather
+    // than vanishing — a stop that is not rendered is a list Tab cannot reach.
+    stubGeometry(container, { clientHeight: 400, scrollTop: 3200 });
+    container.dispatchEvent(new Event("scroll"));
+    await nextTick();
+    active.value = 400;
+    await nextTick();
+
+    const stops = element.querySelectorAll('[data-virtual-index][tabindex="0"]');
+    expect(stops).toHaveLength(1);
+    expect(stops[0]!.getAttribute("data-virtual-index")).toBe("120");
+    expect(element.querySelector('[data-virtual-index="92"]')!.getAttribute("tabindex")).toBe("-1");
+  });
+
+  it("adopts the fallback row into the active position when it gains focus", async () => {
+    // The fallback exists to be landed on: Tab arrives on the visible row
+    // near the stale active position, and that row becomes the maintained
+    // one — roving, not a dead end the next Arrow key has to explain.
+    const { element, active } = mountList();
+    const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    stubGeometry(container, { clientHeight: 400, scrollTop: 3200 });
+    container.dispatchEvent(new Event("scroll"));
+    await nextTick();
+    active.value = 400;
+    await nextTick();
+
+    element.querySelector<HTMLElement>('[data-virtual-index="120"]')!.focus();
+    await nextTick();
+    expect(active.value).toBe(120);
+    expect(element.querySelector('[data-virtual-index="120"]')!.getAttribute("tabindex")).toBe("0");
+  });
+
+  it("makes the first visible row the tab stop while no row is active after a scroll", async () => {
+    const { element } = mountList();
+    const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    stubGeometry(container, { clientHeight: 400, scrollTop: 3200 });
+    container.dispatchEvent(new Event("scroll"));
+    await nextTick();
+
+    expect(element.querySelector('[data-virtual-index="92"]')!.getAttribute("tabindex")).toBe("0");
+    expect(element.querySelector('[data-virtual-index="93"]')!.getAttribute("tabindex")).toBe("-1");
+  });
+
   it("moves the active row with the arrow keys, focusing the revealed row", async () => {
     const { element, active } = mountList();
     const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
