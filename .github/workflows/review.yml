@@ -209,7 +209,13 @@ jobs:
               base: {capturePath: "base.json", commit: $baseCommit},
               head: {commit: $headCommit}}' > .archkeep/run.json
 
+      # Disabled 2026-09-19, same wall as triage: the gateway's GLM models
+      # answer with reasoning but no content and the action class refuses it
+      # while ecoma-io/action-agents#576 is open. Temporary unblock;
+      # re-enable by deleting the `if: false` below. The Archkeep evidence
+      # recipe above keeps running: evidence, not enforcement.
       - id: review
+        if: false
         uses: ecoma-io/action-agents/review@ae384f9f4808cd9ca871f642178b5c939a958f6e # v0.14.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
