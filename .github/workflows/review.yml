@@ -215,7 +215,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           api-url: ${{ secrets.ECOMA_LLM_BASE_URL }}
           api-key: ${{ secrets.ECOMA_LLM_API_KEY }}
-          model: review
+          # The gateway's model id — `review` was a label, not an id the
+          # catalog serves, so runs were refused with HTTP 404 at
+          # chat/completions (ecoma-io/action-agents#573).
+          model: glm-5.3
           dry-run: "false"
           # The evidence the recipe above left: the delta report, with the
           # manifest read from the run.json beside it — the sibling
