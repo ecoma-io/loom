@@ -3,10 +3,11 @@
  * Sidebar — content + sidebar with intrinsic CSS collapse.
  *
  * The Every Layout "Sidebar" pattern: the sidebar gets a fixed `flex-basis`
- * and the content gets `flex-grow: 999`, so the layout wraps and both panels
- * go full-width the moment the content can't fit its `contentMin` percentage.
- * No media query, no JavaScript — the layout derives its own breakpoint from
- * the container's width.
+ * and the content gets `flex-grow: 999`, so the layout wraps by line the
+ * moment the content can't fit its `contentMin` percentage — the sidebar
+ * keeps its declared width on its own line and the content takes the full
+ * line. No media query, no JavaScript — the layout derives its own
+ * breakpoint from the container's width.
  *
  * A Sidebar is a component because the `calc()` technique for intrinsic
  * sidebar width is non-obvious and easy to get wrong, and Loom wrapping it
@@ -38,9 +39,9 @@ withDefaults(
 <template>
   <!--
     `flex-wrap: wrap` is the intrinsic collapse mechanism. When the content
-    can't fit its `contentMin`, it wraps to a new line and both panels take
-    full width — the sidebar becomes a full-width section above or below the
-    content, depending on `side`.
+    can't fit its `contentMin`, it wraps to a new line: the sidebar keeps its
+    declared width on its own line above or below the content — which takes
+    the full line — depending on `side`.
 
     The sidebar's `flex-basis` is its preferred width. The content's
     `flex-grow: 999` ensures it takes all remaining space when there is room,

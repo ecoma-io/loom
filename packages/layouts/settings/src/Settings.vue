@@ -60,7 +60,7 @@ withDefaults(
           flexGrow: 0,
           flexShrink: 0,
         }"
-        :class="cn('bg-sunken w-full p-2')"
+        :class="cn('bg-sunken p-2')"
       >
         <slot name="nav" />
       </nav>

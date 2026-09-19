@@ -84,7 +84,7 @@ withDefaults(
           flexGrow: 0,
           flexShrink: 1,
         }"
-        :class="cn('bg-sunken w-full')"
+        :class="cn('bg-sunken')"
       >
         <slot name="sidebar" />
       </aside>

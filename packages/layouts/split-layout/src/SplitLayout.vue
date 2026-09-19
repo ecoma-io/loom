@@ -66,9 +66,10 @@ withDefaults(
 
     <!--
       `flex-wrap: wrap` is the intrinsic collapse mechanism. When the content
-      panel cannot honour its `min-width: 50%`, both panels wrap to full-width
-      — the side panel stacks above or below the content depending on `side`.
-      No media query; the layout derives its own breakpoint from the
+      panel cannot honour its `min-width: 50%`, the pair wraps by line: the
+      side panel keeps its declared width on its own line and the content
+      takes the full line, stacked above or below the content depending on
+      `side`. No media query; the layout derives its own breakpoint from the
       container's width.
     -->
     <div
@@ -107,7 +108,7 @@ withDefaults(
             flexShrink: 0,
             minWidth: minSideWidth,
           }"
-          :class="cn('bg-sunken w-full px-4 sm:px-6 3xl:px-8')"
+          :class="cn('bg-sunken px-4 sm:px-6 3xl:px-8')"
         >
           <slot name="side" />
         </div>
@@ -123,7 +124,7 @@ withDefaults(
             flexShrink: 0,
             minWidth: minSideWidth,
           }"
-          :class="cn('bg-sunken w-full px-4 sm:px-6 3xl:px-8')"
+          :class="cn('bg-sunken px-4 sm:px-6 3xl:px-8')"
         >
           <slot name="side" />
         </div>

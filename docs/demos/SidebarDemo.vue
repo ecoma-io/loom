@@ -7,8 +7,8 @@ import { Sidebar as SidebarComponent } from "@ecoma-io/loom";
     <div class="flex flex-col gap-3">
       <div class="text-sm font-medium">Sidebar on the left</div>
       <div class="text-xs text-muted-foreground">
-        Content fills the remaining space. When the container narrows below the content minimum,
-        both panels go full-width.
+        Content fills the remaining space. Below the content minimum the layout wraps by line: the
+        sidebar keeps its declared width, the content takes the full one.
       </div>
     </div>
 

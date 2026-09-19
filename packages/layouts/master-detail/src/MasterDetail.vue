@@ -48,9 +48,10 @@ withDefaults(
 <template>
   <!--
     `flex-wrap: wrap` is the intrinsic collapse mechanism. When the detail
-    panel cannot honour its `min-width: 50%`, both panels wrap to full-width —
-    the master list sits above the detail area. No media query; the layout
-    derives its own breakpoint from the container's width.
+    panel cannot honour its `min-width: 50%`, the pair wraps by line: the
+    master list keeps its declared width on its own line above the full-line
+    detail area. No media query; the layout derives its own breakpoint from
+    the container's width.
   -->
   <div
     :class="cn('flex h-full', gap !== 'none' ? gapClass[gap] : undefined)"
@@ -67,7 +68,7 @@ withDefaults(
         flexGrow: 0,
         flexShrink: 0,
       }"
-      :class="cn('bg-sunken w-full')"
+      :class="cn('bg-sunken')"
     >
       <slot name="master" />
     </div>

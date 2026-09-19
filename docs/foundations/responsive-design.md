@@ -23,8 +23,9 @@ See [Layout](./layout) for the full breakpoint scale.
 `flex-wrap` rather than a media query. The content area demands a minimum
 percentage of the container (usually 50%), and the side panel has a fixed
 minimum width. When the container is too narrow to fit both, the layout wraps
-and both go full-width. The breakpoint is derived from the components' own
-constraints, not from the viewport — which means the collapse works correctly
+by line: the side panel keeps its declared width and the content takes the
+remaining line. The breakpoint is derived from the components' own constraints,
+not from the viewport — which means the collapse works correctly
 inside any container, not only at the top of the page.
 
 This is the [Every Layout "Sidebar" pattern](https://every-layout.dev/layouts/sidebar/),
