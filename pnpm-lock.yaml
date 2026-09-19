@@ -15,9 +15,6 @@ importers:
       '@internationalized/date':
         specifier: ^3.12.4
         version: 3.12.4
-      '@lucide/vue':
-        specifier: ^1.40.0
-        version: 1.40.0(vue@3.5.42(typescript@5.9.3))
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -46,6 +43,9 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.9.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@lucide/vue':
+        specifier: ^1.40.0
+        version: 1.40.0(vue@3.5.42(typescript@5.9.3))
       '@moonrepo/cli':
         specifier: ^2.5.4
         version: 2.5.4
