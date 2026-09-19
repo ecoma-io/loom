@@ -985,8 +985,61 @@ describe("layout invariants", () => {
           },
           avail(w + 2 * padX, h + 2 * padY),
         );
+        // The engine's padding contract, settled on the generated space and
+        // probed directly: an unpinned box grows by exactly the declared
+        // padding, its origin stays at the offer origin, and the children's
+        // geometry is IDENTICAL across the two runs — the padding rides
+        // outside a content box sized by the children themselves, so on the
+        // start/center/end and grow paths alike the box absorbs the growth
+        // and no child moves (the PADDING_LARGER_THAN_BOX absence in
+        // MODELLED_SUBSET covers the declared-box face of the same model).
+        // The earlier revision of this property compared the ROOT's border
+        // box across an offer grown by 2p, contradicting the growth its own
+        // comment described (#361). Growth and child-identity are asserted
+        // together, so reintroducing a root-identity comparison collides
+        // with the growth half on the first unpinned root.
         const issues: Mismatch[] = [];
-        expectWithin(padded, base, "root", issues);
+        for (const [field, growth] of [
+          ["width", 2 * padX],
+          ["height", 2 * padY],
+        ] as const) {
+          if (Math.abs(padded[field] - (base[field] + growth)) > EPSILON) {
+            issues.push({
+              path: "root",
+              detail: `${field} ${String(padded[field])} != base ${String(base[field])} + 2p`,
+            });
+          }
+        }
+        if (
+          Math.abs(padded.left - base.left) > EPSILON ||
+          Math.abs(padded.top - base.top) > EPSILON
+        ) {
+          issues.push({
+            path: "root",
+            detail: `origin moved (${String(padded.left)},${String(padded.top)}) != (${String(base.left)},${String(base.top)})`,
+          });
+        }
+        // The padding grows both axes by the same amount, so the content
+        // boxes are congruent and the root's overflow verdict matches; then
+        // the children themselves: no translation, no resize, no reflow.
+        if (padded.hadOverflow !== base.hadOverflow) {
+          issues.push({
+            path: "root",
+            detail: `hadOverflow ${String(padded.hadOverflow)} != ${String(base.hadOverflow)}`,
+          });
+        }
+        const paddedKids = padded.children ?? [];
+        const baseKids = base.children ?? [];
+        if (paddedKids.length !== baseKids.length) {
+          issues.push({
+            path: "root",
+            detail: `child count ${String(paddedKids.length)} != ${String(baseKids.length)}`,
+          });
+        } else {
+          for (const [index, kid] of paddedKids.entries()) {
+            expectWithin(kid, baseKids[index]!, `root/${String(index)}`, issues);
+          }
+        }
         expect(issues).toEqual([]);
       }),
       { numRuns: 250 },
@@ -1115,6 +1168,57 @@ describe("layout invariants", () => {
     );
     expect([fitClamped.width, fitClamped.hadOverflow]).toEqual([100, false]);
     expect(fitClamped.children?.[0]?.width).toBe(100);
+
+    // Finding 5 — not an engine defect but a defect in this suite's own
+    // property (#361): the padding-as-translation property compared the
+    // padded run's ROOT border box to the base run's across an offer
+    // deliberately grown by 2p, contradicting the growth its own comment
+    // described. fast-check (seed -861196852, the recorded replay fixture;
+    // CI pins 42) shrank it to this input, where the padded root is 0x2 and
+    // the base root 0x0. The engine's contract, probed and pinned: the box
+    // grows by exactly the declared padding and the content does not move —
+    // the leaf has no content, so the growth is the whole assertion.
+    const unpaddedBase = layout(
+      { style: { axis: "row" } },
+      { width: { mode: "definite", size: 0 }, height: { mode: "definite", size: 0 } },
+    );
+    expect([unpaddedBase.left, unpaddedBase.top, unpaddedBase.width, unpaddedBase.height]).toEqual([
+      0, 0, 0, 0,
+    ]);
+    const paddedGrown = layout(
+      { style: { axis: "row", padding: { x: 0, y: 1 } } },
+      { width: { mode: "definite", size: 0 }, height: { mode: "definite", size: 2 } },
+    );
+    expect([paddedGrown.left, paddedGrown.top, paddedGrown.width, paddedGrown.height]).toEqual([
+      0, 0, 0, 2,
+    ]);
+
+    // The one-child face of the same finding: the box grew by 2p and the
+    // child did NOT move — the engine models padding as outer growth, with
+    // children positioned border-relative from 0 (probed directly; the CSS
+    // padding-edge placement is the PADDING_LARGER_THAN_BOX absence).
+    const unpaddedChild = layout(
+      {
+        style: { axis: "row" },
+        children: [{ style: { axis: "row", width: 10, height: 4, flexShrink: 0 } }],
+      },
+      { width: { mode: "definite", size: 0 }, height: { mode: "definite", size: 0 } },
+    );
+    expect([unpaddedChild.width, unpaddedChild.height, unpaddedChild.hadOverflow]).toEqual([
+      0,
+      0,
+      true,
+    ]);
+    const paddedChild = layout(
+      {
+        style: { axis: "row", padding: { x: 3, y: 1 } },
+        children: [{ style: { axis: "row", width: 10, height: 4, flexShrink: 0 } }],
+      },
+      { width: { mode: "definite", size: 6 }, height: { mode: "definite", size: 2 } },
+    );
+    expect([paddedChild.width, paddedChild.height, paddedChild.hadOverflow]).toEqual([6, 2, true]);
+    expect(paddedChild.children?.[0]).toMatchObject({ left: 0, top: 0, width: 10, height: 4 });
+    expect(unpaddedChild.children?.[0]).toMatchObject({ left: 0, top: 0, width: 10, height: 4 });
 
     // Under max-content the clamp once meant shrink never engaged at all.
     // CSS: the two 100px items share the clamped 100px box minus the gap.
