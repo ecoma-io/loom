@@ -19,9 +19,11 @@ export interface VirtualWindow {
  * from painting empty space while the browser catches up.
  *
  * Degenerate inputs degrade to an empty window rather than a nonsense one:
- * no items, a zero viewport (jsdom, a display:none parent) or a non-positive
- * item height render nothing. A scroll position past the last row is clamped
- * to it — the browser clamps `scrollTop` itself, and jsdom does not.
+ * no items, a non-finite or non-positive item height, or a zero or non-finite
+ * viewport (jsdom, a display:none parent) render nothing. A scroll position
+ * past the last row is clamped to it — the browser clamps `scrollTop` itself,
+ * and jsdom does not. `overscan` is floored and clamped non-negative; a
+ * non-finite `scrollTop` or `overscan` reads as 0.
  */
 export function virtualWindow(
   scrollTop: number,
@@ -30,11 +32,29 @@ export function virtualWindow(
   count: number,
   overscan: number,
 ): VirtualWindow {
-  if (count <= 0 || itemHeight <= 0) return { start: 0, end: 0 };
-  const first = Math.min(Math.max(0, Math.floor(Math.max(0, scrollTop) / itemHeight)), count - 1);
-  const visible = Math.max(1, Math.ceil(Math.max(0, viewportHeight) / itemHeight));
+  // The empty window is the honest answer to every unusable dimension: NaN
+  // would otherwise flow into the indices below (`NaN <= 0` is false, so a
+  // positivity-only guard misses it) and negative padding would invert the
+  // window — `{start: 5, end: -4}` is almost the whole list after slice().
+  if (
+    count <= 0 ||
+    itemHeight <= 0 ||
+    !Number.isFinite(itemHeight) ||
+    !Number.isFinite(viewportHeight) ||
+    viewportHeight <= 0
+  ) {
+    return { start: 0, end: 0 };
+  }
+  // A browser never reports a non-finite scrollTop (jsdom starts at 0), but
+  // NaN would poison first/start/end below — the top is the safe read.
+  const top = Number.isFinite(scrollTop) ? Math.max(0, scrollTop) : 0;
+  // Padding rounds down and never goes negative: a negative or fractional
+  // overscan is a caller bug, not a licence to reorder rows.
+  const pad = Number.isFinite(overscan) ? Math.max(0, Math.floor(overscan)) : 0;
+  const first = Math.min(Math.max(0, Math.floor(top / itemHeight)), count - 1);
+  const visible = Math.max(1, Math.ceil(viewportHeight / itemHeight));
   return {
-    start: Math.max(0, first - overscan),
-    end: Math.min(count, first + visible + overscan),
+    start: Math.max(0, first - pad),
+    end: Math.min(count, first + visible + pad),
   };
 }

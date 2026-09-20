@@ -22,7 +22,7 @@ function stubGeometry(
   });
 }
 
-function mountList(rows: unknown[] = ROWS) {
+function mountList(rows: unknown[] = ROWS, overrides: Record<string, unknown> = {}) {
   const active = ref(-1);
   const activated: number[] = [];
   const host = mount(
@@ -41,6 +41,7 @@ function mountList(rows: unknown[] = ROWS) {
                 active.value = index;
               },
               onActivate: (index: number) => activated.push(index),
+              ...overrides,
             },
             {
               default: (slot: { item: unknown; index: number }) =>
@@ -81,12 +82,83 @@ describe("virtualWindow", () => {
   it("degrades to an empty window when there is nothing or no room to render", () => {
     expect(virtualWindow(0, 400, ROW_HEIGHT, 0, 8)).toEqual({ start: 0, end: 0 });
     expect(virtualWindow(0, 400, 0, 500, 8)).toEqual({ start: 0, end: 0 });
-    // A zero-height viewport (hidden container) still paints the overscan rows.
-    expect(virtualWindow(0, 0, ROW_HEIGHT, 500, 8)).toEqual({ start: 0, end: 9 });
+    // A zero-height viewport (jsdom, a display:none parent) renders nothing —
+    // the docblock's degenerate contract; the mount-time measure supplies the
+    // real height on the next scroll/ResizeObserver tick.
+    expect(virtualWindow(0, 0, ROW_HEIGHT, 500, 8)).toEqual({ start: 0, end: 0 });
+  });
+
+  it("treats NaN and infinite inputs as degenerate, not as corners", () => {
+    // `NaN <= 0` is false — a positivity-only guard lets NaN through, and NaN
+    // indices then render a nonsense slice. Every non-finite input must land
+    // on a defined window.
+    expect(virtualWindow(0, 400, Number.NaN, 500, 8)).toEqual({ start: 0, end: 0 });
+    expect(virtualWindow(0, 400, Number.POSITIVE_INFINITY, 500, 8)).toEqual({ start: 0, end: 0 });
+    expect(virtualWindow(0, Number.NaN, ROW_HEIGHT, 500, 8)).toEqual({ start: 0, end: 0 });
+    expect(virtualWindow(0, -400, ROW_HEIGHT, 500, 8)).toEqual({ start: 0, end: 0 });
+  });
+
+  it("floors and clamps overscan, never inverting the window", () => {
+    // A negative overscan is a caller bug, not a licence to reorder rows:
+    // -5 would turn `{start: 0, end: 21}` into `{start: 5, end: -4}`, which
+    // slice() renders as almost the whole list.
+    expect(virtualWindow(0, 400, ROW_HEIGHT, 500, -5)).toEqual(
+      virtualWindow(0, 400, ROW_HEIGHT, 500, 0),
+    );
+    expect(virtualWindow(0, 400, ROW_HEIGHT, 500, 2.7)).toEqual({ start: 0, end: 15 }); // pad 2
+    expect(virtualWindow(0, 400, ROW_HEIGHT, 500, Number.NaN)).toEqual(
+      virtualWindow(0, 400, ROW_HEIGHT, 500, 0),
+    );
+    expect(virtualWindow(0, 400, ROW_HEIGHT, 500, Number.POSITIVE_INFINITY)).toEqual(
+      virtualWindow(0, 400, ROW_HEIGHT, 500, 0),
+    );
+  });
+
+  it("reads a non-finite scrollTop as the top of the list", () => {
+    // Browsers never report a non-finite scrollTop (jsdom starts at 0), but
+    // NaN would poison first/start/end — the top is the safe read.
+    expect(virtualWindow(Number.NaN, 400, ROW_HEIGHT, 500, 8)).toEqual({ start: 0, end: 21 });
+    expect(virtualWindow(Number.POSITIVE_INFINITY, 400, ROW_HEIGHT, 500, 8)).toEqual({
+      start: 0,
+      end: 21,
+    });
   });
 });
 
 describe("VirtualList", () => {
+  it("renders nothing until a viewport is measured, then the window", async () => {
+    const { element } = mountList();
+    // jsdom reports clientHeight 0: the pre-measure state must not paint rows
+    // inside an invisible container — the mount-time measure supplies the
+    // real height, and a scroll tick then paints the window.
+    expect(element.querySelectorAll(".row")).toHaveLength(0);
+    const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    stubGeometry(container, { clientHeight: 400, scrollTop: 0 });
+    container.dispatchEvent(new Event("scroll"));
+    await nextTick();
+    expect(element.querySelectorAll(".row")).toHaveLength(21);
+  });
+
+  it("treats a NaN item height as an empty list, not a full one", async () => {
+    const { element } = mountList(ROWS, { itemHeight: Number.NaN });
+    const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    stubGeometry(container, { clientHeight: 400, scrollTop: 0 });
+    container.dispatchEvent(new Event("scroll"));
+    await nextTick();
+    expect(element.querySelectorAll(".row")).toHaveLength(0);
+  });
+
+  it("clamps a negative overscan to the plain window instead of inverting it", async () => {
+    const { element } = mountList(ROWS, { overscan: -5 });
+    const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    stubGeometry(container, { clientHeight: 400, scrollTop: 0 });
+    container.dispatchEvent(new Event("scroll"));
+    await nextTick();
+    // Pre-fix this rendered 491 of 500 rows (`slice(5, -4)`): ~the whole list.
+    expect(element.querySelectorAll(".row")).toHaveLength(13);
+    expect(element.querySelector('[data-virtual-index="490"]')).toBeNull();
+  });
+
   it("renders only the windowed rows and reports the full set to AT", async () => {
     const { element } = mountList();
     const container = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
