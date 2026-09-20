@@ -256,6 +256,12 @@ importers:
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      tailwind-merge:
+        specifier: ^3.6.0
+        version: 3.6.0
 
   packages/labels:
     dependencies:
@@ -1062,6 +1068,9 @@ importers:
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.10.0
+        version: 2.10.4(vue@3.5.42(typescript@5.9.3))
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1428,6 +1437,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1452,6 +1464,9 @@ importers:
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1485,6 +1500,9 @@ importers:
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1578,6 +1596,9 @@ importers:
       '@ecoma-io/loom-labels':
         specifier: workspace:*
         version: link:../../labels
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.4(vue@3.5.42(typescript@5.9.3))
@@ -1593,6 +1614,9 @@ importers:
       '@ecoma-io/loom-labels':
         specifier: workspace:*
         version: link:../../labels
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       reka-ui:
         specifier: ^2.10.0
         version: 2.10.4(vue@3.5.42(typescript@5.9.3))
@@ -1710,6 +1734,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1761,6 +1788,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1788,6 +1818,9 @@ importers:
       '@ecoma-io/loom-core':
         specifier: workspace:*
         version: link:../../core
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1818,6 +1851,9 @@ importers:
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -1918,6 +1954,9 @@ importers:
       '@lucide/vue':
         specifier: ^1.40.0
         version: 1.40.0(vue@3.5.42(typescript@5.9.3))
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.1
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
