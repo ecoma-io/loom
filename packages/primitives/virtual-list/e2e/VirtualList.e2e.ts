@@ -22,6 +22,26 @@ test("focus enters on the first row and roves with the arrow keys", async ({ pag
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("ArrowDown");
   await expect(list.getByRole("listitem").nth(3)).toBeFocused();
+
+  await page.keyboard.press("ArrowUp");
+  await expect(list.getByRole("listitem").nth(2)).toBeFocused();
+});
+
+test("Tab steps past the whole list to the next control, and Shift+Tab returns", async ({
+  page,
+}) => {
+  const list = page.getByRole("list", { name: "Catalogue rows" });
+
+  await page.keyboard.press("Tab");
+  await expect(list.getByRole("listitem").nth(0)).toBeFocused();
+
+  // One stop for the whole list: the next Tab leaves it for the control that
+  // follows the demo (the harness's end-of-demo sentinel), not the next
+  // painted row — and Shift+Tab walks back into the same row.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(list.getByRole("listitem").nth(0)).toBeFocused();
 });
 
 test("Home and End jump across the full logical list — not just painted rows", async ({ page }) => {
@@ -75,13 +95,15 @@ test("the Tab stop survives the active row scrolling out of the window", async (
   await expect(list.locator(":focus")).toHaveAttribute("aria-posinset", String(Number(place) + 1));
 });
 
-test("Page Down moves by a viewport of rows, Enter activates the active row", async ({ page }) => {
+test("Page Down and Page Up move by a viewport of rows, Enter activates the active row", async ({
+  page,
+}) => {
   const list = page.getByRole("list", { name: "Catalogue rows" });
 
   await page.keyboard.press("Tab");
   await page.keyboard.press("PageDown");
 
-  // h-96 = 384px viewport → 12 rows per page; focus lands 12 rows in.
+  // h-96 = 384px viewport → 12 fully visible rows per page; focus lands 12 rows in.
   const jumped = list.getByRole("listitem").nth(12);
   await expect(jumped).toBeFocused();
 
@@ -89,4 +111,8 @@ test("Page Down moves by a viewport of rows, Enter activates the active row", as
   await expect(page.getByText(/Activated: Row 12/)).toBeVisible();
   // The demo marks the picked row inside the row's slot content.
   await expect(jumped.locator('[data-picked="true"]')).toBeVisible();
+
+  // Page Up walks back the same page of rows — from row 12, to the very top.
+  await page.keyboard.press("PageUp");
+  await expect(list.getByRole("listitem").nth(0)).toBeFocused();
 });

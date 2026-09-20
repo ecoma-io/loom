@@ -54,16 +54,29 @@ Every row is one logical element with one tab stop; anything interactive
 inside a row (a button, an input) is a Tab stop of its own, reached from the
 row.
 
+## Degenerate inputs
+
+The windowing contract degrades instead of breaking:
+
+- `itemHeight` must be a finite positive number. A zero, negative or
+  non-finite `itemHeight` renders an empty list — no rows, an empty spacer —
+  and the list answers no keys.
+- A zero, negative, fractional or non-finite `overscan` is floored and
+  clamped to `0`.
+- An `overscan` at or above the item count is safe: the window covers the
+  whole list and clamps at its ends.
+- A viewport smaller than one row still renders exactly one row.
+
 ## Keyboard
 
 The list is a single Tab stop. Rows rove focus:
 
-| Key                   | Action                                               |
-| --------------------- | ---------------------------------------------------- |
-| Arrow Down / Arrow Up | Move to the next / previous row (scrolled into view) |
-| Home / End            | First / last row                                     |
-| Page Down / Page Up   | One viewport of rows                                 |
-| Enter / Space         | Activate the active row (`activate`)                 |
+| Key                   | Action                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Arrow Down / Arrow Up | Move to the next / previous row (scrolled into view)                                                                                       |
+| Home / End            | First / last row                                                                                                                           |
+| Page Down / Page Up   | One page of fully visible rows — `floor(viewportHeight / itemHeight)`; the rendered window paints the `ceil` (one partial row at the edge) |
+| Enter / Space         | Activate the active row (`activate`)                                                                                                       |
 
 Nested controls keep their own keys: a keydown whose target is a row button
 is left to the button.

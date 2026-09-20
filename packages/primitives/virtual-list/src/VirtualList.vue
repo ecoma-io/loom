@@ -17,10 +17,23 @@
  * screen-reader user meets an unbounded list exactly once, not once per
  * painted row.
  *
+ * A page (Page Up/Page Down) is the fully visible rows —
+ * `floor(viewportHeight / itemHeight)` — not the painted window's `ceil`,
+ * whose edge row is partial and would rest half-clipped under the fold.
+ *
  * The scroll container deliberately takes no tabindex of its own — focus
  * roves across the rows, so the container never needs one — and the rows
  * report their position within the full set via `aria-setsize`/`aria-posinset`
  * (a virtualized DOM can never announce its own extent).
+ *
+ * ## Degenerate inputs
+ *
+ * `itemHeight` must be a finite positive number. A zero, negative or
+ * non-finite value renders an empty list — no rows, an empty spacer — and the
+ * list answers no keys, because there is nothing painted to answer for. A
+ * negative, fractional or non-finite `overscan` is floored and clamped to 0;
+ * an `overscan` at or above the item count simply covers the whole list. A
+ * viewport smaller than one row still renders exactly one row.
  *
  * ## Row contract
  *
@@ -80,7 +93,14 @@ const rendered = computed(() =>
 
 const visibleItems = computed(() => props.items.slice(rendered.value.start, rendered.value.end));
 
-const totalHeight = computed(() => props.items.length * props.itemHeight);
+// The spacer is the model's answer to "how tall is the full list", so it
+// degrades with the window it belongs to: when virtualWindow renders nothing
+// (no rows, a non-finite or non-positive itemHeight, an unmeasured viewport)
+// the raw product would hand the style engine a `NaNpx` or `Infinitypx`
+// spacer under an empty window — an impossible scrollbar over no rows.
+const totalHeight = computed(() =>
+  rendered.value.end > rendered.value.start ? props.items.length * props.itemHeight : 0,
+);
 
 /**
  * The row carrying `tabindex="0"`: the active row when it is rendered, else
@@ -138,24 +158,29 @@ function reveal(index: number): void {
   if (!el) return;
   const top = index * props.itemHeight;
   const bottom = top + props.itemHeight;
+  // Clamp the write here rather than trusting the browser to: jsdom keeps an
+  // assigned scrollTop verbatim, and measure() would then hold a scroll
+  // position the real container could never report.
+  const maxScroll = Math.max(0, totalHeight.value - el.clientHeight);
   if (top < el.scrollTop) {
-    el.scrollTop = top;
+    el.scrollTop = Math.min(Math.max(0, top), maxScroll);
   } else if (bottom > el.scrollTop + el.clientHeight) {
-    el.scrollTop = bottom - el.clientHeight;
+    el.scrollTop = Math.min(Math.max(0, bottom - el.clientHeight), maxScroll);
   }
   measure();
 }
 
-/** Move the active row to `index`, revealing and focusing it. */
+/** Move the active row to `index`, revealing and focusing it; a no-op outside the list or on the already-active row. */
 function moveTo(index: number): void {
   if (index < 0 || index >= props.items.length) return;
-  const changed = index !== props.activeIndex;
+  // A press at a boundary names the row that is already active: nothing
+  // changed, so nothing is emitted and no scroll yanks the user back to a
+  // row they may have scrolled away from.
+  if (index === props.activeIndex) return;
   emit("update:activeIndex", index);
   reveal(index);
-  if (changed) {
-    // Re-render the window first so the freshly revealed row exists to focus.
-    void nextTick(() => rowElement(index)?.focus());
-  }
+  // Re-render the window first so the freshly revealed row exists to focus.
+  void nextTick(() => rowElement(index)?.focus());
 }
 
 function onRowFocus(index: number): void {
@@ -171,21 +196,27 @@ function onKeydown(event: KeyboardEvent): void {
   ) {
     return;
   }
-  const count = props.items.length;
-  if (count === 0) return;
-  const visible = Math.max(
-    1,
-    Math.floor((viewportHeight.value || props.itemHeight) / props.itemHeight),
-  );
+  // The keyboard answers only what the window paints: virtualWindow degrades
+  // to an empty window for every unusable dimension (no rows, a non-finite or
+  // non-positive itemHeight, a zero viewport). The page math below would
+  // otherwise divide by that itemHeight — moveTo's bounds are positivity
+  // checks, against which NaN passes both ways, so a PageDown once emitted
+  // `NaN` as the active index — and a 0-viewport page of 1 would pretend a
+  // row exists where nothing is rendered.
+  if (rendered.value.end <= rendered.value.start) return;
   const active = props.activeIndex >= 0 ? props.activeIndex : 0;
+  // A page is the fully visible rows, not the painted window's ceil: the
+  // window paints one partial row at the edge, and a page that landed there
+  // would rest half-clipped under the fold.
+  const page = Math.floor(viewportHeight.value / props.itemHeight);
   switch (event.key) {
     case "ArrowDown":
       event.preventDefault();
-      moveTo(Math.min(count - 1, active + 1));
+      moveTo(active + 1);
       break;
     case "ArrowUp":
       event.preventDefault();
-      moveTo(Math.max(0, active - 1));
+      moveTo(active - 1);
       break;
     case "Home":
       event.preventDefault();
@@ -193,15 +224,15 @@ function onKeydown(event: KeyboardEvent): void {
       break;
     case "End":
       event.preventDefault();
-      moveTo(count - 1);
+      moveTo(props.items.length - 1);
       break;
     case "PageDown":
       event.preventDefault();
-      moveTo(Math.min(count - 1, active + visible));
+      moveTo(active + page);
       break;
     case "PageUp":
       event.preventDefault();
-      moveTo(Math.max(0, active - visible));
+      moveTo(active - page);
       break;
     case "Enter":
     case " ":

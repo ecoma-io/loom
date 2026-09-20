@@ -9,7 +9,7 @@
     "harness": [
       {
         "path": "packages/primitives/virtual-list/e2e/VirtualList.e2e.ts",
-        "because": "the harness spec drives the real component: focus the first row, rove with arrow keys, jump with Home/End, and activate with Enter \u2014 the windowed DOM's interaction contract, provable only in a browser"
+        "because": "the harness spec drives the real component: focus the first row, rove with the arrow keys both ways, jump with Home/End and PageUp/PageDown across the full set, walk Tab out of the single stop to the next control and back, and activate with Enter \u2014 the windowed DOM's interaction contract, provable only in a browser"
       }
     ],
     "sweep": ["docs/components/virtual-list.md"]
