@@ -1,6 +1,6 @@
 {
   "role": "separator",
-  "basis": "renders role=\"separator\" with aria-orientation=\"vertical\" and aria-valuenow/min/max on the drag- and keyboard-resizable handle between the two panels.",
+  "basis": "renders role=\"separator\" with aria-orientation following the orientation prop and aria-valuenow/min/max on the drag- and keyboard-resizable handle between the two panels.",
   "evidence": {
     "browserless": [
       "docs/demos/ResizableSplitDemo.vue",

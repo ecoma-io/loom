@@ -52,19 +52,49 @@ panel first, `side="right"` mirrors the row. The arrow keys act on the
 panel's width, not the separator's screen position, so `ArrowLeft` always
 narrows the resizable panel and `ArrowRight` always widens it.
 
+## Orientation
+
+`orientation="horizontal"` stacks the two panels and sizes the resizable
+panel by height instead of width: `side="left"` reads as the top panel,
+`side="right"` as the bottom, and the separator runs across the row. Pass
+the height through the same `v-model`:
+
+```vue
+<ResizableSplit v-model="panelHeight" orientation="horizontal" :min="120" :max="600">
+  <template #panel>…</template>
+  <template #content>…</template>
+</ResizableSplit>
+```
+
+The keyboard map follows the axis — `ArrowUp`/`ArrowDown` resize a horizontal
+split — while `Home`/`End` and double-click behave the same either way.
+
+## Direction and cancellation
+
+Under `dir="rtl"` the vertical row mirrors, so a drag flips to keep the
+separator tracking the pointer; the keyboard map is unchanged, staying
+side-relative. A cancelled drag — `pointercancel`, a browser-issued abort —
+discards the gesture: it never fires `resize`, and one last transient
+`update:modelValue` carrying the pre-drag size lets the host restore it.
+
+Set `disabled` to make the separator unavailable: it refuses pointer,
+keyboard and double-click input, reports `aria-disabled`, and leaves the tab
+order. Unset, it defers to an enclosing `<fieldset disabled>`.
+
 ### Keyboard
 
 The separator is a single Tab stop following the ARIA separator pattern:
 
-| Key                        | Effect                                    |
-| -------------------------- | ----------------------------------------- |
-| `ArrowLeft` / `ArrowRight` | Narrow / widen the panel by `step` (10px) |
-| `Home` / `End`             | Jump to `min` / `max`                     |
-| Double-click               | Restore `defaultWidth`                    |
+| Key                        | Effect                                             |
+| -------------------------- | -------------------------------------------------- |
+| `ArrowLeft` / `ArrowRight` | Narrow / widen a vertical split by `step` (10px)   |
+| `ArrowUp` / `ArrowDown`    | Narrow / widen a horizontal split by `step` (10px) |
+| `Home` / `End`             | Jump to `min` / `max`                              |
+| Double-click               | Restore `defaultWidth`                             |
 
 `update:modelValue` fires on every change; `resize` fires once when a gesture
 commits — pointer release or a keyboard step — for hosts that persist on
-gesture end.
+gesture end. A cancelled drag never commits.
 
 ## Motion
 
