@@ -1,7 +1,8 @@
-import { enableAutoUnmount, mount } from "@vue/test-utils";
+import { enableAutoUnmount, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref, type PropType, type VNode } from "vue";
 import OtpInput from "../src/OtpInput.vue";
+import { optional } from "@ecoma-io/loom-core";
 import { provideFieldContext } from "@ecoma-io/loom-labels";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 import { attachToBody } from "@ecoma-io/loom-core/testing";
@@ -19,11 +20,11 @@ function mountOtp(props: Partial<InstanceType<typeof OtpInput>["$props"]> = {}, 
 // order, so it is not a cell and no assertion about the cells may count it.
 const CELL = 'input:not([aria-hidden="true"])';
 
-function cellsOf(wrapper: ReturnType<typeof mountOtp>) {
+function cellsOf(wrapper: VueWrapper) {
   return wrapper.findAll(CELL);
 }
 
-function cells(wrapper: ReturnType<typeof mountOtp>): HTMLInputElement[] {
+function cells(wrapper: VueWrapper): HTMLInputElement[] {
   return cellsOf(wrapper).map((cell) => cell.element as HTMLInputElement);
 }
 
@@ -215,11 +216,34 @@ describe("OtpInput value", () => {
   });
 
   // A host withdrawing `modelValue` back to `undefined` keeps what is in the
-  // cells, because absent is not empty — the distinction `src/lib/props.ts`
-  // exists for. It has no test: `exactOptionalPropertyTypes` refuses to let
-  // one pass an explicit `undefined` for an optional prop, which is the same
+  // cells, because absent is not empty — the watch in OtpInput only adopts a
+  // value that is actually there, so `undefined` leaves the row where the
+  // reader put it, and the row stays editable. The withdrawal is spelled with
+  // `optional()`'s conditional spread rather than `modelValue: undefined`,
+  // which `exactOptionalPropertyTypes` refuses to let a host pass — the same
   // rule stated from the other side.
-  it.todo("keeps what is in the cells when the host stops supplying a value");
+  it("keeps what is in the cells when the host stops supplying a value", async () => {
+    const value = ref<string | undefined>("12");
+    const wrapper = mount(
+      {
+        render() {
+          return h(OtpInput, optional({ length: 4, modelValue: value.value }));
+        },
+      },
+      { attachTo: document.body },
+    );
+    await nextTick();
+    expect(cells(wrapper).map((cell) => cell.value)).toEqual(["1", "2", "", ""]);
+
+    value.value = undefined;
+    await nextTick();
+    expect(cells(wrapper).map((cell) => cell.value)).toEqual(["1", "2", "", ""]);
+
+    // The kept code is live, not a snapshot: the row still takes the
+    // character that comes next, from where the reader left it.
+    await type(cells(wrapper)[2]!, "3");
+    expect(cells(wrapper).map((cell) => cell.value)).toEqual(["1", "2", "3", ""]);
+  });
 
   it("renders nothing beyond the row for a code longer than it has cells", async () => {
     const wrapper = mountOtp({ length: 4, modelValue: "123456" });
