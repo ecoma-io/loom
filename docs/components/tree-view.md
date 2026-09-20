@@ -146,10 +146,12 @@ const nodes: TreeNode[] = [
 ## Controlled expansion
 
 Uncontrolled, the tree owns its open rows — seeded from `defaultExpanded`
-once, then internal. Pass `v-model:expanded-keys` and the tree becomes a
-mirror: it renders exactly the rows your list names and emits the full open
-list on every open and close, so the state lives beside the data instead of
-inside a control your page cannot reach.
+once, then internal. Pass `v-model:expanded-keys` and expansion turns into a
+read-through: the tree renders exactly the rows your list names and emits the
+full open list on every open and close — and the host's answer is final. A
+host that withholds the emitted list (a veto kept by rejecting the next
+`update:expanded-keys`) holds the tree where it was, so the state lives
+beside the data instead of inside a control your page cannot reach.
 
 <Demo title="The host keeps the open list" :source="treeViewExpandedDemoSource">
   <TreeViewExpandedDemo />
@@ -175,6 +177,12 @@ const nodes: TreeNode[] = [
 
 Leave `expanded-keys` out and `defaultExpanded` seeds the uncontrolled tree;
 the two props never mix — whichever the host supplies is the one that counts.
+
+Selection keeps the opposite convention: `v-model` is an optimistic mirror —
+the tree shows what it emitted while the host catches up — the same contract
+[Combobox](/components/combobox) keeps. Expansion is strict because an open
+branch paints its whole subtree into the DOM, and a tree that lies about
+what the host allowed reads as one that ignored it.
 
 ## Disabled
 

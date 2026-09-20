@@ -564,6 +564,35 @@ describe("TreeView — controlled expansion", () => {
     mountTree({ defaultExpanded: ["animals"] });
     expect(li("animals").getAttribute("aria-expanded")).toBe("true");
   });
+  it("holds a row closed when the host withholds the emitted open", async () => {
+    const wrapper = mountTree({ expandedKeys: [] });
+    item("animals").focus();
+    await press("ArrowRight");
+    // The tree proposed the open list…
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["animals"]);
+    // …and the host did not accept it. Expansion is a read-through: the
+    // render is the prop, so the veto holds and the branch stays shut — its
+    // subtree never enters the DOM.
+    expect(li("animals").getAttribute("aria-expanded")).toBe("false");
+    expect(items().map((el) => el.getAttribute("data-tree-value"))).not.toContain("birds");
+  });
+
+  it("expands once the host accepts the emitted open", async () => {
+    const wrapper = mountTree({ expandedKeys: [] });
+    item("animals").focus();
+    await press("ArrowRight");
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["animals"]);
+    await wrapper.setProps({ expandedKeys: ["animals"] });
+    expect(li("animals").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("holds a row open when the host withholds the emitted close", async () => {
+    const wrapper = mountTree({ expandedKeys: ["animals", "plants"] });
+    item("plants").focus();
+    await press("ArrowLeft");
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["animals"]);
+    expect(li("plants").getAttribute("aria-expanded")).toBe("true");
+  });
 });
 
 describe("TreeView — the #node slot", () => {
