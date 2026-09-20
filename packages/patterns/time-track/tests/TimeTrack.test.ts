@@ -130,10 +130,63 @@ describe("TimeBar", () => {
       global: { components: { TimeBar } },
     });
     const bar = wrapper.find("[data-loom-time-bar]");
-    // Starts before the window: left stays proportional (off-edge),
-    // width covers the full span (consumers clip via overflow-hidden).
-    expect(bar.attributes("style")).toContain("left: -30%");
-    expect(bar.attributes("style")).toContain("width: 50%");
+    // The documented contract (geometry.ts, docs): a bar straddling an edge
+    // renders at its on-screen width, reaching the window's edge — the CSS
+    // must be the truth, not a lie the track's overflow-hidden happens to
+    // clip. Only 0..200 of -300..200 is on screen: left clamps to the edge,
+    // width is the visible fifth.
+    expect(bar.attributes("style")).toContain("left: 0%");
+    expect(bar.attributes("style")).toContain("width: 20%");
+  });
+
+  it("renders finite geometry for a zero-width window instead of NaN", () => {
+    const wrapper = mount(TimeTrack, {
+      props: { start: 500, end: 500 },
+      slots: { default: '<TimeBar :start="0" :end="100" />' },
+      global: { components: { TimeBar } },
+    });
+    const style = wrapper.find("[data-loom-time-bar]").attributes("style");
+    expect(style).not.toContain("NaN");
+    expect(style).toContain("width: 0%");
+  });
+
+  it("measures a fully-outside bar at zero width", () => {
+    const wrapper = mount(TimeTrack, {
+      props: { start: 0, end: 1000 },
+      slots: { default: '<TimeBar :start="2000" :end="3000" />' },
+      global: { components: { TimeBar } },
+    });
+    const after = wrapper.find("[data-loom-time-bar]").attributes("style");
+    expect(after).toContain("width: 0%");
+
+    const before = mount(TimeTrack, {
+      props: { start: 0, end: 1000 },
+      slots: { default: '<TimeBar :start="-2000" :end="-1000" />' },
+      global: { components: { TimeBar } },
+    });
+    expect(before.find("[data-loom-time-bar]").attributes("style")).toContain("width: 0%");
+  });
+
+  it("renders a reversed span as zero width", () => {
+    const wrapper = mount(TimeTrack, {
+      props: { start: 0, end: 1000 },
+      slots: { default: '<TimeBar :start="300" :end="100" />' },
+      global: { components: { TimeBar } },
+    });
+    expect(wrapper.find("[data-loom-time-bar]").attributes("style")).toContain("width: 0%");
+  });
+
+  it("stays exact at epoch-millisecond magnitudes", () => {
+    const wrapper = mount(TimeTrack, {
+      props: { start: 1_700_000_000_000, end: 1_700_060_000_000 },
+      slots: { default: '<TimeBar :start="1700008000000" :end="1700026000000" />' },
+      global: { components: { TimeBar } },
+    });
+    const style = wrapper.find("[data-loom-time-bar]").attributes("style");
+    // An 8s bar in a 60s window: 13⅓% in, one third wide — no precision
+    // loss at 1.7e12 (integer milliseconds are exact up to 2^53 ≈ 9e15).
+    expect(style).toMatch(/left: 13\.3\d*%/);
+    expect(style).toContain("width: 30%");
   });
 
   it("provides an accessible name from the label or the duration", () => {
