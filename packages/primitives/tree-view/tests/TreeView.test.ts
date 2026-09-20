@@ -106,10 +106,12 @@ function tabStops(): string[] {
     .map((el) => el.dataset.treeValue ?? "");
 }
 
-async function press(key: string): Promise<void> {
+async function press(key: string, modifiers: KeyboardEventInit = {}): Promise<void> {
   const target = document.activeElement as HTMLElement | null;
   if (!target) throw new Error("nothing focused to press a key on");
-  target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...modifiers }),
+  );
   await nextTick();
 }
 
@@ -217,6 +219,15 @@ describe("TreeView — the roving tab stop", () => {
     expect(tabStops()).toEqual(["animals"]);
   });
 
+  it("moves focus to the previous visible row on ArrowUp, depth-first", async () => {
+    mountTree({ nodes: treeNodes, defaultExpanded: ["animals"] });
+    item("plants").focus();
+    await press("ArrowUp");
+    // The previous visible row is the last row of the branch above — not the
+    // previous sibling at the same level, which would be `birds`.
+    expect(focusedValue()).toBe("mammals");
+  });
+
   it("reaches the last visible row with End and the first with Home", async () => {
     mountTree({ nodes: treeNodes, defaultExpanded: ["animals", "mammals"] });
     item("animals").focus();
@@ -295,6 +306,21 @@ describe("TreeView — the typeahead", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("leaves modifier chords to the browser, and types through Shift", async () => {
+    mountTree({ nodes: treeNodes, defaultExpanded: ["animals", "mammals", "plants"] });
+    item("birds").focus();
+    // Alt, Ctrl and Cmd chords are not typeahead: the buffer never sees a
+    // character, so focus does not move and the browser keeps its shortcuts.
+    await press("m", { ctrlKey: true });
+    await press("m", { altKey: true });
+    await press("m", { metaKey: true });
+    expect(focusedValue()).toBe("birds");
+    // Shift is typing, not a chord — the implementation reads the character,
+    // never the shift key that produced it.
+    await press("M", { shiftKey: true });
+    expect(focusedValue()).toBe("mammals");
   });
 });
 
@@ -488,6 +514,97 @@ describe("TreeView — lazy branches", () => {
   });
 });
 
+describe("TreeView — expansion the host drives", () => {
+  const lazyNodes: TreeNode[] = [{ value: "root", label: "Root" }];
+
+  it("fetches a lazy branch the host rendered expanded before the tree ever spoke", async () => {
+    let resolveLoad!: (children: TreeNode[]) => void;
+    // A deferred, so the busy render is observable before the answer lands.
+    const loadChildren = vi.fn(
+      () =>
+        new Promise<TreeNode[]>((resolve) => {
+          resolveLoad = resolve;
+        }),
+    );
+    mountTree({ nodes: lazyNodes, expandedKeys: ["root"], loadChildren });
+    // The host's list is the render, so the row is open from the first paint
+    // — and the fetch obligation rode in with it: busy announced, one call.
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+    expect(li("root").getAttribute("aria-expanded")).toBe("true");
+    expect(li("root").getAttribute("aria-busy")).toBe("true");
+    expect(rowText("root")).toContain(TREE_VIEW_LABELS.loading);
+    resolveLoad([{ value: "child", label: "Child" }]);
+    await flushPromises();
+    await nextTick();
+    expect(item("child")).not.toBeNull();
+    expect(li("root").hasAttribute("aria-busy")).toBe(false);
+  });
+
+  it("turns a host-opened branch back into a leaf when the fetch resolves empty", async () => {
+    mountTree({
+      nodes: lazyNodes,
+      expandedKeys: ["root"],
+      loadChildren: () => Promise.resolve<TreeNode[]>([]),
+    });
+    await flushPromises();
+    // An empty answer is the answer: the row loses the expansion it was
+    // rendered with, exactly as a keyboard-opened one does.
+    expect(li("root").hasAttribute("aria-expanded")).toBe(false);
+  });
+
+  it("retracts a host-driven open whose fetch fails, and holds still under a veto", async () => {
+    const loadChildren = vi.fn(() => Promise.reject(new Error("boom")));
+    const wrapper = mountTree({ nodes: lazyNodes, expandedKeys: ["root"], loadChildren });
+    await flushPromises();
+    // The tree proposed the collapsed list…
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual([]);
+    // …and the host answered nothing. The prop is the render, so the veto
+    // holds the row open — and holding it open must not re-enter the failed
+    // fetch: the watched open list held still, it did not loop.
+    expect(li("root").getAttribute("aria-expanded")).toBe("true");
+    await nextTick();
+    await nextTick();
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes a host-opened branch the fetch failed under once the host accepts, and retries on a fresh open", async () => {
+    let shouldFail = true;
+    const loadChildren = vi.fn(() =>
+      shouldFail
+        ? Promise.reject(new Error("boom"))
+        : Promise.resolve<TreeNode[]>([{ value: "child", label: "Child" }]),
+    );
+    const wrapper = mountTree({ nodes: lazyNodes, expandedKeys: ["root"], loadChildren });
+    await flushPromises();
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual([]);
+    // The host accepts the retraction: the row closes, still expandable.
+    await wrapper.setProps({ expandedKeys: [] });
+    expect(li("root").getAttribute("aria-expanded")).toBe("false");
+    // A fresh host-driven open is a new expansion — the fetch retries.
+    shouldFail = false;
+    await wrapper.setProps({ expandedKeys: ["root"] });
+    await flushPromises();
+    expect(item("child")).not.toBeNull();
+    expect(loadChildren).toHaveBeenCalledTimes(2);
+  });
+
+  it("fetches once under the render-driven path, however the open row re-renders", async () => {
+    const loadChildren = vi.fn(() =>
+      Promise.resolve<TreeNode[]>([{ value: "child", label: "Child" }]),
+    );
+    const wrapper = mountTree({ nodes: lazyNodes, expandedKeys: ["root"], loadChildren });
+    await flushPromises();
+    expect(item("child")).not.toBeNull();
+    // Re-renders that touch the row — a fresh (equal) host list, a selection —
+    // rebuild the walk but never re-enter a fetch the cache already answers.
+    await wrapper.setProps({ expandedKeys: ["root"] });
+    item("child").focus();
+    await press("Enter");
+    await nextTick();
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("TreeView — labels", () => {
   const lazyNodes: TreeNode[] = [{ value: "root", label: "Root" }];
 
@@ -592,6 +709,27 @@ describe("TreeView — controlled expansion", () => {
     await press("ArrowLeft");
     expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["animals"]);
     expect(li("plants").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("keeps children a vetoed open already fetched, serving them from the cache once accepted", async () => {
+    const lazyNodes: TreeNode[] = [{ value: "root", label: "Root" }];
+    const loadChildren = vi.fn(() =>
+      Promise.resolve<TreeNode[]>([{ value: "child", label: "Child" }]),
+    );
+    const wrapper = mountTree({ nodes: lazyNodes, expandedKeys: [], loadChildren });
+    item("root").focus();
+    await press("ArrowRight");
+    await flushPromises();
+    // The fetch ran and the host vetoed the open it was for…
+    expect(wrapper.emitted("update:expandedKeys")?.at(-1)?.[0]).toEqual(["root"]);
+    expect(li("root").getAttribute("aria-expanded")).toBe("false");
+    expect(loadChildren).toHaveBeenCalledTimes(1);
+    // …but the answer was cached, so acceptance renders from the cache —
+    // no second fetch, no re-ask of a question already answered.
+    await wrapper.setProps({ expandedKeys: ["root"] });
+    await nextTick();
+    expect(item("child")).not.toBeNull();
+    expect(loadChildren).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -86,8 +86,11 @@ again removes, and every change emits the full array.
 </Demo>
 
 Hand the tree a `loadChildren` and a node with no `children` of its own is
-treated as a branch to fetch on first expansion. The contract is the three
-answers a fetch can give:
+treated as a branch to fetch on first expansion. First expansion includes the
+host's: a branch rendered open from the start — `expanded-keys` naming it, or
+a `default-expanded` seed — fetches the first time it renders, announcing busy
+exactly as a keyboard-opened branch does. The contract is the three answers a
+fetch can give:
 
 - **Children arrive** — they render beneath the row, and the fetch is never
   made again: collapsing and reopening serves the cache.
@@ -95,7 +98,10 @@ answers a fetch can give:
   and loses its chevron, rather than offering a branch that opens onto
   nothing.
 - **The fetch rejects** — the row stays collapsed and still expandable, so
-  the next activation retries instead of caching a failure.
+  the next activation retries instead of caching a failure. Under a branch
+  the host had rendered open, the tree proposes the collapsed list instead,
+  and the host's answer to that proposal is final as with any other open or
+  close.
 
 While a fetch is in flight the row carries `aria-busy` and the string from
 `labels.loading`, because an expand that produces nothing yet reads as a
@@ -177,6 +183,9 @@ const nodes: TreeNode[] = [
 
 Leave `expanded-keys` out and `defaultExpanded` seeds the uncontrolled tree;
 the two props never mix — whichever the host supplies is the one that counts.
+A host that stops supplying `expanded-keys` mid-session falls back to the
+tree's own state — the last thing the tree spoke, including every veto already
+applied — and never to a reset.
 
 Selection keeps the opposite convention: `v-model` is an optimistic mirror —
 the tree shows what it emitted while the host catches up — the same contract
@@ -204,17 +213,17 @@ The tree holds one tab stop and moves it — the roving tabindex the APG
 pattern calls for. Disabled rows are reachable by keyboard but cannot be
 chosen or opened.
 
-| Key            | Effect                                                                                                              |
-| -------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Tab            | Moves into the tree, landing on the active row                                                                      |
-| Arrow Down     | Focus on the next visible row                                                                                       |
-| Arrow Up       | Focus on the previous visible row                                                                                   |
-| Arrow Right    | Opens a closed branch; on an open one, first child                                                                  |
-| Arrow Left     | Closes an open branch; on a closed one, the parent                                                                  |
-| Home           | Focus on the first visible row                                                                                      |
-| End            | Focus on the last visible row                                                                                       |
-| Enter or Space | Chooses the focused row                                                                                             |
-| A–Z            | Typeahead: jumps to the next row whose label starts with what was typed; the same letter again finds the next match |
+| Key            | Effect                                                                                                                                                                                                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tab            | Moves into the tree, landing on the active row                                                                                                                                                                                                                             |
+| Arrow Down     | Focus on the next visible row                                                                                                                                                                                                                                              |
+| Arrow Up       | Focus on the previous visible row                                                                                                                                                                                                                                          |
+| Arrow Right    | Opens a closed branch; on an open one, first child                                                                                                                                                                                                                         |
+| Arrow Left     | Closes an open branch; on a closed one, the parent                                                                                                                                                                                                                         |
+| Home           | Focus on the first visible row                                                                                                                                                                                                                                             |
+| End            | Focus on the last visible row                                                                                                                                                                                                                                              |
+| Enter or Space | Chooses the focused row                                                                                                                                                                                                                                                    |
+| Any character  | Typeahead: jumps to the next row whose label starts with what was typed — any printable key counts, digits and punctuation included, and Shift still types; a key pressed with Alt, Ctrl or Cmd held is left to the browser. The same character again finds the next match |
 
 Every row announces its position in the hierarchy — `aria-level`,
 `aria-setsize`, `aria-posinset` — so a screen reader on row twelve of a deep
