@@ -412,7 +412,7 @@ export { default as ScrollReel, SCROLL_REEL_LABELS } from "@ecoma-io/loom-scroll
 export type { ScrollReelGap, ScrollReelSnap, ScrollReelLabels } from "@ecoma-io/loom-scroll-reel";
 export { default as Sidebar } from "@ecoma-io/loom-sidebar";
 export type { SidebarSide } from "@ecoma-io/loom-sidebar";
-export { default as Split } from "@ecoma-io/loom-split";
+export { default as Split, gapClass } from "@ecoma-io/loom-split";
 export type { SplitGap, SplitSide } from "@ecoma-io/loom-split";
 export { default as Stack } from "@ecoma-io/loom-stack";
 export type { StackAlign, StackGap } from "@ecoma-io/loom-stack";

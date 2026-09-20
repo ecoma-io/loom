@@ -1,5 +1,6 @@
 deps:
   - "core"
+  - "split"
 tags: ["layer-layouts"]
 tasks:
   # Inherit lint and test from .moon/tasks/*.yml.
