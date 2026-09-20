@@ -26,7 +26,7 @@ import { useAncestorDisabled } from "@ecoma-io/loom-labels";
 
 const props = withDefaults(
   defineProps<{
-    /** Size of the resizable panel in pixels — a width in `"vertical"`, a height in `"horizontal"`. `v-model:modelValue`. */
+    /** Size of the resizable panel in pixels — a width in `"vertical"`, a height in `"horizontal"`. `v-model:modelValue`. A non-finite value is not a size: it renders and announces as `defaultWidth` (development warns once) instead of `NaN`. */
     modelValue: number;
     /** Smallest size the panel may take. Default: `160`. */
     min?: number;
@@ -71,7 +71,25 @@ const emit = defineEmits<{
 const attrs = useAttrs();
 
 const clamp = (value: number): number => Math.min(Math.max(value, props.min), props.max);
-const width = computed(() => clamp(props.modelValue));
+
+// A non-finite `modelValue` — a `parseFloat` of junk, a `null` already coerced
+// on the way in — survives `clamp` as NaN, and NaN would ship as
+// `width: NaNpx` announcing `aria-valuenow="NaN"`: a geometry and a slider
+// value that mean nothing to a reader. `defaultWidth` is the one size this
+// component already calls the resting size, so it is the honest fallback;
+// development is told once per instance so the bad producer is attributed
+// rather than silently absorbed.
+let warnedNonFinite = false;
+const width = computed(() => {
+  if (Number.isFinite(props.modelValue)) return clamp(props.modelValue);
+  if (import.meta.env.DEV && !warnedNonFinite) {
+    warnedNonFinite = true;
+    console.warn(
+      "[Loom] ResizableSplit received a non-finite modelValue; rendering defaultWidth until a finite size arrives.",
+    );
+  }
+  return clamp(props.defaultWidth);
+});
 const isHorizontal = computed(() => props.orientation === "horizontal");
 
 /** The one write path: every input (key, reset, drag end) goes through here. */
@@ -107,10 +125,16 @@ function onPointerDown(event: PointerEvent): void {
   dragging.value = true;
   startPointer = isHorizontal.value ? event.clientY : event.clientX;
   startWidth = width.value;
-  // The end panel keeps at least 80px, so a drag cannot push it off the row;
-  // the declared `max` is looser than the container, which is the ceiling here.
+  // The drag ceiling is the container minus 80px — at which the end panel
+  // keeps that 80px minus the separator's own 24px, i.e. 56px — tightened to
+  // the declared `max` when that is stricter. A container too small to honor
+  // the reservation (`min` + 80 or less) cannot satisfy both bounds; the
+  // documented floor wins, so the ceiling never sits below `min` and a drag
+  // clamps at the top of the achievable range instead of chasing an
+  // impossible value.
   const rect = root.value.getBoundingClientRect();
-  dragCeiling = Math.min(props.max, (isHorizontal.value ? rect.height : rect.width) - 80);
+  const containerSize = isHorizontal.value ? rect.height : rect.width;
+  dragCeiling = Math.max(props.min, Math.min(props.max, containerSize - 80));
   rtl = getComputedStyle(root.value).direction === "rtl";
   separator.value.setPointerCapture?.(event.pointerId);
 }
@@ -124,13 +148,24 @@ function onPointerMove(event: PointerEvent): void {
   const sign = props.side === "left" ? dirSign : -dirSign;
   const delta = sign * dAxis;
   // Live during the gesture: the host's `v-model` round-trip keeps the DOM in
-  // step. Clamped to the ceiling above, so the separator never leaves the row.
+  // step. Clamped to the gesture ceiling first, then to `min`/`max` — in a
+  // container too small for the reservation, `min` wins.
   emit("update:modelValue", clamp(Math.min(startWidth + delta, dragCeiling)));
 }
 
 function endDrag(event: PointerEvent): void {
   dragging.value = false;
-  separator.value?.releasePointerCapture?.(event.pointerId);
+  // A browser-issued cancel can retire the pointer before this handler runs,
+  // and `releasePointerCapture` throws NotFoundError for an id it no longer
+  // knows — exactly the state a cancel produces. The throw must not eat what
+  // the caller does next (the cancel's restore emit, the pointerup's commit),
+  // and there is nothing to recover: the capture dies with the pointer
+  // either way.
+  try {
+    separator.value?.releasePointerCapture?.(event.pointerId);
+  } catch {
+    // Already released with the pointer; nothing to clean up.
+  }
 }
 
 function onPointerUp(event: PointerEvent): void {
@@ -169,6 +204,12 @@ function stepForKey(key: string): number | null {
 
 function onKeydown(event: KeyboardEvent): void {
   if (controlDisabled.value) return;
+  // A chord built on Ctrl, Alt or Meta is not a resize: assistive tech drives
+  // its own navigation with those modifiers (VoiceOver's VO keys are
+  // Ctrl+Option), and claiming the key — preventDefault included — would
+  // swallow their commands spoken on top of this separator. Only a bare key
+  // resizes.
+  if (event.ctrlKey || event.altKey || event.metaKey) return;
   const next = stepForKey(event.key);
   if (next === null) return;
   event.preventDefault();

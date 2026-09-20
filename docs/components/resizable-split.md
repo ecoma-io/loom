@@ -28,7 +28,7 @@ const panelWidth = ref(320);
 </script>
 
 <template>
-  <ResizableSplit v-model="panelWidth" :min="200" :max="800" default-width="320">
+  <ResizableSplit v-model="panelWidth" :min="200" :max="800" :default-width="320">
     <template #panel>…</template>
     <template #content>…</template>
   </ResizableSplit>
@@ -46,6 +46,13 @@ are the same values announced as `aria-valuemin` and `aria-valuemax` on the
 separator. A drag never pushes the end panel off the row: the separator
 cannot travel past the container's edge minus 80px, whichever bound is
 stricter.
+
+That reservation is a goal the container can make unsatisfiable. In a
+container smaller than `min` + 80px, no width honors both bounds and `min`
+wins: a drag clamps at the floor, and the end panel gets whatever remains —
+possibly nothing. Below `min` + the separator's own 24px the row itself
+overflows; sizing the container is the host's job, and the component does not
+clip its overflow.
 
 The panel is `side`-relative: `side="left"` (default) puts the resizable
 panel first, `side="right"` mirrors the row. The arrow keys act on the
@@ -91,6 +98,10 @@ The separator is a single Tab stop following the ARIA separator pattern:
 | `ArrowUp` / `ArrowDown`    | Narrow / widen a horizontal split by `step` (10px) |
 | `Home` / `End`             | Jump to `min` / `max`                              |
 | Double-click               | Restore `defaultWidth`                             |
+
+A chord — `Ctrl`, `Alt` or `Meta` held with an arrow — is never a resize: the
+separator leaves those keys to the user agent and the screen reader, neither
+resizing on them nor preventing their default.
 
 `update:modelValue` fires on every change; `resize` fires once when a gesture
 commits — pointer release or a keyboard step — for hosts that persist on
