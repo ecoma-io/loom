@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, useAttrs } from "vue";
-import { cn } from "@ecoma-io/loom-core";
+import { computed, inject, onMounted } from "vue";
+import { cn, useSplitAttrs } from "@ecoma-io/loom-core";
 import { clamp, leftWithin, widthWithin } from "./geometry";
 import { timeTrackContextKey } from "./TimeTrack.vue";
 
@@ -18,7 +18,7 @@ const props = withDefaults(
 
 defineOptions({ inheritAttrs: false });
 
-const attrs = useAttrs();
+const { attrs, rest } = useSplitAttrs();
 
 const track = inject(timeTrackContextKey, null);
 
@@ -47,13 +47,16 @@ const width = computed(() => {
 </script>
 
 <template>
+  <!-- A width-0 bar renders no element: a zero-width role="img" carrying an
+       accessible name is announced yet invisible — a real screen-reader lie. -->
   <div
-    v-if="track"
+    v-if="track && width > 0"
     role="img"
     :aria-label="ariaLabel ?? `Duration ${Math.max(end - start, 0)} milliseconds`"
+    data-loom-time-bar
+    v-bind="rest"
     :class="cn('absolute top-0 h-6 overflow-hidden rounded bg-primary/80', attrs.class as string)"
     :style="{ left: `${left}%`, width: `${width}%` }"
-    data-loom-time-bar
   >
     <slot />
   </div>
