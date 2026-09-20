@@ -404,21 +404,26 @@ describe("virtualized", () => {
     await nextTick();
   }
 
-  it("renders a windowed slice with aria-rowcount/aria-rowindex stating the full size", () => {
+  it("renders a windowed slice with aria-rowcount/aria-rowindex stating the full size", async () => {
     const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
     const grid = wrapper.find('[role="grid"]');
-    // Header + body rows, aria-rowcount = 50 rows + 1 header, and only the
-    // window renders: clientHeight 0 → one visible row + 8 overscan.
+    // Only the window renders: 5 visible rows + 8 overscan of 50, driven by
+    // the region geometry (jsdom measures clientHeight 0, so the test
+    // supplies it like the other windowed tests — the shared virtualWindow
+    // contract renders an empty window for a zero viewport, and on a real
+    // element the mount-time measure provides the height).
+    await scrollTo(wrapper, 0, 220);
     expect(grid.attributes("aria-rowcount")).toBe("51");
     expect(grid.attributes("aria-colcount")).toBe("3");
-    expect(grid.findAll('[role="row"]')).toHaveLength(1 + 9);
-    expect(grid.findAll('[role="gridcell"]')).toHaveLength(9 * 3);
+    expect(grid.findAll('[role="row"]')).toHaveLength(1 + 13);
+    expect(grid.findAll('[role="gridcell"]')).toHaveLength(13 * 3);
     // aria-rowindex starts at 1 for the header; the first body row is 2.
     expect(grid.findAll('[role="row"]')[1]?.attributes("aria-rowindex")).toBe("2");
     // The spacer owns the scroll length; the strip rides on it.
     const spacer = grid.find("div[style*='2200px']");
     expect(spacer.exists()).toBe(true);
   });
+
   it("scrolling moves the window and re-stamps the indices", async () => {
     const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
     const grid = wrapper.find('[role="grid"]');
@@ -435,18 +440,20 @@ describe("virtualized", () => {
 
   it("pages down through the grid on PageDown", async () => {
     const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
+    await scrollTo(wrapper, 0, 220);
     const active = cell(wrapper, 0, 0);
     active.element.focus();
     await active.trigger("keydown", { key: "PageDown" });
-    expect(cell(wrapper, 1, 0).attributes("tabindex")).toBe("0");
+    // A 220px viewport of 44px rows pages by five, not by the one-row fallback
+    // an unmeasured grid would take.
+    expect(cell(wrapper, 5, 0).attributes("tabindex")).toBe("0");
     expect(cell(wrapper, 0, 0).attributes("tabindex")).toBe("-1");
   });
 
   it("Ctrl+End reveals and focuses the last row, scrolling it into view", async () => {
     const wrapper = mountGrid({ virtualized: true, rows: ROWS_50 });
+    await scrollTo(wrapper, 0, 220);
     const region = regionOf(wrapper).element;
-    Object.defineProperty(region, "clientHeight", { value: 220, configurable: true });
-    region.scrollTop = 0;
     const active = cell(wrapper, 0, 0);
     active.element.focus();
     await active.trigger("keydown", { key: "End", ctrlKey: true });
@@ -463,6 +470,7 @@ describe("virtualized", () => {
 
   it("selects all through the window with a mixed intermediate state", async () => {
     const wrapper = mountGrid({ virtualized: true, selectable: true, rows: ROWS_50 });
+    await scrollTo(wrapper, 0, 220);
     const selectAll = cell(wrapper, -1, 0).find('[role="checkbox"]');
     await selectAll.trigger("click");
     expect(selectAll.attributes("aria-checked")).toBe("true");
@@ -478,6 +486,7 @@ describe("virtualized", () => {
     expect(wrapper.emitted("update:sort")?.at(-1)).toEqual([{ key: "name", direction: "asc" }]);
   });
 });
+
 describe("DataGrid docs", () => {
   it("documents no slot the component does not declare", () => {
     const md = readFileSync(
