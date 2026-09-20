@@ -8,25 +8,25 @@
  * application reaches for — a settings page with a nav rail, a documentation
  * site with a sidebar, a chat interface with a contact list.
  *
- * The intrinsic collapse from the Split composition primitive is reused
- * directly — `flex-wrap` plus a `min-width: 50%` guard on the content panel —
- * so the layout derives its own breakpoint from the container's width rather
- * than a viewport media query. Below the collapse width the panels stack
- * vertically; the side panel sits above the content when `side` is `"left"`,
- * below it when `side` is `"right"`.
+ * The intrinsic collapse mirrors the Split composition primitive — `flex-wrap`
+ * plus a `min-width: 50%` guard on the content panel — while `gapClass` and
+ * `SplitSide` are imported from it, so the token map and the side vocabulary
+ * live in exactly one place. The panel rows themselves are this layout's own:
+ * they carry the full-page gutters the primitive deliberately does not. The
+ * layout derives its own breakpoint from the container's width rather than a
+ * viewport media query. Below the collapse width the panels stack vertically;
+ * the side panel sits above the content when `side` is `"left"`, below it when
+ * `side` is `"right"`.
  *
  * The header slot spans the full width, above the split row, so an application
  * header bar stays visible regardless of collapse state. Both panels carry
  * gutters that widen at wider breakpoints, so ultrawide viewports add
  * whitespace rails rather than stretching lines of text.
  */
-export type SplitLayoutGap = "sm" | "md" | "lg" | "none";
+import { gapClass, type SplitGap, type SplitSide } from "@ecoma-io/loom-split";
 
-const gapClass: Record<Exclude<SplitLayoutGap, "none">, string> = {
-  sm: "gap-2 sm:gap-3",
-  md: "gap-3 sm:gap-4",
-  lg: "gap-4 sm:gap-6",
-} as const;
+/** The gap vocabulary is Split's, kept under this name for the public API. */
+export type SplitLayoutGap = SplitGap;
 
 export { gapClass };
 </script>
@@ -37,7 +37,7 @@ import { cn } from "@ecoma-io/loom-core";
 withDefaults(
   defineProps<{
     /** Which side the primary panel sits on. Controls stacking order when collapsed: "left" stacks the side panel above, "right" stacks it below. */
-    side?: "left" | "right";
+    side?: SplitSide;
     /** Minimum width for the side panel (e.g. "16rem"). The content area takes the rest. */
     minSideWidth?: string;
     /** Gap between panels. Tightens one notch below sm (except "none"). */

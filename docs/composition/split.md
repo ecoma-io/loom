@@ -62,6 +62,9 @@ container can no longer fit this minimum plus the content's half.
 | `lg`   | `gap-4`    | `gap-6`      |
 | `none` | —          | —            |
 
+The map behind these steps is exported as `gapClass` (and reused by
+`SplitLayout`), so a token change lands in both components at once.
+
 <Demo title="Split" :source="splitDemoSource">
   <SplitDemo />
 </Demo>
