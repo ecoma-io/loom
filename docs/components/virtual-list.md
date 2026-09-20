@@ -83,8 +83,11 @@ is left to the button.
 
 ## Accessibility
 
-`role="list"` with `role="listitem"` rows; the scroll container deliberately
-takes no tabindex (focus roves across the rows, so it never needs one).
+`role="list"` with `role="listitem"` rows; the scroll container carries
+`tabindex="-1"` because Firefox seats a scrollable container in the tab order
+ahead of its rows on its own — the `-1` pins the single-Tab-stop contract in
+every engine instead of leaving it to each engine's scroll-container
+focusability rule.
 Every rendered row reports `aria-setsize` and `aria-posinset` so the
 virtualized DOM still announces its place in the full set, and `activeIndex`
 is the visual and roving anchor the host binds to.

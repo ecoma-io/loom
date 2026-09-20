@@ -21,9 +21,13 @@
  * `floor(viewportHeight / itemHeight)` — not the painted window's `ceil`,
  * whose edge row is partial and would rest half-clipped under the fold.
  *
- * The scroll container deliberately takes no tabindex of its own — focus
- * roves across the rows, so the container never needs one — and the rows
- * report their position within the full set via `aria-setsize`/`aria-posinset`
+ * The scroll container carries `tabindex="-1"` — not because it wants focus,
+ * but because Firefox seats a scrollable container in the tab order ahead of
+ * its rows on its own, which would make the container the list's first Tab
+ * stop and break the single-stop contract the rows own. Pinning `-1` holds
+ * the contract in every engine instead of leaving it to each engine's
+ * scroll-container focusability rule. The rows report their position within
+ * the full set via `aria-setsize`/`aria-posinset`
  * (a virtualized DOM can never announce its own extent).
  *
  * ## Degenerate inputs
@@ -244,13 +248,14 @@ function onKeydown(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -- The container holds the roving-row keydown listener; focus never lands on it (rows own the tab stop), but keys pressed on a row bubble up to it as their closest keydown owner. -->
+  <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -- The container holds the roving-row keydown listener; tabindex="-1" keeps Firefox's scroll-container focusability from seating it ahead of its rows in the tab order (the rows own the one tab stop), and keys pressed on a row bubble to it as their closest keydown owner. -->
   <div
     ref="rootEl"
     role="list"
     :aria-label="label || undefined"
     class="relative overflow-y-auto"
     data-loom-virtual-list
+    tabindex="-1"
     @scroll="measure"
     @keydown="onKeydown"
   >

@@ -13,6 +13,10 @@ test("focus enters on the first row and roves with the arrow keys", async ({ pag
   const list = page.getByRole("list", { name: "Catalogue rows" });
 
   // The list is one Tab stop: Tab lands on the first (and only tabbable) row.
+  // Firefox seats a scrollable container in the tab order ahead of its rows
+  // of its own accord (ecoma-io/loom#438) — the container's tabindex="-1" is
+  // what keeps this assertion true there, so the first press is asserted
+  // directly rather than inferred from a later key.
   await page.keyboard.press("Tab");
   await expect(list.getByRole("listitem").nth(0)).toBeFocused();
 

@@ -243,6 +243,11 @@ describe("VirtualList", () => {
     expect(element.querySelector('[data-virtual-index="0"]')!.getAttribute("tabindex")).toBe("0");
     expect(element.querySelector('[data-virtual-index="1"]')!.getAttribute("tabindex")).toBe("-1");
 
+    // The container is out of the tab order in every engine: Firefox seats a
+    // scrollable container ahead of its rows on its own, which would make it
+    // the list's first Tab stop — the defect behind ecoma-io/loom#438.
+    expect(container.getAttribute("tabindex")).toBe("-1");
+
     active.value = 3;
     await nextTick();
     expect(element.querySelector('[data-virtual-index="3"]')!.getAttribute("tabindex")).toBe("0");
