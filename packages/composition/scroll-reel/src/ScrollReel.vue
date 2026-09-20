@@ -89,6 +89,11 @@ const scrollBehavior = smoothScrollBehavior;
  * behaviour scrolls by a fixed pixel amount that rarely aligns with snap
  * points, leaving the strip between two items.
  */
+// Carousel's strip holds the same four keys but steps a slide index — loop or
+// clamp over page widths — while this handler scans snap-aligned children in
+// scroll geometry. The resemblance is the keys, nothing deeper — deliberately
+// no shared helper.
+
 function onKeydown(event: KeyboardEvent) {
   const el = reel.value;
   if (!el) return;

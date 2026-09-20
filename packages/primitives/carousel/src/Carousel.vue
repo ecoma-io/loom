@@ -91,6 +91,11 @@ const atStart = computed(() => !props.loop && index.value <= 0);
 const atEnd = computed(() => !props.loop && index.value >= last.value);
 
 /** Arrows walk pages while the strip itself holds focus; Home/End jump. */
+// ScrollReel's strip holds the same four keys but walks a different model: it
+// scans snap-aligned children in scroll geometry, while this handler steps a
+// slide index with loop/clamp over page widths. The resemblance is the keys,
+// nothing deeper — deliberately no shared helper.
+
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
     event.preventDefault();
