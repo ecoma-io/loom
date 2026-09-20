@@ -74,11 +74,17 @@ Tick labels are durations since the domain start, formatted by
 
 The track renders `role="group"` with an `aria-label` naming the visible
 window (`Time track — 12m window` by default; `aria-label` overrides it). The
-ruler is decorative — the ticks' meaning lives in the window label and in each
-bar's own `aria-label`, which defaults to the bar's duration in milliseconds.
+ruler is announced as an image (`role="img"`) whose label summarises the
+window's start and end — the tick marks themselves are non-interactive
+geometry, and each bar carries its own `aria-label`, which defaults to the
+bar's duration in milliseconds.
 
 Bars are non-interactive geometry: activation, selection and navigation are the
 host's job, on top of the controlled window.
+
+Times are integer epoch milliseconds. They are exact up to 2^53 (≈ 9.0 × 10^15)
+— far beyond any real timestamp — so proportional widths do not drift at
+1.7 × 10^12.
 
 ## Canonical record
 
