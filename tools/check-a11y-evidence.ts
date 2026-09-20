@@ -33,8 +33,11 @@
 //          declaration — this file witnesses less than the tier's full
 //          obligation — so the requirements it leaves unwitnessed must carry
 //          exceptions. Keyboard coverage depth — what a harness spec must
-//          exercise to answer the family — is 3D's design space; until that
-//          mechanism exists the gate takes an unqualified spec at its word;
+//          exercise to answer the family — stays review-held on this axis
+//          (the claim's `basis` carries it in prose): the interaction gate
+//          mechanized the one depth fact its duties need, a keypress in the
+//          cited spec, and the same heuristic generalized here would judge
+//          focus-traversal rules by keypress counts they do not measure;
 //   4. no exception for a requirement the evidence already answers, and none
 //      for a requirement the role does not owe — a claim cannot both have and
 //      lack the same thing;

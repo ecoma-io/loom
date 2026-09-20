@@ -15,11 +15,13 @@
 //
 // Scope: every component under composition, patterns and layouts — the M13
 // registry property the issue asks for, so a new component cannot land
-// without a claim. Primitives are outside this gate deliberately: their
+// without a claim. Primitives are outside this gate deliberately, and the
+// deliberate absence is the decision itself, not deferred debt: their
 // sizing is set by the host that composes them (an overlay's max-width is a
-// fact about the overlay context, not about the button inside it), and the
-// per-primitive viewport obligation is tracked as ecoma-io/loom#308 rather
-// than silently implied here.
+// fact about the overlay context, not about the button inside it), so a
+// per-primitive viewport obligation would size the host's page from inside
+// the primitive. Revisit only if a primitive grows viewport-sensitive
+// geometry of its own.
 //
 // What is asserted per component, in the a11y gate's failure style:
 //
@@ -58,10 +60,11 @@
 //     carried by the claim's `basis` in prose; per-behaviour witness mapping
 //     is a future design space, and the browser runs that prove depth are
 //     CI-only anyway (this repository never runs a browser locally);
-//   - ecoma-io/loom#275 is open on purpose: the width a wrapped side panel
-//     keeps after an intrinsic collapse is unpinned everywhere, so no spec
-//     this gate reads may assert a wrapped panel's width. The gap is
-//     recorded, not hidden.
+//   - ecoma-io/loom#275 closed resolved: a wrapped side panel keeps its
+//     declared width, measured at 320px across every layout that carries one,
+//     so a spec this gate reads may assert a wrapped panel's width again.
+//     The resolution is recorded rather than silently forgotten here because
+//     it is the gate's own honest-limit note and had claimed the opposite.
 //
 // Run: `node --experimental-strip-types tools/check-responsive-evidence.ts`
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
