@@ -523,16 +523,20 @@ describe("DateTimePicker round trip between the day and the time", () => {
     expect(wrapper.emitted("update:modelValue")).toEqual([["2026-03-20T09:30:45"]]);
   });
 
-  // Observed, and not fixed here: with the date segments still empty, a time
-  // typed into the field is not part of any value yet — Reka publishes a model
-  // value only once every segment is filled, and holds the half-entered time in
-  // a `segmentValues` ref it does not expose. So the calendar's cells still
-  // carry the placeholder's midnight, and the model update that follows the
-  // click resyncs the segments from it, overwriting what was typed. Reading the
-  // time back out of the rendered segments is the only handle from out here, and
-  // it means parsing locale-formatted digits back into numbers — a worse defect
-  // than the one it fixes. Filling the day first, by typing or from the
-  // calendar, is unaffected, which is the path the segment order already leads.
+  // Observed, re-verified and left unfixed: with the date segments still
+  // empty, a time typed into the field is not part of any value yet — Reka
+  // publishes a model value only once every segment is filled, and holds the
+  // half-entered time in a `segmentValues` ref. So the calendar's cells still
+  // carry the placeholder's midnight, and the click's model update resyncs the
+  // segments from it: typing `09:30` into an empty field and picking
+  // 2026-09-01 emits `"2026-09-01T00:00"`. Reka 2.10 does export
+  // `injectDateFieldRootContext`, whose `segmentValues` carries the typed
+  // time, so the fix no longer means parsing locale-formatted digits out of
+  // the rendered segments — but what a *partially* typed time (hour filled,
+  // minute not) should mean as a model value is a contract nobody has decided,
+  // so the todo stays as the tracker. Filling the day first, by typing or from
+  // the calendar, is unaffected, which is the path the segment order already
+  // leads.
   it.todo("keeps a time typed before any day was chosen");
 
   it("means midnight when a day is chosen before any time is", async () => {

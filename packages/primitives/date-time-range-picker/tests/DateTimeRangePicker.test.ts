@@ -660,17 +660,19 @@ describe("DateTimeRangePicker round trip between the days and the times", () => 
     expect(getGrids()).not.toHaveLength(0);
   });
 
-  // Observed, and inherited rather than fixed: with a half's date segments still
-  // empty, a time typed into it is not part of any value yet — Reka publishes a
-  // half only once every one of its segments is filled, and holds the
-  // half-entered time in a `segmentValues` ref it does not expose. So the
-  // calendar's cells still carry the placeholder's midnight, and the model
-  // update that follows the click resyncs the segments from it, overwriting what
-  // was typed. DateTimePicker records the same defect for the same reason, and
-  // nothing about having two halves changes it: reading the time back out of the
-  // rendered segments would mean parsing locale-formatted digits into numbers, a
-  // worse defect than the one it fixes. Filling the day first, which is the
-  // order the segments already read in, is unaffected.
+  // Observed, re-verified and inherited rather than fixed: with a half's date
+  // segments still empty, a time typed into it is not part of any value yet —
+  // Reka publishes a half only once every one of its segments is filled, and
+  // holds the half-entered time in a `segmentValues` ref. So the calendar's
+  // cells still carry the placeholder's midnight, and the click's model update
+  // resyncs the segments from it: typing `09:30` into the start half and
+  // picking 2026-09-08 emits `{ start: "2026-09-08T00:00" }`. DateTimePicker
+  // records the same defect for the same reason, and nothing about having two
+  // halves changes it — Reka 2.10 does export `injectDateRangeFieldRootContext`
+  // with the per-half `segmentValues` in reach, yet what a *partially* typed
+  // time (hour filled, minute not) should mean as a model value is a contract
+  // nobody has decided, so the todo stays as the tracker. Filling the day
+  // first, which is the order the segments already read in, is unaffected.
   it.todo("keeps a time typed into a half before that half's day was chosen");
 });
 
