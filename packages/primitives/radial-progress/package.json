@@ -15,6 +15,7 @@
   },
   "peerDependencies": {
     "reka-ui": "^2.10.0",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "class-variance-authority": "^0.7.0"
   }
 }
