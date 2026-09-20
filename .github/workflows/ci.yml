@@ -28,6 +28,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: read
 
 jobs:
   verify:
@@ -289,6 +290,12 @@ jobs:
       # the moment every row citing it goes stale — the failure that prompts
       # the re-pointing sweep in the same PR.
       - name: Check exception registers
+        env:
+          # github.token is not exported into the environment by itself, and
+          # the Issues API call below fails without it — as an empty-string
+          # credential at that, which reads as an auth error, not a missing
+          # secret.
+          GH_TOKEN: ${{ github.token }}
         run: |
           node --experimental-strip-types tools/check-exception-registers.ts
           for issue in $(node --experimental-strip-types -e "import('./tools/check-exception-registers.ts').then(m => console.log(m.LIVE_ISSUE_TRACKERS.join(' ')))"); do

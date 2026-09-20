@@ -72,8 +72,9 @@ const attrs = useAttrs();
 
 const clamp = (value: number): number => Math.min(Math.max(value, props.min), props.max);
 
-// A non-finite `modelValue` — a `parseFloat` of junk, a `null` already coerced
-// on the way in — survives `clamp` as NaN, and NaN would ship as
+// A non-finite `modelValue` — a `parseFloat` of junk, or a `null` that
+// arrived despite the declared number type — survives `clamp` as NaN, and
+// NaN would ship as
 // `width: NaNpx` announcing `aria-valuenow="NaN"`: a geometry and a slider
 // value that mean nothing to a reader. `defaultWidth` is the one size this
 // component already calls the resting size, so it is the honest fallback;

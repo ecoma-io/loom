@@ -166,6 +166,24 @@ describe("checkExceptionRegisters", () => {
     ).toBe(true);
     rmSync(root, { recursive: true, force: true });
   });
+
+  it("fails a table row no reader produces — the tree no longer holds the register", () => {
+    const root = fixtureTree([]);
+    // A renamed reader key would drop its register out of the counts map
+    // while the table keeps naming it: the row approves nothing and guards
+    // nothing, which is worse than an unowned register because it reads as
+    // green. This is the one failure direction the fixtures above do not
+    // drive.
+    const failures = checkExceptionRegisters(root, LIVE_ISSUE_TRACKERS, [
+      { id: "phantom", lives: "nowhere", owner: "someone", countOfRecord: 0 },
+    ]);
+    expect(
+      failures.some(
+        (failure) => failure.includes("phantom") && failure.includes("no longer holds"),
+      ),
+    ).toBe(true);
+    rmSync(root, { recursive: true, force: true });
+  });
 });
 
 describe("issueReferences", () => {
