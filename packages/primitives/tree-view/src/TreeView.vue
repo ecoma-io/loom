@@ -81,9 +81,15 @@ const props = withDefaults(
      *  starts from and then owns. Ignored while `expandedKeys` is supplied. */
     defaultExpanded?: Array<string | number>;
     /**
-     * The values that are open. A mirror, not a read-through: pass it and the
-     * tree follows it; omit it and the tree owns expansion from
-     * `defaultExpanded` — the same contract `modelValue` keeps.
+     * The values that are open. A read-through, not a mirror: while supplied,
+     * the rendered open set IS this prop — the tree emits the next list on
+     * every open or close and the host's answer is final, so a host that
+     * withholds the emitted list (a veto) holds the tree where it was. Omit
+     * it and the tree owns expansion from `defaultExpanded`. Contrast
+     * `modelValue`: selection stays an optimistic mirror (Combobox's
+     * contract); expansion is strict because an open branch paints its whole
+     * subtree into the DOM, and a tree that lies about being open reads as
+     * one that ignored its host.
      */
     expandedKeys?: Array<string | number> | undefined;
     /**
@@ -137,10 +143,17 @@ const controlDisabled = computed(() => (props.disabled ?? false) || ancestorDisa
 
 const text = useLabels("treeView", TREE_VIEW_LABELS, () => props.labels);
 
-// Seeded from `expandedKeys` when the host supplies it, else from
-// `defaultExpanded` — and then, uncontrolled, the tree owns it: a prop the
-// user edits after mount silently losing their edits is worse than a seed.
-const expandedSet = ref(new Set<string | number>(props.expandedKeys ?? props.defaultExpanded));
+// Expansion is a read-through while the host drives it: when `expandedKeys`
+// is supplied, `expandedSet` IS the prop, and a mutation only emits the next
+// list — the host's answer (which may be a veto) decides what renders. The
+// tree's own mirror, seeded from `defaultExpanded`, is kept in step with
+// every emission so a host that stops supplying `expandedKeys` falls back to
+// the state the tree last spoke, and a tree the host never governed seeds
+// from `defaultExpanded` and owns its mirror from then on.
+const ownExpanded = ref(new Set<string | number>(props.defaultExpanded));
+const expandedSet = computed<Set<string | number>>(() =>
+  props.expandedKeys !== undefined ? toKeySet(props.expandedKeys) : ownExpanded.value,
+);
 const loadingKeys = ref(new Set<string | number>());
 const lazyChildren = ref(new Map<string | number, TreeNode[]>());
 const focusValue = ref<string | number | null>(null);
@@ -160,15 +173,6 @@ watch(
   () => props.modelValue,
   (next) => {
     selectedKeys.value = toKeySet(next);
-  },
-);
-
-// The same mirror for expansion: pass `expandedKeys` and the tree follows it;
-// omit it and the tree owns the set entirely.
-watch(
-  () => props.expandedKeys,
-  (next) => {
-    if (next !== undefined) expandedSet.value = toKeySet(next);
   },
 );
 
@@ -276,15 +280,20 @@ async function expandRow(row: FlatRow): Promise<void> {
       loadingKeys.value = settled;
     }
   }
-  expandedSet.value = new Set(expandedSet.value).add(value);
-  emit("update:expandedKeys", [...expandedSet.value]);
+  const next = new Set(expandedSet.value);
+  next.add(value);
+  // The mirror tracks what the tree last spoke, whatever the host answers —
+  // the emitted list is the tree's proposal, and the read-through above makes
+  // the host's `expandedKeys` (or the mirror, uncontrolled) the render.
+  ownExpanded.value = next;
+  emit("update:expandedKeys", [...next]);
 }
 
 function collapseRow(value: string | number): void {
   const next = new Set(expandedSet.value);
   next.delete(value);
-  expandedSet.value = next;
-  emit("update:expandedKeys", [...expandedSet.value]);
+  ownExpanded.value = next;
+  emit("update:expandedKeys", [...next]);
 }
 
 function selectRow(node: TreeNode): void {
