@@ -1,9 +1,13 @@
 // The triage labels sheet — phase 2 of the action-agents dogfood rollout
-// (ecoma-io/action-agents docs/dogfood.md, "Configuration"). The run stays
-// `dry-run: "true"`; this file only widens what the record's decision block
-// can express. Ownership: `bug` and `enhancement` were returned by the issue
-// forms (one owner per label — see the audit in the phase-2 PR); GitHub is
-// the source of truth for each label's description and colour.
+// (ecoma-io/action-agents docs/dogfood.md, "Configuration"). The flip to
+// live was taken: `triage.yml` passes `dry-run: "false"` and the 2026-09-11
+// dogfood applied `enhancement` to loom#364. Since 2026-09-19 the step is
+// disabled with `if: false` while the gateway answers with reasoning but no
+// content (ecoma-io/action-agents#576); re-enable by deleting that line in
+// `.github/workflows/triage.yml`. Ownership: `bug` and `enhancement` were
+// returned by the issue forms (one owner per label — see the audit in the
+// phase-2 PR); GitHub is the source of truth for each label's description
+// and colour.
 {
   schemaVersion: 2,
   labels: {

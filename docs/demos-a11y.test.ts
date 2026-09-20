@@ -105,29 +105,33 @@ describe("browserless accessibility sweep — semantic WCAG rules (jsdom tier)",
           // Measured: 30ms is sufficient for all demos; shorter delays cause intermittent failures.
           await new Promise((resolve) => setTimeout(resolve, 30));
 
-          // Run axe against the full document with the browserless allowlist
-          /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-argument */
-          const axeResult = await (axe as any).run(document, {
-            runOnly: { type: "rule", values: [...BROWSERLESS_RULES] },
-          });
-          const violations = axeResult.violations;
+          try {
+            // Run axe against the full document with the browserless allowlist
+            /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-argument */
+            const axeResult = await (axe as any).run(document, {
+              runOnly: { type: "rule", values: [...BROWSERLESS_RULES] },
+            });
+            const violations = axeResult.violations;
 
-          // Build a detailed failure message per violation
-          const report = violations
-            .map((violation: any) => {
-              const targets = violation.nodes.map((node: any) => node.target.join(" ")).join(", ");
-              return `[${violation.impact ?? "unknown"}] ${violation.id}: ${violation.help} (${targets})`;
-            })
-            .join("\n");
+            // Build a detailed failure message per violation
+            const report = violations
+              .map((violation: any) => {
+                const targets = violation.nodes
+                  .map((node: any) => node.target.join(" "))
+                  .join(", ");
+                return `[${violation.impact ?? "unknown"}] ${violation.id}: ${violation.help} (${targets})`;
+              })
+              .join("\n");
 
-          // Assert no violations
-          expect(violations, report).toEqual([]);
-          /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-argument */
-
-          // Clean up: unmount the wrapper and clear the document body
-          // (teleported content outlives the Vue wrapper if not cleared)
-          wrapper.unmount();
-          document.body.innerHTML = "";
+            // Assert no violations
+            expect(violations, report).toEqual([]);
+            /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-argument */
+          } finally {
+            // Clean up: unmount the wrapper and clear the document body
+            // (teleported content outlives the Vue wrapper if not cleared)
+            wrapper.unmount();
+            document.body.innerHTML = "";
+          }
         });
       }
     });

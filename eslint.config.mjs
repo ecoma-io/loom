@@ -55,6 +55,9 @@ export default tseslint.config(
       // output lands nested — which `dist/**` above does not match, the same
       // way it never matched docs' nested dist, hence this entry.
       "templates/*/dist/**",
+      // Third nested build-output directory, after `docs/.vitepress/dist` and
+      // the templates' own `dist/` — `vite build` inside playwright/harness.
+      "playwright/harness/dist/**",
       // The same built site again, nested under the path it is served from.
       // `docs:stage` copies rather than moves, so linting this would report
       // every minified bundle twice over.
