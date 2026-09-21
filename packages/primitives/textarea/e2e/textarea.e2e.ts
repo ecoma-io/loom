@@ -17,7 +17,10 @@ test("typing into the field moves the component-owned counter by one per keystro
   // Reading the number off the page rather than seeding it keeps the assertion
   // honest against any future demo amendment; the observable is the *move*.
   const summary = page.getByLabel("Summary (80 characters)", { exact: true });
-  const summaryField = summary.locator("..").first();
+  // The counter renders below the box, not inside it — the frame's bottom-right
+  // corner belongs to the resize grabber — so it is a *sibling* of the frame
+  // div, and two parent hops up reaches the column that holds them together.
+  const summaryField = summary.locator("..").locator("..");
   const counter = summaryField.locator("span.tabular");
   await expect(counter).toContainText("/80");
 

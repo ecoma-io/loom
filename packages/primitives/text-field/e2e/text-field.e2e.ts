@@ -44,8 +44,10 @@ test("Space on the reveal toggle flips the password's pressed state and its real
   // The reveal toggle rides after the input in tab order, and it is also the
   // control the `revealable` contract owns — the one button this component
   // renders rather than borrowing from the platform. Seated by script because
-  // the gesture under test is the Space keypress.
-  const password = page.getByLabel("Password");
+  // the gesture under test is the Space keypress. `exact` because the toggle's
+  // own name, "Show password", contains the substring; without it, `getByLabel`
+  // resolves the button alongside the field.
+  const password = page.getByLabel("Password", { exact: true });
   await expect(password).toHaveAttribute("type", "password");
 
   const reveal = page.getByRole("button", { name: "Show password" });

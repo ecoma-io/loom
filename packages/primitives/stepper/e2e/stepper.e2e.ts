@@ -72,7 +72,12 @@ test("ArrowRight and ArrowLeft move real focus along the spine, and Enter select
 
   // The checkout stepper is `v-model` bound and prints "Current step: N".
   const checkout = page.locator("[data-loom-stepper]").first();
-  const current = checkout.locator("p", { hasText: "Current step:" });
+  // The readout is a sibling of the stepper root, not a descendant — it sits
+  // in the demo's column, below the `<Stepper>`. Scoping it to the column via
+  // the demo's own list label keeps the locator honest to the markup.
+  const readout = page.locator("#stepper-demo-checkout").locator("..").locator("p", {
+    hasText: "Current step:",
+  });
   await expect(checkout.locator('[role="status"]').first()).toHaveText(/Step \d of \d/);
 
   // Seated by script at the current step (tab-stop index 2). The gestures
@@ -89,7 +94,7 @@ test("ArrowRight and ArrowLeft move real focus along the spine, and Enter select
   // and the page's readout follows the model.
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
-  await expect(current).toContainText("3");
+  await expect(readout).toContainText("3");
 });
 
 // A linear spine hands the arrow keys the same gating the pointer gets: real
