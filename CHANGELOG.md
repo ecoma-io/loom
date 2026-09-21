@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.8.1](https://github.com/ecoma-io/loom/compare/v0.8.0...v0.8.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **a11y:** demand an assertion witness from browserless interaction evidence ([#441](https://github.com/ecoma-io/loom/issues/441)) ([d3f1585](https://github.com/ecoma-io/loom/commit/d3f1585b49a16f1d568cf5c54e056f4193bd0afc))
+* **a11y:** pin keyboard-inertness for all twenty-nine visual-only components ([#432](https://github.com/ecoma-io/loom/issues/432) tranche 1) ([#440](https://github.com/ecoma-io/loom/issues/440)) ([ecf77c7](https://github.com/ecoma-io/loom/commit/ecf77c7edf7088c04a4b7ee0b1b8615e52f6253c))
+* convergence debt closeout — registers self-certify, four component contracts hardened ([#437](https://github.com/ecoma-io/loom/issues/437)) ([fc4e1a8](https://github.com/ecoma-io/loom/commit/fc4e1a8328d49a16334512e225727fbf446464d3))
+* **deps:** declare every runtime import in its package manifest (ref [#257](https://github.com/ecoma-io/loom/issues/257)) ([#424](https://github.com/ecoma-io/loom/issues/424)) ([6dc14ab](https://github.com/ecoma-io/loom/commit/6dc14abe91481196f8b27d65778a7751c002c65e))
+* **patterns:** time-track bar clipping (ref [#418](https://github.com/ecoma-io/loom/issues/418)) ([#421](https://github.com/ecoma-io/loom/issues/421)) ([f8cb88d](https://github.com/ecoma-io/loom/commit/f8cb88d196739d1b2ce0af813257dc5cbc610ef2))
+* **primitives:** harden virtualWindow against degenerate inputs ([#420](https://github.com/ecoma-io/loom/issues/420)) ([dd4ee08](https://github.com/ecoma-io/loom/commit/dd4ee08b3eac8a5099dba036c804846a503f6075))
+* **primitives:** resizable-split pointercancel restores width, orientation + RTL (ref [#417](https://github.com/ecoma-io/loom/issues/417), [#419](https://github.com/ecoma-io/loom/issues/419)) ([#427](https://github.com/ecoma-io/loom/issues/427)) ([028fcca](https://github.com/ecoma-io/loom/commit/028fccaf7e3773d30763f469d1f4d53e3eda1fe4))
+* **primitives:** tree-view controlled expansion is a read-through — the host's veto holds ([#425](https://github.com/ecoma-io/loom/issues/425)) ([f750d44](https://github.com/ecoma-io/loom/commit/f750d4409c302e299dff68cdfa309bb1a0fb1e0c))
+* **primitives:** tree-view controlled expansion is a read-through — the host's veto holds (ref [#416](https://github.com/ecoma-io/loom/issues/416)) ([f750d44](https://github.com/ecoma-io/loom/commit/f750d4409c302e299dff68cdfa309bb1a0fb1e0c))
+* retire six stale state-report rows, pinned in the unit tier already (ref [#432](https://github.com/ecoma-io/loom/issues/432)) ([#439](https://github.com/ecoma-io/loom/issues/439)) ([6c3c547](https://github.com/ecoma-io/loom/commit/6c3c5477dbca5acda4f50f5a4b8aa83d7198deba))
+
+
+### Documentation
+
+* **primitives:** pin Carousel vs ScrollReel key handlers as deliberate divergence (closes [#429](https://github.com/ecoma-io/loom/issues/429)) ([#431](https://github.com/ecoma-io/loom/issues/431)) ([1b5f3f1](https://github.com/ecoma-io/loom/commit/1b5f3f1dfc131f4fa122527c5736c6f242af6afb))
+* **primitives:** pin Carousel vs ScrollReel key handlers as deliberate divergence (ref [#429](https://github.com/ecoma-io/loom/issues/429)) ([1b5f3f1](https://github.com/ecoma-io/loom/commit/1b5f3f1dfc131f4fa122527c5736c6f242af6afb))
+
+
+### Refactoring
+
+* **layouts:** split-layout shares gapClass and SplitSide with split (closes [#428](https://github.com/ecoma-io/loom/issues/428)) ([#430](https://github.com/ecoma-io/loom/issues/430)) ([f2b45e0](https://github.com/ecoma-io/loom/commit/f2b45e016f63cddfca476c3afe8025e7d62704ae))
+* **layouts:** split-layout shares gapClass and SplitSide with split (ref [#428](https://github.com/ecoma-io/loom/issues/428)) ([f2b45e0](https://github.com/ecoma-io/loom/commit/f2b45e016f63cddfca476c3afe8025e7d62704ae))
+
 ## [0.8.0](https://github.com/ecoma-io/loom/compare/v0.7.0...v0.8.0) (2026-09-19)
 
 
