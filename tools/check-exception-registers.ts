@@ -111,8 +111,15 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // since nine more rows retired on real harness gestures: button, switch,
     // checkbox, icon-button, copy-button, collapse, alert, toast and
     // skip-link, whose native keyboard contracts their own specs now press
-    // (#432 tranche 3).
-    countOfRecord: 50,
+    // (#432 tranche 3) — and since eleven more rows retired on real harness
+    // Tab chains: composition's sidebar and split, whose specs now walk the
+    // pane boundary wrapped and side by side; layouts' app-shell, dashboard,
+    // desktop-app-shell, form-layout and settings, whose specs now walk the
+    // hosted landmarks' operable content in document order; and patterns'
+    // app-header, form-section, page-header and toast-stack, whose specs now
+    // walk the bar's cluster, the group's fields, the actions slot, and Tab
+    // into the shared viewport to Space-dismiss a card (#432 tranche 4).
+    countOfRecord: 39,
   },
   {
     id: "responsive",
