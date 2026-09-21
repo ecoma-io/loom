@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref, type PropType } from "vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import AvatarGroup, { type AvatarGroupItem } from "../src/AvatarGroup.vue";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 
@@ -194,6 +195,16 @@ describe("AvatarGroup", () => {
     const list = wrapper.get('[role="list"]');
     expect(list.attributes("aria-label")).toBe("Reviewers");
     expect(list.attributes("data-testid")).toBe("reviewers");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Below max so the counter renders too: the pin has to cover the member
+    // Avatars, their hidden names, and the overflow tile together.
+    const wrapper = mount(AvatarGroup, { props: { avatars: TEAM, max: 3, label: "Assignees" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });
 

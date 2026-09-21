@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Spinner from "../src/Spinner.vue";
 
 describe("Spinner", () => {
@@ -27,5 +28,14 @@ describe("Spinner", () => {
         .get("svg")
         .classes(),
     ).toEqual(expect.arrayContaining(["h-8", "w-8"]));
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The status root and the painted arc it announces, in one mount.
+    const wrapper = mount(Spinner, { props: { label: "Saving", size: "lg" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Surface from "../src/Surface.vue";
 
 describe("Surface", () => {
@@ -37,5 +38,19 @@ describe("Surface", () => {
     expect(mount(Surface, { props: { pad: "none" } }).classes()).toContain("p-0");
     expect(mount(Surface, { props: { pad: "lg" } }).classes()).toContain("p-6");
     expect(mount(Surface).classes()).toContain("p-4"); // default
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The interactive branch — its hover language is paint only; the host
+    // owns the click, and the pin is the proof the surface renders nothing
+    // operable even at its most clickable-looking.
+    const wrapper = mount(Surface, {
+      props: { variant: "overlay", interactive: true, pad: "lg" },
+      slots: { default: "Session expired" },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

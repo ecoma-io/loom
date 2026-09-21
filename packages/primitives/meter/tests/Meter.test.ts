@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { defineComponent, h } from "vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 import Meter, { METER_LABELS } from "../src/Meter.vue";
 
@@ -264,5 +265,31 @@ describe("Meter", () => {
   it("exposes its defaults for hosts building a partial vocabulary", () => {
     expect(METER_LABELS.name).toBe("Meter");
     expect(METER_LABELS.valueText({ value: 17, min: 0, max: 40 })).toBe("17 of 40");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Labelled, readout and threshold on, so the pin covers every shape the
+    // component renders: the label span, the gauge row, the readout and the
+    // band cue.
+    const wrapper = mount(Meter, {
+      props: {
+        value: 17,
+        max: 40,
+        label: "Seats used",
+        showValue: true,
+        threshold: true,
+        low: 10,
+        high: 30,
+        optimum: 5,
+      },
+    });
+    // The labelled shape is a fragment — label span beside the row — so the
+    // role-carrying element stands in for "the root": it is the announced
+    // surface, the one a tabindex would have to reach to matter.
+    //
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.get('[role="meter"]').attributes("tabindex")).toBeUndefined();
   });
 });

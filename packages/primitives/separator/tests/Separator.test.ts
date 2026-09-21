@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Separator from "../src/Separator.vue";
 
 describe("Separator", () => {
@@ -34,5 +35,15 @@ describe("Separator", () => {
     const classes = mount(Separator).classes();
     expect(classes).toContain("w-full");
     expect(classes).not.toContain("w-px");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The semantic branch (`decorative: false`): a separator that carries
+    // meaning must still carry nothing operable.
+    const wrapper = mount(Separator, { props: { decorative: false, orientation: "vertical" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

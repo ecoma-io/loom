@@ -1,6 +1,7 @@
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Tooltip from "../src/Tooltip.vue";
 
 // jsdom ships no ResizeObserver, and Reka measures the arrow with one. Stubbing
@@ -151,5 +152,32 @@ describe("Tooltip", () => {
     document.body.innerHTML = "";
     await mountTooltip({ open: true, side: "right" });
     expect(panel()!.getAttribute("data-side")).toBe("right");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and neither tip nor trigger carries a tabindex", async () => {
+    // The trigger is host content, so an inert span stands in — mounting the
+    // button the other tests use would make the pin assert the host's
+    // element, not this component's own surface. The tip is portalled to
+    // document.body, so its assertions are scoped to the document.
+    const wrapper = mount(Tooltip, {
+      props: { content: "Delete permanently", open: true },
+      slots: { trigger: "<span>Save</span>" },
+      attachTo: document.body,
+    });
+    mounted = wrapper;
+    await nextTick();
+    await nextTick();
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    // The precondition matters: a tip that never opened would pass every
+    // assertion below while pinning nothing.
+    expect(tip()).not.toBeNull();
+    expect(tip()!.querySelector(FOCUSABLE_SELECTOR)).toBeNull();
+    expect(tip()!.getAttribute("tabindex")).toBeNull();
+    // The trigger keeps its own element (as-child) — the component must not
+    // have granted it a tab stop either. Queried by element rather than off
+    // the wrapper root, which is a fragment once the portal's anchor sits
+    // beside the trigger.
+    expect(wrapper.get("span").attributes("tabindex")).toBeUndefined();
   });
 });
