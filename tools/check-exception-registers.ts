@@ -93,14 +93,17 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     lives: "packages/<tier>/<name>/a11y.json — the role claim's exceptions[]",
     owner:
       "ecoma-io/loom#432 — the focus-not-obscured population and the role-axis remainders are its tranches 1 and 5",
-    countOfRecord: 86,
+    // 82 since four keyboard rows retired on the role axis: button, switch,
+    // copy-button and collapse, whose own harness specs now press their
+    // native activation keys (#432, un-qualified in the first role-axis PR).
+    countOfRecord: 82,
   },
   {
     id: "interaction",
     lives: "packages/<tier>/<name>/a11y.json — the interaction claim's exceptions[]",
     owner:
       "ecoma-io/loom#432 — the keyboard-operate harness specs are its tranches 3 and 4, the inertness pins its tranche 1",
-    // 50 since the twenty-nine visual-only components pinned their
+    // 39 since the twenty-nine visual-only components pinned their
     // keyboard-inertness in the unit tier — every one of the class's rows,
     // #432 tranche 1 whole: primitives' avatar, avatar-group, badge,
     // indicator, inline-error, kbd, live-region, meter, progress,
