@@ -1,6 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, nextTick } from "vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import LiveRegion from "../src/LiveRegion.vue";
 import { useAnnounce } from "../src";
 import type { Announce, LiveRegionPoliteness } from "../src";
@@ -96,6 +97,17 @@ describe("LiveRegion semantics", () => {
     announce("Saved");
     await nextFrame();
     expect(regionOf(wrapper)).toBe(before);
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Through the file's own helper so the wrapper is unmounted in afterEach —
+    // a leaked region would keep its writer registered.
+    const wrapper = mountRegion();
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    // The VisuallyHidden wrapper the region renders through is covered too.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });
 

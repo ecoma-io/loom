@@ -12,11 +12,8 @@
   "interaction": {
     "class": "visual-only",
     "basis": "an aria-hidden placeholder for content not yet there.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-inert",
-        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
-      }
-    ]
+    "evidence": {
+      "browserless": ["packages/primitives/skeleton/tests/Skeleton.test.ts"]
+    }
   }
 }

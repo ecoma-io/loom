@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref, type PropType } from "vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import RadialProgress from "../src/RadialProgress.vue";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 
@@ -246,6 +247,18 @@ describe("RadialProgress", () => {
       expect(bar.attributes("aria-describedby")).toBe("quota-hint");
       expect(bar.attributes("data-testid")).toBe("ring");
     });
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // `showValue` is on by default, so one mount covers Reka's progressbar
+    // root, the painted SVG, the arc and the centre readout together.
+    const wrapper = mount(RadialProgress, {
+      props: { modelValue: 40, max: 100, ariaLabel: "Quota" },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });
 

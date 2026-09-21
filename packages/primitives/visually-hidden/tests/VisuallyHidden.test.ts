@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import VisuallyHidden from "../src/VisuallyHidden.vue";
 
 /** The class set that is the clip technique — every property the technique needs. */
@@ -71,5 +72,15 @@ describe("VisuallyHidden", () => {
     const wrapper = mount(VisuallyHidden, { attrs: { class: "my-0" } });
     expect(wrapper.classes()).toEqual(expect.arrayContaining(clipClasses));
     expect(wrapper.classes()).toContain("my-0");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Text slot content: the wrapper is the whole surface. A focusable child
+    // a caller slots in would be the host's, not this component's.
+    const wrapper = mount(VisuallyHidden, { slots: { default: "context" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

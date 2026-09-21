@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Badge, { type BadgeVariant } from "../src/Badge.vue";
 
 describe("Badge", () => {
@@ -61,5 +62,14 @@ describe("Badge", () => {
     expect(wrapper.get("span").element.tagName).toBe("SPAN");
     expect(wrapper.text()).toBe("Running");
     expect(wrapper.classes()).toContain("inline-flex");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Text slot content: the chip's own surface is all the pin may witness.
+    const wrapper = mount(Badge, { props: { variant: "success" }, slots: { default: "Running" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });
