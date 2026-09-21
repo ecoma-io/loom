@@ -17,11 +17,11 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "activation is the native trigger <button>'s own Space/Enter contract and collapse.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+      "because": "activation is the native trigger <button>'s own Space/Enter contract and collapse.e2e.ts exercises no keyboard interaction; that floor is ecoma-io/loom#432's tranche work"
     },
     {
       "requirement": "focus-not-obscured",
-      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#308)"
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
     }
   ],
   "interaction": {

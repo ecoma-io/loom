@@ -1,6 +1,6 @@
 {
   "role": "group",
-  "basis": "renders a <div role=\"group\"> — a labelled container of the ruler and user-supplied time bars; the bars themselves are positioned divs the host labels with their own aria-label.",
+  "basis": "renders a <div role=\"group\"> — a labelled container of the ruler and user-supplied time bars; the ruler and each bar are role=\"img\" elements the host names with an aria-label.",
   "responsive": {
     "contract": "none",
     "basis": "geometry is percentage-based — bar position and width derive from the visible window alone, so the track scales trivially with any container width and has no viewport mechanism of its own; the harness specimen pins the proportions at one viewport."
@@ -21,21 +21,18 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "a track owns no focusable element — bars are positioned divs with aria-labels and the window is host state, so the row's traversal contract reduces to the host's own controls"
+      "because": "a track owns no focusable element — bars are role=\"img\" elements with no tabindex and the window is host state, so the row's traversal contract reduces to the host's own controls"
     },
     {
       "requirement": "focus-not-obscured",
-      "because": "the pattern renders no focusable element — bars are aria-labelled divs with no tabindex — so there is nothing to obscure"
+      "because": "the pattern renders no focusable element — bars are role=\"img\" divs with no tabindex — so there is nothing to obscure"
     }
   ],
   "interaction": {
-    "class": "container",
-    "basis": "a track is a container the host fills with its own bars; the bars are non-interactive geometry.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "the pattern ships no interactive element — zoom/pan is host-owned state the demo drives with plain buttons"
-      }
-    ]
+    "class": "visual-only",
+    "basis": "nothing in the pattern takes focus or a key: the bars are role=\"img\" elements with no tabindex, the ruler is an aria-label over non-interactive geometry, and the window is host state — the track hosts nothing operable, by design.",
+    "evidence": {
+      "browserless": ["packages/patterns/time-track/tests/TimeTrack.test.ts"]
+    }
   }
 }

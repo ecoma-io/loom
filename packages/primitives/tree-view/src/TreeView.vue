@@ -75,6 +75,9 @@ const props = withDefaults(
      * `children` of its own is treated as lazily loadable; one that resolves
      * to an empty array becomes a leaf, and a rejected fetch leaves the node
      * collapsed so the next activation retries rather than caching failure.
+     * "Expanded" is whoever expanded it: a keyboard open and a host-supplied
+     * `expandedKeys` entry both fetch, and under a host-driven open a
+     * rejection proposes the collapsed list for the host to accept or veto.
      */
     loadChildren?: (node: TreeNode) => Promise<TreeNode[]>;
     /** The values the tree opens on mount — the seed the uncontrolled tree
@@ -194,6 +197,20 @@ function isExpandable(node: TreeNode): boolean {
   return props.loadChildren != null;
 }
 
+/**
+ * The one shape a fetch can serve: no `children` of its own under a
+ * `loadChildren` tree, and no cached answer yet. A cached empty array is the
+ * answer itself, so it never re-enters here — that is what makes the fetch
+ * happen once however many times the row re-renders.
+ */
+function isLazyUnfetched(node: TreeNode): boolean {
+  return (
+    !Array.isArray(node.children) &&
+    props.loadChildren != null &&
+    !lazyChildren.value.has(node.value)
+  );
+}
+
 const flatRows = computed<FlatRow[]>(() => {
   const rows: FlatRow[] = [];
   const walk = (nodes: TreeNode[], level: number, parentId: string | number | null): void => {
@@ -249,6 +266,34 @@ function stateFor(node: TreeNode): TreeViewNodeState {
   };
 }
 
+/**
+ * The one lazy fetch. Announces busy, fetches once, caches the answer under
+ * the node's value — an empty array cached as the answer it is — and reports
+ * a rejection as `null`, which caches nothing so the next activation retries
+ * rather than caching a broken branch. Both opens walk it, the tree's own and
+ * the host-driven one below, which is why "fetched once" holds no matter which
+ * side opened the row.
+ */
+async function fetchRow(node: TreeNode): Promise<TreeNode[] | null> {
+  const load = props.loadChildren;
+  const value = node.value;
+  if (!load || loadingKeys.value.has(value)) return null;
+  loadingKeys.value = new Set(loadingKeys.value).add(value);
+  try {
+    const children = await load(node);
+    const next = new Map(lazyChildren.value);
+    next.set(value, children);
+    lazyChildren.value = next;
+    return children;
+  } catch {
+    return null;
+  } finally {
+    const settled = new Set(loadingKeys.value);
+    settled.delete(value);
+    loadingKeys.value = settled;
+  }
+}
+
 async function expandRow(row: FlatRow): Promise<void> {
   const value = row.node.value;
   if (
@@ -259,26 +304,10 @@ async function expandRow(row: FlatRow): Promise<void> {
   ) {
     return;
   }
-  const isLazy =
-    !Array.isArray(row.node.children) &&
-    props.loadChildren != null &&
-    !lazyChildren.value.has(value);
-  if (isLazy && props.loadChildren) {
-    loadingKeys.value = new Set(loadingKeys.value).add(value);
-    try {
-      const children = await props.loadChildren(row.node);
-      const next = new Map(lazyChildren.value);
-      next.set(value, children);
-      lazyChildren.value = next;
-    } catch {
-      // The fetch failed: leave the row collapsed and still expandable, so
-      // the next activation retries rather than caching a broken branch.
-      return;
-    } finally {
-      const settled = new Set(loadingKeys.value);
-      settled.delete(value);
-      loadingKeys.value = settled;
-    }
+  if (isLazyUnfetched(row.node) && (await fetchRow(row.node)) === null) {
+    // The fetch failed: leave the row collapsed and still expandable, so the
+    // next activation retries rather than caching a broken branch.
+    return;
   }
   const next = new Set(expandedSet.value);
   next.add(value);
@@ -295,6 +324,56 @@ function collapseRow(value: string | number): void {
   ownExpanded.value = next;
   emit("update:expandedKeys", [...next]);
 }
+
+/**
+ * The render-driven counterpart of `expandRow`: the host rendered a lazy
+ * branch open — an `expandedKeys` entry or a `defaultExpanded` seed — and it
+ * has no cached answer. Host-driven expansion IS expansion, so the fetch
+ * obligation rides on the render rather than on which side initiated the
+ * open; otherwise the row would sit `aria-expanded` over an empty group
+ * waiting for a keyboard event that already happened. A successful fetch
+ * says nothing: the open list did not change — the host already held the
+ * key — and the mirror only ever records what the tree itself spoke. A
+ * disabled branch stays unfetched, the same law the keyboard answers to:
+ * nothing opens one, so nothing fetches beneath one.
+ */
+async function openRenderedRow(row: FlatRow): Promise<void> {
+  const value = row.node.value;
+  if (row.disabled || loadingKeys.value.has(value)) return;
+  if ((await fetchRow(row.node)) !== null) return;
+  // The fetch failed under an open row. Retract the open — the answer an
+  // interaction would get, proposed rather than applied: the host's list
+  // stays the render, so a veto holds the branch open and only acceptance
+  // closes it.
+  if (!expandedSet.value.has(value)) return; // the host already closed it mid-fetch
+  const next = new Set(expandedSet.value);
+  next.delete(value);
+  ownExpanded.value = next;
+  emit("update:expandedKeys", [...next]);
+}
+
+/**
+ * The visible rows shown open with no cached lazy answer — a value list, so
+ * the trigger is a row *becoming* an open unfetched branch and not the
+ * recompute of one already in flight or already refused: a host that vetoes
+ * the failure retraction holds the row open, and this list holding still is
+ * what keeps that veto from re-entering the failed fetch in a loop.
+ */
+const renderedLazyOpens = computed<FlatRow[]>(() =>
+  flatRows.value.filter((row) => row.expanded && isLazyUnfetched(row.node)),
+);
+watch(
+  renderedLazyOpens,
+  (next, prev) => {
+    for (const row of next) {
+      if (prev?.some((pending) => pending.value === row.value)) continue;
+      void openRenderedRow(row);
+    }
+  },
+  // Seeded on mount: an initial `expandedKeys` or `defaultExpanded` entry is
+  // as much host-driven expansion as a later prop change is.
+  { immediate: true },
+);
 
 function selectRow(node: TreeNode): void {
   if (controlDisabled.value || node.disabled) return;

@@ -19,11 +19,13 @@ export interface VirtualWindow {
  * from painting empty space while the browser catches up.
  *
  * Degenerate inputs degrade to an empty window rather than a nonsense one:
- * no items, a non-finite or non-positive item height, or a zero or non-finite
- * viewport (jsdom, a display:none parent) render nothing. A scroll position
- * past the last row is clamped to it — the browser clamps `scrollTop` itself,
- * and jsdom does not. `overscan` is floored and clamped non-negative; a
- * non-finite `scrollTop` or `overscan` reads as 0.
+ * no items, a non-finite, zero or negative item height, or a zero or
+ * non-finite viewport (jsdom, a display:none parent) render nothing. A
+ * viewport smaller than one row still renders exactly one row, and an
+ * `overscan` at or above the item count simply covers the whole list. A
+ * scroll position past the last row is clamped to it — the browser clamps
+ * `scrollTop` itself, and jsdom does not. `overscan` is floored and clamped
+ * non-negative; a non-finite `scrollTop` or `overscan` reads as 0.
  */
 export function virtualWindow(
   scrollTop: number,

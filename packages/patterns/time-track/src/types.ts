@@ -14,9 +14,13 @@ export interface TimeTrackContext {
   viewStart: number;
   /** The visible window's end, in epoch milliseconds. */
   viewEnd: number;
-  /** Percent (0–100) of a timestamp's position inside the window. */
+  /**
+   * The raw signed percent of a timestamp's position inside the window —
+   * deliberately unclamped, so a timestamp outside it is < 0 or > 100.
+   * TimeBar clamps its own copy to [0, 100] before touching CSS.
+   */
   left: (time: number) => number;
-  /** Percent (0–100) width of a `[start, end]` span inside the window, clamped. */
+  /** Percent width of a `[start, end]` span's visible portion, clamped to `[0, 100]`. */
   width: (start: number, end: number) => number;
 }
 

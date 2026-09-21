@@ -12,11 +12,11 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "traversal and active-descendant handling are Loom's own DOM handlers, not a wrapped Reka primitive — ArrowUp/ArrowDown movement is dispatched and pinned browserlessly by tests/Command.test.ts; no component-owned harness spec witnesses it in a browser yet; that floor is 3D's to build"
+      "because": "traversal and active-descendant handling are Loom's own DOM handlers, not a wrapped Reka primitive — ArrowUp/ArrowDown movement is dispatched and pinned browserlessly by tests/Command.test.ts; no component-owned harness spec witnesses it in a browser yet; that floor is ecoma-io/loom#432's tranche work"
     },
     {
       "requirement": "focus-not-obscured",
-      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#308)"
+      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
     }
   ],
   "interaction": {
@@ -28,7 +28,7 @@
     "exceptions": [
       {
         "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the palette's arrow-and-Enter contract is unproven in browser; the spec lands with the interaction-evidence tranche"
+        "because": "no harness spec yet — the palette's arrow-and-Enter contract is unproven in browser; tracked in ecoma-io/loom#432"
       }
     ]
   }

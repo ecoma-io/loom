@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { defineComponent, h, inject } from "vue";
 import TimeTrack from "../src/TimeTrack.vue";
 import TimeRuler from "../src/TimeRuler.vue";
 import TimeBar from "../src/TimeBar.vue";
+import { timeTrackContextKey } from "../src/types";
 import {
   clamp,
   formatDuration,
@@ -11,6 +13,26 @@ import {
   tickValues,
   widthWithin,
 } from "../src/geometry";
+
+// The keyboard-inert pin's selector set: every element that takes focus or a
+// key without a tabindex of its own, plus the two attributes that grant one.
+// Self-contained in this file on purpose — a shared helper is a later
+// tranche's work.
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "area[href]",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "iframe",
+  "summary",
+  "details",
+  "audio[controls]",
+  "video[controls]",
+  "[tabindex]",
+  "[contenteditable]",
+].join(",");
 
 describe("time-window geometry", () => {
   it("maps a timestamp to its percent position in the window", () => {
@@ -28,13 +50,29 @@ describe("time-window geometry", () => {
     expect(widthWithin(0, 1000, 1500, 2000)).toBe(0);
     // Fully left of the window: nothing visible.
     expect(widthWithin(0, 1000, -2000, -1500)).toBe(0);
-    // A zero-duration span at the window's start still spans the window.
+    // A zero-duration span has no visible extent — width 0, even sitting at
+    // the window's start.
     expect(widthWithin(0, 1000, 0, 0)).toBe(0);
   });
 
   it("guards a zero-width window instead of dividing by zero", () => {
     expect(leftWithin(500, 500, 500)).toBe(0);
     expect(widthWithin(500, 500, 500, 600)).toBe(100);
+  });
+
+  it("sends an unordered window through the 1ms floor instead of mirroring the geometry", () => {
+    // viewStart > viewEnd divides by the 1ms floor, not by the span: left
+    // keeps its raw sign (the true position of 3000 in the reversed window),
+    // width clamps to nothing — bars right of the pan measure 0-width.
+    expect(leftWithin(5000, 1000, 3000)).toBe(-200_000);
+    expect(widthWithin(5000, 1000, 0, 1000)).toBe(0);
+  });
+
+  it("keeps non-finite inputs out of the geometry instead of emitting NaN", () => {
+    expect(leftWithin(Number.NaN, 1000, 500)).toBe(0);
+    expect(widthWithin(0, 1000, Number.NaN, 500)).toBe(0);
+    expect(tickValues(0, Number.POSITIVE_INFINITY)).toEqual([]);
+    expect(tickValues(Number.NaN, Number.NaN)).toEqual([]);
   });
 
   it("rounds steps up to 1/2/5 times a power of ten", () => {
@@ -96,6 +134,67 @@ describe("TimeTrack", () => {
     expect(ruler.props("viewStart")).toBe(1000);
     expect(ruler.props("viewEnd")).toBe(5000);
   });
+
+  it("leaves the whole label to a host-supplied aria-label, appending no window suffix", () => {
+    const host = mount(TimeTrack, {
+      props: { start: 0, end: 60_000, ariaLabel: "Request timeline" },
+    });
+    expect(host.attributes("aria-label")).toBe("Request timeline");
+
+    // The old suffix keyed on a sentinel — comparing the label against the
+    // default text — so a host label that literally read "Time track" got a
+    // suffix the host never wrote. Host text is host text, used verbatim.
+    const literal = mount(TimeTrack, {
+      props: { start: 0, end: 60_000, ariaLabel: "Time track" },
+    });
+    expect(literal.attributes("aria-label")).toBe("Time track");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    const wrapper = mount(TimeTrack, {
+      props: { start: 0, end: 60_000 },
+      slots: { default: '<TimeBar :start="0" :end="8_000" aria-label="DNS lookup" />' },
+      global: { components: { TimeBar } },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
+  });
+
+  it("degrades an unordered window to the empty path: no NaN, an empty ruler, no bars", () => {
+    const wrapper = mount(TimeTrack, {
+      props: { start: 0, end: 10_000, viewStart: 5_000, viewEnd: 1_000 },
+      slots: { default: '<TimeBar :start="0" :end="500" />' },
+      global: { components: { TimeBar } },
+    });
+    // viewStart > viewEnd divides by the 1ms floor: the group announces the
+    // clamped window, the ruler renders no ticks, and every bar measures
+    // 0-width — which, rendered, is no element at all.
+    expect(wrapper.attributes("aria-label")).toContain("0ms window");
+    expect(wrapper.findAll("[data-loom-time-ruler] > div:last-child > div")).toHaveLength(0);
+    expect(wrapper.html()).not.toContain("NaN");
+    expect(wrapper.find("[data-loom-time-bar]").exists()).toBe(false);
+  });
+
+  it("keeps a non-finite domain out of the DOM: no NaN anywhere and no positioned bar", () => {
+    const nan = mount(TimeTrack, {
+      props: { start: Number.NaN, end: 10_000 },
+      slots: { default: '<TimeBar :start="0" :end="500" />' },
+      global: { components: { TimeBar } },
+    });
+    expect(nan.html()).not.toContain("NaN");
+    expect(nan.find("[data-loom-time-bar]").exists()).toBe(false);
+    expect(nan.findAll("[data-loom-time-ruler] > div:last-child > div")).toHaveLength(0);
+
+    const infinite = mount(TimeTrack, {
+      props: { start: 0, end: Number.POSITIVE_INFINITY },
+      slots: { default: '<TimeBar :start="0" :end="500" />' },
+      global: { components: { TimeBar } },
+    });
+    expect(infinite.html()).not.toContain("NaN");
+    expect(infinite.find("[data-loom-time-bar]").exists()).toBe(false);
+  });
 });
 
 describe("TimeRuler", () => {
@@ -108,6 +207,21 @@ describe("TimeRuler", () => {
     const labelRows = wrapper.findAll("[data-loom-time-ruler] > div:last-child > div");
     const texts = labelRows.map((d) => d.text());
     expect(texts).toEqual(["0ms", "2s", "4s", "6s", "8s", "10s"]);
+  });
+
+  it("clips a window panned before the domain rather than clamping it: negative tick lefts stay, and labels repeat at the 0ms clamp", () => {
+    const wrapper = mount(TimeRuler, {
+      props: { start: 0, end: 60_000, viewStart: -25_000, viewEnd: 35_000 },
+    });
+    // The ruler is a window into host-owned geometry, not a clamped copy of
+    // it: a tick left of the window keeps its negative percent and relies on
+    // the track's overflow-hidden for the clip — deliberate, pinned so a
+    // future clamp is a decision. The label of a negative timestamp clamps
+    // to 0ms, so the clip duplicates labels too; both halves stay as-is.
+    const labelRows = wrapper.findAll("[data-loom-time-ruler] > div:last-child > div");
+    expect(labelRows.map((d) => d.text())).toEqual(["0ms", "0ms", "0ms", "20s"]);
+    const firstMark = wrapper.find("[data-loom-time-ruler] > div:first-child > div");
+    expect(firstMark.attributes("style")).toContain("left: -25%");
   });
 });
 
@@ -139,41 +253,65 @@ describe("TimeBar", () => {
     expect(bar.attributes("style")).toContain("width: 20%");
   });
 
-  it("renders finite geometry for a zero-width window instead of NaN", () => {
+  it("hands a host bar the raw signed percent and clamps only the bar element's own left", () => {
+    const RawLeftProbe = defineComponent({
+      setup() {
+        const track = inject(timeTrackContextKey, null);
+        return () => [
+          h("div", {
+            class: "raw-left-probe",
+            "data-raw-left": track === null ? "no-context" : String(track.value.left(-500)),
+          }),
+          h(TimeBar, { start: -500, end: 200 }),
+        ];
+      },
+    });
+    const wrapper = mount(TimeTrack, {
+      props: { start: 0, end: 1000 },
+      slots: { default: RawLeftProbe },
+      global: { components: { TimeBar } },
+    });
+    // context.left is the truth, unclamped: -500 sits 50% left of the window
+    // and the context reports -50, so a host composing its own bar gets the
+    // real position. TimeBar clamps its own copy — the rendered bar reaches
+    // the window's edge instead of leaving the track.
+    expect(wrapper.find(".raw-left-probe").attributes("data-raw-left")).toBe("-50");
+    expect(wrapper.find("[data-loom-time-bar]").attributes("style")).toContain("left: 0%");
+  });
+
+  it("collapses a zero-length window to the empty path — no NaN and no rendered bar", () => {
     const wrapper = mount(TimeTrack, {
       props: { start: 500, end: 500 },
       slots: { default: '<TimeBar :start="0" :end="100" />' },
       global: { components: { TimeBar } },
     });
-    const style = wrapper.find("[data-loom-time-bar]").attributes("style");
-    expect(style).not.toContain("NaN");
-    expect(style).toContain("width: 0%");
+    expect(wrapper.html()).not.toContain("NaN");
+    expect(wrapper.find("[data-loom-time-bar]").exists()).toBe(false);
   });
 
-  it("measures a fully-outside bar at zero width", () => {
-    const wrapper = mount(TimeTrack, {
+  it("renders no element for a bar entirely outside the window — announced-but-invisible is the defect", () => {
+    const after = mount(TimeTrack, {
       props: { start: 0, end: 1000 },
       slots: { default: '<TimeBar :start="2000" :end="3000" />' },
       global: { components: { TimeBar } },
     });
-    const after = wrapper.find("[data-loom-time-bar]").attributes("style");
-    expect(after).toContain("width: 0%");
+    expect(after.find("[data-loom-time-bar]").exists()).toBe(false);
 
     const before = mount(TimeTrack, {
       props: { start: 0, end: 1000 },
       slots: { default: '<TimeBar :start="-2000" :end="-1000" />' },
       global: { components: { TimeBar } },
     });
-    expect(before.find("[data-loom-time-bar]").attributes("style")).toContain("width: 0%");
+    expect(before.find("[data-loom-time-bar]").exists()).toBe(false);
   });
 
-  it("renders a reversed span as zero width", () => {
+  it("renders no element for a reversed span — its visible width clamps to nothing", () => {
     const wrapper = mount(TimeTrack, {
       props: { start: 0, end: 1000 },
       slots: { default: '<TimeBar :start="300" :end="100" />' },
       global: { components: { TimeBar } },
     });
-    expect(wrapper.find("[data-loom-time-bar]").attributes("style")).toContain("width: 0%");
+    expect(wrapper.find("[data-loom-time-bar]").exists()).toBe(false);
   });
 
   it("stays exact at epoch-millisecond magnitudes", () => {

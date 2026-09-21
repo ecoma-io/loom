@@ -22,7 +22,7 @@
     "exceptions": [
       {
         "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard resize between the panes is unproven in browser; the spec lands with the interaction-evidence tranche"
+        "because": "no harness spec yet — keyboard resize between the panes is unproven in browser; tracked in ecoma-io/loom#432"
       }
     ]
   }

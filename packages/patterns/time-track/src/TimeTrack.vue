@@ -4,8 +4,8 @@ export type { TimeTrackContext } from "./types";
 </script>
 
 <script setup lang="ts">
-import { computed, provide, useAttrs } from "vue";
-import { cn } from "@ecoma-io/loom-core";
+import { computed, provide } from "vue";
+import { cn, useSplitAttrs } from "@ecoma-io/loom-core";
 import TimeRuler from "./TimeRuler.vue";
 import { timeTrackContextKey, type TimeFormatter, type TimeTrackContext } from "./types";
 import { formatDuration, leftWithin, widthWithin } from "./geometry";
@@ -24,19 +24,22 @@ const props = withDefaults(
     tickCount?: number;
     /** Overrides the default duration formatter used for tick labels. */
     format?: TimeFormatter;
-    /** Accessible name for the track-and-ruler group. Default: `"Time track"`. */
+    /**
+     * Accessible name for the track-and-ruler group. Supplied, it is used
+     * verbatim — the host owns the whole label; omitted, the default name
+     * carries the visible window's size ("Time track — 12m window").
+     */
     ariaLabel?: string;
   }>(),
   {
     tickCount: 6,
     format: formatDuration,
-    ariaLabel: "Time track",
   },
 );
 
 defineOptions({ inheritAttrs: false });
 
-const attrs = useAttrs();
+const { attrs, rest } = useSplitAttrs();
 const windowStart = computed(() => props.viewStart ?? props.start);
 const windowEnd = computed(() => props.viewEnd ?? props.end);
 
@@ -50,10 +53,14 @@ const context = computed<TimeTrackContext>(() => ({
 
 provide(timeTrackContextKey, context);
 
-const label = computed(() =>
-  props.ariaLabel === "Time track"
-    ? `${props.ariaLabel} — ${props.format(windowEnd.value - windowStart.value)} window`
-    : props.ariaLabel,
+// A host-supplied name owns the whole label — appending the window suffix to
+// it would forge a string the host never wrote. The suffix belongs to the
+// default, whose only other content is the window it summarises. The old
+// sentinel (comparing against the default text) could not tell a host label
+// that happened to read "Time track" from the absence of one.
+const label = computed(
+  () =>
+    props.ariaLabel || `Time track — ${props.format(windowEnd.value - windowStart.value)} window`,
 );
 </script>
 
@@ -61,8 +68,9 @@ const label = computed(() =>
   <div
     role="group"
     :aria-label="label"
-    :class="cn('flex min-w-0 flex-col gap-1', attrs.class as string)"
     data-loom-time-track
+    v-bind="rest"
+    :class="cn('flex min-w-0 flex-col gap-1', attrs.class as string)"
   >
     <TimeRuler
       :start="start"

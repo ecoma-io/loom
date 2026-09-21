@@ -14,7 +14,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the panel's focus-and-Escape contract is the wrapped Reka dialog's runtime behaviour and drawer.e2e.ts exercises no keyboard interaction; that floor is 3D's to build"
+      "because": "the panel's focus-and-Escape contract is the wrapped Reka dialog's runtime behaviour and drawer.e2e.ts exercises no keyboard interaction; that floor is ecoma-io/loom#432's tranche work"
     }
   ],
   "interaction": {

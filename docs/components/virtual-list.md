@@ -54,24 +54,40 @@ Every row is one logical element with one tab stop; anything interactive
 inside a row (a button, an input) is a Tab stop of its own, reached from the
 row.
 
+## Degenerate inputs
+
+The windowing contract degrades instead of breaking:
+
+- `itemHeight` must be a finite positive number. A zero, negative or
+  non-finite `itemHeight` renders an empty list — no rows, an empty spacer —
+  and the list answers no keys.
+- A zero, negative, fractional or non-finite `overscan` is floored and
+  clamped to `0`.
+- An `overscan` at or above the item count is safe: the window covers the
+  whole list and clamps at its ends.
+- A viewport smaller than one row still renders exactly one row.
+
 ## Keyboard
 
 The list is a single Tab stop. Rows rove focus:
 
-| Key                   | Action                                               |
-| --------------------- | ---------------------------------------------------- |
-| Arrow Down / Arrow Up | Move to the next / previous row (scrolled into view) |
-| Home / End            | First / last row                                     |
-| Page Down / Page Up   | One viewport of rows                                 |
-| Enter / Space         | Activate the active row (`activate`)                 |
+| Key                   | Action                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Arrow Down / Arrow Up | Move to the next / previous row (scrolled into view)                                                                                       |
+| Home / End            | First / last row                                                                                                                           |
+| Page Down / Page Up   | One page of fully visible rows — `floor(viewportHeight / itemHeight)`; the rendered window paints the `ceil` (one partial row at the edge) |
+| Enter / Space         | Activate the active row (`activate`)                                                                                                       |
 
 Nested controls keep their own keys: a keydown whose target is a row button
 is left to the button.
 
 ## Accessibility
 
-`role="list"` with `role="listitem"` rows; the scroll container deliberately
-takes no tabindex (focus roves across the rows, so it never needs one).
+`role="list"` with `role="listitem"` rows; the scroll container carries
+`tabindex="-1"` because Firefox seats a scrollable container in the tab order
+ahead of its rows on its own — the `-1` pins the single-Tab-stop contract in
+every engine instead of leaving it to each engine's scroll-container
+focusability rule.
 Every rendered row reports `aria-setsize` and `aria-posinset` so the
 virtualized DOM still announces its place in the full set, and `activeIndex`
 is the visual and roving anchor the host binds to.

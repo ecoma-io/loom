@@ -21,7 +21,8 @@ test("renders a labelled ruler with formatDuration tick labels", async ({ page }
   const ruler = page.locator(RULER);
   await expect(ruler).toBeVisible();
 
-  // Full window over a 60s domain, tickCount 6 → nice step 20s (5 intervals).
+  // Full window over a 60s domain, tickCount 6 → the step targets 5 intervals
+  // and lands on 20s: 3 intervals, 4 labels counting both window edges.
   const labels = ruler.locator("div.absolute.whitespace-nowrap");
   await expect(labels).toHaveCount(4);
   await expect(labels.nth(0)).toHaveText("0ms");

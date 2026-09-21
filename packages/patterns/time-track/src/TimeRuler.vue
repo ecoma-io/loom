@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
-import { cn } from "@ecoma-io/loom-core";
+import { computed } from "vue";
+import { cn, useSplitAttrs } from "@ecoma-io/loom-core";
 import { formatDuration, leftWithin, tickValues } from "./geometry";
 import type { TimeFormatter } from "./types";
 
@@ -30,7 +30,7 @@ const props = withDefaults(
 
 defineOptions({ inheritAttrs: false });
 
-const attrs = useAttrs();
+const { attrs, rest } = useSplitAttrs();
 
 const windowStart = computed(() => props.viewStart ?? props.start);
 const windowEnd = computed(() => props.viewEnd ?? props.end);
@@ -48,8 +48,9 @@ const ticks = computed(() =>
   <div
     role="img"
     :aria-label="`${ariaLabel}: window of ${format(windowEnd - windowStart)}, from ${format(windowStart - start)} to ${format(windowEnd - start)}`"
-    :class="cn('relative h-6 min-w-0 overflow-hidden', attrs.class as string)"
     data-loom-time-ruler
+    v-bind="rest"
+    :class="cn('relative h-6 min-w-0 overflow-hidden', attrs.class as string)"
   >
     <div class="absolute inset-x-0 bottom-0 h-2 border-b border-border">
       <template v-for="tick in ticks" :key="tick.time">

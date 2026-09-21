@@ -60,3 +60,23 @@ test("double-click resets the panel to its default width", async ({ page }) => {
   await separator.dblclick();
   await expect(separator).toHaveAttribute("aria-valuenow", "320");
 });
+
+test("Tab reaches the separator from the page's tab order, and one more Tab leaves it", async ({
+  page,
+}) => {
+  const separator = page.getByRole("separator");
+  // The harness appends one sentinel button after the demo
+  // (playwright/harness/main.ts), so the page carries a real tab order: the
+  // separator is the first stop from a fresh load and the sentinel is the one
+  // after it. Pressing Tab — not calling .focus() — is what says the
+  // separator's tabindex=0 is reachable the way a keyboard user arrives.
+  await page.keyboard.press("Tab");
+  await expect(separator).toBeFocused();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(separator).toHaveAttribute("aria-valuenow", "330");
+
+  // Exactly one stop: a second Tab is already on the harness sentinel.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});

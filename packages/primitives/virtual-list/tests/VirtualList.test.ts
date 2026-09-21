@@ -25,6 +25,10 @@ function stubGeometry(
 function mountList(rows: unknown[] = ROWS, overrides: Record<string, unknown> = {}) {
   const active = ref(-1);
   const activated: number[] = [];
+  // Every `update:activeIndex` the component emits, in order — a boundary
+  // press must emit nothing, which "active did not change" cannot prove
+  // (re-emitting the current value would not move it either).
+  const updates: number[] = [];
   const host = mount(
     defineComponent({
       props: { items: { type: Array, required: true } },
@@ -38,6 +42,7 @@ function mountList(rows: unknown[] = ROWS, overrides: Record<string, unknown> = 
               label: "Test rows",
               activeIndex: active.value,
               "onUpdate:activeIndex": (index: number) => {
+                updates.push(index);
                 active.value = index;
               },
               onActivate: (index: number) => activated.push(index),
@@ -56,7 +61,31 @@ function mountList(rows: unknown[] = ROWS, overrides: Record<string, unknown> = 
   // A typed seam for tests that shrink the list: re-mounting with fewer rows
   // is what exercises the active-index clamp watch.
   const setItems = (items: unknown[]) => host.setProps({ items });
-  return { host, element, setItems, active, activated };
+  return { host, element, setItems, active, activated, updates };
+}
+
+/** The full-height spacer div — the model's answer for the list's total extent. */
+function spacer(container: HTMLElement): HTMLElement {
+  return container.firstElementChild as HTMLElement;
+}
+
+function pressRow(element: HTMLElement, index: number, key: string): KeyboardEvent {
+  const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+  element.querySelector(`[data-virtual-index="${String(index)}"]`)!.dispatchEvent(event);
+  return event;
+}
+
+function mountMeasured(overrides: Record<string, unknown> = {}, rows: unknown[] = ROWS) {
+  const mounted = mountList(rows, overrides);
+  // The component's root is a fragment (the template's eslint comment precedes
+  // the root div), so the wrapper's element is the app container — the scroll
+  // container is the [data-loom-virtual-list] descendant. Scoping the query to
+  // this mount keeps a loop over degenerate inputs measuring its own list,
+  // not the first list still attached by an earlier iteration.
+  const container = mounted.element.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+  stubGeometry(container, { clientHeight: 400, scrollTop: 0 });
+  container.dispatchEvent(new Event("scroll"));
+  return { ...mounted, container };
 }
 
 describe("virtualWindow", () => {
@@ -79,9 +108,19 @@ describe("virtualWindow", () => {
     expect(virtualWindow(3200, 400, ROW_HEIGHT, 500, 0)).toEqual({ start: 100, end: 113 });
   });
 
+  it("covers the whole list once overscan meets or exceeds the item count", () => {
+    // Overscan past the list's extent must not invert or overflow the window:
+    // the clamp to [0, count] is what keeps an oversized buffer safe.
+    expect(virtualWindow(0, 400, ROW_HEIGHT, 10, 50)).toEqual({ start: 0, end: 10 });
+    expect(virtualWindow(3200, 400, ROW_HEIGHT, 10, 10)).toEqual({ start: 0, end: 10 });
+  });
+
   it("degrades to an empty window when there is nothing or no room to render", () => {
     expect(virtualWindow(0, 400, ROW_HEIGHT, 0, 8)).toEqual({ start: 0, end: 0 });
     expect(virtualWindow(0, 400, 0, 500, 8)).toEqual({ start: 0, end: 0 });
+    // The `itemHeight <= 0` branch must answer a negative height the same
+    // way: `count * itemHeight` would be a negative spacer, not a list.
+    expect(virtualWindow(0, 400, -ROW_HEIGHT, 500, 8)).toEqual({ start: 0, end: 0 });
     // A zero-height viewport (jsdom, a display:none parent) renders nothing —
     // the docblock's degenerate contract; the mount-time measure supplies the
     // real height on the next scroll/ResizeObserver tick.
@@ -203,6 +242,11 @@ describe("VirtualList", () => {
     // No active row yet: the first row is the tab stop.
     expect(element.querySelector('[data-virtual-index="0"]')!.getAttribute("tabindex")).toBe("0");
     expect(element.querySelector('[data-virtual-index="1"]')!.getAttribute("tabindex")).toBe("-1");
+
+    // The container is out of the tab order in every engine: Firefox seats a
+    // scrollable container ahead of its rows on its own, which would make it
+    // the list's first Tab stop — the defect behind ecoma-io/loom#438.
+    expect(container.getAttribute("tabindex")).toBe("-1");
 
     active.value = 3;
     await nextTick();
@@ -386,5 +430,173 @@ describe("VirtualList", () => {
     await nextTick();
     expect(element.querySelectorAll(".row")).toHaveLength(0);
     expect(container.getAttribute("aria-label")).toBe("Test rows");
+  });
+
+  it("renders an empty list with an empty spacer and answers no keys for a degenerate item height", async () => {
+    // A degenerate itemHeight empties the window; the spacer must degrade
+    // with it ("empty window, empty spacer") instead of painting a NaNpx,
+    // Infinitypx or negative-pixel scrollbar over no rows, and the keyboard
+    // must be inert — moveTo's bounds are positivity checks, which NaN
+    // passes both ways, so PageDown once emitted `NaN` as the active index.
+    for (const itemHeight of [0, -ROW_HEIGHT, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const { element, container, active, updates } = mountMeasured({ itemHeight });
+      await nextTick();
+      expect(element.querySelectorAll(".row")).toHaveLength(0);
+      expect(spacer(container).style.height).toBe("0px");
+
+      const pageDown = new KeyboardEvent("keydown", {
+        key: "PageDown",
+        bubbles: true,
+        cancelable: true,
+      });
+      container.dispatchEvent(pageDown);
+      await nextTick();
+      expect(updates).toEqual([]);
+      expect(active.value).toBe(-1);
+      // Unclaimed: an inert list must not even swallow the key.
+      expect(pageDown.defaultPrevented).toBe(false);
+    }
+  });
+
+  it("keeps a sane window for a NaN, infinite or fractional overscan", async () => {
+    // A non-finite overscan reads as 0 in the helper; the component must show
+    // the same answer, not a crash or a whole-list paint.
+    for (const overscan of [Number.NaN, Number.POSITIVE_INFINITY, 2.7]) {
+      const { element } = mountMeasured({ overscan });
+      await nextTick();
+      // pad 2 renders 15 rows at the top of the list — the above-pad is
+      // clipped by the list's edge (pad 0 renders 13).
+      const expected = overscan === 2.7 ? 15 : 13;
+      expect(element.querySelectorAll(".row")).toHaveLength(expected);
+    }
+  });
+
+  it("renders the whole list once overscan meets the item count", async () => {
+    const { element } = mountMeasured({ overscan: 500 }, ROWS.slice(0, 10));
+    await nextTick();
+    expect(element.querySelectorAll(".row")).toHaveLength(10);
+    expect(element.querySelector('[data-virtual-index="9"]')).not.toBeNull();
+  });
+
+  it("keeps the painted window small at ten thousand rows", async () => {
+    // The e2e suite pins 50k in a browser; this is the unit-level at-scale
+    // pin: a window sized by the viewport, never by the item count.
+    const tenThousand = Array.from({ length: 10_000 }, (_, i) => `row-${String(i)}`);
+    const { element, container } = mountMeasured({}, tenThousand);
+    await nextTick();
+    expect(element.querySelectorAll(".row")).toHaveLength(21);
+    expect(spacer(container).style.height).toBe("320000px");
+    expect(element.querySelector('[data-virtual-index="9999"]')).toBeNull();
+  });
+
+  it("renders exactly one row for a viewport smaller than one row and pages by zero", async () => {
+    const { element, active, updates } = mountList(ROWS, { overscan: 0 });
+    const list = element.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    stubGeometry(list, { clientHeight: 20, scrollTop: 0 });
+    list.dispatchEvent(new Event("scroll"));
+    await nextTick();
+    // Math.max(1, …): a viewport shorter than one row still paints a row.
+    expect(element.querySelectorAll(".row")).toHaveLength(1);
+    expect(element.querySelector('[data-virtual-index="0"]')).not.toBeNull();
+
+    // page = floor(20 / 32) = 0: a press that cannot move the active row is
+    // a no-op, not a re-emission of the position it already holds.
+    active.value = 5;
+    await nextTick();
+    const pageDown = pressRow(element, 0, "PageDown");
+    await nextTick();
+    expect(updates).toEqual([]);
+    expect(pageDown.defaultPrevented).toBe(true);
+  });
+
+  it("pages by the fully visible rows, not the window's ceil", async () => {
+    // 340px holds 10.6 rows: the window paints 11 (ceil), a page moves 10
+    // (floor) — landing the active row on the partial edge row would rest
+    // half-clipped under the fold.
+    const { element, active } = mountList(ROWS, { overscan: 0 });
+    const list = document.querySelector<HTMLElement>("[data-loom-virtual-list]")!;
+    stubGeometry(list, { clientHeight: 340, scrollTop: 0 });
+    list.dispatchEvent(new Event("scroll"));
+    await nextTick();
+
+    pressRow(element, 0, "PageDown");
+    await nextTick();
+    await nextTick();
+    expect(active.value).toBe(10);
+
+    pressRow(element, 10, "PageUp");
+    await nextTick();
+    await nextTick();
+    expect(active.value).toBe(0);
+  });
+
+  it("falls back to activating row 0 on Enter and Space while no row is active", async () => {
+    const { element, activated, updates } = mountMeasured();
+    await nextTick();
+
+    pressRow(element, 0, "Enter");
+    await nextTick();
+    expect(activated).toEqual([0]);
+
+    pressRow(element, 0, " ");
+    await nextTick();
+    expect(activated).toEqual([0, 0]);
+    // Activation is not a move: the roving position stays unadopted.
+    expect(updates).toEqual([]);
+  });
+
+  it("clamps the active index when the list shrinks to a smaller non-empty list", async () => {
+    // The empty-list clamp is one arm of the shrink watch; this is the
+    // non-zero arm — the position must clamp to the new last row, not ride
+    // past it.
+    const { active, setItems } = mountMeasured();
+    await nextTick();
+    active.value = 400;
+    await nextTick();
+    await setItems(ROWS.slice(0, 10));
+    await nextTick();
+    expect(active.value).toBe(9);
+  });
+
+  it("presses at the boundaries are claimed but silent", async () => {
+    // A key the list owns but cannot act on still belongs to the list —
+    // preventDefault stands so the browser does not scroll — but it emits
+    // nothing: re-announcing the position the host already holds is noise.
+    const { element, active, updates } = mountMeasured();
+    await nextTick();
+
+    active.value = 0;
+    await nextTick();
+    expect(pressRow(element, 0, "ArrowUp").defaultPrevented).toBe(true);
+    expect(pressRow(element, 0, "PageUp").defaultPrevented).toBe(true);
+    expect(updates).toEqual([]);
+
+    const bottom = 500 * ROW_HEIGHT - 400;
+    stubGeometry(document.querySelector<HTMLElement>("[data-loom-virtual-list]")!, {
+      clientHeight: 400,
+      scrollTop: bottom,
+    });
+    document
+      .querySelector<HTMLElement>("[data-loom-virtual-list]")!
+      .dispatchEvent(new Event("scroll"));
+    await nextTick();
+    active.value = 499;
+    await nextTick();
+    expect(pressRow(element, 499, "ArrowDown").defaultPrevented).toBe(true);
+    expect(pressRow(element, 499, "PageDown").defaultPrevented).toBe(true);
+    expect(updates).toEqual([]);
+  });
+
+  it("keeps row geometry and the spacer sane for a fractional item height", async () => {
+    const { element, container } = mountMeasured({ itemHeight: 32.5 });
+    await nextTick();
+    expect(element.querySelectorAll(".row")).toHaveLength(21); // 13 visible + 8 overscan
+    expect(element.querySelector<HTMLElement>('[data-virtual-index="1"]')!.style.top).toBe(
+      "32.5px",
+    );
+    expect(element.querySelector<HTMLElement>('[data-virtual-index="1"]')!.style.height).toBe(
+      "32.5px",
+    );
+    expect(spacer(container).style.height).toBe("16250px");
   });
 });
