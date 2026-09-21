@@ -22,6 +22,7 @@ import { join } from "node:path";
 import {
   checkInteractionEvidence,
   interactionExceptionSummary,
+  namesAnAssertion,
   namesAKeyboardGesture,
   parseInteractionContract,
   readInteractionContract,
@@ -305,6 +306,36 @@ describe("checkInteractionEvidence", () => {
         "Button: class interactive requires keyboard-operate (harness tier) — no evidence declared and no exception recorded",
       ]);
     }
+  });
+
+  it("answers state-report by the tree fact — a cited unit file must run an assertion, not merely exist", () => {
+    // The bypass this floor closes: a real file, in the demanded tier's own
+    // directory, whose content pins nothing. Every placement rule held and
+    // the gate still read the duty answered — the tier's whole trust rested
+    // on the directory the path lived in.
+    const root = makeTree();
+    writeFileSync(
+      join(root, ...UNIT_TEST_PATH.split("/")),
+      'export const BUTTON_LABELS = ["Save", "Cancel"];\n',
+    );
+    writeSidecar(root, completeSidecar());
+    expect(checkInteractionEvidence(root, contract)).toEqual([
+      "Button: class interactive requires state-report (browserless tier) — no evidence declared and no exception recorded",
+    ]);
+  });
+
+  it("is blind to a remarked expect answering a unit-tier duty", () => {
+    // The same lie the gesture reader rejects, one tier down: a comment
+    // pretending to be the assertion that retired the row.
+    const root = makeTree();
+    writeFileSync(
+      join(root, ...UNIT_TEST_PATH.split("/")),
+      '// expect(wrapper.attributes("aria-disabled")).toBe("true"); — retired\nexport const NOTHING = true;\n',
+    );
+    writeSidecar(root, completeSidecar());
+    expect(checkInteractionEvidence(root, contract)).toEqual([
+      "Button: class interactive requires state-report (browserless tier) — no evidence declared and no exception recorded",
+    ]);
   });
 
   it("confines harness evidence to the component's own e2e/ — the tier is the JSON key, never the file location", () => {
@@ -765,6 +796,40 @@ describe("parseInteractionContract", () => {
         ),
       ),
     ).toThrow(/INTERACTION_MATRIX is empty/);
+  });
+});
+
+describe("namesAnAssertion", () => {
+  it("reads every assertion spelling the unit tier writes", () => {
+    for (const assertion of [
+      "expect(true).toBe(true);",
+      'expect(wrapper.attributes("aria-disabled")).toBe("true");',
+      "await expect(element).toBeVisible();",
+      "expect\t(constraint).toBeDefined();",
+    ]) {
+      expect(namesAnAssertion(assertion), assertion).toBe(true);
+    }
+  });
+
+  it("reads a bare module, a remarked expect and a skipped body as the non-evidence they are", () => {
+    for (const notAnAssertion of [
+      'export const BUTTON_LABELS = ["Save", "Cancel"];',
+      "// expect(true).toBe(true); — retired with the old suite",
+      // The trailing shape: the strip is line-aware, so the comment half of
+      // the line is as inert as a whole-line one. (`expect(` inside a string
+      // literal of runnable code still reads, by the way — the reader is a
+      // floor, not a parser, the same trade the gesture reader makes.)
+      'const label = "idle"; // expect(true).toBe(true)',
+      // A vitest body that never runs pins nothing, exactly as a Playwright
+      // one does not.
+      [
+        'test.skip("states", () => {',
+        '  expect(wrapper.attributes("aria-busy")).toBe("true");',
+        "});",
+      ].join("\n"),
+    ]) {
+      expect(namesAnAssertion(notAnAssertion), notAnAssertion).toBe(false);
+    }
   });
 });
 
