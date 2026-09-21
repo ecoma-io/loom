@@ -86,8 +86,13 @@ test("Enter activates the getText variant — the snippet it would copy is gener
   await page.keyboard.press("Enter");
 
   // getText ran and the ref it mutated reached the page: the code element
-  // swaps from its resting placeholder to the first generated value. Whether
+  // swaps from its resting placeholder to the first generated value. The
+  // after-state is located by the text it expects, not the placeholder that
+  // seated the precondition — a filter by the old text stops matching the
+  // moment the swap happens, which is the very fact under assertion. Whether
   // the clipboard write under the dev server's http origin then succeeds is
   // the refused-write test's question, not this one's.
-  await expect(snippet).toHaveText("loom.query({ take: 10 })");
+  await expect(page.locator("code").filter({ hasText: "loom.query" })).toHaveText(
+    "loom.query({ take: 10 })",
+  );
 });
