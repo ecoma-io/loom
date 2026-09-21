@@ -95,8 +95,14 @@ export const REGISTERS: readonly ExceptionRegister[] = [
       "ecoma-io/loom#432 — the focus-not-obscured population and the role-axis remainders are its tranches 1 and 5",
     // 82 since four keyboard rows retired on the role axis: button, switch,
     // copy-button and collapse, whose own harness specs now press their
-    // native activation keys (#432, un-qualified in the first role-axis PR).
-    countOfRecord: 82,
+    // native activation keys (#432, un-qualified in the first role-axis PR),
+    // and 77 since five more followed: text-field, textarea, drawer,
+    // file-upload and stepper, whose harness specs now press their real
+    // keyboard contracts (typing through the counter, the reveal toggle's
+    // Space, Escape's focus return, the file chooser and the spine's arrows)
+    // (#432 tranche 4) — the list and link roles carry no keyboard row, so
+    // those two could not shrink further.
+    countOfRecord: 77,
   },
   {
     id: "interaction",
@@ -121,8 +127,13 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // hosted landmarks' operable content in document order; and patterns'
     // app-header, form-section, page-header and toast-stack, whose specs now
     // walk the bar's cluster, the group's fields, the actions slot, and Tab
-    // into the shared viewport to Space-dismiss a card (#432 tranche 4).
-    countOfRecord: 39,
+    // into the shared viewport to Space-dismiss a card (#432 tranche 4) — and
+    // since eight more rows retired on real keyboard contracts: primitives'
+    // drawer, file-upload, list, link, stepper, text-field, textarea and
+    // timeline, whose own specs now press the composite's arrow keys and
+    // Escape, the native file chooser, and type through the counter, and walk
+    // the Tab chain of their interactive surfaces (#432 tranche 4).
+    countOfRecord: 31,
   },
   {
     id: "responsive",
