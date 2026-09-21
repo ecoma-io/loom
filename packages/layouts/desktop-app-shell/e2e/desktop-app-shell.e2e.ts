@@ -81,8 +81,12 @@ test("Tab passes through the shell's title bar, rail and main area in document o
   await expect(page.getByRole("link", { name: "Home", exact: true })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Search", exact: true })).toBeFocused();
+  // The Bell item carries a badge (the demo's `badge: 3`), and the badge is a
+  // focusable link's accessible-name contributor: the control's real name is
+  // "Notifications 3", so exact matching against "Notifications" resolves to
+  // nothing even though the link is present and Tab-reachable.
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Notifications", exact: true })).toBeFocused();
+  await expect(page.getByRole("link", { name: /Notifications/ })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Settings", exact: true })).toBeFocused();
   // The main area hosts no controls of its own, so the stop past the rail is
