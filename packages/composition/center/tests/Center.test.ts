@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Center from "../src/Center.vue";
 
 function centerOf(props: Record<string, unknown> = {}) {
@@ -32,5 +33,13 @@ describe("Center", () => {
     const classes = centerOf({ gutter: false }).classes();
     expect(classes).not.toContain("px-4");
     expect(classes).not.toContain("sm:px-6");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    const wrapper = mount(Center, { slots: { default: "<p>content</p>" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

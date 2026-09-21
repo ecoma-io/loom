@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import FormActions from "../src/FormActions.vue";
 
 // FormActions has no primitive collaborators — it is a layout-only block, so
@@ -100,5 +101,15 @@ describe("FormActions", () => {
     expect(buttons[0]!.text()).toBe("Cancel");
     expect(buttons[1]!.text()).toBe("Save");
     expect(buttons[2]!.text()).toBe("Save and close");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Both slots exist to host the caller's operable buttons — left empty so
+    // the pin witnesses the row the pattern itself renders, nothing else.
+    const wrapper = mount(FormActions);
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

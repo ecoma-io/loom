@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import MetricCard from "../src/MetricCard.vue";
 
 // No primitive collaborators to mock: MetricCard takes an icon slot rather
@@ -130,5 +131,29 @@ describe("MetricCard", () => {
     expect(root.text()).not.toContain("6,420");
     const skeletons = root.findAll("div[class*='animate-shimmer']");
     expect(skeletons.length).toBe(2);
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Both branches of the card's own markup — the loaded rows with the trend
+    // arrow and decorative icon, and the loading placeholders.
+    const loaded = mount(MetricCard, {
+      props: {
+        value: "1,234",
+        label: "Active users",
+        trend: "up",
+        trendValue: "+12.5%",
+        description: "vs last week",
+      },
+      slots: { icon: "<svg data-testid='metric-icon' />" },
+    });
+    const loading = mount(MetricCard, {
+      props: { value: "1,234", label: "Active users", loading: true },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(loaded.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(loaded.attributes("tabindex")).toBeUndefined();
+    expect(loading.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(loading.attributes("tabindex")).toBeUndefined();
   });
 });

@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import EmptyState from "../src/EmptyState.vue";
 
 // No primitive collaborators to mock: EmptyState takes an icon slot and an
@@ -54,5 +55,18 @@ describe("EmptyState", () => {
       .findAll(".animate-fade-rise")
       .map((el) => (el.element as HTMLElement).style.animationDelay);
     expect(delays).toEqual(["", "60ms", "120ms", "180ms"]);
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The action slot is left empty — it exists to host the caller's CTA
+    // button, which is the caller's surface, not this pattern's.
+    const wrapper = mount(EmptyState, {
+      props: { title: "No workflows yet", description: "Create your first workflow." },
+      slots: { icon: "<svg data-testid='glyph' />" },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

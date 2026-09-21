@@ -1,4 +1,5 @@
 deps:
+  - "core"
   - "skeleton"
   - "spinner"
 tags: ["layer-patterns"]

@@ -723,6 +723,9 @@ importers:
 
   packages/patterns/error-state:
     dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
@@ -765,6 +768,9 @@ importers:
 
   packages/patterns/loading-state:
     dependencies:
+      '@ecoma-io/loom-core':
+        specifier: workspace:*
+        version: link:../../core
       '@ecoma-io/loom-skeleton':
         specifier: workspace:*
         version: link:../../primitives/skeleton
