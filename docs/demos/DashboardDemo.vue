@@ -20,7 +20,17 @@ import { Dashboard } from "@ecoma-io/loom";
       <template #sidebar>
         <div class="border-r border-border p-3 text-xs">
           <p class="font-medium">Sidebar nav</p>
-          <p class="mt-1 text-muted-foreground">Navigation links</p>
+          <!-- Real links in the sidebar instance: the shell's keyboard contract
+               is Tab crossing from the sidebar into the tile grid, which static
+               panels cannot witness. -->
+          <ul class="mt-1 flex flex-col gap-1">
+            <li>
+              <a href="#" class="block rounded px-2 py-1 hover:bg-background">Overview</a>
+            </li>
+            <li>
+              <a href="#" class="block rounded px-2 py-1 hover:bg-background">Projects</a>
+            </li>
+          </ul>
         </div>
       </template>
 

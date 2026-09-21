@@ -51,3 +51,37 @@ test('the sidebar-width="md" rail is 16rem wide once the row has direction', asy
   const railBox = await boxOf(rail(page));
   expect(Math.abs(railBox.width - 256)).toBeLessThanOrEqual(1);
 });
+
+test("Tab passes through the shell's title bar, rail and main area in document order", async ({
+  page,
+}) => {
+  // The shell is a container: it operates nothing itself, so its
+  // keyboard-operate duty is passage through the surface it puts around the
+  // window — focus must cross the title bar's window controls, the rail's
+  // navigation links and out of the shell, in DOM order, without a trap. The
+  // walk is seated on the platform radio that precedes the shell (a radio
+  // group's checked member is its one tab stop) so the first Tab ENTERS the
+  // shell rather than starting inside it; every stop is asserted by identity.
+  await page.setViewportSize({ width: 800, height: 900 });
+
+  await page.getByRole("radio", { name: "Windows" }).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Minimize", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Maximize", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Close", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Home", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Search", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Notifications", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Settings", exact: true })).toBeFocused();
+  // The main area hosts no controls of its own, so the stop past the rail is
+  // out of the shell entirely — the harness's trailing tab stop follows the
+  // demo, and reaching it proves the shell released focus.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});

@@ -20,11 +20,9 @@
   "interaction": {
     "class": "container",
     "basis": "a landmark skeleton hosting panels it does not operate.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "dashboard.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/layouts/dashboard/e2e/dashboard.e2e.ts"]
+    },
+    "exceptions": []
   }
 }
