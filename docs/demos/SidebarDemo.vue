@@ -14,10 +14,23 @@ import { Sidebar as SidebarComponent } from "@ecoma-io/loom";
 
     <SidebarComponent side-width="14rem">
       <template #side>
-        <div class="rounded border border-border bg-muted p-3 text-xs">Sidebar nav</div>
+        <!-- Real navigation, not lorem panels: a sidebar's keyboard contract is
+             the passage through the links it hosts, which a static div can
+             never witness. -->
+        <nav class="rounded border border-border bg-muted p-3 text-xs" aria-label="Demo sidebar">
+          <ul class="flex flex-col gap-1">
+            <li>
+              <a href="#" class="block rounded px-2 py-1 hover:bg-background">Overview</a>
+            </li>
+            <li>
+              <a href="#" class="block rounded px-2 py-1 hover:bg-background">Projects</a>
+            </li>
+          </ul>
+        </nav>
       </template>
       <div class="rounded border border-border bg-card p-3 text-xs">
         Main content — grows to fill the remaining space.
+        <a href="#" class="mt-2 block font-medium text-primary hover:underline"> Release notes </a>
       </div>
     </SidebarComponent>
 

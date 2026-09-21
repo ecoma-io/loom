@@ -13,10 +13,21 @@ import { Split as SplitComponent } from "@ecoma-io/loom";
 
     <SplitComponent gap="md" min-side-width="14rem">
       <template #side>
-        <div class="rounded border border-border bg-muted p-3 text-xs">Side panel</div>
+        <!-- A link in each pane: the split's keyboard contract is the passage
+             across the pane boundary in document order, which panels of static
+             text can never witness. -->
+        <div class="rounded border border-border bg-muted p-3 text-xs">
+          Side panel
+          <a href="#" class="mt-2 block font-medium text-primary hover:underline">
+            Panel settings
+          </a>
+        </div>
       </template>
       <div class="rounded border border-border bg-card p-3 text-xs">
         Content area — grows to fill the remaining space.
+        <a href="#" class="mt-2 block font-medium text-primary hover:underline">
+          Open the editor
+        </a>
       </div>
     </SplitComponent>
 
