@@ -1,5 +1,6 @@
 import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Kbd from "../src/Kbd.vue";
 
 enableAutoUnmount(afterEach);
@@ -29,5 +30,14 @@ describe("Kbd", () => {
     );
     const md = mount(Kbd, { props: { size: "md" }, slots: { default: "⇧" } }).classes();
     expect(md.join(" ")).toMatch(/min-h-7/);
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // A cap that names a key must not become one — the glyph is text.
+    const wrapper = mount(Kbd, { props: { size: "sm" }, slots: { default: "⌘" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

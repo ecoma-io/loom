@@ -37,7 +37,7 @@ export default defineConfig({
       // The testing subpath is listed before the bare package: a string alias
       // also matches the specifier it prefixes, and without this line
       // `@ecoma-io/loom-core/testing` would resolve to `index.ts/testing`.
-      "@ecoma-io/loom-core/testing": pkg("core/src/testing/attach-to-body.ts"),
+      "@ecoma-io/loom-core/testing": pkg("core/src/testing/index.ts"),
       // The a11y and theme subpaths are listed before the bare package for the
       // same reason: a string alias also matches the specifier it prefixes.
       "@ecoma-io/loom/a11y": pkg("loom/src/a11y.ts"),

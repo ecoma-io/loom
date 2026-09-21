@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Frame from "../src/Frame.vue";
 
 function frameOf(props: Record<string, unknown> = {}) {
@@ -30,5 +31,15 @@ describe("Frame", () => {
 
   it("takes full width so the aspect ratio determines the height", () => {
     expect(frameOf().classes()).toContain("w-full");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The slotted media is the host's inert stand-in — the frame's own surface
+    // is the ratio wrapper it renders around it.
+    const wrapper = mount(Frame, { slots: { default: "<img src='test.jpg' alt='test' />" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

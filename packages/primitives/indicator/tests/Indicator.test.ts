@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref, type PropType } from "vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Indicator, { type IndicatorPlacement, type IndicatorStatus } from "../src/Indicator.vue";
 import { provideLoomLabels, type LoomLabelOverrides } from "@ecoma-io/loom-labels";
 
@@ -191,6 +192,19 @@ describe("Indicator", () => {
       slots: { default: () => h("span", "bell") },
     });
     expect(wrapper.attributes("data-testid")).toBe("bell-indicator");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The marked child is host content, so it stands in as an inert span;
+    // the count variant covers the printed figure and the hidden name.
+    const wrapper = mount(Indicator, {
+      props: { variant: "count", count: 3 },
+      slots: { default: '<span class="marked">inbox</span>' },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });
 

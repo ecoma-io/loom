@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import LoadingState from "../src/LoadingState.vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Spinner from "@ecoma-io/loom-spinner";
 import Skeleton from "@ecoma-io/loom-skeleton";
 
@@ -84,5 +85,20 @@ describe("LoadingState", () => {
     expect(wrapper.find("[data-testid='custom-skeleton']").exists()).toBe(true);
     // Default skeleton lines are replaced, not supplemented.
     expect(wrapper.findAllComponents(Skeleton)).toHaveLength(0);
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Both modes' wrapper markup, collaborators stubbed per this file's
+    // isolation discipline — the pattern's own surface is the wrapper tree
+    // around them; the real Spinner and Skeleton each carry their own
+    // interaction claim in their own package.
+    const spinner = mount(LoadingState, { props: { mode: "spinner", label: "Loading…" } });
+    const skeleton = mount(LoadingState, { props: { mode: "skeleton" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(spinner.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(spinner.attributes("tabindex")).toBeUndefined();
+    expect(skeleton.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(skeleton.attributes("tabindex")).toBeUndefined();
   });
 });

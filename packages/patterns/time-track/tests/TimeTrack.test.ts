@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { defineComponent, h, inject } from "vue";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import TimeTrack from "../src/TimeTrack.vue";
 import TimeRuler from "../src/TimeRuler.vue";
 import TimeBar from "../src/TimeBar.vue";
@@ -13,26 +14,6 @@ import {
   tickValues,
   widthWithin,
 } from "../src/geometry";
-
-// The keyboard-inert pin's selector set: every element that takes focus or a
-// key without a tabindex of its own, plus the two attributes that grant one.
-// Self-contained in this file on purpose — a shared helper is a later
-// tranche's work.
-const FOCUSABLE_SELECTOR = [
-  "a[href]",
-  "area[href]",
-  "button",
-  "input",
-  "select",
-  "textarea",
-  "iframe",
-  "summary",
-  "details",
-  "audio[controls]",
-  "video[controls]",
-  "[tabindex]",
-  "[contenteditable]",
-].join(",");
 
 describe("time-window geometry", () => {
   it("maps a timestamp to its percent position in the window", () => {

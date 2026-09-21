@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import InlineError from "../src/InlineError.vue";
 
 describe("InlineError", () => {
@@ -48,5 +49,19 @@ describe("InlineError", () => {
   it("keeps the warning glyph out of the announcement, since the live region reads its whole subtree", () => {
     const wrapper = mount(InlineError, { props: { message: "Could not open the project." } });
     expect(wrapper.get('[role="alert"] svg').attributes("aria-hidden")).toBe("true");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The action slot is host content, so it stands in as an inert span —
+    // mounting the retry button the docs suggest would be testing the host,
+    // not the alert.
+    const wrapper = mount(InlineError, {
+      props: { message: "Could not open the project." },
+      slots: { action: "<span>Retry</span>" },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

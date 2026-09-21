@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Inline from "../src/Inline.vue";
 
 function inlineOf(props: Record<string, unknown> = {}) {
@@ -43,5 +44,13 @@ describe("Inline", () => {
 
   it("stretches children to the row's full height by default", () => {
     expect(inlineOf().classes()).toContain("items-stretch");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    const wrapper = mount(Inline, { slots: { default: "<span>item</span>" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Avatar, { type AvatarSize } from "../src/Avatar.vue";
 
 describe("Avatar", () => {
@@ -126,5 +127,17 @@ describe("Avatar", () => {
     });
     expect(wrapper.attributes("data-testid")).toBe("assignee");
     expect(wrapper.attributes("aria-hidden")).toBe("true");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // Every branch the component owns: the loaded image, the initials
+    // fallback beneath it, and the accent qualifier's hidden span.
+    const wrapper = mount(Avatar, {
+      props: { src: "/ada.jpg", alt: "Ada Lovelace", fallback: "AL", variant: "accent" },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

@@ -9,8 +9,8 @@
       "default": "./src/index.ts"
     },
     "./testing": {
-      "types": "./src/testing/attach-to-body.ts",
-      "default": "./src/testing/attach-to-body.ts"
+      "types": "./src/testing/index.ts",
+      "default": "./src/testing/index.ts"
     }
   },
   "dependencies": {
