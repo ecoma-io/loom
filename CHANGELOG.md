@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.2](https://github.com/ecoma-io/loom/compare/v0.8.1...v0.8.2) (2026-09-21)
+
+
+### Bug Fixes
+
+* **a11y:** align FOCUSABLE_SELECTOR with the HTML keyboard-interactive vocabulary ([#444](https://github.com/ecoma-io/loom/issues/444)) ([56f4315](https://github.com/ecoma-io/loom/commit/56f43152050e898661994741ba06521f622bad86))
+* **a11y:** un-qualify four role harness entries their keyboard specs earned (ref [#432](https://github.com/ecoma-io/loom/issues/432)) ([#445](https://github.com/ecoma-io/loom/issues/445)) ([f9bf200](https://github.com/ecoma-io/loom/commit/f9bf2009178954d437fc2296f2c57dc843608290))
+
 ## [0.8.1](https://github.com/ecoma-io/loom/compare/v0.8.0...v0.8.1) (2026-09-21)
 
 
