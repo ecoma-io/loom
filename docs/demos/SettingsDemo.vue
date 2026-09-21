@@ -46,7 +46,10 @@ import { Settings } from "@ecoma-io/loom";
             <p class="text-xs text-muted-foreground">Manage your display name and avatar.</p>
             <!-- One operable target in the content pane: passage must cross the
                  nav+content boundary, not stop inside the nav. -->
-            <a href="#" class="mt-1 inline-block text-xs font-medium text-primary hover:underline">
+            <a
+              href="#"
+              class="mt-1 inline-block text-xs font-medium text-primary-text hover:underline"
+            >
               Edit profile
             </a>
           </section>

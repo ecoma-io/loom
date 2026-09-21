@@ -30,7 +30,9 @@ import { Sidebar as SidebarComponent } from "@ecoma-io/loom";
       </template>
       <div class="rounded border border-border bg-card p-3 text-xs">
         Main content — grows to fill the remaining space.
-        <a href="#" class="mt-2 block font-medium text-primary hover:underline"> Release notes </a>
+        <a href="#" class="mt-2 block font-medium text-primary-text hover:underline">
+          Release notes
+        </a>
       </div>
     </SidebarComponent>
 

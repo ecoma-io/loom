@@ -18,14 +18,14 @@ import { Split as SplitComponent } from "@ecoma-io/loom";
              text can never witness. -->
         <div class="rounded border border-border bg-muted p-3 text-xs">
           Side panel
-          <a href="#" class="mt-2 block font-medium text-primary hover:underline">
+          <a href="#" class="mt-2 block font-medium text-primary-text hover:underline">
             Panel settings
           </a>
         </div>
       </template>
       <div class="rounded border border-border bg-card p-3 text-xs">
         Content area — grows to fill the remaining space.
-        <a href="#" class="mt-2 block font-medium text-primary hover:underline">
+        <a href="#" class="mt-2 block font-medium text-primary-text hover:underline">
           Open the editor
         </a>
       </div>
