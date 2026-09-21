@@ -100,10 +100,10 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     lives: "packages/<tier>/<name>/a11y.json — the interaction claim's exceptions[]",
     owner:
       "ecoma-io/loom#432 — the keyboard-operate harness specs are its tranches 3 and 4, the inertness pins its tranche 1",
-    // 94 since time-track's reclassification to visual-only: its inertness
-    // pin landed as evidence, retiring the pattern's keyboard-operate
-    // exception rather than re-homing it.
-    countOfRecord: 94,
+    // 88 since the dialog family's state-report rows retired: alert,
+    // alert-dialog, dialog, drawer, popover and toast each pin their states
+    // in the unit tier already — the rows were stale, not the tree.
+    countOfRecord: 88,
   },
   {
     id: "responsive",
