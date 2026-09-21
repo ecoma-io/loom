@@ -42,13 +42,15 @@
 //          answers the duty for no component, however interactively it
 //          clicks;
 //        - an unqualified browserless entry answers the duty its tier owes
-//          taken at its word (a unit test pinning disabled states, a pin of
-//          inertness); a because-qualified one declares it witnesses less
-//          than that, and answers nothing — so a claim cannot borrow a
-//          narrower file as full coverage. DEPTH inside a file — which keys a
-//          spec presses, which states a test pins — stays the claim's
-//          `basis` in prose, the same honest limit the responsive gate
-//          records;
+//          only when the cited file runs an assertion (`namesAnAssertion`,
+//          the unit tier's floor under the gesture rule one tier down — a
+//          helper or a constants module under tests/ is a citation-shaped
+//          object, not a witness); a because-qualified one declares it
+//          witnesses less than that, and answers nothing — so a claim cannot
+//          borrow a narrower file as full coverage. DEPTH inside a file —
+//          which keys a spec presses, which states a test pins — stays the
+//          claim's `basis` in prose, the same honest limit the responsive
+//          gate records;
 //        - a malformed exception (an unknown duty, a blank or non-string
 //          `because`, the same duty twice) fails closed, because silently
 //          upgrading it would empty the record in the one direction a lie
@@ -264,6 +266,21 @@ export function namesAKeyboardGesture(content: string): boolean {
   return /\bkeyboard\s*\.\s*(press|down|up|type|insertText)\b|\.press\s*\(/.test(
     runnableSpecText(content),
   );
+}
+
+/**
+ * Whether a browserless file asserts anything at all — the floor under every
+ * unit-tier answer, the same floor `namesAKeyboardGesture` holds the harness
+ * tier to, one tier down. State-report and keyboard-inert duties are
+ * assertion-shaped facts, and a file under `tests/` that never runs an
+ * `expect(` is a citation-shaped object, not a witness: citing a helper or a
+ * constants module would otherwise answer a duty with a file that pins
+ * nothing. Read through the shared spec reader for the same reasons the
+ * gesture is — a remarked expect( is inert, and one inside a `test.skip` body
+ * asserts nothing the runner ever judged.
+ */
+export function namesAnAssertion(content: string): boolean {
+  return /\bexpect\s*\(/.test(runnableSpecText(content));
 }
 
 interface EvidenceEntry {
@@ -596,10 +613,11 @@ export function checkInteractionEvidence(
         );
       }
 
-      // A duty is answered by unqualified entries in its own tier — and for
-      // keyboard-operate, only when one of those files performs a keyboard
-      // gesture. A because-qualified entry witnesses less than the tier's
-      // obligation and answers nothing, whichever tier it sits in.
+      // A duty is answered by unqualified entries in its own tier, and only
+      // when one of those files witnesses the tier's fact — a performed
+      // keyboard gesture for keyboard-operate, a run assertion for the unit
+      // tier's duties. A because-qualified entry witnesses less than the
+      // tier's obligation and answers nothing, whichever tier it sits in.
       const answered = new Set(
         row.filter((id) => {
           const tier = tierOfDuty.get(id) ?? "";
@@ -613,7 +631,7 @@ export function checkInteractionEvidence(
             (pair) => pair.entry.because === undefined && pair.resolved !== null,
           );
           if (unqualified.length === 0) return false;
-          if (id !== "keyboard-operate") return true;
+          const witnesses = id === "keyboard-operate" ? namesAKeyboardGesture : namesAnAssertion;
           return unqualified.some((pair) => {
             if (pair.resolved === null) return false;
             const content = contentOf(
@@ -621,7 +639,7 @@ export function checkInteractionEvidence(
               `interaction evidence.${tier} entry "${pair.entry.path}"`,
               pair.resolved,
             );
-            return content !== null && namesAKeyboardGesture(content);
+            return content !== null && witnesses(content);
           });
         }),
       );
