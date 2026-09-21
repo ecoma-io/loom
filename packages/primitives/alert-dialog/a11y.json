@@ -19,13 +19,8 @@
     "class": "composite",
     "basis": "trigger, overlay and focus containment managed as one; Escape closes, focus routes on open and close.",
     "evidence": {
+      "browserless": ["packages/primitives/alert-dialog/tests/AlertDialog.test.ts"],
       "harness": ["packages/primitives/alert-dialog/e2e/alert-dialog.e2e.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "state-report",
-        "because": "no unit-tier state pin yet — open/closed reporting is browser-witnessed in alert-dialog.e2e.ts and unpinned in the unit tier"
-      }
-    ]
+    }
   }
 }
