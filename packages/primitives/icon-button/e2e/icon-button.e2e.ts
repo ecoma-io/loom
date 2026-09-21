@@ -16,9 +16,13 @@ test("Enter and Space each dispatch the icon button's activation", async ({ page
   await favourite.evaluate((el) => {
     const w = window as typeof window & { activations?: number };
     w.activations = 0;
-    el.addEventListener("click", () => {
+    // A named binding, the same one the listener rule's remediation names: the
+    // page context this installs into is torn down with the test, so there is
+    // no unmount to remove on — the inline shape stays unnameable either way.
+    const count = () => {
       w.activations = (w.activations ?? 0) + 1;
-    });
+    };
+    el.addEventListener("click", count);
   });
 
   await favourite.focus();
