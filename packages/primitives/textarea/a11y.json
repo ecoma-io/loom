@@ -9,12 +9,7 @@
     "harness": ["packages/primitives/textarea/e2e/textarea.e2e.ts"],
     "sweep": ["docs/components/textarea.md"]
   },
-  "exceptions": [
-    {
-      "requirement": "focus-not-obscured",
-      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
-    }
-  ],
+  "exceptions": [],
   "interaction": {
     "class": "interactive",
     "basis": "one multi-line type target with disabled and readonly states of its own.",

@@ -9,12 +9,7 @@
     "harness": ["packages/primitives/text-field/e2e/text-field.e2e.ts"],
     "sweep": ["docs/components/text-field.md"]
   },
-  "exceptions": [
-    {
-      "requirement": "focus-not-obscured",
-      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
-    }
-  ],
+  "exceptions": [],
   "interaction": {
     "class": "interactive",
     "basis": "one type target with disabled, readonly and invalid states of its own.",
