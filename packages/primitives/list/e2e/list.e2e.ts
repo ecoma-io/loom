@@ -29,3 +29,31 @@ test("link rows are anchors that navigate", async ({ page }) => {
   await anchor.click();
   await expect(page).toHaveURL(/#deploy-4821$/);
 });
+
+test("Tab walks the interactive rows in document order and skips the disabled one", async ({
+  page,
+}) => {
+  // List is a container — it operates nothing itself — so its keyboard-operate
+  // duty is passage through the surface: focus must walk the slotted rows'
+  // real buttons in DOM order and leave the list without a trap. Seated by
+  // script at the first stop, then asserted per stop by identity.
+  const hobby = page.getByRole("button", { name: /Hobby/ });
+  await hobby.focus();
+  await expect(hobby).toBeFocused();
+
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: /Balanced/ })).toBeFocused();
+
+  // Scale is a disabled row: drained and announced but never a stop.
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: /#4821 · api/ })).toBeFocused();
+  await expect(page.getByRole("button", { name: /Scale/ })).not.toBeFocused();
+
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: /#4820 · web/ })).toBeFocused();
+
+  // The deployment list's rows are the last focusables, and the walk must hand
+  // focus out to the harness's trailing stop rather than trap inside the list.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});

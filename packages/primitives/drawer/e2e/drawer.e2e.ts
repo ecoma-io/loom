@@ -1,5 +1,38 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 
+// Drawer's keyboard contract is the wrapped Reka dialog's own: Escape closes
+// the panel and restores focus to whatever opened it. jsdom runs neither
+// (no native key handling, no real focus machinery), so the modal's keyboard
+// exit is only provable against a real browser.
+
+// The composite answer for the interaction claim. The gesture under test is
+// the Escape keypress, so the opener is seated by script and then *activated*
+// by the keyboard too — Enter on the trigger is the browser's native click
+// path, and focus moves into the panel on open. Escape then really closes,
+// and focus returns to the very trigger that opened it.
+test("Escape closes the drawer and returns focus to the trigger that opened it", async ({
+  page,
+}) => {
+  await page.goto("/?component=drawer");
+  const trigger = page.getByRole("button", { name: "Filters (right, sm)" });
+  await trigger.focus();
+  await expect(trigger).toBeFocused();
+
+  await page.keyboard.press("Enter");
+  const panel = page.locator('[role="dialog"]');
+  await expect(panel).toBeVisible();
+  // Reka autofocuses the open panel, so the reader is standing inside it when
+  // the Escape gesture begins.
+  await expect(panel.locator(":focus")).toHaveCount(1);
+
+  await page.keyboard.press("Escape");
+
+  // The gesture really is the exit, and it hands the keyboard back to the
+  // reader where they started: the panel unmounts and the trigger holds focus.
+  await expect(panel).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
 // The swipe is the exit `dismissible` is there to govern, and it used to be
 // the one it did not: Reka wires `useSwipeDismiss` inside `DrawerContentImpl`
 // with `enabled: open` and exposes no prop to turn it off, so a drag on the

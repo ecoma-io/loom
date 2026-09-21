@@ -56,3 +56,60 @@ test("advancing the flow repaints the one live region rather than leaving it on 
   await expect(live).not.toHaveText(before ?? "");
   await expect(stepper.locator('[role="status"]:visible')).toHaveCount(1);
 });
+
+// The stepper is Reka's composite under a Loom roving tab stop (see the
+// `tabStop` computation in Stepper.vue). The interaction contract is the
+// arrow-key traversal along the spine's axis plus Enter moving the flow —
+// Reka's own key handler, real in a browser and absent from jsdom.
+
+// The composite answer for the interaction claim: the arrow keys move real
+// focus between the step triggers without a click, and Enter on a step
+// advances the flow — witnessed by the demo's own "Current step: N" readout.
+test("ArrowRight and ArrowLeft move real focus along the spine, and Enter selects a step", async ({
+  page,
+}) => {
+  await page.goto("/?component=stepper");
+
+  // The checkout stepper is `v-model` bound and prints "Current step: N".
+  const checkout = page.locator("[data-loom-stepper]").first();
+  const current = checkout.locator("p", { hasText: "Current step:" });
+  await expect(checkout.locator('[role="status"]').first()).toHaveText(/Step \d of \d/);
+
+  // Seated by script at the current step (tab-stop index 2). The gestures
+  // under test are the arrow keys, not the seat.
+  const triggers = checkout.getByRole("button");
+  await triggers.nth(1).focus();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(triggers.nth(2)).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await expect(triggers.nth(1)).toBeFocused();
+
+  // Enter on the *next* step takes the flow there: the live region repaints
+  // and the page's readout follows the model.
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Enter");
+  await expect(current).toContainText("3");
+});
+
+// A linear spine hands the arrow keys the same gating the pointer gets: real
+// focus never lands on a step the flow has not reached.
+test("a linear spine refuses the arrow keys past the next step", async ({ page }) => {
+  await page.goto("/?component=stepper");
+
+  const linear = page.locator("[data-loom-stepper]").nth(1);
+  const triggers = linear.getByRole("button");
+  // The onboarding demo starts at step 1, so the linear rule allows steps 1
+  // and 2; step 3 is beyond the furthest point the flow has earned.
+  await triggers.nth(0).focus();
+
+  // ArrowRight lands on the next *allowed* step — step 2, exactly as far as
+  // the flow goes.
+  await page.keyboard.press("ArrowRight");
+  await expect(triggers.nth(1)).toBeFocused();
+
+  // One more ArrowRight must not carry focus to step 3: the step past the
+  // flow's frontier is unreachable by either pointer or arrow.
+  await page.keyboard.press("ArrowRight");
+  await expect(triggers.nth(2)).not.toBeFocused();
+});

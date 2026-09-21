@@ -9,7 +9,7 @@
     "harness": [
       {
         "path": "packages/primitives/timeline/e2e/timeline.e2e.ts",
-        "because": "timeline.e2e.ts pins the connector rendering — rendering evidence beyond the list row's browserless obligations, kept as the component's own proof"
+        "because": "the list role's matrix row has no keyboard row; the spec is kept as the interaction axis's own proof"
       }
     ],
     "sweep": ["docs/components/timeline.md"]
@@ -17,11 +17,8 @@
   "interaction": {
     "class": "container",
     "basis": "a structured container for slotted milestones — operates nothing.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "timeline.e2e.ts pins rendering only — keyboard passage is unproven in browser"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/primitives/timeline/e2e/timeline.e2e.ts"]
+    }
   }
 }

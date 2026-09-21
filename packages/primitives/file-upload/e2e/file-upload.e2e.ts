@@ -1,5 +1,59 @@
 import { test, expect, type Page } from "@playwright/test";
 
+// FileUpload's keyboard contract is the zone's real half: the browser's own
+// Space/Enter activation of the clipped `<input type="file">`, which opens the
+// system file dialog. The dialog itself cannot be scripted, but Playwright
+// witnesses its *opening* as a `filechooser` event — the observable that the
+// keystroke really reached the input's native activation path.
+//
+// The drop evidence above exercises the pointer side only, which is why the
+// interaction exception named it; the keyboard half lives here.
+
+test("Space on the file input opens the native chooser — the zone's keyboard path works", async ({
+  page,
+}) => {
+  await page.goto("/?component=file-upload");
+  const attachments = zone(page, "Choose attachments or drag them here");
+
+  // Seated by script rather than clicked: the gesture under test is the Space
+  // keypress on the real input, and the browser opens its own file dialog in
+  // answer — the one half of this control no synthetic event can reach.
+  const input = attachments.locator('input[type="file"]');
+  await input.focus();
+  await expect(input).toBeFocused();
+
+  const chooserPromise = page.waitForEvent("filechooser");
+  await page.keyboard.press("Space");
+  const chooser = await chooserPromise;
+
+  // The chooser really belongs to this zone's clipped input — the same element
+  // the label names and the tab order stands on: it is the `multiple` input,
+  // and a filechooser can only fire for a file input at all.
+  expect(chooser.isMultiple()).toBe(true);
+  await expect(input).toHaveAttribute("type", "file");
+});
+
+test("a disabled zone hands out no keyboard path — Tab walks straight past it", async ({
+  page,
+}) => {
+  await page.goto("/?component=file-upload");
+  const locked = zone(page, "Choose a contract");
+
+  // The native input a disabled zone renders is inert: it cannot take focus,
+  // so neither Space nor Enter can reach its activation.
+  const input = locked.locator('input[type="file"]');
+  await expect(input).toBeDisabled();
+
+  // The zone before it in the demo is the invalid one, whose input is real.
+  // Tab from there must land *past* the disabled zone — the drained input
+  // contributes no stop of its own, and the disabled zone's whole list of
+  // remove buttons is disabled with it.
+  const previous = zone(page, "Choose a signed copy").locator('input[type="file"]');
+  await previous.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});
+
 // The drop is the FileUpload's browser-only fact. A synthetic `drop` event is
 // only honest if it carries a real `DataTransfer` holding real `File` objects
 // — the component reads `event.dataTransfer.files`, and a hand-rolled object

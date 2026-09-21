@@ -6,7 +6,7 @@
     "harness": [
       {
         "path": "packages/primitives/list/e2e/list.e2e.ts",
-        "because": "list.e2e.ts proves interactive-row activation and disabled-row announcement — evidence beyond the list row's browserless obligations, kept as the component's own proof"
+        "because": "the list role's matrix row has no keyboard row; the spec is kept as the interaction axis's own proof"
       }
     ],
     "sweep": ["docs/components/list.md"]
@@ -14,11 +14,8 @@
   "interaction": {
     "class": "container",
     "basis": "a structured container for slotted items — operates nothing.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "list.e2e.ts pins rendering only — keyboard passage is unproven in browser"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/primitives/list/e2e/list.e2e.ts"]
+    }
   }
 }
