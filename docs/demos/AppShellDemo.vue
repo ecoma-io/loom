@@ -26,10 +26,10 @@ import { AppShell } from "@ecoma-io/loom";
                      what they demonstrate. -->
                 <ul v-if="size === 'sm'" class="mt-2 flex flex-col gap-1">
                   <li>
-                    <a href="#" class="block rounded px-2 py-1 hover:bg-background">Overview</a>
+                    <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Overview</a>
                   </li>
                   <li>
-                    <a href="#" class="block rounded px-2 py-1 hover:bg-background">Projects</a>
+                    <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Projects</a>
                   </li>
                 </ul>
               </div>

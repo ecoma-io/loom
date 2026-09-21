@@ -39,14 +39,14 @@ function expandAll() {
     <div class="flex flex-col gap-2 text-xs text-muted-foreground">
       <button
         type="button"
-        class="rounded border border-border bg-card px-2 py-1 text-foreground transition-colors duration-fast hover:bg-sunken"
+        class="rounded border border-border bg-card px-2 py-1.5 text-foreground transition-colors duration-fast hover:bg-sunken"
         @click="expandAll"
       >
         Expand all
       </button>
       <button
         type="button"
-        class="rounded border border-border bg-card px-2 py-1 text-foreground transition-colors duration-fast hover:bg-sunken"
+        class="rounded border border-border bg-card px-2 py-1.5 text-foreground transition-colors duration-fast hover:bg-sunken"
         @click="opened = []"
       >
         Collapse all

@@ -9,7 +9,7 @@ import { InlineError } from "@ecoma-io/loom";
       <template #action>
         <button
           type="button"
-          class="rounded-md border border-destructive/40 px-2 py-1 text-xs font-medium text-destructive-text hover:bg-destructive/10"
+          class="rounded-md border border-destructive/40 px-2 py-1.5 text-xs font-medium text-destructive-text hover:bg-destructive/10"
         >
           Reload
         </button>

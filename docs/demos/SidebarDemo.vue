@@ -20,10 +20,10 @@ import { Sidebar as SidebarComponent } from "@ecoma-io/loom";
         <nav class="rounded border border-border bg-muted p-3 text-xs" aria-label="Demo sidebar">
           <ul class="flex flex-col gap-1">
             <li>
-              <a href="#" class="block rounded px-2 py-1 hover:bg-background">Overview</a>
+              <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Overview</a>
             </li>
             <li>
-              <a href="#" class="block rounded px-2 py-1 hover:bg-background">Projects</a>
+              <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Projects</a>
             </li>
           </ul>
         </nav>
