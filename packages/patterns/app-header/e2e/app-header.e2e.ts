@@ -65,3 +65,31 @@ test("past 3xl the strip's height steps up to h-16", async ({ page }) => {
   const barBox = await boxOf(bar(page));
   expect(Math.abs(barBox.height - 64)).toBeLessThanOrEqual(1);
 });
+
+test("Tab reaches the bar's search field and every trailing control in DOM order", async ({
+  page,
+}) => {
+  // The bar is a container: it operates nothing itself, so its
+  // keyboard-operate duty is passage through the strip it hosts — focus must
+  // walk the search field and the trailing cluster's triggers in DOM order
+  // (search, leading, notifications, user menu) and leave the bar without a
+  // trap. The strip's `order` classes move the search's LINE at the sm
+  // threshold, never its DOM position, so the walk is the same at both bands
+  // and pinning it here is what proves that. Seated by script at the walk's
+  // first stop because the gesture under test is the Tab chain.
+  await page.setViewportSize({ width: 800, height: 900 });
+
+  await search(page).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Acme Corp", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Notifications", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Account (TT)", exact: true })).toBeFocused();
+  // The surfaces below the bar host no controls, so the next stop is out of
+  // the strip entirely — the harness's trailing tab stop follows the demo,
+  // and reaching it proves the bar released focus rather than looping its
+  // cluster.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});

@@ -16,7 +16,7 @@
     "harness": [
       {
         "path": "packages/patterns/toast-stack/e2e/toast-stack.e2e.ts",
-        "because": "toast-stack.e2e.ts proves the queue cap retires the oldest cards under reduce and every exit unmounts — motion and queue evidence; it exercises no keyboard interaction"
+        "because": "toast-stack.e2e.ts proves the queue cap retires the oldest cards under reduce, every exit unmounts, and Tab/Space now dismiss a card through the shared viewport — motion, queue and keyboard-passage evidence beyond the region row, kept as the pattern's own proof"
       }
     ],
     "sweep": ["docs/patterns/toast-stack.md"]
@@ -24,7 +24,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "dismissing is each toast's labelled close <button>'s own Space/Enter contract and toast-stack.e2e.ts exercises no keyboard interaction; that floor is ecoma-io/loom#432's tranche work"
+      "because": "dismissing is each toast's labelled close <button>'s own Space/Enter contract, which toast-stack.e2e.ts now presses in a browser — but the keyboard family's own duties (aria-hidden-focus, scrollable-region-focusable) stay unproven; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -34,11 +34,9 @@
   "interaction": {
     "class": "container",
     "basis": "a live region hosting toasts — the stack's own act is announcing, not operating.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "toast-stack.e2e.ts dismisses by pointer only — keyboard passage is unproven in browser"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/patterns/toast-stack/e2e/toast-stack.e2e.ts"]
+    },
+    "exceptions": []
   }
 }

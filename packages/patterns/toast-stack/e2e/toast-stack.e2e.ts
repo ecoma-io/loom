@@ -71,6 +71,58 @@ test("under reduce, pushing past the queue's cap retires the oldest cards and ev
   await expect(stack.getByText("Workflow updated")).toHaveCount(2);
 });
 
+test("Tab enters the stack at a close control and Space dismisses that card — no pointer involved", async ({
+  page,
+}) => {
+  // The stack is a container around live announcements: its keyboard-operate
+  // duty is the keyboard route in and out of the region, which the pointer
+  // spec above never touches. The opener is the demo's own control, seated by
+  // script because the gestures under test are the keypresses. "Two at once"
+  // is the LAST button in DOM order, so the next Tab crosses out of the
+  // demo's button row and into the shared viewport — the viewport itself is
+  // tabindex="-1", and Reka's head focus proxy redirects the entry onto a
+  // card's close control, so the poll below accepts whichever card's control
+  // the region seats rather than guessing Reka's ordering.
+  await page.getByRole("button", { name: "Two at once — stacked with a gap" }).focus();
+  await page.keyboard.press("Enter");
+
+  const cards = page.locator("ol li");
+  await expect(cards).toHaveCount(2);
+
+  // Resting the pointer on the stack is the file's own freeze: it pauses the
+  // demo's 4000ms auto-dismiss timers so the walk below races nothing. (Focus
+  // entering the viewport pauses them a second time.)
+  await holdOnStack(page);
+
+  await page.keyboard.press("Tab");
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const el = document.activeElement;
+        return el instanceof HTMLButtonElement && el.closest("ol") !== null
+          ? (el.getAttribute("aria-label") ?? "")
+          : "";
+      }),
+    )
+    .toBe("Close");
+
+  // Which card the entry landed on decides which title must leave — the
+  // observable a reader gets: one announcement ends, its neighbour stays.
+  const seatedCard = await page.evaluate(() => {
+    const card = document.activeElement?.closest("li");
+    return card?.textContent ?? "";
+  });
+  const dismissed = seatedCard.includes("Member added") ? "Member added" : "Workflow updated";
+  const remaining = dismissed === "Member added" ? "Workflow updated" : "Member added";
+
+  await page.keyboard.press("Space");
+
+  const stack = page.locator("ol");
+  await expect(stack.getByText(dismissed)).toHaveCount(0);
+  await expect(stack.getByText(remaining)).toHaveCount(1);
+  await expect(cards).toHaveCount(1);
+});
+
 test("the stack's width tracks the viewport below 24rem and caps above it", async ({ page }) => {
   // A stack exists only once an entry is pushed; `w-[min(92vw,24rem)]` is an
   // arbitrary value jsdom can carry but never resolve, so the clamp's two

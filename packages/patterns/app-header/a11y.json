@@ -19,11 +19,9 @@
   "interaction": {
     "class": "container",
     "basis": "a landmark bar hosting navigation and actions it does not operate.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "app-header.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/patterns/app-header/e2e/app-header.e2e.ts"]
+    },
+    "exceptions": []
   }
 }
