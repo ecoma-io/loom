@@ -15,13 +15,8 @@
     "class": "interactive",
     "basis": "a dismissible alert carries one operable part of its own — the close control.",
     "evidence": {
-      "browserless": ["packages/primitives/alert/tests/Alert.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "alert.e2e.ts dismisses by pointer only — the close control's keyboard contract is unproven in browser"
-      }
-    ]
+      "browserless": ["packages/primitives/alert/tests/Alert.test.ts"],
+      "harness": ["packages/primitives/alert/e2e/alert.e2e.ts"]
+    }
   }
 }

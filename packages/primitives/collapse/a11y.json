@@ -28,13 +28,8 @@
     "class": "interactive",
     "basis": "one toggle target; expanded state is the component's own.",
     "evidence": {
-      "browserless": ["packages/primitives/collapse/tests/Collapse.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "collapse.e2e.ts toggles by pointer only — the trigger's keyboard contract is unproven in browser"
-      }
-    ]
+      "browserless": ["packages/primitives/collapse/tests/Collapse.test.ts"],
+      "harness": ["packages/primitives/collapse/e2e/collapse.e2e.ts"]
+    }
   }
 }

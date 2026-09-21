@@ -23,13 +23,8 @@
     "class": "interactive",
     "basis": "one toggle target with checked and disabled states.",
     "evidence": {
-      "browserless": ["packages/primitives/checkbox/tests/Checkbox.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the native Space toggle is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/checkbox/tests/Checkbox.test.ts"],
+      "harness": ["packages/primitives/checkbox/e2e/checkbox.e2e.ts"]
+    }
   }
 }

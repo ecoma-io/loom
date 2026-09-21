@@ -15,13 +15,8 @@
     "class": "interactive",
     "basis": "an announced notice carrying one dismiss target of its own.",
     "evidence": {
-      "browserless": ["packages/primitives/toast/tests/Toast.integration.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "toast.e2e.ts dismisses by pointer only — the dismiss control's keyboard contract is unproven in browser"
-      }
-    ]
+      "browserless": ["packages/primitives/toast/tests/Toast.integration.test.ts"],
+      "harness": ["packages/primitives/toast/e2e/toast.e2e.ts"]
+    }
   }
 }

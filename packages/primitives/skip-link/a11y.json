@@ -18,11 +18,10 @@
   "interaction": {
     "class": "interactive",
     "basis": "one traversal target whose whole contract is the keyboard jump.",
+    "evidence": {
+      "harness": ["packages/primitives/skip-link/e2e/skip-link.e2e.ts"]
+    },
     "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "the jump is the native anchor's Enter contract; no component-owned harness spec exists — the one control whose keyboard story is its purpose is the one unproven in browser"
-      },
       {
         "requirement": "state-report",
         "because": "renders no conditional state of its own — the duty holds for the states it renders, and none exist to pin yet"
