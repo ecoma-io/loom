@@ -25,13 +25,8 @@
     "class": "interactive",
     "basis": "one toggle target with checked and disabled states.",
     "evidence": {
-      "browserless": ["packages/primitives/switch/tests/Switch.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "switch-direction.e2e.ts toggles by pointer only — the native Space contract is unproven in browser"
-      }
-    ]
+      "browserless": ["packages/primitives/switch/tests/Switch.test.ts"],
+      "harness": ["packages/primitives/switch/e2e/switch-direction.e2e.ts"]
+    }
   }
 }

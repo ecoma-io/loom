@@ -45,3 +45,27 @@ test("an icon Button names itself by aria-label rather than by its glyph", async
   // fact.
   await expect(page.getByRole("button", { name: "Play" })).toBeVisible();
 });
+
+test("Space drives the same loading film a click does — the native activation contract", async ({
+  page,
+}) => {
+  await page.goto("/?component=button");
+
+  const button = page.locator("button").filter({ hasText: "Press to see loading" });
+  await expect(button).toBeVisible();
+
+  // Focus arrives by script, not by pointer: the gesture under test is the
+  // keypress, and clicking to seat focus would answer it with the wrong limb.
+  await button.focus();
+  await page.keyboard.press("Space");
+
+  // The same three facts the click test pins, produced by the keyboard alone —
+  // a component whose busy state only a pointer can reach is one a keyboard
+  // reader cannot operate.
+  await expect(button).toBeDisabled();
+  await expect(button).toHaveAttribute("aria-busy", "true");
+  await expect(button).toHaveAttribute("data-loading", "true");
+
+  await expect(button).not.toBeDisabled({ timeout: 5_000 });
+  await expect(button).not.toHaveAttribute("aria-busy");
+});

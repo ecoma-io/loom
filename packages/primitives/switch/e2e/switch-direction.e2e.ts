@@ -97,3 +97,25 @@ test("under RTL both states mirror: off rests on the physical right, checking la
     })
     .toBeLessThanOrEqual(TOLERANCE);
 });
+
+test("Space and Enter both flip aria-checked — the toggle is not a pointer-only fact", async ({
+  page,
+}) => {
+  await page.goto("/?component=switch");
+
+  // The demo's first switch ("Send anonymous telemetry") rests unchecked; the
+  // checked state is Reka's own aria-written fact, and a keypress moving it is
+  // what WCAG 2.1.1 asks the browser, not jsdom.
+  const toggle = page.getByRole("switch").first();
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+
+  await toggle.focus();
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+
+  // Enter flips it back: Reka toggles on Enter keydown itself, so both of a
+  // button's activation keys are proven, and the flip is a toggle rather than
+  // a one-way latch.
+  await page.keyboard.press("Enter");
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+});

@@ -60,3 +60,24 @@ test("rapid toggling settles with trigger and region agreeing", async ({ page })
   await expect(trigger).toHaveAttribute("aria-expanded", "true", { timeout: 5_000 });
   await expect(region).toHaveAttribute("data-state", "open", { timeout: 5_000 });
 });
+
+test("Enter opens the disclosure and Space closes it — the trigger's keyboard contract", async ({
+  page,
+}) => {
+  const trigger = page.getByRole("button", { name: /What ships in the box/ });
+  const region = firstRegion(page);
+
+  // Focus arrives by script, not by pointer: the pointer tests above own the
+  // click path, and this one exists to prove the keys reach the same state.
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await expect(region).toHaveAttribute("data-state", "open", { timeout: 5_000 });
+
+  // Space — a native button's other activation key — reverses it. The height
+  // film (~200ms) is covered by the attribute assertions' own retry windows,
+  // which is why neither waits on the clock.
+  await page.keyboard.press("Space");
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await expect(region).toHaveAttribute("data-state", "closed", { timeout: 5_000 });
+});

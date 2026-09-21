@@ -109,3 +109,28 @@ test("pauses the auto-dismiss while hovered and finishes it after the pointer le
   await page.mouse.move(8, 8);
   await expect(card).toBeHidden({ timeout: 9_000 });
 });
+
+test("Enter opens a toast and Enter at its close control dismisses it — no pointer involved", async ({
+  page,
+}) => {
+  // Generous budget for the same reason the auto-dismiss tests carry one: the
+  // card's timers, not the keystrokes, are the slow half of this component.
+  test.setTimeout(20_000);
+  await page.goto("/?component=toast");
+
+  const opener = page.getByRole("button", { name: "Success" });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+
+  const card = page.locator("ol li");
+  // Settle the entrance before aiming at the close control, so the gesture
+  // lands on the resting card rather than mid-animation.
+  await settledCard(card);
+
+  await card.getByRole("button", { name: "Close" }).focus();
+  await page.keyboard.press("Enter");
+
+  // The exit rides the root's animate-toast-out and Presence waits out its
+  // animationend; toHaveCount retries through the whole leave.
+  await expect(card).toHaveCount(0);
+});

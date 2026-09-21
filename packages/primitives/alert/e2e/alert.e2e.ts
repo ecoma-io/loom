@@ -32,6 +32,23 @@ test("a dismissible alert leaves the document when its close control is pressed"
   await expect(dismissible).toHaveCount(0);
 });
 
+test("Enter at the close control dismisses — the leave film is survived by keys too", async ({
+  page,
+}) => {
+  const dismissible = alertSurface(page).filter({ hasText: "Sync failed" });
+  await expect(dismissible).toBeVisible();
+
+  // Focus arrives by script: the click test above owns the pointer path, and
+  // this one exists to prove the key reaches the same leave.
+  await dismissible.getByRole("button", { name: "Dismiss" }).focus();
+  await page.keyboard.press("Enter");
+
+  // The leave film (~140ms at the fast duration) holds the element in the
+  // document while it fades; the count assertion retries through it, so no
+  // clock-wait is needed before counting.
+  await expect(dismissible).toHaveCount(0);
+});
+
 test("no close control anywhere is anonymous — names come from the labels seam", async ({
   page,
 }) => {

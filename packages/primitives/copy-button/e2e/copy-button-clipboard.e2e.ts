@@ -67,3 +67,27 @@ test("a refused write announces the failure and leaves the button operable for a
   // Operable, not latched: the failure is a message, not a dead end.
   await expect(copy).toBeEnabled();
 });
+
+// Keyboard activation, and deliberately clipboard-free: the demo's getText
+// variant generates its snippet before any clipboard call, so the `<code>`
+// element's swap is the activation's own footprint — provable with no
+// permission grant, in every engine the harness carries, which a clipboard
+// read of the same gesture is not (see the Chromium-only describe above).
+test("Enter activates the getText variant — the snippet it would copy is generated", async ({
+  page,
+}) => {
+  await page.goto("/?component=copy-button");
+
+  const snippet = page.locator("code").filter({ hasText: "(nothing generated yet)" });
+  await expect(snippet).toBeVisible();
+
+  const generate = page.getByRole("button", { name: "Copy the generated snippet" });
+  await generate.focus();
+  await page.keyboard.press("Enter");
+
+  // getText ran and the ref it mutated reached the page: the code element
+  // swaps from its resting placeholder to the first generated value. Whether
+  // the clipboard write under the dev server's http origin then succeeds is
+  // the refused-write test's question, not this one's.
+  await expect(snippet).toHaveText("loom.query({ take: 10 })");
+});
