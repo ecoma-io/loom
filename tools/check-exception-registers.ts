@@ -93,7 +93,10 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     lives: "packages/<tier>/<name>/a11y.json — the role claim's exceptions[]",
     owner:
       "ecoma-io/loom#432 — the focus-not-obscured population and the role-axis remainders are its tranches 1 and 5",
-    countOfRecord: 86,
+    // 82 since four keyboard rows retired on the role axis: button, switch,
+    // copy-button and collapse, whose own harness specs now press their
+    // native activation keys (#432, un-qualified in the first role-axis PR).
+    countOfRecord: 82,
   },
   {
     id: "interaction",
