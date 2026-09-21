@@ -9,15 +9,35 @@ import { FormSection } from "@ecoma-io/loom";
       description="Where the order will be delivered."
       gap="md"
     >
-      <div class="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+      <!-- Real fields in the first section: the group's keyboard contract is
+           Tab walking its fields in slot order, which painted placeholders
+           cannot witness. Each input is nested in its label and bound by
+           for/id. The later sections keep the placeholder shape — they
+           demonstrate the gap steps, not traversal. -->
+      <label for="fs-street" class="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         Street address
-      </div>
-      <div class="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+        <input
+          id="fs-street"
+          type="text"
+          class="h-8 w-full rounded-md border border-border bg-card px-3 text-sm font-normal text-foreground"
+        />
+      </label>
+      <label for="fs-city" class="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         City
-      </div>
-      <div class="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+        <input
+          id="fs-city"
+          type="text"
+          class="h-8 w-full rounded-md border border-border bg-card px-3 text-sm font-normal text-foreground"
+        />
+      </label>
+      <label for="fs-postal" class="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
         Postal code
-      </div>
+        <input
+          id="fs-postal"
+          type="text"
+          class="h-8 w-full rounded-md border border-border bg-card px-3 text-sm font-normal text-foreground"
+        />
+      </label>
     </FormSection>
 
     <FormSection legend="Contact preferences" gap="sm">

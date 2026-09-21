@@ -48,3 +48,35 @@ test("the nav stacks above the content when collapsed, beside it when there is r
   const contentWideBox = await boxOf(content);
   expect(contentWideBox.x).toBeGreaterThanOrEqual(navWideBox.x + navWideBox.width - 1);
 });
+
+test("Tab walks the nav's links into the section content and out of the layout", async ({
+  page,
+}) => {
+  // The layout is a container: it operates nothing itself, so its
+  // keyboard-operate duty is passage through the surface — focus must walk
+  // the nav panel's links in DOM order, cross into the content pane's own
+  // control, and leave the layout without a trap in the wrap row. Seated by
+  // script at the walk's first stop because the gesture under test is the
+  // Tab chain; asserted per stop by identity.
+  await page.setViewportSize({ width: 800, height: 900 });
+
+  const general = page.getByRole("link", { name: "General", exact: true });
+  await general.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Account", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Security", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Notifications", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Billing", exact: true })).toBeFocused();
+  // Across the pane boundary: the content area's own control, reached by
+  // keys alone — the fact a reader relies on when the nav has wrapped above.
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Edit profile", exact: true })).toBeFocused();
+  // The second instance's nav hosts no links, so the next stop is out of the
+  // layout entirely — the harness's trailing tab stop follows the demo, and
+  // reaching it proves the layout released focus.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});

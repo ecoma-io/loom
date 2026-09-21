@@ -71,6 +71,72 @@ test("under reduce, pushing past the queue's cap retires the oldest cards and ev
   await expect(stack.getByText("Workflow updated")).toHaveCount(2);
 });
 
+test("Tab crosses the region onto a card, then its close control, and Space dismisses that card", async ({
+  page,
+}) => {
+  // The stack is a container around live announcements: its keyboard-operate
+  // duty is the keyboard route in and out of the region, which the pointer
+  // spec above never touches. The opener is the demo's own control, driven by
+  // Enter from a seated focus because the gestures under test are the
+  // keypresses.
+  await page.getByRole("button", { name: "Two at once — stacked with a gap" }).focus();
+  await page.keyboard.press("Enter");
+
+  const cards = page.locator("ol li");
+  await expect(cards).toHaveCount(2);
+
+  // Resting the pointer on the stack is the file's own freeze: it pauses the
+  // demo's 4000ms auto-dismiss timers so the walk below races nothing.
+  await holdOnStack(page);
+
+  // The walk is seated on the viewport itself — the `tabindex="-1"` element
+  // Reka's own F8 hotkey seats, focusable by script exactly for that. This
+  // replaces the first design's entry (one Tab from the last demo button
+  // through the head focus proxy), which CI job 106463870867 showed never
+  // seating a CLOSE control: Reka's redirect lands on the card ROOT, because
+  // every ToastRoot li carries tabindex="0". The walk below expects that
+  // card-first geometry — one Tab onto a card, the next onto that card's
+  // only tabbable, its close control — so the region's own ordering cannot
+  // fail the leg, whichever card it seats first.
+  await page.locator("ol").focus();
+  await page.keyboard.press("Tab");
+  await expect
+    .poll(() => page.evaluate(() => (document.activeElement?.closest("ol li") ? "card" : "")))
+    .toBe("card");
+
+  await page.keyboard.press("Tab");
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const el = document.activeElement;
+        return el instanceof HTMLButtonElement && el.closest("ol") !== null
+          ? (el.getAttribute("aria-label") ?? "")
+          : "";
+      }),
+    )
+    .toBe("Close");
+
+  // Which card the close control belongs to decides which title must leave —
+  // the observable a reader gets: one announcement ends, its neighbour stays.
+  const seatedCard = await page.evaluate(() => {
+    const card = document.activeElement?.closest("li");
+    return card?.textContent ?? "";
+  });
+  const dismissed = seatedCard.includes("Member added") ? "Member added" : "Workflow updated";
+  const remaining = dismissed === "Member added" ? "Workflow updated" : "Member added";
+
+  await page.keyboard.press("Space");
+
+  // Dismissal drops focus back to the page, which resumes the neighbour's
+  // timer — re-freeze before asserting so the counts race nothing.
+  await holdOnStack(page);
+
+  const stack = page.locator("ol");
+  await expect(stack.getByText(dismissed)).toHaveCount(0);
+  await expect(stack.getByText(remaining)).toHaveCount(1);
+  await expect(cards).toHaveCount(1);
+});
+
 test("the stack's width tracks the viewport below 24rem and caps above it", async ({ page }) => {
   // A stack exists only once an entry is pushed; `w-[min(92vw,24rem)]` is an
   // arbitrary value jsdom can carry but never resolve, so the clamp's two

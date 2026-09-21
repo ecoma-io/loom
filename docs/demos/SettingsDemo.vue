@@ -16,19 +16,42 @@ import { Settings } from "@ecoma-io/loom";
         <template #header>
           <div class="bg-card px-4 py-2 text-xs">Settings header</div>
         </template>
+        <!-- Real links, not list items: the layout's keyboard contract is Tab
+             walking the nav into the section content, which static list items
+             cannot witness. -->
         <template #nav>
           <ul class="flex flex-col gap-1 text-xs">
-            <li class="rounded px-2 py-1.5 font-medium">General</li>
-            <li class="rounded px-2 py-1.5">Account</li>
-            <li class="rounded px-2 py-1.5">Security</li>
-            <li class="rounded px-2 py-1.5">Notifications</li>
-            <li class="rounded px-2 py-1.5">Billing</li>
+            <li>
+              <a href="#" class="block rounded px-2 py-1.5 font-medium hover:bg-background">
+                General
+              </a>
+            </li>
+            <li>
+              <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Account</a>
+            </li>
+            <li>
+              <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Security</a>
+            </li>
+            <li>
+              <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Notifications</a>
+            </li>
+            <li>
+              <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Billing</a>
+            </li>
           </ul>
         </template>
         <div class="flex flex-col gap-6 py-6">
           <section>
             <h3 class="text-sm font-medium">Profile</h3>
             <p class="text-xs text-muted-foreground">Manage your display name and avatar.</p>
+            <!-- One operable target in the content pane: passage must cross the
+                 nav+content boundary, not stop inside the nav. -->
+            <a
+              href="#"
+              class="mt-1 inline-block text-xs font-medium text-primary-text hover:underline"
+            >
+              Edit profile
+            </a>
           </section>
           <section>
             <h3 class="text-sm font-medium">Language</h3>

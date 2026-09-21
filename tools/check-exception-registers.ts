@@ -103,7 +103,7 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     lives: "packages/<tier>/<name>/a11y.json — the interaction claim's exceptions[]",
     owner:
       "ecoma-io/loom#432 — the keyboard-operate harness specs are its tranches 3 and 4, the inertness pins its tranche 1",
-    // 50 since the twenty-nine visual-only components pinned their
+    // 39 since the twenty-nine visual-only components pinned their
     // keyboard-inertness in the unit tier — every one of the class's rows,
     // #432 tranche 1 whole: primitives' avatar, avatar-group, badge,
     // indicator, inline-error, kbd, live-region, meter, progress,
@@ -114,8 +114,15 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // since nine more rows retired on real harness gestures: button, switch,
     // checkbox, icon-button, copy-button, collapse, alert, toast and
     // skip-link, whose native keyboard contracts their own specs now press
-    // (#432 tranche 3).
-    countOfRecord: 50,
+    // (#432 tranche 3) — and since eleven more rows retired on real harness
+    // Tab chains: composition's sidebar and split, whose specs now walk the
+    // pane boundary wrapped and side by side; layouts' app-shell, dashboard,
+    // desktop-app-shell, form-layout and settings, whose specs now walk the
+    // hosted landmarks' operable content in document order; and patterns'
+    // app-header, form-section, page-header and toast-stack, whose specs now
+    // walk the bar's cluster, the group's fields, the actions slot, and Tab
+    // into the shared viewport to Space-dismiss a card (#432 tranche 4).
+    countOfRecord: 39,
   },
   {
     id: "responsive",

@@ -75,3 +75,26 @@ test("the gutters step on the shared scale at the canonical bands", async ({ pag
     ).toBe(band.padding);
   }
 });
+
+test("Tab reaches the actions the header hosts, in DOM order, and leaves the band", async ({
+  page,
+}) => {
+  // The band is a container: it operates nothing itself, so its
+  // keyboard-operate duty is passage through the title region — focus must
+  // walk the actions slot's buttons in DOM order and leave the band without
+  // a trap, past the wrap threshold where the actions sit under the title
+  // (a wrapped row is still one DOM sequence the keyboard follows). Seated
+  // by script at the walk's first stop because the gesture under test is the
+  // Tab chain; asserted per stop by identity.
+  await page.setViewportSize({ width: 800, height: 900 });
+
+  const filter = page.getByRole("button", { name: "Filter", exact: true });
+  await filter.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Create workflow", exact: true })).toBeFocused();
+  // The surfaces below the band host no controls, so the next stop is out of
+  // the band entirely — the harness's trailing tab stop follows the demo,
+  // and reaching it proves the title region released focus.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});

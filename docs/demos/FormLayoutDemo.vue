@@ -23,33 +23,52 @@ import { FormLayout } from "@ecoma-io/loom";
               </div>
             </template>
 
+            <!-- Real fields and buttons, not painted placeholders: the layout's
+                 keyboard contract is Tab walking label to field to submit in
+                 document order, which inert boxes cannot witness. Each input is
+                 nested in its label and bound by for/id, both carrying the size
+                 step because the demo renders this column three times. -->
             <div class="flex flex-col gap-4 py-6">
-              <div class="flex flex-col gap-1.5">
-                <div class="text-xs font-medium">Full name</div>
-                <div class="h-8 rounded border border-border bg-card" />
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <div class="text-xs font-medium">Email</div>
-                <div class="h-8 rounded border border-border bg-card" />
-              </div>
-              <div class="flex flex-col gap-1.5">
-                <div class="text-xs font-medium">Password</div>
-                <div class="h-8 rounded border border-border bg-card" />
-              </div>
+              <label :for="`fl-${size}-name`" class="flex flex-col gap-1.5 text-xs font-medium">
+                Full name
+                <input
+                  :id="`fl-${size}-name`"
+                  type="text"
+                  class="h-8 rounded border border-border bg-card px-2 text-sm font-normal"
+                />
+              </label>
+              <label :for="`fl-${size}-email`" class="flex flex-col gap-1.5 text-xs font-medium">
+                Email
+                <input
+                  :id="`fl-${size}-email`"
+                  type="email"
+                  class="h-8 rounded border border-border bg-card px-2 text-sm font-normal"
+                />
+              </label>
+              <label :for="`fl-${size}-password`" class="flex flex-col gap-1.5 text-xs font-medium">
+                Password
+                <input
+                  :id="`fl-${size}-password`"
+                  type="password"
+                  class="h-8 rounded border border-border bg-card px-2 text-sm font-normal"
+                />
+              </label>
             </div>
 
             <template #actions>
               <div class="flex gap-3">
-                <div
-                  class="h-8 w-20 rounded bg-primary text-xs text-primary-foreground flex items-center justify-center"
+                <button
+                  type="submit"
+                  class="h-8 w-20 rounded bg-primary text-xs text-primary-foreground flex items-center justify-center hover:opacity-90"
                 >
                   Create
-                </div>
-                <div
-                  class="h-8 w-20 rounded border border-border text-xs flex items-center justify-center"
+                </button>
+                <button
+                  type="button"
+                  class="h-8 w-20 rounded border border-border text-xs flex items-center justify-center hover:bg-muted"
                 >
                   Cancel
-                </div>
+                </button>
               </div>
             </template>
           </FormLayout>

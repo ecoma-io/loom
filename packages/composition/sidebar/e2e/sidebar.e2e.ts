@@ -67,3 +67,40 @@ test("the row's gap steps with the sm band", async ({ page }) => {
   );
   expect(midGap).toBe(16);
 });
+
+test("Tab reaches every link the row hosts in document order, wrapped or side by side", async ({
+  page,
+}) => {
+  // Sidebar operates nothing itself — its collapse is intrinsic CSS, with no
+  // control to press — so the container's keyboard-operate duty is passage:
+  // focus must walk the hosted links in DOM order (side first for
+  // side="left"), cross the pane boundary, and leave the layout without a
+  // trap. jsdom can enumerate the anchors but never prove a real Tab chain
+  // moves focus; the walk is seated by script at its first stop because the
+  // gesture under test is the Tab chain itself, and every stop is asserted by
+  // identity so a skip or a trap fails at the stop it happens.
+  const overview = page.getByRole("link", { name: "Overview", exact: true });
+  const projects = page.getByRole("link", { name: "Projects", exact: true });
+  const notes = page.getByRole("link", { name: "Release notes", exact: true });
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  await overview.focus();
+  await page.keyboard.press("Tab");
+  await expect(projects).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(notes).toBeFocused();
+  // Out of the layout entirely: the harness's trailing tab stop follows the
+  // demo, so reaching it proves the row released focus rather than looping.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+
+  // The same walk once the row has wrapped: stacking changes the geometry a
+  // reader sees, never the DOM order the keyboard follows — the collapse is
+  // keyboard-neutral because it owns no focus of its own to move.
+  await page.setViewportSize({ width: 360, height: 900 });
+  await overview.focus();
+  await page.keyboard.press("Tab");
+  await expect(projects).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(notes).toBeFocused();
+});

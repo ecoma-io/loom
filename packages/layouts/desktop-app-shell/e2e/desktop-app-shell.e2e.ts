@@ -51,3 +51,47 @@ test('the sidebar-width="md" rail is 16rem wide once the row has direction', asy
   const railBox = await boxOf(rail(page));
   expect(Math.abs(railBox.width - 256)).toBeLessThanOrEqual(1);
 });
+
+test("Tab passes through the shell's title bar, rail and main area in document order", async ({
+  page,
+}) => {
+  // The shell is a container: it operates nothing itself, so its
+  // keyboard-operate duty is passage through the surface it puts around the
+  // window — focus must cross the title bar's window controls, the rail's
+  // navigation links and out of the shell, in DOM order, without a trap. The
+  // walk is seated on the platform radio that precedes the shell, and its
+  // first two Tabs cross that fieldset's other radios — they carry no `name`,
+  // so the browser seats each as its own single-member group and therefore
+  // its own tab stop — before the third Tab ENTERS the shell at the title
+  // bar; every stop is asserted by identity.
+  await page.setViewportSize({ width: 800, height: 900 });
+
+  await page.getByRole("radio", { name: "Windows" }).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("radio", { name: "macOS" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("radio", { name: "Linux" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Minimize", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Maximize", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Close", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Home", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Search", exact: true })).toBeFocused();
+  // The Bell item carries a badge (the demo's `badge: 3`), and the badge is a
+  // focusable link's accessible-name contributor: the control's real name is
+  // "Notifications 3", so exact matching against "Notifications" resolves to
+  // nothing even though the link is present and Tab-reachable.
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: /Notifications/ })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Settings", exact: true })).toBeFocused();
+  // The main area hosts no controls of its own, so the stop past the rail is
+  // out of the shell entirely — the harness's trailing tab stop follows the
+  // demo, and reaching it proves the shell released focus.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});

@@ -96,3 +96,35 @@ test("the intrinsic collapse lands between the contract's narrow and mid bands",
   const panelWideBox = await boxOf(panel);
   expect(panelWideBox.x).toBeGreaterThan(contentWideBox.x + contentWideBox.width - 1);
 });
+
+test("Tab crosses the pane boundary in document order, wrapped or side by side", async ({
+  page,
+}) => {
+  // Split owns no resize — its own interaction claim records that the resize
+  // act belongs to a future composition, not this one — so the container's
+  // keyboard-operate duty is passage: focus must cross from the side panel's
+  // link to the content pane's link in DOM order (side first for the default
+  // side="left") and leave the layout, at the wide band and again once the
+  // row has wrapped. Seated by script at the first stop because the gesture
+  // under test is the Tab chain; asserted per stop so a trap fails where it
+  // happens.
+  const panelLink = page.getByRole("link", { name: "Panel settings", exact: true });
+  const contentLink = page.getByRole("link", { name: "Open the editor", exact: true });
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  await panelLink.focus();
+  await page.keyboard.press("Tab");
+  await expect(contentLink).toBeFocused();
+  // Out of the layout entirely: the harness's trailing tab stop follows the
+  // demo, so reaching it proves the pane boundary released focus.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+
+  // The same walk once the row has wrapped: the stacked order is the document
+  // order the keyboard already follows, so the wrap moves nothing a Tab could
+  // lose.
+  await page.setViewportSize({ width: 360, height: 900 });
+  await panelLink.focus();
+  await page.keyboard.press("Tab");
+  await expect(contentLink).toBeFocused();
+});

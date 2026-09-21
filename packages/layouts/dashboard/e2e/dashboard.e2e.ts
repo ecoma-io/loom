@@ -89,3 +89,23 @@ test("the aside is a media-query gate: hidden below 2xl, visible past it", async
   await page.setViewportSize({ width: 2000, height: 900 });
   await expect(metricsAside(page)).toBeVisible();
 });
+
+test("Tab walks the sidebar's links and crosses into the tile grid's pane", async ({ page }) => {
+  // The dashboard is a container: it operates nothing itself, so its
+  // keyboard-operate duty is passage through the surface — focus must walk
+  // the sidebar instance's navigation links in DOM order and reach the grid
+  // pane's boundary, then leave the layout, without a trap in the wrap row.
+  // Seated by script at the walk's first stop because the gesture under test
+  // is the Tab chain; asserted per stop by identity.
+  await page.setViewportSize({ width: 800, height: 900 });
+
+  const overview = page.getByRole("link", { name: "Overview", exact: true });
+  await overview.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Projects", exact: true })).toBeFocused();
+  // The tiles host no controls of their own, so the next stop past the nav is
+  // out of the layout entirely — the harness's trailing tab stop follows the
+  // demo, and reaching it proves the sidebar-to-grid boundary released focus.
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#harness-sentinel")).toBeFocused();
+});
