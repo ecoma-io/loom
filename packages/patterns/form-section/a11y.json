@@ -19,7 +19,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the group's traversal belongs to the controls slotted into it; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "the group's traversal belongs to the controls slotted into it; form-section.e2e.ts now witnesses Tab passage through its fields in a browser, but the keyboard family's own duties (aria-hidden-focus, scrollable-region-focusable) stay unproven — the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -29,11 +29,9 @@
   "interaction": {
     "class": "container",
     "basis": "a titled, described group around fields — the group's own acts are naming and wiring.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "form-section.e2e.ts pins geometry only — keyboard passage through the surface is unproven in browser"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/patterns/form-section/e2e/form-section.e2e.ts"]
+    },
+    "exceptions": []
   }
 }
