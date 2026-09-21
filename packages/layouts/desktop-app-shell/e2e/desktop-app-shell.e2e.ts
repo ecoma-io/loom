@@ -59,12 +59,18 @@ test("Tab passes through the shell's title bar, rail and main area in document o
   // keyboard-operate duty is passage through the surface it puts around the
   // window — focus must cross the title bar's window controls, the rail's
   // navigation links and out of the shell, in DOM order, without a trap. The
-  // walk is seated on the platform radio that precedes the shell (a radio
-  // group's checked member is its one tab stop) so the first Tab ENTERS the
-  // shell rather than starting inside it; every stop is asserted by identity.
+  // walk is seated on the platform radio that precedes the shell, and its
+  // first two Tabs cross that fieldset's other radios — they carry no `name`,
+  // so the browser seats each as its own single-member group and therefore
+  // its own tab stop — before the third Tab ENTERS the shell at the title
+  // bar; every stop is asserted by identity.
   await page.setViewportSize({ width: 800, height: 900 });
 
   await page.getByRole("radio", { name: "Windows" }).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("radio", { name: "macOS" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("radio", { name: "Linux" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Minimize", exact: true })).toBeFocused();
   await page.keyboard.press("Tab");

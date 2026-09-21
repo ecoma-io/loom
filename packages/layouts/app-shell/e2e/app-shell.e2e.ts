@@ -41,6 +41,7 @@ test("Tab enters the shell at the sidebar's links and crosses into the content a
   // leave the shell without a trap. Seated by script at the walk's first stop
   // because the gesture under test is the Tab chain; asserted per stop by
   // identity, so a stop the shell swallowed fails at the stop it happens.
+  await page.goto("/?component=app-shell");
   await page.setViewportSize({ width: 800, height: 900 });
 
   const overview = page.getByRole("link", { name: "Overview", exact: true });
