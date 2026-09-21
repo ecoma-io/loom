@@ -9,12 +9,7 @@
     "harness": ["packages/primitives/copy-button/e2e/copy-button-clipboard.e2e.ts"],
     "sweep": ["docs/components/copy-button.md"]
   },
-  "exceptions": [
-    {
-      "requirement": "focus-not-obscured",
-      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
-    }
-  ],
+  "exceptions": [],
   "interaction": {
     "class": "interactive",
     "basis": "one activation target whose copied state is the component's own.",
