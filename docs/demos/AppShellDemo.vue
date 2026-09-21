@@ -41,7 +41,7 @@ import { AppShell } from "@ecoma-io/loom";
             <a
               v-if="size === 'sm'"
               href="#"
-              class="mt-2 block text-xs font-medium text-primary-text hover:underline"
+              class="mt-2 block py-1.5 text-xs font-medium text-primary-text hover:underline"
             >
               Release notes
             </a>

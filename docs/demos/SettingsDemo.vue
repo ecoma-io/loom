@@ -48,7 +48,7 @@ import { Settings } from "@ecoma-io/loom";
                  nav+content boundary, not stop inside the nav. -->
             <a
               href="#"
-              class="mt-1 inline-block text-xs font-medium text-primary-text hover:underline"
+              class="mt-1 inline-block py-1.5 text-xs font-medium text-primary-text hover:underline"
             >
               Edit profile
             </a>
