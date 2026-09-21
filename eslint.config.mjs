@@ -244,6 +244,21 @@ export default tseslint.config(
     },
   },
 
+  // The focus-not-obscured spec's in-flow cases assert through a shared
+  // helper (`focusAndExpectClearOfDocsHeader`) that measures the focused and
+  // header rectangles and ends in the verdict — the same helper-indirection
+  // the rule cannot see, so its name is declared here exactly as the B2
+  // bench's assert-prefixed names are above.
+  {
+    files: ["e2e/focus-not-obscured.e2e.ts"],
+    rules: {
+      "playwright/expect-expect": [
+        "warn",
+        { assertFunctionNames: ["expect", "focusAndExpectClearOfDocsHeader"] },
+      ],
+    },
+  },
+
   // Node context: config files, build plugins, repository checks and hooks all
   // run outside the browser. `no-console` is off here because for a check that
   // is invoked from a terminal, what it writes to stdout is its entire output —
