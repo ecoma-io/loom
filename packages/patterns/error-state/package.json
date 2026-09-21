@@ -9,7 +9,9 @@
       "default": "./src/index.ts"
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "@ecoma-io/loom-core": "workspace:*"
+  },
   "peerDependencies": {
     "vue": "^3.5.0"
   }

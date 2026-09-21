@@ -100,10 +100,12 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     lives: "packages/<tier>/<name>/a11y.json — the interaction claim's exceptions[]",
     owner:
       "ecoma-io/loom#432 — the keyboard-operate harness specs are its tranches 3 and 4, the inertness pins its tranche 1",
-    // 88 since the dialog family's state-report rows retired: alert,
-    // alert-dialog, dialog, drawer, popover and toast each pin their states
-    // in the unit tier already — the rows were stale, not the tree.
-    countOfRecord: 88,
+    // 75 since the thirteen visual-only wrappers and states pinned their
+    // keyboard-inertness in the unit tier: composition's center,
+    // dashboard-grid, frame, grid, inline and stack; patterns' empty-state,
+    // error-state, form-actions, loading-state and metric-card; layouts'
+    // centered and reading.
+    countOfRecord: 75,
   },
   {
     id: "responsive",

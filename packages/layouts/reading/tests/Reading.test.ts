@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Reading from "../src/Reading.vue";
 
 function readingOf(props: Record<string, unknown> = {}) {
@@ -59,5 +60,17 @@ describe("Reading", () => {
     const wrapper = readingOf();
     const content = wrapper.findAll("div").find((d) => d.classes().includes("max-w-prose"))!;
     expect(content.classes()).toContain("mx-auto");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The header and footer slots carry the caller's chrome — plain text
+    // here, so the pin witnesses the shell the layout itself renders.
+    const wrapper = mount(Reading, {
+      slots: { header: "Site header", default: "<p>Article content</p>", footer: "Site footer" },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

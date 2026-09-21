@@ -16,11 +16,8 @@
   "interaction": {
     "class": "visual-only",
     "basis": "a pure prose-measure wrapper — nothing operates.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-inert",
-        "because": "no inertness pin yet — nothing in it operates or takes focus by design, and the browserless tier does not yet prove the absence"
-      }
-    ]
+    "evidence": {
+      "browserless": ["packages/layouts/reading/tests/Reading.test.ts"]
+    }
   }
 }

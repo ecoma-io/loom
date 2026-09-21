@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import Grid from "../src/Grid.vue";
 
 function gridOf(props: Record<string, unknown> = {}) {
@@ -29,5 +30,13 @@ describe("Grid", () => {
     const grid = gridOf();
     expect(grid.classes()).toEqual(expect.arrayContaining(["gap-3", "sm:gap-4"]));
     expect(grid.attributes("style") ?? "").toContain("min(100%, 16rem)");
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    const wrapper = mount(Grid, { slots: { default: "<div>cell</div>" } });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });

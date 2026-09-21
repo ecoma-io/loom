@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import { FOCUSABLE_SELECTOR } from "@ecoma-io/loom-core/testing";
 import ErrorState from "../src/ErrorState.vue";
 
 // No primitive collaborators to mock: ErrorState takes an icon slot and an
@@ -74,5 +75,18 @@ describe("ErrorState", () => {
     // which staggers icon → title → description → action at 60ms intervals.
     expect(wrapper.findAll(".animate-fade-rise")).toHaveLength(0);
     expect(wrapper.findAll("[style*='animationDelay']")).toHaveLength(0);
+  });
+
+  it("renders keyboard-inert: nothing inside takes focus or a key, and the root carries no tabindex", () => {
+    // The action slot is left empty — it exists to host the caller's retry
+    // button, which is the caller's surface, not this pattern's.
+    const wrapper = mount(ErrorState, {
+      props: { title: "Failed to load data", description: "Check your connection." },
+      slots: { icon: "<svg data-testid='glyph' />" },
+    });
+    // The sidecar claims visual-only — keyboard-inert is that class's whole
+    // matrix row, and this is the pin of absence the row exists to carry.
+    expect(wrapper.find(FOCUSABLE_SELECTOR).exists()).toBe(false);
+    expect(wrapper.attributes("tabindex")).toBeUndefined();
   });
 });
