@@ -138,8 +138,11 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // drawer, file-upload, list, link, stepper, text-field, textarea and
     // timeline, whose own specs now press the composite's arrow keys and
     // Escape, the native file chooser, and type through the counter, and walk
-    // the Tab chain of their interactive surfaces (#432 tranche 4).
-    countOfRecord: 31,
+    // the Tab chain of their interactive surfaces (#432 tranche 4) — and
+    // since composition's scroll-reel followed: its spec seats Tab on the
+    // named region, steps the strip between snap children with the arrow
+    // keys, and jumps the strip's poles with Home and End (#432 tranche 4).
+    countOfRecord: 30,
   },
   {
     id: "responsive",
