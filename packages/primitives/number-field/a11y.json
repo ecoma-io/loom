@@ -12,20 +12,15 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "number-field.e2e.ts now presses the field's real keyboard surface in browser — the arrows stepping the spinbutton, Shift multiplying one tick by ten, Home and End landing on the clamped poles, Enter committing once per gesture, the stepper buttons reached and pressed on the tab order, the disabled field walked past — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     }
   ],
   "interaction": {
     "class": "composite",
     "basis": "an inner spinbutton <input> with increment and decrement steppers beside it — three targets managed as one field.",
     "evidence": {
-      "browserless": ["packages/primitives/number-field/tests/NumberField.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — arrow stepping and typed entry is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/number-field/tests/NumberField.test.ts"],
+      "harness": ["packages/primitives/number-field/e2e/number-field.e2e.ts"]
+    }
   }
 }

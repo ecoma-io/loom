@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "color-picker.e2e.ts now presses the picker's real keyboard surface in browser — the slider thumbs stepping under the arrows with their announcements moving, the hex field committing on Enter, the preset listbox walking real focus between swatches and choosing on Enter — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "composite",
     "basis": "swatches, sliders and field inputs managed as one selection state.",
     "evidence": {
-      "browserless": ["packages/primitives/color-picker/tests/ColorPicker.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — arrow stepping across the swatches is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/color-picker/tests/ColorPicker.test.ts"],
+      "harness": ["packages/primitives/color-picker/e2e/color-picker.e2e.ts"]
+    }
   }
 }

@@ -162,7 +162,41 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // returns to the trigger; and command, whose spec drives Loom's own
     // activedescendant handlers — the arrows and Home/End move the highlight
     // while focus stays in the searchbox, Enter runs the highlighted command,
-    // and Escape clears the query before it closes the list. Three rows stay.
+    // and Escape clears the query before it closes the list — and since the
+    // picker-and-field batch followed, nine rows more: primitives' calendar,
+    // whose spec seats Tab through the month buttons onto today's cell, walks
+    // day and week steps with the arrows, chooses and clears with Enter, and
+    // stops at the min/max fence; color-picker, whose spec steps the
+    // saturation and hue thumbs with the arrows, commits the hex field on
+    // Enter, and walks the preset listbox's real focus to choose a swatch;
+    // date-time-range-picker, whose spec walks one Tab stop across both
+    // halves' segments, types digits that fill and advance, and opens the
+    // calendar trigger onto the day grid where Enter lays the range down and
+    // Escape returns to the trigger; editable, whose spec opens with Enter
+    // and commits, abandons with Escape handing focus back exactly once,
+    // opens focus mode on arrival without re-opening on its own hand-back,
+    // and seats the read-only value without ever opening it; number-field,
+    // whose spec steps the spinbutton with the arrows, multiplies a tick by
+    // ten under Shift, lands Home and End on the clamped poles, commits once
+    // per Enter, reaches the stepper buttons on the tab order, and walks the
+    // disabled field's stops by; otp-input, whose spec seats the first empty
+    // cell on Tab, fills with auto-advance, completes the code once,
+    // backtracks with Backspace clearing the cell before it, and walks the
+    // row with the arrows; tags-input, whose spec commits on Enter and on
+    // the comma delimiter, lifts the last token with Backspace for re-edit,
+    // and fires the remove control on Enter back onto the input;
+    // time-picker, whose spec seats the hour on the field's single Tab stop,
+    // walks and steps the segments with the arrows and typed digits into the
+    // bound model, and flips the period with its key; and chip, whose spec
+    // operates the toggle's pressed state with Space and Enter, fires the
+    // remove button on Enter from the natural tab order, and proves the
+    // disabled chip drops out of the order. Two of those rows described keys
+    // their sources never had, and the retirement says so: chip's row named
+    // "remove-on-Backspace" and chip has no keydown handler at all — removal
+    // is the labelled button's own activation; tags-input's row named
+    // "chip-row navigation keys" and the component deliberately stops the
+    // wrapped primitive's virtual selection, replacing it with the Backspace
+    // lift the spec witnesses. Three rows stay.
     // Context-menu: its wrapped Reka trigger opens on the pointer only — no
     // keydown path to the menu exists anywhere in the chain. Dropdown-menu and
     // speed-dial: opening never moves focus into the menu, so no row or pill
@@ -172,7 +206,7 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // witness the open/close half and the speed-dial's horizontal
     // aria-orientation correction; reka-ui issue 1873 names the symptom class
     // upstream). #432 holds all three rows until those open defects land.
-    countOfRecord: 23,
+    countOfRecord: 14,
   },
   {
     id: "responsive",

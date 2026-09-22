@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "otp-input.e2e.ts now presses the row's real keyboard surface in browser — Tab seating the first empty cell, typed digits filling and advancing, the last digit completing the code once, Backspace stepping back and clearing the cell before it, the arrows walking the row — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "composite",
     "basis": "a group of single-character inputs managed as one — auto-advance, paste split, backtrack.",
     "evidence": {
-      "browserless": ["packages/primitives/otp-input/tests/OtpInput.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the auto-advance and backtrack keys is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/otp-input/tests/OtpInput.test.ts"],
+      "harness": ["packages/primitives/otp-input/e2e/otp-input.e2e.ts"]
+    }
   }
 }

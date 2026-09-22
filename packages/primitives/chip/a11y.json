@@ -9,7 +9,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "activation is the native <button>'s own Space/Enter contract; no component-owned harness spec witnesses it in a browser yet; that floor is ecoma-io/loom#432's tranche work"
+      "because": "chip.e2e.ts now presses the pills' native keyboard surface in browser — Space and Enter operating the toggle's pressed state, the remove button reached on the natural tab order and firing on Enter, the removable pair walked as two sibling stops, the disabled chip dropping out of the order — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -20,13 +20,8 @@
     "class": "composite",
     "basis": "two sibling activation targets — the chip's own toggle and its remove button, never nested — managed as one labelled control.",
     "evidence": {
-      "browserless": ["packages/primitives/chip/tests/Chip.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the activation key and remove-on-Backspace is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/chip/tests/Chip.test.ts"],
+      "harness": ["packages/primitives/chip/e2e/chip.e2e.ts"]
+    }
   }
 }

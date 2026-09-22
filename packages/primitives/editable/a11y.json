@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "editable.e2e.ts now presses the edit's real keyboard surface in browser — Enter opening and committing, Escape abandoning with focus handed back once, focus mode opening on arrival without re-opening on its own hand-back, the read-only value seating without opening — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "interactive",
     "basis": "one edit target that swaps view and edit modes on its own state.",
     "evidence": {
-      "browserless": ["packages/primitives/editable/tests/Editable.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the Enter-to-commit, Escape-to-cancel contract is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/editable/tests/Editable.test.ts"],
+      "harness": ["packages/primitives/editable/e2e/editable.e2e.ts"]
+    }
   }
 }

@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "tags-input.e2e.ts now presses the field's real keyboard surface in browser — Enter and the comma delimiter committing a token, Backspace on the emptied input lifting the last token for re-edit, the remove button operating on Enter and handing focus back to the input, the count described to the input — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "composite",
     "basis": "an input plus its chip row managed as one — add, remove, backtrack.",
     "evidence": {
-      "browserless": ["packages/primitives/tags-input/tests/TagsInput.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the chip-row navigation keys is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/tags-input/tests/TagsInput.test.ts"],
+      "harness": ["packages/primitives/tags-input/e2e/tags-input.e2e.ts"]
+    }
   }
 }
