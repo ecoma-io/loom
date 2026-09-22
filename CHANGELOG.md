@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/ecoma-io/loom/compare/v0.8.2...v0.8.3) (2026-09-22)
+
+
+### Bug Fixes
+
+* **a11y:** clear focused controls below the docs header ([#432](https://github.com/ecoma-io/loom/issues/432)) ([#450](https://github.com/ecoma-io/loom/issues/450)) ([349a94b](https://github.com/ecoma-io/loom/commit/349a94b4c00ed9df904bca7e0ff756b303a0a341))
+
 ## [0.8.2](https://github.com/ecoma-io/loom/compare/v0.8.1...v0.8.2) (2026-09-21)
 
 
