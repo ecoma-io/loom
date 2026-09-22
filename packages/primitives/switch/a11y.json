@@ -6,12 +6,7 @@
     "harness": ["packages/primitives/switch/e2e/switch-direction.e2e.ts"],
     "sweep": ["docs/components/switch.md"]
   },
-  "exceptions": [
-    {
-      "requirement": "focus-not-obscured",
-      "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
-    }
-  ],
+  "exceptions": [],
   "interaction": {
     "class": "interactive",
     "basis": "one toggle target with checked and disabled states.",

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 
 // WCAG 2.2 SC 2.4.11 Focus Not Obscured (Minimum): when an element receives
 // focus, no part of it may be hidden by author-created content. The common
@@ -12,6 +12,71 @@ import { test, expect } from "@playwright/test";
 // because they are outside this repository's reach; the test measures what
 // Loom's own components do. Overlays (Dialog, Drawer, Popover) manage their
 // own focus traps and are covered by the keyboard e2e tests.
+//
+// The suite's population is a tree fact the evidence gate reads out of this
+// file's literal `page.goto("components/<name>")` strings — a goto that lives
+// in a comment or a skipped test would load no page, so every component below
+// navigates through a plain literal route and nothing else. A shared helper
+// operates only on page state AFTER navigation; it never supplies a route.
+
+/**
+ * Focus a component-owned control and prove it clears the fixed docs header.
+ *
+ * The VitePress header is measured from the rendered page rather than assumed:
+ * `--vp-nav-height` is what the site actually paints, and reading the element
+ * keeps the check honest even if that token moves. The header (`.VPNav`) is
+ * `position: fixed` on the desktop viewports this suite drives; below 960px it
+ * is in-flow, so a focused element scrolled into view never overlaps it — the
+ * same assertion holds on both, because it compares real rectangles rather than
+ * a hard-coded height.
+ *
+ * The painted foot is one pixel lower than the nav's own box: `.VPNavBar` pins
+ * its height to `--vp-nav-height`, and VitePress's 1px `.divider` is a
+ * normal-flow child that overflows that box, so the `.VPNav` rect stops at 64
+ * while the chrome paints to 65. The check therefore measures the union of the
+ * nav rect and the divider rect — a check that stopped at the nav box would
+ * stay green with a focused element's first pixel row under that divider, the
+ * exact regression the docs theme's `scroll-padding-top` exists to prevent.
+ */
+async function focusAndExpectClearOfDocsHeader(page: Page, target: Locator): Promise<void> {
+  await target.focus();
+  await expect(target).toBeFocused();
+
+  // Force the browser's own scroll-into-view — the same action focus takes,
+  // made explicit so the measurement is about the scroll the browser performs
+  // (which respects `scroll-padding-top`), not a manual translation.
+  await page.evaluate(() => {
+    const el = document.activeElement as HTMLElement | null;
+    if (el) el.scrollIntoView({ block: "start" });
+  });
+
+  // The focused element is obscured when it overlaps the header on both axes.
+  // The header's foot is the lowest pixel its chrome paints — the nav rect,
+  // extended by the divider rect when VitePress renders one below the nav box.
+  // A measurement that cannot see the header is fail-closed: a check that
+  // cannot look must not read as one that looked and found nothing.
+  const obscured = await page.evaluate(() => {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el) return true;
+    const box = el.getBoundingClientRect();
+    const nav = document.querySelector(".VPNav");
+    if (!nav) return true;
+    const navBox = nav.getBoundingClientRect();
+    const divider = nav.querySelector(".divider");
+    const foot = Math.max(
+      navBox.bottom,
+      divider ? divider.getBoundingClientRect().bottom : navBox.bottom,
+    );
+    return (
+      box.left < navBox.right &&
+      box.right > navBox.left &&
+      box.top < foot &&
+      box.bottom > navBox.top
+    );
+  });
+
+  expect(obscured, "focused element is obscured by the fixed docs header").toBe(false);
+}
 
 test("a focused element in the content area is not hidden by the VitePress header", async ({
   page,
@@ -27,7 +92,7 @@ test("a focused element in the content area is not hidden by the VitePress heade
   await firstButton.focus();
 
   // Scroll the focused element into view — this is what the browser does on
-  // focus, and `scroll-padding-top: 64px` (set in the docs theme) tells it to
+  // focus, and `scroll-padding-top: 66px` (set in the docs theme) tells it to
   // leave room for the fixed header.
   await page.evaluate(() => {
     const el = document.activeElement as HTMLElement | null;
@@ -40,14 +105,105 @@ test("a focused element in the content area is not hidden by the VitePress heade
     const el = document.activeElement as HTMLElement | null;
     if (!el) return false;
     const box = el.getBoundingClientRect();
-    // The VitePress header height. Measured from the site: 56px on desktop,
-    // slightly taller on mobile — 64px is a safe upper bound and matches the
-    // scroll-padding-top set in the docs theme.
-    const headerHeight = 64;
+    // The VitePress header's painted foot: a 64px nav box (`--vp-nav-height`)
+    // plus the 1px divider VitePress paints below it. The docs theme's
+    // `scroll-padding-top` reserves 66px — this foot plus one pixel of browser
+    // scroll-snapping headroom, since a fractional document offset can land
+    // an element up to a pixel short of the padding it asked for. This
+    // constant is the coarse content-area check; the per-component tests
+    // below measure the real nav and divider rectangles off the rendered
+    // page instead.
+    const headerHeight = 65;
     return box.top < headerHeight && box.bottom > 0;
   });
 
   expect(obscured, "focused element is obscured by the fixed header").toBe(false);
+});
+
+test("a focused Checkbox in the demo is not hidden by the VitePress header", async ({ page }) => {
+  await page.goto("components/checkbox");
+
+  // The full demo's indeterminate row: the accessible name is the visible
+  // label text ("Partially selected" in the page's inline demo, this exact
+  // string only in the full demo), and the box is the component's own
+  // `<button role="checkbox">`.
+  await focusAndExpectClearOfDocsHeader(
+    page,
+    page.getByRole("checkbox", { name: "Indeterminate (parent of a partial group)" }),
+  );
+});
+
+test("a focused CopyButton in the demo is not hidden by the VitePress header", async ({ page }) => {
+  await page.goto("components/copy-button");
+
+  // The demo's first CopyButton carries the default `labels.copy`; the other
+  // two override it, so this name is unique to one rendered button.
+  await focusAndExpectClearOfDocsHeader(
+    page,
+    page.getByRole("button", { name: "Copy to clipboard" }),
+  );
+});
+
+test("a focused IconButton in the demo is not hidden by the VitePress header", async ({ page }) => {
+  await page.goto("components/icon-button");
+
+  // Every IconButton on the page is named "Close" or "Settings" — the variants
+  // row, the sizes row, the disabled row are all those two. Scope to the full
+  // demo's figure (the one with the source toggle) so the focused control is
+  // unambiguously the demo's first variant button.
+  const demo = page
+    .locator("figure")
+    .filter({ hasText: "IconButton variants, sizes, and disabled state" });
+  await focusAndExpectClearOfDocsHeader(page, demo.getByRole("button", { name: "Close" }).first());
+});
+
+test("a focused Switch in the demo is not hidden by the VitePress header", async ({ page }) => {
+  await page.goto("components/switch");
+
+  // The demo's telemetry row labels the switch through `aria-labelledby`; the
+  // name is unique to this demo (the page's inline demos use other labels).
+  await focusAndExpectClearOfDocsHeader(
+    page,
+    page.getByRole("switch", { name: "Send anonymous telemetry" }),
+  );
+});
+
+test("a focused TextField in the demo is not hidden by the VitePress header", async ({ page }) => {
+  await page.goto("components/text-field");
+
+  // The demo's over-limit field is named through `aria-labelledby` by its
+  // "Headline (over the limit)" caption — the parens form is the full demo's
+  // own; the page's inline counter demo uses "Headline, over the limit".
+  await focusAndExpectClearOfDocsHeader(
+    page,
+    page.getByRole("textbox", { name: "Headline (over the limit)" }),
+  );
+});
+
+test("a focused Textarea in the demo is not hidden by the VitePress header", async ({ page }) => {
+  await page.goto("components/textarea");
+
+  // The demo's resize-locked field is named through `aria-labelledby` by its
+  // "Notes (resize locked)" caption — that exact string appears only in the
+  // full demo (the page's inline "Locked size" demo names its field "Notes").
+  await focusAndExpectClearOfDocsHeader(
+    page,
+    page.getByRole("textbox", { name: "Notes (resize locked)" }),
+  );
+});
+
+test("a focused NumberField spinbutton in the demo is not hidden by the VitePress header", async ({
+  page,
+}) => {
+  await page.goto("components/number-field");
+
+  // The demo's first field is the spinbutton whose accessible name comes from
+  // the "x — the default" caption via `aria-labelledby`; it is editable and
+  // in-flow (the disabled and read-only rows are not the target here).
+  await focusAndExpectClearOfDocsHeader(
+    page,
+    page.getByRole("spinbutton", { name: "x — the default" }),
+  );
 });
 
 test("focus inside a Dialog is not obscured by the backdrop or other chrome", async ({ page }) => {

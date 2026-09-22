@@ -95,14 +95,20 @@ export const REGISTERS: readonly ExceptionRegister[] = [
       "ecoma-io/loom#432 — the focus-not-obscured population and the role-axis remainders are its tranches 1 and 5",
     // 82 since four keyboard rows retired on the role axis: button, switch,
     // copy-button and collapse, whose own harness specs now press their
-    // native activation keys (#432, un-qualified in the first role-axis PR),
-    // and 77 since five more followed: text-field, textarea, drawer,
-    // file-upload and stepper, whose harness specs now press their real
-    // keyboard contracts (typing through the counter, the reveal toggle's
-    // Space, Escape's focus return, the file chooser and the spine's arrows)
+    // native activation keys (#432, un-qualified in the first role-axis PR);
+    // 77 since five more followed: text-field, textarea, drawer, file-upload
+    // and stepper, whose harness specs now press their real keyboard
+    // contracts (typing through the counter, the reveal toggle's Space,
+    // Escape's focus return, the file chooser and the spine's arrows)
     // (#432 tranche 4) — the list and link roles carry no keyboard row, so
-    // those two could not shrink further.
-    countOfRecord: 77,
+    // those two could not shrink further; and 70 since seven components
+    // joined the focus-not-obscured suite's literal docs population in
+    // e2e/focus-not-obscured.e2e.ts: checkbox, copy-button, icon-button,
+    // switch, text-field, textarea and number-field each now carry
+    // component-specific cases that witness their own focused control
+    // clearing the fixed docs header (#432, the batch that also gave the
+    // suite its real-header measurement helper).
+    countOfRecord: 70,
   },
   {
     id: "interaction",

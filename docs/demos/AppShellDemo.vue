@@ -26,10 +26,10 @@ import { AppShell } from "@ecoma-io/loom";
                      what they demonstrate. -->
                 <ul v-if="size === 'sm'" class="mt-2 flex flex-col gap-1">
                   <li>
-                    <a href="#" class="block rounded px-2 py-1 hover:bg-background">Overview</a>
+                    <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Overview</a>
                   </li>
                   <li>
-                    <a href="#" class="block rounded px-2 py-1 hover:bg-background">Projects</a>
+                    <a href="#" class="block rounded px-2 py-1.5 hover:bg-background">Projects</a>
                   </li>
                 </ul>
               </div>
@@ -41,7 +41,7 @@ import { AppShell } from "@ecoma-io/loom";
             <a
               v-if="size === 'sm'"
               href="#"
-              class="mt-2 block text-xs font-medium text-primary-text hover:underline"
+              class="mt-2 block py-1.5 text-xs font-medium text-primary-text hover:underline"
             >
               Release notes
             </a>

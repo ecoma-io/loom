@@ -41,19 +41,19 @@ function reset() {
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex items-center gap-2">
-      <button class="rounded border border-border px-2 py-1 text-sm" @click="zoom(0.5)">
+      <button class="rounded border border-border px-2 py-1.5 text-sm" @click="zoom(0.5)">
         Zoom in
       </button>
-      <button class="rounded border border-border px-2 py-1 text-sm" @click="zoom(2)">
+      <button class="rounded border border-border px-2 py-1.5 text-sm" @click="zoom(2)">
         Zoom out
       </button>
-      <button class="rounded border border-border px-2 py-1 text-sm" @click="pan(-1)">
+      <button class="rounded border border-border px-2 py-1.5 text-sm" @click="pan(-1)">
         Pan left
       </button>
-      <button class="rounded border border-border px-2 py-1 text-sm" @click="pan(1)">
+      <button class="rounded border border-border px-2 py-1.5 text-sm" @click="pan(1)">
         Pan right
       </button>
-      <button class="rounded border border-border px-2 py-1 text-sm" @click="reset">Reset</button>
+      <button class="rounded border border-border px-2 py-1.5 text-sm" @click="reset">Reset</button>
     </div>
 
     <TimeTrack
