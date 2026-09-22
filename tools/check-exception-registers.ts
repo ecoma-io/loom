@@ -148,8 +148,31 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // whose spec presses Enter through a failed submit to the focused summary
     // box and Enter on an entry link back to the invalid field; and patterns'
     // row-actions, whose spec watches the hosted action group come up under
-    // group-focus-within as Tab enters the row and park again as it leaves.
-    countOfRecord: 27,
+    // group-focus-within as Tab enters the row and park again as it leaves —
+    // and since the wrapped-Reka open/close/traverse batch followed: four
+    // composites whose own specs now press their real contracts in a browser —
+    // primitives' accordion, whose spec seats Tab on the first trigger and
+    // toggles panels with Enter across single and multiple mode; popover,
+    // whose spec opens onto the panel's first control, operates the panel's
+    // controls with Tab and Space, and closes through Escape back onto the
+    // trigger;
+    // navigation-menu, whose spec is the first real-key witness its contract
+    // has had — Enter opens the panel through the trigger button's own
+    // activation, ArrowDown walks into the panel's first link, and Escape
+    // returns to the trigger; and command, whose spec drives Loom's own
+    // activedescendant handlers — the arrows and Home/End move the highlight
+    // while focus stays in the searchbox, Enter runs the highlighted command,
+    // and Escape clears the query before it closes the list. Three rows stay.
+    // Context-menu: its wrapped Reka trigger opens on the pointer only — no
+    // keydown path to the menu exists anywhere in the chain. Dropdown-menu and
+    // speed-dial: opening never moves focus into the menu, so no row or pill
+    // is reachable by keyboard — the pinned reka-ui focuses its own content
+    // element on mount and in the engine that focus never lands, leaving every
+    // arrow and Enter press on the still-focused trigger (their slimmed specs
+    // witness the open/close half and the speed-dial's horizontal
+    // aria-orientation correction; reka-ui issue 1873 names the symptom class
+    // upstream). #432 holds all three rows until those open defects land.
+    countOfRecord: 23,
   },
   {
     id: "responsive",

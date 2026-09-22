@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "traversal and active-descendant handling are Loom's own DOM handlers, not a wrapped Reka primitive — ArrowUp/ArrowDown movement is dispatched and pinned browserlessly by tests/Command.test.ts; no component-owned harness spec witnesses it in a browser yet; that floor is ecoma-io/loom#432's tranche work"
+      "because": "command.e2e.ts now drives Loom's own arrow/activedescendant handlers with real keys in browser — highlight moving while focus stays in the searchbox, Escape's clear-then-close stages — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "composite",
     "basis": "a searchbox over a selectable list — query, traversal and selection managed as one.",
     "evidence": {
-      "browserless": ["packages/primitives/command/tests/Command.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the palette's arrow-and-Enter contract is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/command/tests/Command.test.ts"],
+      "harness": ["packages/primitives/command/e2e/command.e2e.ts"]
+    }
   }
 }
