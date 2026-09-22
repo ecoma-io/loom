@@ -29,6 +29,14 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
  * is in-flow, so a focused element scrolled into view never overlaps it — the
  * same assertion holds on both, because it compares real rectangles rather than
  * a hard-coded height.
+ *
+ * The painted foot is one pixel lower than the nav's own box: `.VPNavBar` pins
+ * its height to `--vp-nav-height`, and VitePress's 1px `.divider` is a
+ * normal-flow child that overflows that box, so the `.VPNav` rect stops at 64
+ * while the chrome paints to 65. The check therefore measures the union of the
+ * nav rect and the divider rect — a check that stopped at the nav box would
+ * stay green with a focused element's first pixel row under that divider, the
+ * exact regression the docs theme's `scroll-padding-top` exists to prevent.
  */
 async function focusAndExpectClearOfDocsHeader(page: Page, target: Locator): Promise<void> {
   await target.focus();
@@ -43,6 +51,8 @@ async function focusAndExpectClearOfDocsHeader(page: Page, target: Locator): Pro
   });
 
   // The focused element is obscured when it overlaps the header on both axes.
+  // The header's foot is the lowest pixel its chrome paints — the nav rect,
+  // extended by the divider rect when VitePress renders one below the nav box.
   // A measurement that cannot see the header is fail-closed: a check that
   // cannot look must not read as one that looked and found nothing.
   const obscured = await page.evaluate(() => {
@@ -52,10 +62,15 @@ async function focusAndExpectClearOfDocsHeader(page: Page, target: Locator): Pro
     const nav = document.querySelector(".VPNav");
     if (!nav) return true;
     const navBox = nav.getBoundingClientRect();
+    const divider = nav.querySelector(".divider");
+    const foot = Math.max(
+      navBox.bottom,
+      divider ? divider.getBoundingClientRect().bottom : navBox.bottom,
+    );
     return (
       box.left < navBox.right &&
       box.right > navBox.left &&
-      box.top < navBox.bottom &&
+      box.top < foot &&
       box.bottom > navBox.top
     );
   });
@@ -77,7 +92,7 @@ test("a focused element in the content area is not hidden by the VitePress heade
   await firstButton.focus();
 
   // Scroll the focused element into view — this is what the browser does on
-  // focus, and `scroll-padding-top: 64px` (set in the docs theme) tells it to
+  // focus, and `scroll-padding-top: 65px` (set in the docs theme) tells it to
   // leave room for the fixed header.
   await page.evaluate(() => {
     const el = document.activeElement as HTMLElement | null;
@@ -90,10 +105,12 @@ test("a focused element in the content area is not hidden by the VitePress heade
     const el = document.activeElement as HTMLElement | null;
     if (!el) return false;
     const box = el.getBoundingClientRect();
-    // The VitePress header height. Measured from the site: 56px on desktop,
-    // slightly taller on mobile — 64px is a safe upper bound and matches the
-    // scroll-padding-top set in the docs theme.
-    const headerHeight = 64;
+    // The VitePress header's painted foot: a 64px nav box (`--vp-nav-height`)
+    // plus the 1px divider VitePress paints below it — the same 65px the docs
+    // theme reserves as `scroll-padding-top`. This constant is the coarse
+    // content-area check; the per-component tests below measure the real nav
+    // and divider rectangles off the rendered page instead.
+    const headerHeight = 65;
     return box.top < headerHeight && box.bottom > 0;
   });
 
