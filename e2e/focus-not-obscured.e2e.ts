@@ -92,7 +92,7 @@ test("a focused element in the content area is not hidden by the VitePress heade
   await firstButton.focus();
 
   // Scroll the focused element into view — this is what the browser does on
-  // focus, and `scroll-padding-top: 65px` (set in the docs theme) tells it to
+  // focus, and `scroll-padding-top: 66px` (set in the docs theme) tells it to
   // leave room for the fixed header.
   await page.evaluate(() => {
     const el = document.activeElement as HTMLElement | null;
@@ -106,10 +106,13 @@ test("a focused element in the content area is not hidden by the VitePress heade
     if (!el) return false;
     const box = el.getBoundingClientRect();
     // The VitePress header's painted foot: a 64px nav box (`--vp-nav-height`)
-    // plus the 1px divider VitePress paints below it — the same 65px the docs
-    // theme reserves as `scroll-padding-top`. This constant is the coarse
-    // content-area check; the per-component tests below measure the real nav
-    // and divider rectangles off the rendered page instead.
+    // plus the 1px divider VitePress paints below it. The docs theme's
+    // `scroll-padding-top` reserves 66px — this foot plus one pixel of browser
+    // scroll-snapping headroom, since a fractional document offset can land
+    // an element up to a pixel short of the padding it asked for. This
+    // constant is the coarse content-area check; the per-component tests
+    // below measure the real nav and divider rectangles off the rendered
+    // page instead.
     const headerHeight = 65;
     return box.top < headerHeight && box.bottom > 0;
   });
