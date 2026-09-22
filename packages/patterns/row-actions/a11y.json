@@ -23,11 +23,8 @@
   "interaction": {
     "class": "container",
     "basis": "a row surface hosting action buttons it does not operate.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage between the hosted actions is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/patterns/row-actions/e2e/row-actions.e2e.ts"]
+    }
   }
 }

@@ -141,8 +141,15 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // the Tab chain of their interactive surfaces (#432 tranche 4) — and
     // since composition's scroll-reel followed: its spec seats Tab on the
     // named region, steps the strip between snap children with the arrow
-    // keys, and jumps the strip's poles with Home and End (#432 tranche 4).
-    countOfRecord: 30,
+    // keys, and jumps the strip's poles with Home and End (#432 tranche 4) —
+    // and since the native-passage trio followed: primitives' breadcrumb,
+    // whose spec walks Tab across the trail's links in document order and
+    // proves the aria-current page is never a seat; patterns' error-summary,
+    // whose spec presses Enter through a failed submit to the focused summary
+    // box and Enter on an entry link back to the invalid field; and patterns'
+    // row-actions, whose spec watches the hosted action group come up under
+    // group-focus-within as Tab enters the row and park again as it leaves.
+    countOfRecord: 27,
   },
   {
     id: "responsive",
