@@ -15,7 +15,7 @@
     "exceptions": [
       {
         "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage through the revealed surface is unproven in browser; tracked in ecoma-io/loom#432"
+        "because": "the card's content is read-only by design — Reka strips tabindex off every tabbable node inside, so Tab never enters it; the contract to witness in a browser is trigger focus opening the card, blur closing it, Escape dismissing it, and Tab crossing from the trigger past the card without entering or trapping; no component-owned harness spec witnesses those gestures yet; that floor is ecoma-io/loom#432's tranche work"
       }
     ]
   }
