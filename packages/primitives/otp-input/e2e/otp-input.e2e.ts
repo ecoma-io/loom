@@ -16,9 +16,16 @@ test.beforeEach(async ({ page }) => {
   await expect(cell(page, 1)).toBeVisible({ timeout: 20_000 });
 });
 
+/** One demo row, scoped by the labelled span only it carries — the code and invalid rows are both six cells with the same per-cell names, so the row is the scope, never the name. */
+function row(page: Page, labelledBy: string): Locator {
+  return page.locator(`[aria-labelledby="${labelledBy}"]`);
+}
+
 /** One cell of the demo's first row — each names itself by position. */
 function cell(page: Page, position: number): Locator {
-  return page.getByRole("textbox", { name: `Digit ${String(position)} of 6` });
+  return row(page, "otp-demo-code").getByRole("textbox", {
+    name: `Digit ${String(position)} of 6`,
+  });
 }
 
 test("Tab seats the first empty cell, typing fills and advances, and the last digit completes the code", async ({
@@ -43,7 +50,9 @@ test("Tab seats the first empty cell, typing fills and advances, and the last di
   // With the row full, the single stop is the last cell: the next Tab leaves
   // the row entirely and seats the masked PIN's first cell.
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("textbox", { name: "Digit 1 of 4" })).toBeFocused();
+  await expect(
+    row(page, "otp-demo-pin").getByRole("textbox", { name: "Digit 1 of 4" }),
+  ).toBeFocused();
 });
 
 test("Backspace on an empty cell steps back and clears the one before it, and the arrows walk", async ({

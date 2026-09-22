@@ -40,16 +40,19 @@ test("the field is one Tab stop and the arrows walk and step it", async ({ page 
   await page.keyboard.press("Tab");
   await expect(hour(page)).toBeFocused();
 
-  // Right walks into the minute, then the period; left walks back.
+  // Right walks into the minute, then the period; left walks all the way back
+  // to the hour.
   await page.keyboard.press("ArrowRight");
   await expect(segment(page, "Minute")).toBeFocused();
   await page.keyboard.press("ArrowRight");
   await expect(segment(page, "AM or PM")).toBeFocused();
   await page.keyboard.press("ArrowLeft");
   await expect(segment(page, "Minute")).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await expect(hour(page)).toBeFocused();
 
-  // Up and down step the focused segment's value: 09:30 + one hour is 10:30
-  // on the model.
+  // Up steps the focused segment's value: 09:30 + one hour is 10:30 on the
+  // model.
   await page.keyboard.press("ArrowUp");
   await expect(model(page)).toHaveText("10:30");
   await expect(hour(page)).toBeFocused();

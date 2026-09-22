@@ -47,9 +47,18 @@ test("the slider thumbs take the arrows and report the stepped value", async ({ 
   await areaThumb.focus();
   const before = await areaThumb.getAttribute("aria-valuetext");
 
-  // One ArrowRight is one saturation step, announced on the thumb itself.
+  // One ArrowRight is one saturation step, announced on the thumb itself. The
+  // landing is instrumented rather than assumed: if the step re-mounts the
+  // thumb instead of keeping focus on it, this message is what says so.
   await page.keyboard.press("ArrowRight");
-  await expect(areaThumb).toBeFocused();
+  const landed = await page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return "body";
+    const role = el.getAttribute("role");
+    const text = (el.getAttribute("aria-valuetext") ?? el.textContent).trim().slice(0, 40);
+    return `${el.tagName.toLowerCase()}${role ? `[role=${role}]` : ""}: ${text}`;
+  });
+  await expect(areaThumb, `the arrow step left focus on: ${landed}`).toBeFocused();
   await expect(areaThumb).not.toHaveAttribute("aria-valuetext", before ?? "");
 
   // The hue slider is its own slider with its own stop.

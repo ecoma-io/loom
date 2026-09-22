@@ -3,9 +3,11 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // The number field's keyboard contract: the spinbutton input is a Tab stop the
 // arrows step (Reka's handling), Shift multiplies one tick by ten (Loom's own
 // capture handler, which Reka has no equivalent of), Home and End jump to the
-// clamped bounds, Enter commits once per gesture, and the stepper buttons are
-// native buttons on the tab order. jsdom runs none of the key handling, which
-// is why the unit tier could only assert the markup and the emitted values.
+// clamped bounds, Enter commits once per gesture — and the stepper buttons are
+// real buttons that Reka deliberately holds OFF the tab order (`tabindex="-1"`),
+// working from direct focus or pointer but never from the walk. jsdom runs none
+// of the key handling, which is why the unit tier could only assert the markup
+// and the emitted values.
 //
 // The demo's instances are found by the labelled heading each one carries —
 // the id lands on the spinbutton itself — and the committed line at the page's
@@ -82,30 +84,35 @@ test("Shift multiplies the tick by ten, and Home and End jump to the clamped bou
   await expect(rotation).toHaveValue("-180");
 });
 
-test("the stepper buttons are on the tab order and Enter works them", async ({ page }) => {
+test("the steppers work from direct focus, and stay off the tab order", async ({ page }) => {
   const x = spinbutton(page, "number-field-demo-x");
 
   await x.focus();
-  // From the input, the next stops are the increment then the decrement button.
+  // The steppers are held off the walk — the input is the field's only stop,
+  // so a Tab from it lands on the next field's input.
   await page.keyboard.press("Tab");
-  await expect(stepper(page, "Increase value")).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(stepper(page, "Decrease value")).toBeFocused();
+  await expect(spinbutton(page, "number-field-demo-rotation")).toBeFocused();
+  await expect(stepper(page, "Increase value")).toHaveAttribute("tabindex", "-1");
 
-  // Native button activation: Enter presses the stepper and the readout moves.
+  // Held off the walk is not inert: focused directly, each button presses with
+  // Enter and the readout moves a tick.
+  await stepper(page, "Increase value").focus();
   await page.keyboard.press("Enter");
-  await expect(x).toHaveValue("119");
+  await expect(x).toHaveValue("121");
+  await stepper(page, "Decrease value").focus();
+  await page.keyboard.press("Enter");
+  await expect(x).toHaveValue("120");
 });
 
 test("the disabled field is no tab stop at all", async ({ page }) => {
   const opacity = spinbutton(page, "number-field-demo-opacity");
+  const locked = spinbutton(page, "number-field-demo-locked");
   const rate = spinbutton(page, "number-field-demo-readonly");
 
-  // The width field between opacity and rate is disabled: its three stops —
-  // input and two steppers — are walked straight past.
+  // The locked field between opacity and rate is disabled: its input takes no
+  // walk at all, and its steppers were never on it — so one Tab spans both.
+  await expect(locked).toBeDisabled();
   await opacity.focus();
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
   await expect(rate).toBeFocused();
 });

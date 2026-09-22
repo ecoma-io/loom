@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "number-field.e2e.ts now presses the field's real keyboard surface in browser — the arrows stepping the spinbutton, Shift multiplying one tick by ten, Home and End landing on the clamped poles, Enter committing once per gesture, the stepper buttons reached and pressed on the tab order, the disabled field walked past — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
+      "because": "number-field.e2e.ts presses the field's real keyboard surface in browser — the arrows stepping the spinbutton, Shift multiplying one tick by ten, Home and End landing on the clamped poles, Enter committing once per gesture, the steppers pressed from direct focus while held off the tab order, the disabled field walked past — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     }
   ],
   "interaction": {

@@ -163,7 +163,7 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // activedescendant handlers — the arrows and Home/End move the highlight
     // while focus stays in the searchbox, Enter runs the highlighted command,
     // and Escape clears the query before it closes the list — and since the
-    // picker-and-field batch followed, nine rows more: primitives' calendar,
+    // picker-and-field batch followed, eight rows more: primitives' calendar,
     // whose spec seats Tab through the month buttons onto today's cell, walks
     // day and week steps with the arrows, chooses and clears with Enter, and
     // stops at the min/max fence; color-picker, whose spec steps the
@@ -172,13 +172,11 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // date-time-range-picker, whose spec walks one Tab stop across both
     // halves' segments, types digits that fill and advance, and opens the
     // calendar trigger onto the day grid where Enter lays the range down and
-    // Escape returns to the trigger; editable, whose spec opens with Enter
-    // and commits, abandons with Escape handing focus back exactly once,
-    // opens focus mode on arrival without re-opening on its own hand-back,
-    // and seats the read-only value without ever opening it; number-field,
+    // Escape returns to the trigger; number-field,
     // whose spec steps the spinbutton with the arrows, multiplies a tick by
     // ten under Shift, lands Home and End on the clamped poles, commits once
-    // per Enter, reaches the stepper buttons on the tab order, and walks the
+    // per Enter, holds the steppers off the tab order — Reka's own
+    // tabindex="-1" — while pressing them from direct focus, and walks the
     // disabled field's stops by; otp-input, whose spec seats the first empty
     // cell on Tab, fills with auto-advance, completes the code once,
     // backtracks with Backspace clearing the cell before it, and walks the
@@ -196,8 +194,14 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // is the labelled button's own activation; tags-input's row named
     // "chip-row navigation keys" and the component deliberately stops the
     // wrapped primitive's virtual selection, replacing it with the Backspace
-    // lift the spec witnesses. Three rows stay.
-    // Context-menu: its wrapped Reka trigger opens on the pointer only — no
+    // lift the spec witnesses. Four rows stay.
+    // Editable: the Enter commit fires the submit event and the value lands
+    // in the model, but the editor stays open instead of returning to its
+    // preview — observed in the harness and invisible to the unit tier, whose
+    // trigger("keydown") runs the key handler without the focus swap the
+    // commit is meant to perform; its slimmed spec witnesses the open/abandon
+    // half and the row holds. Context-menu: its wrapped Reka trigger opens on
+    // the pointer only — no
     // keydown path to the menu exists anywhere in the chain. Dropdown-menu and
     // speed-dial: opening never moves focus into the menu, so no row or pill
     // is reachable by keyboard — the pinned reka-ui focuses its own content
@@ -205,8 +209,8 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // arrow and Enter press on the still-focused trigger (their slimmed specs
     // witness the open/close half and the speed-dial's horizontal
     // aria-orientation correction; reka-ui issue 1873 names the symptom class
-    // upstream). #432 holds all three rows until those open defects land.
-    countOfRecord: 14,
+    // upstream). #432 holds all four rows until those open defects land.
+    countOfRecord: 15,
   },
   {
     id: "responsive",

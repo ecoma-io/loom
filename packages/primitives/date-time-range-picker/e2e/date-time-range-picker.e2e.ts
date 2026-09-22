@@ -8,8 +8,10 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // and Enter lays the range down in two presses.
 //
 // The demo's second instance ("date-time-range-picker-demo-query") is the one
-// under spec: nothing chosen yet, so every segment shows its placeholder and
-// the walk starts from the very first stop.
+// under spec: nothing chosen yet, so every segment shows its placeholder. The
+// demo mounts an instance ahead of it, so the tests seat the field with
+// `.focus()` rather than a page-top Tab, and the one-stop claim is witnessed
+// by Tab *leaving* the field for its own trigger.
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/?component=date-time-range-picker");
@@ -43,12 +45,15 @@ function panelDays(page: Page): Locator {
 test("the field is one Tab stop and the arrows walk segment to segment across both halves", async ({
   page,
 }) => {
+  const month = startSegments(page).nth(0);
+  const trigger = queryField(page).getByRole("button", { name: "Open calendar" });
+
   // The walk: every segment of the start half, then across the dash into the
   // end half. The demo's locale is the default, so the date half reads month,
   // day, year and the clock half reads hour, minute, AM/PM — six segments per
   // half, literals skipped.
-  await page.keyboard.press("Tab");
-  await expect(startSegments(page).nth(0)).toBeFocused(); // start month
+  await month.focus();
+  await expect(month).toBeFocused();
   for (let segment = 1; segment < 6; segment++) {
     await page.keyboard.press("ArrowRight");
     await expect(startSegments(page).nth(segment)).toBeFocused();
@@ -59,6 +64,15 @@ test("the field is one Tab stop and the arrows walk segment to segment across bo
   // And back: the walk is not a one-way valve.
   await page.keyboard.press("ArrowLeft");
   await expect(startSegments(page).nth(5)).toBeFocused();
+
+  // The field is one composite: every other segment is off the tab order, so
+  // the only Tab from inside the walk leaves the field for its own trigger.
+  await page.keyboard.press("Tab");
+  await expect(trigger).toBeFocused();
+  // And the composite keeps one stop: Shift+Tab back in seats the segment that
+  // held the walk.
+  await page.keyboard.press("Shift+Tab");
+  await expect(startSegments(page).nth(5)).toBeFocused();
 });
 
 test("typing fills a segment and hands focus to the next one", async ({ page }) => {
@@ -66,7 +80,7 @@ test("typing fills a segment and hands focus to the next one", async ({ page }) 
   const day = startSegments(page).nth(1);
   const year = startSegments(page).nth(2);
 
-  await page.keyboard.press("Tab");
+  await month.focus();
   await expect(month).toBeFocused();
 
   // A two-digit month fills and advances; the day takes two digits; the year

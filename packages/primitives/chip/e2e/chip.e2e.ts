@@ -83,7 +83,9 @@ test("a chip that both toggles and dismisses is two stops, never one", async ({ 
   const removeRegion = removeButton(page, "Remove the region facet");
   await expect(removeRegion).toBeFocused();
 
-  // Toggle with Space, dismiss with Enter: two controls, two native actions.
+  // Toggle with Space, dismiss with Enter: two controls, two native actions,
+  // each witnessed from its own direct focus.
+  await region.focus();
   await page.keyboard.press("Space");
   await expect(region).toHaveAttribute("aria-pressed", "false");
   await removeRegion.focus();
