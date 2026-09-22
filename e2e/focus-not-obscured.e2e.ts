@@ -29,15 +29,6 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
  * is in-flow, so a focused element scrolled into view never overlaps it — the
  * same assertion holds on both, because it compares real rectangles rather than
  * a hard-coded height.
- *
- * The clearance assertion takes one pixel of latitude at the header's foot:
- * VitePress paints a 1px `.divider` hairline under `.VPNavBar`, so the real
- * `.VPNav` bottom sits one pixel below `--vp-nav-height` (64px nav + 1px
- * divider = 65). `scroll-padding-top` reserves the token 64px, so a below-fold
- * focus lands the element's top at exactly 64 — inside the hairline by one
- * pixel. That is the VitePress chrome deciding the scroll, not Loom content
- * covering the focus ring, and tightening this check would fail on the
- * framework rather than on anything this repository owns.
  */
 async function focusAndExpectClearOfDocsHeader(page: Page, target: Locator): Promise<void> {
   await target.focus();
@@ -51,25 +42,25 @@ async function focusAndExpectClearOfDocsHeader(page: Page, target: Locator): Pro
     if (el) el.scrollIntoView({ block: "start" });
   });
 
-  // The focus ring is obscured when it rises above the header's foot — the
-  // element's top edge must land at or below the nav's real bottom. A
-  // measurement that cannot see the header is fail-closed: a check that cannot
-  // look must not read as one that looked and found nothing.
-  const clearance = await page.evaluate(() => {
+  // The focused element is obscured when it overlaps the header on both axes.
+  // A measurement that cannot see the header is fail-closed: a check that
+  // cannot look must not read as one that looked and found nothing.
+  const obscured = await page.evaluate(() => {
     const el = document.activeElement as HTMLElement | null;
-    if (!el) return -1;
+    if (!el) return true;
+    const box = el.getBoundingClientRect();
     const nav = document.querySelector(".VPNav");
-    if (!nav) return -1;
-    return el.getBoundingClientRect().top - nav.getBoundingClientRect().bottom;
+    if (!nav) return true;
+    const navBox = nav.getBoundingClientRect();
+    return (
+      box.left < navBox.right &&
+      box.right > navBox.left &&
+      box.top < navBox.bottom &&
+      box.bottom > navBox.top
+    );
   });
 
-  // `scroll-padding-top` equals `--vp-nav-height` exactly, so the browser
-  // scrolls a below-fold focus to 64px — on top of the divider, 1px short of
-  // clear. The focus ring itself does not reach beyond the element's top by a
-  // pixel on any engine; allow exactly the hairline and no more.
-  expect(clearance, "focused element is obscured by the fixed docs header").toBeGreaterThanOrEqual(
-    -1,
-  );
+  expect(obscured, "focused element is obscured by the fixed docs header").toBe(false);
 }
 
 test("a focused element in the content area is not hidden by the VitePress header", async ({

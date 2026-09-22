@@ -239,9 +239,12 @@
  * a focused element scrolled into view sits behind the header — a WCAG 2.2
  * SC 2.4.11 (Focus Not Obscured) violation. `scroll-padding-top` tells the
  * browser to leave a gap when scrolling, so the focus ring is always visible.
- * 64px is a safe upper bound for the nav height across viewports. */
+ * The 64px nav bar carries VitePress's 1px divider at its foot, so the fixed
+ * `.VPNav` rect reaches 65px. Reserve the real painted chrome, not only its
+ * height token: a 64px gap leaves an element scrolled to `start` under that
+ * divider by one pixel. */
 html {
-  scroll-padding-top: 64px;
+  scroll-padding-top: 65px;
 }
 
 /* VitePress's search button (local provider) renders the shortcut keycaps
