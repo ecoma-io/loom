@@ -3,7 +3,12 @@
   "basis": "renders a native <a href> (implicit role link); the arrow glyph is aria-hidden.",
   "evidence": {
     "browserless": ["docs/demos/LinkDemo.vue", "packages/primitives/link/tests/Link.test.ts"],
-    "harness": [],
+    "harness": [
+      {
+        "path": "packages/primitives/link/e2e/link.e2e.ts",
+        "because": "the link role's matrix row has no keyboard row; the spec is kept as the interaction axis's own proof"
+      }
+    ],
     "sweep": ["docs/components/link.md"]
   },
   "exceptions": [
@@ -16,13 +21,8 @@
     "class": "interactive",
     "basis": "one traversal target whose activation is the native anchor's own.",
     "evidence": {
-      "browserless": ["packages/primitives/link/tests/Link.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "activation is the native anchor's own Enter contract; no component-owned harness spec exists — the component owns the naming and the href, the keypress is the platform's"
-      }
-    ]
+      "browserless": ["packages/primitives/link/tests/Link.test.ts"],
+      "harness": ["packages/primitives/link/e2e/link.e2e.ts"]
+    }
   }
 }
