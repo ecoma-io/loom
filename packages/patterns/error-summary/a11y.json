@@ -16,11 +16,8 @@
   "interaction": {
     "class": "container",
     "basis": "an announced summary structuring links to the fields that failed.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage through the summary links is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/patterns/error-summary/e2e/error-summary.e2e.ts"]
+    }
   }
 }
