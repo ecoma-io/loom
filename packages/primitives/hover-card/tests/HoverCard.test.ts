@@ -118,13 +118,16 @@ describe("HoverCard", () => {
     expect(wrapper.emitted("update:open")).toEqual([[false]]);
   });
 
-  // The two tests below are the executable form of the component docblock's
-  // keyboard contract (WCAG 2.1.1). Reka strips `tabindex="-1"` onto every
-  // tabbable node in the content on mount, and the trigger closes the card on
-  // blur after closeDelay — so interactive markup inside the card can never be
-  // reached by keyboard, whatever it is. Callers must ship read-only content;
-  // these tests pin both halves of that: nothing the caller adds becomes
-  // reachable, and nothing we render is focusable to begin with.
+  // The two tests below are the executable form of the keyboard contract the
+  // component docblock and the sidecar's interaction claim both tell (WCAG
+  // 2.1.1). Reka's own wiring opens the card on trigger focus and closes it on
+  // blur after closeDelay, and its DismissableLayer dismisses on Escape — but
+  // the card's content is read-only by design: Reka strips `tabindex="-1"`
+  // onto every tabbable node in the content on mount, so Tab never enters the
+  // card and crosses straight past it, whatever the caller ships. Callers must
+  // keep the card non-interactive; these tests pin both halves of that design:
+  // nothing the caller adds becomes reachable, and nothing we render is
+  // focusable to begin with.
 
   it("strips reachability from tabbable nodes a caller puts in the card anyway, which is why its docs require non-interactive content", async () => {
     await mountHoverCard(
