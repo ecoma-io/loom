@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "speed-dial.e2e.ts presses the open/close half of the fan's keys in browser — Enter toggling, Escape closing, focus staying with the trigger — but the traversal half is exactly what the interaction-level defect below leaves unproven, so no harness citation answers the keyboard family here; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,12 +23,18 @@
     "class": "composite",
     "basis": "a trigger expanding into action targets managed as one menu.",
     "evidence": {
-      "browserless": ["packages/primitives/speed-dial/tests/SpeedDial.test.ts"]
+      "browserless": ["packages/primitives/speed-dial/tests/SpeedDial.test.ts"],
+      "harness": [
+        {
+          "path": "packages/primitives/speed-dial/e2e/speed-dial.e2e.ts",
+          "because": "witnesses only the open/close half and the horizontal aria-orientation correction — the walk and activation keys stay unproven"
+        }
+      ]
     },
     "exceptions": [
       {
         "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the expanding menu's roving focus is unproven in browser; tracked in ecoma-io/loom#432"
+        "because": "opening never moves focus into the fan, so no pill is reachable by keyboard: the pinned reka-ui@2.10.4 focuses the menu's own content element on open and in the engine that focus never lands — Reka's vertical arrows and the mirrorArrows horizontal correction bound on the fan's content element alike fire while focus is still on the trigger (observed in the harness; reka-ui issue 1873 names the same symptom class upstream); tracked in ecoma-io/loom#432"
       }
     ]
   }

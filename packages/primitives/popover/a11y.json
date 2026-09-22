@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the open/close focus contract is Reka PopoverContent's (role=\"dialog\") runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "popover.e2e.ts now presses the panel's real focus routing in browser — Enter opening onto the panel's first control, Tab and Space operating the panel's controls, Escape closing back onto the trigger — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "composite",
     "basis": "trigger and floating panel managed as one — open state, dismissal, focus routing.",
     "evidence": {
-      "browserless": ["packages/primitives/popover/tests/Popover.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the popup's open and dismissal keys is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/popover/tests/Popover.test.ts"],
+      "harness": ["packages/primitives/popover/e2e/popover.e2e.ts"]
+    }
   }
 }

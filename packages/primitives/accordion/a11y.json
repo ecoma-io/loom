@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "accordion.e2e.ts now presses the disclosure's real keys in browser — Enter toggling, the arrows and Home walking the triggers — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "composite",
     "basis": "a Reka disclosure pair — trigger and region managed as one, with the trigger's own activation contract.",
     "evidence": {
-      "browserless": ["packages/primitives/accordion/tests/Accordion.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the Reka-managed trigger traversal is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/accordion/tests/Accordion.test.ts"],
+      "harness": ["packages/primitives/accordion/e2e/accordion.e2e.ts"]
+    }
   }
 }
