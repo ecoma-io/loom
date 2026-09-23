@@ -79,6 +79,15 @@ function thumbs(wrapper: Picker) {
   return wrapper.findAll('[role="slider"]');
 }
 
+// The picker's own focus repair runs on a macrotask, after the render Reka's
+// highlight rides on, so a test that only awaits `nextTick` would assert before
+// the repair exists. Same shape as the dialog suites' helper.
+async function settle(): Promise<void> {
+  await nextTick();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await nextTick();
+}
+
 // `findAll()[n]` is possibly-undefined under this repository's TypeScript
 // settings, and a cast there would hide the case worth being loud about: a
 // preset that silently failed to render.
@@ -298,6 +307,45 @@ describe("ColorPicker presets", () => {
       wrapper.get('[role="listbox"]').attributes("tabindex"),
     ].filter((tabindex) => tabindex === "0");
     expect(tabbable).toHaveLength(1);
+  });
+
+  // Reka's listbox re-highlights on any change made outside itself, and it
+  // re-highlights by focusing — so a step on a thumb used to hand the walk to
+  // the row (#466). The repair is what these three pin: focus the row was not
+  // given comes back, and focus it was given stays.
+  it("keeps the thumb the walk was on, instead of handing it to the row", async () => {
+    const wrapper = mountPicker({ modelValue: "#3366cc", swatches: ["#ff0000", "#00ff00"] });
+    const thumb = wrapper.get<HTMLElement>('[role="application"] [role="slider"]');
+    thumb.element.focus();
+
+    await thumb.trigger("keydown", { key: "ArrowRight" });
+    await settle();
+
+    expect(wrapper.emitted("update:modelValue")).toHaveLength(1);
+    expect(document.activeElement).toBe(thumb.element);
+  });
+
+  it("keeps focus on a host's own write where it was, which is the same steal one step up", async () => {
+    const wrapper = mountPicker({ modelValue: "#3366cc", swatches: ["#ff0000", "#00ff00"] });
+    const thumb = wrapper.get<HTMLElement>('[role="application"] [role="slider"]');
+    thumb.element.focus();
+
+    await wrapper.setProps({ modelValue: "#ff0000" });
+    await settle();
+
+    expect(document.activeElement).toBe(thumb.element);
+  });
+
+  it("leaves a pick alone, so the row still holds the walk it was given", async () => {
+    const wrapper = mountPicker({ modelValue: "#3366cc", swatches: ["#ff0000", "#00ff00"] });
+    const swatch = option(wrapper, 1);
+    (swatch.element as HTMLElement).focus();
+
+    await swatch.trigger("click");
+    await settle();
+
+    expect(wrapper.emitted("update:modelValue")).toEqual([["#00ff00"]]);
+    expect(document.activeElement).toBe(swatch.element);
   });
 
   it("choosing a preset emits the colour and checkpoints it in one go", async () => {

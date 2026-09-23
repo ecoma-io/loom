@@ -113,8 +113,11 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // arrow walk, typeahead, activation and the Escape return; and 68 since
     // editable's keyboard duty is answered at that same tier, its spec
     // witnessing the commit half — the value landing in the host, the editor
-    // closing and focus returning to the preview.
-    countOfRecord: 68,
+    // closing and focus returning to the preview; and 67 since color-picker's
+    // keyboard duty is answered there too, its spec witnessing the half that
+    // was missing: a step on either thumb keeps the walk on the thumb it was
+    // taken from.
+    countOfRecord: 67,
   },
   {
     id: "interaction",
@@ -226,26 +229,29 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // back, the focus mode opens on arrival without re-opening on Escape's own
     // hand-back, the read-only value seats without opening, and Enter commits
     // — the value reaching the host, the editor closing and focus landing
-    // back on the preview. Four rows stay, each on the defect named below.
-    // Number-field: the steppers are unreachable and
-    // inert to the keyboard — reka renders them tabindex="-1" and its
+    // back on the preview; and color-picker, whose spec witnesses the steps it
+    // already pressed AND the focus they used to lose: an arrow step on either
+    // thumb moves the value but not only the value, because the preset listbox
+    // is bound to the shared model and reka's listbox re-highlights on any
+    // change made outside itself by focusing the selected swatch — so the walk
+    // ended on a swatch after one press. The row retired by a fix, not by a
+    // spec alone: the wrapper gives the focus back one macrotask later, which
+    // is after reka's watcher has had its say, and only when the row was not
+    // where the walk already was. Three rows stay, each on the defect named
+    // below. Number-field: the steppers are unreachable and inert to the
+    // keyboard — reka renders them tabindex="-1" and its
     // pressed-hold handler listens to pointerdown only, so the click a key
     // synthesizes has nothing to land on and a focused stepper does nothing
     // under Enter or Space; the spec pins the non-response beside the pointer
-    // contrast that proves the button is alive. Color-picker: an arrow step
-    // on either thumb moves the value but not only the value — the preset
-    // listbox is bound to the shared model, and reka's listbox re-highlights
-    // on any change made outside itself by focusing the selected swatch, so
-    // the walk ends on a swatch after one press; the spec witnesses the steps
-    // and the row holds the focus half. Dropdown-menu and
+    // contrast that proves the button is alive. Dropdown-menu and
     // speed-dial: opening never moves focus into the menu, so no row or pill
     // is reachable by keyboard — the pinned reka-ui focuses its own content
     // element on mount and in the engine that focus never lands, leaving every
     // arrow and Enter press on the still-focused trigger (their slimmed specs
     // witness the open/close half and the speed-dial's horizontal
     // aria-orientation correction; reka-ui issue 1873 names the symptom class
-    // upstream). #432 holds all four rows until those open defects land.
-    countOfRecord: 5,
+    // upstream). #432 holds all three rows until those open defects land.
+    countOfRecord: 4,
   },
   {
     id: "responsive",

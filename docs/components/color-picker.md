@@ -106,6 +106,11 @@ swatch.
 | `Enter`            | In the hex field, applies what is typed; in the preset row, chooses the highlighted swatch          |
 | `Space`            | Chooses the highlighted preset                                                                      |
 
+**An arrow keeps the walk where it was taken.** A step moves the value and
+leaves focus on the thumb it was pressed on, so repeated arrows keep adjusting
+the same axis instead of one press ending the adjustment. Choosing a preset
+leaves the walk in the row, where it already was.
+
 Both thumbs are `role="slider"`, and each announces the axes it moves rather
 than the colour it sits on: "Saturation and brightness — Saturation 60,
 Brightness 80" for the area, "Hue — 220" for the slider. The area around them carries

@@ -191,6 +191,7 @@ watch(
     if (next === current.value) return;
     current.value = next;
     lastCommitted.value = next;
+    keepFocusOutOfThePresets();
   },
 );
 
@@ -208,6 +209,7 @@ function apply(next: string): void {
   if (value === current.value) return;
   current.value = value;
   emit("update:modelValue", value);
+  keepFocusOutOfThePresets();
 }
 
 /**
@@ -300,6 +302,46 @@ const { attrs, rest: groupAttrs } = useSplitAttrs();
  */
 const root = useTemplateRef<HTMLElement>("root");
 const groupDisabled = useAncestorDisabled(() => root.value);
+
+/**
+ * The preset row Reka renders inside this control, found by role rather than
+ * held as a ref: the row only exists when the host supplied presets, so the
+ * lookup answering `null` is the no-preset case said out loud at every call
+ * site, rather than a fix tied to one Reka component's shape.
+ */
+function presetRow(): Element | null {
+  return root.value?.querySelector('[role="listbox"]') ?? null;
+}
+
+/**
+ * The preset row is a Reka listbox bound to the same `current` every other part
+ * writes, and Reka's `ListboxRoot` re-highlights on any change made outside
+ * itself — by focusing the selected swatch, or the first one when the colour
+ * matches no preset. So a change made anywhere else in the picker moved the
+ * reader as well as the value: one arrow step on the saturation or hue thumb
+ * ended with the walk on a swatch, and the thumb could not be stepped again
+ * without being refocused first (#466).
+ *
+ * Focus the row was not given is given back. It is taken before the change
+ * settles and restored after Reka has re-highlighted, which it reaches through
+ * a watcher and an awaited tick — both microtasks, so this macrotask lands
+ * after them and never races. A change that originates inside the row is left
+ * alone: a click, a pick and a typeahead walk all arrive with focus already in
+ * there, and the walk between swatches is the row's own.
+ */
+function keepFocusOutOfThePresets(): void {
+  const before = document.activeElement;
+  if (!(before instanceof HTMLElement) || before === document.body) return;
+  if (presetRow()?.contains(before) ?? false) return;
+
+  setTimeout(() => {
+    const row = presetRow();
+    const now = document.activeElement;
+    if (row === null || now === null || !row.contains(now)) return;
+    if (!before.isConnected) return;
+    before.focus();
+  }, 0);
+}
 
 // `id` and `aria-describedby` arrive as fallthrough attrs rather than props, so
 // they are handed in as this caller's own values: a caller who sets either
