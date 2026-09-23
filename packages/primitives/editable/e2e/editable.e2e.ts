@@ -94,9 +94,11 @@ test("the read-only value seats but never opens, and the disabled box never seat
   page,
 }) => {
   // Read-only keeps a Tab stop — a value on show, reachable and copyable.
-  // The stop is the preview wrapper's own `tabindex="0"`; the value text sits
-  // in a span inside it, so the seat targets the wrapper, not the text.
-  const sku = page.locator('[aria-labelledby="editable-demo-sku"] [tabindex="0"]');
+  // The caller's aria-labelledby intentionally describes only the editor (it
+  // lands there when one opens), so the resting preview is found from the
+  // value's span and seated on its parent, which holds the `tabindex="0"`.
+  const sku = page.getByText("LM-4471-A", { exact: true }).locator("..");
+  await expect(sku).toHaveAttribute("tabindex", "0");
   await sku.focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("textbox", { name: /read-only/ })).toHaveCount(0);
