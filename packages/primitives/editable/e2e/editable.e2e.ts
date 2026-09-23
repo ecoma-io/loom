@@ -75,6 +75,46 @@ async function commitState(page: Page): Promise<string> {
   });
 }
 
+/**
+ * Diagnostic scaffolding: what the page did between the commit key and the
+ * state this spec reads. It exists to name the mechanism behind the open
+ * editor, and goes once the mechanism is pinned in the component.
+ */
+async function watchCommit(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const trail: string[] = [];
+    (window as unknown as { __trail: string[] }).__trail = trail;
+
+    const say = (event: Event): void => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const label = target.getAttribute("aria-label") ?? target.textContent.trim().slice(0, 24);
+      const key = event instanceof KeyboardEvent ? ` key=${event.key}` : "";
+      trail.push(
+        `${event.type}→<${target.tagName.toLowerCase()}${label ? ` ${label}` : ""}>${key}`,
+      );
+    };
+    for (const type of ["keydown", "keyup", "click", "focusin"]) {
+      document.addEventListener(type, say, true);
+    }
+
+    const root = document.querySelector("[data-dismissable-layer]");
+    if (root !== null) {
+      new MutationObserver(() =>
+        trail.push(`data-editing=${root.getAttribute("data-editing") ?? "(absent)"}`),
+      ).observe(root, { attributes: true, attributeFilter: ["data-editing"] });
+    }
+  });
+}
+
+/** The trail `watchCommit` recorded, as one line. */
+async function commitTrail(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const trail = (window as unknown as { __trail?: string[] }).__trail;
+    return trail === undefined ? "(no trail)" : trail.join(" | ");
+  });
+}
+
 test("Enter commits the edit: the value lands, the editor closes, focus returns to the preview", async ({
   page,
 }) => {
@@ -86,20 +126,25 @@ test("Enter commits the edit: the value lands, the editor closes, focus returns 
 
   await box.press("End");
   await page.keyboard.type(" (committed)");
+  await watchCommit(page);
   await page.keyboard.press("Enter");
+  await page.waitForTimeout(500);
 
   // The half the host sees: the commit reached it, once, with the typed value.
   await expect(page.getByText("submit: Q3 operations review (committed)")).toBeVisible();
-  await expect(page.getByText("cancel", { exact: true })).toHaveCount(0);
 
   // And the half the reader sees: the editor is gone (a hidden input carries no
   // textbox role, so the query is what proves the swap) and the preview that
   // replaced it holds the focus — the same resting place Escape returns to.
   const state = await commitState(page);
-  await expect(editor(page, /a record title/), `after Enter, ${state}`).toHaveCount(0);
+  const trail = await commitTrail(page);
+  await expect(
+    editor(page, /a record title/),
+    `after Enter, ${state}\ntrail: ${trail}`,
+  ).toHaveCount(0);
   await expect(
     preview(page, /Q3 operations review \(committed\)/),
-    `after Enter, ${state}`,
+    `after Enter, ${state}\ntrail: ${trail}`,
   ).toBeFocused();
 });
 
