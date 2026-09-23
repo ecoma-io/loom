@@ -9,6 +9,12 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // without ever opening, and Enter commits — the value reaching the host, the
 // editor closing and focus landing back on the preview.
 //
+// The commit half belongs to the harness and not to the unit tier: a browser
+// runs the commit key's default action after the handlers have returned and
+// activates whatever holds focus when it does — which is why the focus
+// hand-back waits for the key to be spent. jsdom synthesises no such
+// activation, so a unit test would pass with the defect fully present.
+//
 // The demo mounts nine editables; two of them show the same owner, so
 // previews are matched by value AND taken in document order.
 
@@ -75,41 +81,6 @@ async function commitState(page: Page): Promise<string> {
   });
 }
 
-/**
- * Diagnostic scaffolding: what the page did between the commit key and the
- * state this spec reads. It exists to name the mechanism behind the open
- * editor, and goes once the mechanism is pinned in the component.
- */
-async function watchCommit(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    const trail: string[] = [];
-    (window as unknown as { __trail: string[] }).__trail = trail;
-
-    const say = (event: Event): void => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const root = document.querySelector("[data-dismissable-layer]");
-      const editing = root?.getAttribute("data-editing") ?? "-";
-      const label = target.getAttribute("aria-label") ?? target.textContent.trim().slice(0, 24);
-      const key = event instanceof KeyboardEvent ? ` key=${event.key}` : "";
-      trail.push(
-        `${event.type}→<${target.tagName.toLowerCase()}${label ? ` ${label}` : ""}>${key} (editing=${editing})`,
-      );
-    };
-    for (const type of ["keydown", "keyup", "click", "focusin"]) {
-      document.addEventListener(type, say, true);
-    }
-  });
-}
-
-/** The trail `watchCommit` recorded, as one line. */
-async function commitTrail(page: Page): Promise<string> {
-  return page.evaluate(() => {
-    const trail = (window as unknown as { __trail?: string[] }).__trail;
-    return trail === undefined ? "(no trail)" : trail.join(" | ");
-  });
-}
-
 test("Enter commits the edit: the value lands, the editor closes, focus returns to the preview", async ({
   page,
 }) => {
@@ -121,9 +92,7 @@ test("Enter commits the edit: the value lands, the editor closes, focus returns 
 
   await box.press("End");
   await page.keyboard.type(" (committed)");
-  await watchCommit(page);
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(500);
 
   // The half the host sees: the commit reached it, once, with the typed value.
   await expect(page.getByText("submit: Q3 operations review (committed)")).toBeVisible();
@@ -132,14 +101,10 @@ test("Enter commits the edit: the value lands, the editor closes, focus returns 
   // textbox role, so the query is what proves the swap) and the preview that
   // replaced it holds the focus — the same resting place Escape returns to.
   const state = await commitState(page);
-  const trail = await commitTrail(page);
-  await expect(
-    editor(page, /a record title/),
-    `after Enter, ${state}\ntrail: ${trail}`,
-  ).toHaveCount(0);
+  await expect(editor(page, /a record title/), `after Enter, ${state}`).toHaveCount(0);
   await expect(
     preview(page, /Q3 operations review \(committed\)/),
-    `after Enter, ${state}\ntrail: ${trail}`,
+    `after Enter, ${state}`,
   ).toBeFocused();
 });
 

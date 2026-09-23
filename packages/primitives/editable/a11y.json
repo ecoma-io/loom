@@ -1,19 +1,15 @@
 {
   "role": "textbox",
-  "basis": "the announced surface is the value: EditablePreview renders as a <button> at rest and swaps to the EditableInput text input while editing, with labelled submit/cancel <button>s and a role=\"status\" span for refusals.",
+  "basis": "the announced surface is the value: EditablePreview renders as a <button> at rest — the keyboard's way in, since Reka has no keyboard path into its preview — and swaps to the EditableInput text input while editing, with labelled submit/cancel <button>s and a role=\"status\" span for refusals.",
   "evidence": {
     "browserless": [
       "docs/demos/EditableDemo.vue",
       "packages/primitives/editable/tests/Editable.test.ts"
     ],
-    "harness": [],
+    "harness": ["packages/primitives/editable/e2e/editable.e2e.ts"],
     "sweep": ["docs/components/editable.md"]
   },
   "exceptions": [
-    {
-      "requirement": "keyboard",
-      "because": "editable.e2e.ts presses the edit's real keyboard surface in browser — Enter opening, Escape abandoning with focus handed back, focus mode opening on arrival without re-opening on its own hand-back, the read-only value seating without opening — but the commit half is exactly what the interaction-level defect below leaves unproven, so the spec cites the open/abandon halves only; the role-axis evidence tranche owns un-qualifying this row"
-    },
     {
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
@@ -24,18 +20,8 @@
     "basis": "one edit target that swaps view and edit modes on its own state.",
     "evidence": {
       "browserless": ["packages/primitives/editable/tests/Editable.test.ts"],
-      "harness": [
-        {
-          "path": "packages/primitives/editable/e2e/editable.e2e.ts",
-          "because": "witnesses only the open/abandon half — Enter opening, Escape restoring with focus handed back once, focus mode arriving and leaving, read-only seating — while the commit gesture stays unproven"
-        }
-      ]
+      "harness": ["packages/primitives/editable/e2e/editable.e2e.ts"]
     },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "the Enter commit does not return to rest: in the harness the keydown fires the submit event and the committed value lands in the model — the demo prints it — but the editor stays open holding the value with the Save and Cancel buttons beside it (observed in the harness; the mechanism is not pinned — the pinned dist's own submit() clears its editing flag, so what keeps the editor open lives above it, and the unit tier cannot see the defect because its Enter test asserts the emitted events and never asks whether the editor closed); tracked in ecoma-io/loom#432"
-      }
-    ]
+    "exceptions": []
   }
 }
