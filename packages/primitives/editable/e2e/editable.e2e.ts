@@ -88,21 +88,16 @@ async function watchCommit(page: Page): Promise<void> {
     const say = (event: Event): void => {
       const target = event.target;
       if (!(target instanceof Element)) return;
+      const root = document.querySelector("[data-dismissable-layer]");
+      const editing = root?.getAttribute("data-editing") ?? "-";
       const label = target.getAttribute("aria-label") ?? target.textContent.trim().slice(0, 24);
       const key = event instanceof KeyboardEvent ? ` key=${event.key}` : "";
       trail.push(
-        `${event.type}→<${target.tagName.toLowerCase()}${label ? ` ${label}` : ""}>${key}`,
+        `${event.type}→<${target.tagName.toLowerCase()}${label ? ` ${label}` : ""}>${key} (editing=${editing})`,
       );
     };
     for (const type of ["keydown", "keyup", "click", "focusin"]) {
       document.addEventListener(type, say, true);
-    }
-
-    const root = document.querySelector("[data-dismissable-layer]");
-    if (root !== null) {
-      new MutationObserver(() =>
-        trail.push(`data-editing=${root.getAttribute("data-editing") ?? "(absent)"}`),
-      ).observe(root, { attributes: true, attributeFilter: ["data-editing"] });
     }
   });
 }

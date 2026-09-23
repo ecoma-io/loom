@@ -49,7 +49,7 @@ export type EditableSubmitMode = "blur" | "enter" | "both";
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue";
+import { computed, ref, watch, type ComponentPublicInstance } from "vue";
 import {
   EditableRoot,
   EditableArea,
@@ -312,8 +312,18 @@ function onPreviewBlur(): void {
 // leaves focus on the hidden node rather than dropping it, and a click on the
 // commit button leaves it on a button that is about to be hidden too, so
 // anything still inside this control counts as lost.
+//
+// The hand-back waits for the key that ended the edit to be fully dealt with,
+// which is a macrotask and not a tick. Chromium runs a key's default action
+// after the handlers have returned, and activates whatever holds focus when it
+// does: handing focus back within the same task put the preview under the
+// commit key's own default action, and the browser clicked it — which Loom's
+// activation reads as "open the editor again", so pressing Enter to commit
+// re-opened the editor it had just closed. The trail in the harness is
+// `keydown`, focus handed back, `click` on the preview, editor open again.
+// One task later the key is spent and nothing is aimed at the preview.
 function restoreFocus(): void {
-  void nextTick(() => {
+  setTimeout(() => {
     const preview = elementOf(previewRef.value);
     const root = elementOf(rootRef.value);
     if (preview === null) return;
@@ -324,7 +334,7 @@ function restoreFocus(): void {
 
     suppressFocusActivation = true;
     preview.focus();
-  });
+  }, 0);
 }
 
 function onState(state: "edit" | "submit" | "cancel"): void {
