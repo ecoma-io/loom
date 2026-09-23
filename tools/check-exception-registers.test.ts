@@ -219,8 +219,8 @@ describe("tokenBecauseStrings", () => {
 describe("readRegisters", () => {
   it("counts all three sidecar axes plus the two parsed registers", () => {
     const { counts } = readRegisters(REPO_ROOT);
-    expect(counts.get("role-a11y")).toBe(70);
-    expect(counts.get("interaction")).toBe(7);
+    expect(counts.get("role-a11y")).toBe(69);
+    expect(counts.get("interaction")).toBe(6);
     expect(counts.get("responsive")).toBe(4);
     expect(counts.get("token-allowlist")).toBe(27);
     expect(counts.get("composition-conformance")).toBe(1);

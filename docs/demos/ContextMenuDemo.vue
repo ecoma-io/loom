@@ -57,6 +57,11 @@ function onSelect(value: string) {
       </ContextMenu>
     </div>
 
+    <p class="text-xs text-muted-foreground">
+      Right-click a panel, or focus one and press Enter, Space or Shift+F10 — the menu opens the
+      same way either way.
+    </p>
+
     <p class="text-xs text-muted-foreground">Last command: {{ lastCommand }}</p>
   </div>
 </template>

@@ -46,10 +46,18 @@ import { optional } from "@ecoma-io/loom-core";
  * arrow-key navigation.
  *
  * The escape contract mirrors DropdownMenu: opening moves focus into the menu
- * and onto the first command; Esc and an outside click both close it; closing
- * returns focus to the trigger's element. The menu is modal, so while it is
- * open the page behind does not scroll and the rest of the page is hidden from
- * assistive technology.
+ * and onto the first enabled command; Esc and an outside click both close it;
+ * closing returns focus to the trigger's element. The menu is modal, so while
+ * it is open the page behind does not scroll and the rest of the page is
+ * hidden from assistive technology.
+ *
+ * A right-click is not the only way in. The trigger is rendered focusable
+ * (`tabindex="0"`) and answers Enter, Space and the context-menu keys — the
+ * dedicated ContextMenu key where a keyboard has one, Shift+F10 where that is
+ * the convention — opening the menu anchored at the trigger itself, which is
+ * where a pointer would have been. The slot element's own attributes are
+ * merged over those defaults, so a caller whose element already holds its own
+ * place in the tab order passes its own `tabindex` and wins.
  *
  * Selecting an entry emits `select` with its `value`; the host maps that id to
  * an action, which is what keeps the primitive free of app logic.
@@ -88,13 +96,79 @@ function choose(item: ContextMenuEntry): void {
   if (item.disabled || item.value === undefined) return;
   emit("select", item.value);
 }
+
+/**
+ * The keyboard half Reka's context menu does not have: its trigger binds the
+ * pointer gestures and nothing else, so a menu is announced (`aria-haspopup`)
+ * that a keyboard user cannot reach. These are the keys the platform
+ * conventions give that affordance — Enter and Space the generic activation
+ * pair, the ContextMenu key and Shift+F10 the ones a context menu is expected
+ * on.
+ */
+function opensMenu(event: KeyboardEvent): boolean {
+  return (
+    event.key === "Enter" ||
+    event.key === " " ||
+    event.key === "ContextMenu" ||
+    (event.shiftKey && event.key === "F10")
+  );
+}
+
+/**
+ * Reka's only door is the `contextmenu` event, so the keyboard path goes
+ * through it rather than opening a second state beside it: Reka anchors the
+ * menu at the event's coordinates, and a keyboard has no pointer, so the
+ * control itself is the anchor. The bottom-left corner is where a click on the
+ * control lands, which keeps a keyboard-opened menu in the same place as a
+ * pointer-opened one.
+ */
+function onTriggerKeydown(event: KeyboardEvent): void {
+  if (!opensMenu(event)) return;
+  event.preventDefault();
+  const trigger = event.currentTarget as HTMLElement;
+  const rect = trigger.getBoundingClientRect();
+  trigger.dispatchEvent(
+    new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left,
+      clientY: rect.bottom,
+    }),
+  );
+}
+
+/**
+ * Reka spends the mount focus on the content element, which is not focusable:
+ * in a browser that focus call lands nowhere, so the arrows, Enter and the
+ * typeahead all fire at whatever held focus before the menu opened — the
+ * trigger, outside the menu — and reach nothing. Loom seats the first enabled
+ * command instead, which is where the ARIA menu pattern expects a keyboard
+ * reader to arrive and which leaves the row highlighted for whoever arrives by
+ * pointer. A menu of nothing but disabled rows and separators has no such row:
+ * Reka's own focus stands, and there is nothing to reach anyway.
+ */
+function onOpenAutoFocus(event: Event): void {
+  const menu = event.target as HTMLElement | null;
+  const first = menu?.querySelector<HTMLElement>('[role="menuitem"]:not([data-disabled])');
+  if (!first) return;
+  event.preventDefault();
+  first.focus();
+}
 </script>
 
 <template>
   <ContextMenuRoot v-bind="optional({ open, dir })" @update:open="$emit('update:open', $event)">
     <!-- @slot The element that receives the right-click. Rendered `as-child`,
-         so the caller's own element *is* the trigger. -->
-    <ContextMenuTrigger as-child>
+         so the caller's own element *is* the trigger.
+
+         `tabindex` and `aria-haspopup` are defaults the slot element's own
+         attributes are merged over, not requirements: a caller who renders a
+         button, or an element with a tab stop of its own, keeps what it wrote.
+         `aria-expanded` is deliberately absent even though DropdownMenu's
+         button carries it — the attribute is not allowed on a roleless
+         element, and this trigger is usually a region, so publishing it here
+         would buy a violation rather than an announcement. -->
+    <ContextMenuTrigger as-child tabindex="0" aria-haspopup="menu" @keydown="onTriggerKeydown">
       <slot name="trigger" />
     </ContextMenuTrigger>
 
@@ -119,6 +193,7 @@ function choose(item: ContextMenuEntry): void {
           )
         "
         style="transform-origin: var(--reka-popper-transform-origin)"
+        @open-auto-focus="onOpenAutoFocus"
       >
         <template v-for="(item, i) in items" :key="i">
           <ContextMenuSeparator v-if="item.separator" class="my-1 h-px bg-border" />

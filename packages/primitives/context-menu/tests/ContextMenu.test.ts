@@ -44,6 +44,14 @@ async function mountMenu(props: Record<string, unknown> = {}, triggerSlot?: stri
 const menu = () => document.querySelector<HTMLElement>('[role="menu"]');
 const items = () => [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')];
 
+/** The trigger as rendered — the slot element the keyboard has to reach. */
+const trigger = () => document.querySelector<HTMLElement>('[data-test="trigger"]')!;
+
+/** The label of whatever menuitem holds focus, read the way a user sees it. */
+const focusedLabel = () =>
+  document.activeElement?.closest<HTMLElement>('[role="menuitem"]')?.querySelector("span")
+    ?.textContent ?? null;
+
 /**
  * Dispatch a contextmenu event on the trigger to open the menu — this is how a
  * real user opens it, and Reka's ContextMenuRoot does not accept an `open` prop
@@ -168,15 +176,61 @@ describe("ContextMenu", () => {
     expect(wrapper.emitted("update:open")).toEqual([[true]]);
   });
 
+  // The keyboard half Reka's context menu does not bind: its trigger answers
+  // the pointer gestures only, so nothing a keyboard user presses opens it.
+  // Loom owns both ends — the trigger's keys, and the seat inside the menu
+  // Reka's own mount focus spends on an element that is not focusable in a
+  // browser. The unit tier pins the wrapper's half; what a browser makes of it
+  // is the harness spec's.
+  describe("keyboard opening", () => {
+    const openers: [string, KeyboardEventInit][] = [
+      ["Enter", { key: "Enter" }],
+      ["Space", { key: " " }],
+      ["the ContextMenu key", { key: "ContextMenu" }],
+      ["Shift+F10", { key: "F10", shiftKey: true }],
+    ];
+
+    for (const [name, init] of openers) {
+      it(`opens on ${name} and seats the first enabled command`, async () => {
+        await mountMenu();
+        trigger().focus();
+        trigger().dispatchEvent(new KeyboardEvent("keydown", { ...init, bubbles: true }));
+        await settle();
+
+        expect(menu()).not.toBeNull();
+        // The seat, not just the open: a menu that opened with focus still on
+        // the trigger would answer no arrow key at all.
+        expect(focusedLabel()).toBe("Cut");
+      });
+    }
+
+    it("marks the trigger reachable and names it as a menu's opener", async () => {
+      await mountMenu();
+      expect(trigger().getAttribute("tabindex")).toBe("0");
+      expect(trigger().getAttribute("aria-haspopup")).toBe("menu");
+    });
+
+    // The documented override: the defaults above are merged under the slot
+    // element's own attributes, so a caller that renders a button — or a row
+    // that already holds a tab stop — keeps what it wrote.
+    it("keeps a slot element's own tabindex over the default", async () => {
+      await mountMenu({}, '<button type="button" data-test="trigger" tabindex="-1">Row</button>');
+      expect(trigger().getAttribute("tabindex")).toBe("-1");
+    });
+
+    it("leaves a key it does not answer to be handled by whoever owns it", async () => {
+      await mountMenu();
+      trigger().focus();
+      trigger().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+      await settle();
+      expect(menu()).toBeNull();
+    });
+  });
+
   // The keyboard pins below freeze what Reka's menu machinery (2.10.1) does
   // once a context menu is open — the same MenuContentImpl the dropdown runs,
   // reached here by right-click instead of ArrowDown.
   describe("keyboard contract once open", () => {
-    /** The label of whatever menuitem holds focus, read the way a user sees it. */
-    const focusedLabel = () =>
-      document.activeElement?.closest<HTMLElement>('[role="menuitem"]')?.querySelector("span")
-        ?.textContent ?? null;
-
     function press(key: string) {
       document.activeElement?.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
     }
@@ -184,10 +238,7 @@ describe("ContextMenu", () => {
     it("walks with ArrowDown past the separator and the disabled row", async () => {
       await mountMenu();
       await rightClick();
-      await settle(); // entry focus lands on the menu itself — pointer-opened, so it stays parked there
-
-      press("ArrowDown"); // this first press enters Cut
-      await settle();
+      await settle(); // the seat is the first enabled command, whichever gesture opened the menu
       expect(focusedLabel()).toBe("Cut");
 
       press("ArrowDown");
@@ -204,26 +255,24 @@ describe("ContextMenu", () => {
     });
 
     /**
-     * A plain `div` trigger cannot hold focus (Reka adds no tabindex), so
-     * focus restoration is pinned against a focusable trigger — with the div,
-     * "returns focus" would mean returning it to nobody, and the assertion
-     * would be unfalsifiable against document.body.
+     * Restoration is pinned against the trigger the wrapper renders itself —
+     * the slot element it has made focusable. Until that default existed this
+     * assertion needed a hand-written button in the slot, because a plain div
+     * could not hold focus and "returns focus" was unfalsifiable against
+     * document.body.
      */
     it("closes on Escape and hands focus back to whatever held it before the menu opened", async () => {
-      const wrapper = await mountMenu(
-        {},
-        '<button type="button" data-test="trigger">Edit target</button>',
-      );
-      const trigger = wrapper.get("button").element;
-      trigger.focus();
+      await mountMenu();
+      trigger().focus();
       await rightClick();
       await settle();
       expect(menu()).not.toBeNull();
+      expect(document.activeElement).not.toBe(trigger()); // the seat moved inside the menu
 
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
       await settle();
       expect(menu()).toBeNull();
-      expect(document.activeElement).toBe(trigger);
+      expect(document.activeElement).toBe(trigger());
     });
 
     it("closes when the pointer goes down outside the menu", async () => {
