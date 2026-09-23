@@ -116,8 +116,10 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // closing and focus returning to the preview; and 67 since color-picker's
     // keyboard duty is answered there too, its spec witnessing the half that
     // was missing: a step on either thumb keeps the walk on the thumb it was
-    // taken from.
-    countOfRecord: 67,
+    // taken from; and 65 since dropdown-menu's and speed-dial's are answered
+    // there by the seat this engine was losing — the first enabled row the
+    // specs now land on, walk, and activate.
+    countOfRecord: 65,
   },
   {
     id: "interaction",
@@ -237,21 +239,25 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // ended on a swatch after one press. The row retired by a fix, not by a
     // spec alone: the wrapper gives the focus back one macrotask later, which
     // is after reka's watcher has had its say, and only when the row was not
-    // where the walk already was. Three rows stay, each on the defect named
-    // below. Number-field: the steppers are unreachable and inert to the
-    // keyboard — reka renders them tabindex="-1" and its
-    // pressed-hold handler listens to pointerdown only, so the click a key
-    // synthesizes has nothing to land on and a focused stepper does nothing
-    // under Enter or Space; the spec pins the non-response beside the pointer
-    // contrast that proves the button is alive. Dropdown-menu and
-    // speed-dial: opening never moves focus into the menu, so no row or pill
-    // is reachable by keyboard — the pinned reka-ui focuses its own content
-    // element on mount and in the engine that focus never lands, leaving every
-    // arrow and Enter press on the still-focused trigger (their slimmed specs
-    // witness the open/close half and the speed-dial's horizontal
-    // aria-orientation correction; reka-ui issue 1873 names the symptom class
-    // upstream). #432 holds all three rows until those open defects land.
-    countOfRecord: 4,
+    // where the walk already was; and dropdown-menu and speed-dial, two rows
+    // retired by a fix rather than by a spec alone: reka spends the mount focus
+    // on the menu's own content element, and in a browser that focus lands
+    // nowhere, so every arrow, Home/End, typeahead and Enter press fired at the
+    // trigger outside the menu and no row or pill was reachable. The wrapper
+    // seats the first enabled command on the mount-focus event instead — the
+    // arrival both components' own contracts already promised — and their specs
+    // witness the seat, the walk past a separator and a disabled row, and the
+    // activation that lands the command in the host; the speed-dial's goes
+    // further and walks a horizontal fan on its own axis, so the
+    // aria-orientation correction is shown to be live rather than only
+    // announced. One row stays, on the defect named below. Number-field: the
+    // steppers are unreachable and inert to the keyboard — reka renders them
+    // tabindex="-1" and its pressed-hold handler listens to pointerdown only,
+    // so the click a key synthesizes has nothing to land on and a focused
+    // stepper does nothing under Enter or Space; the spec pins the non-response
+    // beside the pointer contrast that proves the button is alive. #432 holds
+    // that row until the defect lands.
+    countOfRecord: 2,
   },
   {
     id: "responsive",

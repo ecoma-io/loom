@@ -1,17 +1,15 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-// This spec witnesses the half of the menu's keyboard contract that the pinned
-// reka-ui@2.10.4 actually implements: Enter opens, Enter again and Escape
-// close, and closing returns focus to the trigger. It deliberately does NOT
-// witness the arrow walk or Enter-on-a-row: in this engine, opening the menu
-// never moves focus into it — Reka's MenuContentImpl preventDefaults the mount
-// focus event and focuses its own content element, and that focus never lands,
-// so every arrow, Home/End and typeahead press fires while focus is still on
-// the trigger and reaches nothing. The rows are unreachable by keyboard, which
-// is why the interaction register still holds the keyboard-operate exception
-// for this component (the symptom class is reka-ui issue 1873 upstream). When
-// that lands, this spec grows the walk and the activation witness, and the
-// row retires.
+// The menu's whole keyboard contract in a browser: Enter opens and seats the
+// first enabled command, the arrows walk the rows past the separator and the
+// disabled entry without wrapping, Enter runs the command the walk is on, and
+// Escape closes back onto the trigger.
+//
+// The seat belongs to the harness and not to the unit tier. Reka spends the
+// mount focus on the menu's own content element, and whether that focus lands
+// is what every key inside the menu reads — jsdom focuses a `tabindex="-1"`
+// element without complaint, so the unit tier passes with the seat missing and
+// the walk unreachable (#462).
 //
 // The demo's trigger is the "Actions" button. While the modal menu is open
 // Reka aria-hides the page behind it — the trigger included — so role queries
@@ -38,38 +36,80 @@ function menu(page: Page): Locator {
   return page.getByRole("menu");
 }
 
-test("Enter opens the modal menu, Enter again closes it, and focus ends on the trigger", async ({
-  page,
-}) => {
+/** One command row, by the label the demo gives it. */
+function command(page: Page, label: string): Locator {
+  return page.getByRole("menuitem", { name: label });
+}
+
+/** Open the menu the way a keyboard user does, and wait for its seat. */
+async function openByKeyboard(page: Page): Promise<void> {
+  await trigger(page).focus();
+  await page.keyboard.press("Enter");
+  await expect(menu(page)).toBeVisible();
+}
+
+test("Enter opens the modal menu onto the first enabled command", async ({ page }) => {
   await expect(trigger(page)).toHaveAttribute("aria-haspopup", "menu");
   await expect(trigger(page)).toHaveAttribute("aria-expanded", "false");
 
-  await trigger(page).focus();
-  await page.keyboard.press("Enter");
+  await openByKeyboard(page);
 
   // Open: the menu is the page's only role-visible landmark, and the trigger
   // is gone from the accessibility tree — the modal menu hides the page
   // behind it rather than leaving both readable.
   await expect(openTrigger(page)).toHaveCount(1);
   await expect(trigger(page)).toHaveCount(0);
-  await expect(menu(page)).toBeVisible();
 
-  // The same key toggles: Enter on the trigger closes what it opened.
+  // The seat: the first command, not the heading above it and not the menu
+  // itself. Without it the arrows below have nothing to move.
+  await expect(command(page, "Duplicate")).toBeFocused();
+});
+
+test("the arrows walk the commands past the separator and the disabled row", async ({ page }) => {
+  await openByKeyboard(page);
+
+  await page.keyboard.press("ArrowDown");
+  await expect(command(page, "Rename")).toBeFocused();
+
+  // The separator and the disabled row are chrome: one press crosses both.
+  await page.keyboard.press("ArrowDown");
+  await expect(command(page, "Export video")).toBeFocused();
+
+  await page.keyboard.press("ArrowDown");
+  await expect(command(page, "Delete scene")).toBeFocused();
+
+  // The cursor stops at the end rather than wrapping — `loop` is off here.
+  await page.keyboard.press("ArrowDown");
+  await expect(command(page, "Delete scene")).toBeFocused();
+
+  await page.keyboard.press("ArrowUp");
+  await expect(command(page, "Export video")).toBeFocused();
+});
+
+test("Enter runs the command the walk is on, closing the menu onto the trigger", async ({
+  page,
+}) => {
+  await openByKeyboard(page);
+
+  await page.keyboard.press("ArrowDown");
+  await expect(command(page, "Rename")).toBeFocused();
+
   await page.keyboard.press("Enter");
+
+  // The command reached the host, once, with the value it carries.
+  await expect(page.getByText("Last command: rename")).toBeVisible();
+
+  // And the menu is gone with focus back where it came from.
   await expect(menu(page)).toBeHidden();
-  await expect(trigger(page)).toBeVisible();
   await expect(trigger(page)).toHaveAttribute("aria-expanded", "false");
   await expect(trigger(page)).toBeFocused();
 });
 
 test("Escape closes the menu and returns focus to the trigger", async ({ page }) => {
-  await trigger(page).focus();
-  await page.keyboard.press("Enter");
-  await expect(menu(page)).toBeVisible();
+  await openByKeyboard(page);
 
   await page.keyboard.press("Escape");
   await expect(menu(page)).toBeHidden();
-  await expect(trigger(page)).toBeVisible();
   await expect(trigger(page)).toHaveAttribute("aria-expanded", "false");
   await expect(trigger(page)).toBeFocused();
 });
