@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "activation is the native <button>'s own Space/Enter contract; no component-owned harness spec witnesses it in a browser yet; that floor is ecoma-io/loom#432's tranche work"
+      "because": "window-controls.e2e.ts now presses the cluster's real keyboard surface in browser — Tab seating the three controls in order and crossing between clusters, Enter firing each intent, and the maximize flip to Restore returning on the same key — while the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -22,14 +22,9 @@
   "interaction": {
     "class": "composite",
     "basis": "three native labelled <button>s (minimize, maximize/restore, close) managed as one labelled group — the traversal among them and the maximize/restore state are its contract.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage between the three controls is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ],
     "evidence": {
-      "browserless": ["packages/primitives/window-controls/tests/WindowControls.test.ts"]
+      "browserless": ["packages/primitives/window-controls/tests/WindowControls.test.ts"],
+      "harness": ["packages/primitives/window-controls/e2e/window-controls.e2e.ts"]
     }
   }
 }

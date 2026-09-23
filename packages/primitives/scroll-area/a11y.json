@@ -12,11 +12,8 @@
   "interaction": {
     "class": "container",
     "basis": "a scroll surface around content — the scrollbar and the scroll trap are its own contract.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage through the scrolled content is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/primitives/scroll-area/e2e/scroll-area.e2e.ts"]
+    }
   }
 }

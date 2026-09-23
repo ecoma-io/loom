@@ -22,11 +22,8 @@
   "interaction": {
     "class": "container",
     "basis": "a nav landmark around links it structures.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage through the nav links is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/patterns/sidebar-nav/e2e/sidebar-nav.e2e.ts"]
+    }
   }
 }

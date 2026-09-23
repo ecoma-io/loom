@@ -9,11 +9,8 @@
   "interaction": {
     "class": "container",
     "basis": "label, description and error wiring around a control it does not operate.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage through the wired control is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/primitives/field/e2e/field.e2e.ts"]
+    }
   }
 }

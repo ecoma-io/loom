@@ -187,7 +187,27 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // removal is the labelled button's own activation; tags-input's row named
     // "chip-row navigation keys" and the component deliberately stops the
     // wrapped primitive's virtual selection, replacing it with the Backspace
-    // lift the spec witnesses. Six rows stay, each on the defect named below.
+    // lift the spec witnesses; and since the passage-rows batch followed, ten
+    // rows more: primitives' field and fieldset, whose specs seat the wired
+    // controls with Tab, land typing in the bound models, resolve each row's
+    // message id off the seated control, and prove the disabled group's
+    // controls drop out of the tab order; hover-card, whose spec witnesses
+    // trigger focus opening the card, Escape dismissing it without moving
+    // focus, Tab crossing the open card without entering or trapping, and the
+    // open card holding nothing tabbable; pagination, whose spec walks the
+    // row in its own DOM order, steps pages with Enter across the shared
+    // model, and witnesses the fence hand-off that rescues focus onto the
+    // current page; scroll-area, whose spec seats each viewport on Tab and
+    // scrolls it with the arrows while the scrollbar takes no stop;
+    // window-controls, whose spec walks both clusters' three controls in
+    // order and flips maximize to Restore and back with Enter; patterns'
+    // sidebar-nav, whose spec walks the nav's six links in document order
+    // before and after the host folds the rail, each still seating by name;
+    // patterns' title-bar, whose spec crosses the hosted clusters — menu
+    // triggers, then window buttons — and fires the menu's choose and the
+    // maximize flip through the bar; and layouts' master-detail and
+    // split-layout, whose specs prove the panes add no stop and trap nothing,
+    // wide and wrapped. Six rows stay, each on the defect named below.
     // Editable: the Enter commit fires the submit event and the value lands
     // in the model, but the editor stays open instead of returning to rest —
     // observed in the harness; the mechanism is not pinned, because the
@@ -215,7 +235,7 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // witness the open/close half and the speed-dial's horizontal
     // aria-orientation correction; reka-ui issue 1873 names the symptom class
     // upstream). #432 holds all six rows until those open defects land.
-    countOfRecord: 17,
+    countOfRecord: 7,
   },
   {
     id: "responsive",
