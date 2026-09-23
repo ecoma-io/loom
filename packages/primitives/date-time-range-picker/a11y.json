@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "date-time-range-picker.e2e.ts now presses the field's real keyboard surface in browser — one Tab stop walked segment to segment across both halves, typed digits filling and advancing, the calendar button opening onto the day grid where Enter lays the range down and Escape returns — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
+      "because": "date-time-range-picker.e2e.ts now presses the field's real keyboard surface in browser — one Tab stop walked segment to segment across both halves, typed digits filling and advancing, the calendar button opening onto the day grid where Enter lays the range down, the completion itself closing the panel back onto the button — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
