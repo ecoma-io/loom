@@ -169,7 +169,8 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // stops at the min/max fence; date-time-range-picker, whose spec walks
     // one Tab stop across both halves' segments, types digits that fill and
     // advance, and opens the calendar trigger onto the day grid where Enter
-    // lays the range down and Escape returns to the trigger; otp-input, whose
+    // lays the range down, the completion itself closing the panel back onto
+    // the trigger; otp-input, whose
     // spec seats the first empty cell on Tab, fills with auto-advance,
     // completes the code once, backtracks with Backspace clearing the cell
     // before it, and walks the row with the arrows; tags-input, whose spec
@@ -186,12 +187,14 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // removal is the labelled button's own activation; tags-input's row named
     // "chip-row navigation keys" and the component deliberately stops the
     // wrapped primitive's virtual selection, replacing it with the Backspace
-    // lift the spec witnesses. Six rows stay.
+    // lift the spec witnesses. Six rows stay, each on the defect named below.
     // Editable: the Enter commit fires the submit event and the value lands
-    // in the model, but the editor stays open instead of returning to its
-    // preview — observed in the harness and invisible to the unit tier, whose
-    // trigger("keydown") runs the key handler without the focus swap the
-    // commit is meant to perform; its slimmed spec witnesses the open/abandon
+    // in the model, but the editor stays open instead of returning to rest —
+    // observed in the harness; the mechanism is not pinned, because the
+    // pinned dist's own submit() clears its editing flag, so what keeps the
+    // editor open lives above it, and the unit tier cannot see the defect
+    // because its Enter test asserts the emitted events and never asks
+    // whether the editor closed; its slimmed spec witnesses the open/abandon
     // half and the row holds. Number-field: the steppers are unreachable and
     // inert to the keyboard — reka renders them tabindex="-1" and its
     // pressed-hold handler listens to pointerdown only, so the click a key
