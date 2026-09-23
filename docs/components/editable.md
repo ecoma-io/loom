@@ -73,6 +73,11 @@ entirely. Under `activationMode="focus"` the returning focus would then re-open
 the editor it had just closed, so it is suppressed exactly once: the control
 stays showing its value until the reader leaves and comes back deliberately.
 
+**A commit returns focus the same way.** Enter lands the value, closes the
+editor and puts focus back on the preview — the resting place Escape returns to
+— so a reader who commits a value is left on the control they were editing
+rather than at the top of the page.
+
 A save and a cancel button appear beside the editor while it is open. They are
 not decoration — "Enter commits, Escape abandons" is an invisible contract, and
 a reader working by pointer has no way to learn it.
