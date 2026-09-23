@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.4](https://github.com/ecoma-io/loom/compare/v0.8.3...v0.8.4) (2026-09-23)
+
+
+### Bug Fixes
+
+* **a11y:** align the split-layout and hover-card keyboard claims with reality (ref [#432](https://github.com/ecoma-io/loom/issues/432)) ([#452](https://github.com/ecoma-io/loom/issues/452)) ([f0e8c9e](https://github.com/ecoma-io/loom/commit/f0e8c9e74b908d46c03c4d8a5d49844716db73eb))
+* **a11y:** say only what the merged evidence says — [#464](https://github.com/ecoma-io/loom/issues/464) claim corrections ([#468](https://github.com/ecoma-io/loom/issues/468)) ([a0a2801](https://github.com/ecoma-io/loom/commit/a0a280145f38c4528e01c0bfb8f43e289b0b0871))
+* **primitives:** give ContextMenu the keyboard path its trigger never had ([#461](https://github.com/ecoma-io/loom/issues/461)) ([#470](https://github.com/ecoma-io/loom/issues/470)) ([00f1948](https://github.com/ecoma-io/loom/commit/00f194806d8c50f71c3d181cfd4abe1678493e58))
+* **primitives:** keep ColorPicker slider focus after an arrow step ([#466](https://github.com/ecoma-io/loom/issues/466)) ([#473](https://github.com/ecoma-io/loom/issues/473)) ([42d5817](https://github.com/ecoma-io/loom/commit/42d58172846a52d65c6c68cf1559a13de2ceb3e1))
+* **primitives:** let the commit key finish before the Editable hands focus back ([#465](https://github.com/ecoma-io/loom/issues/465)) ([#471](https://github.com/ecoma-io/loom/issues/471)) ([b7fbcde](https://github.com/ecoma-io/loom/commit/b7fbcdee2b0847eb1438e0d39963c013768a899c)), closes [#432](https://github.com/ecoma-io/loom/issues/432)
+* **primitives:** seat the first command when the menu opens by keyboard ([#462](https://github.com/ecoma-io/loom/issues/462)) ([#474](https://github.com/ecoma-io/loom/issues/474)) ([f73f593](https://github.com/ecoma-io/loom/commit/f73f593d73a4859bcaab8788a49a1a60033f2886)), closes [#432](https://github.com/ecoma-io/loom/issues/432)
+
+
+### Documentation
+
+* stop quoting live interaction counts in prose ([33caa81](https://github.com/ecoma-io/loom/commit/33caa81b494872ab1d897f2e8917a8c75449898f))
+* stop quoting live interaction counts in prose (ref [#432](https://github.com/ecoma-io/loom/issues/432)) ([#456](https://github.com/ecoma-io/loom/issues/456)) ([33caa81](https://github.com/ecoma-io/loom/commit/33caa81b494872ab1d897f2e8917a8c75449898f))
+
 ## [0.8.3](https://github.com/ecoma-io/loom/compare/v0.8.2...v0.8.3) (2026-09-22)
 
 
