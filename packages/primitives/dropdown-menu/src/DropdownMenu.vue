@@ -45,13 +45,13 @@ import { optional } from "@ecoma-io/loom-core";
  * DropdownMenu — one button that opens a list of commands, with roving focus,
  * typeahead and arrow-key navigation.
  *
- * The escape contract: opening moves focus into the menu and onto the first
- * command; Esc and an outside click both close it; closing returns focus to the
- * trigger. The menu is modal, so while it is open the page behind does not
- * scroll and the rest of the page is hidden from assistive technology — a
- * command list is never scrolled out from under the pointer mid-choice. Focus
- * stays in the menu while it is open, but not the way `Dialog` traps it: a menu
- * has no internal tab order at all. Tab is inert, and the arrow keys plus
+ * The escape contract: opening by keyboard moves focus into the menu and onto
+ * the first command; Esc and an outside click both close it; closing returns
+ * focus to the trigger. The menu is modal, so while it is open the page behind
+ * does not scroll and the rest of the page is hidden from assistive technology
+ * — a command list is never scrolled out from under the pointer mid-choice.
+ * Focus stays in the menu while it is open, but not the way `Dialog` traps it: a
+ * menu has no internal tab order at all. Tab is inert, and the arrow keys plus
  * typeahead are how a row is reached.
  *
  * Selecting an entry emits `select` with its `value`; the host maps that id to
@@ -97,13 +97,63 @@ function choose(item: DropdownMenuEntry): void {
   if (item.disabled || item.value === undefined) return;
   emit("select", item.value);
 }
+
+/**
+ * Whether the open now arriving was asked for by the keyboard. Reka's trigger
+ * opens on a click and on Enter, Space and Arrow Down, and the two arrivals
+ * want different seats: a reader who opened by keyboard belongs on the first
+ * command, while a pointer that already sits where it aimed is not moved by the
+ * menu appearing — and Reka highlights whatever the roving group focuses, so an
+ * unconditional seat would paint the first row for a click that never asked for
+ * it. Armed by exactly the keys Reka opens on, and disarmed by the click it
+ * opens on, so an arm that never became an open — a disabled trigger, or a host
+ * that refuses `open` — cannot seat a row for the pointer arrival that follows.
+ *
+ * Reka cancels the keydown, which is what keeps a keyboard open from also
+ * firing the click that would disarm it; and the arm is read once, when the
+ * content mounts, so a click arriving after that is a no-op rather than a race.
+ */
+let keyboardOpen = false;
+
+function onTriggerKeydown(event: KeyboardEvent): void {
+  if (["Enter", " ", "ArrowDown"].includes(event.key)) keyboardOpen = true;
+}
+
+function onTriggerClick(): void {
+  keyboardOpen = false;
+}
+
+/**
+ * Reka spends the mount focus on the menu's own content element and everything
+ * a keyboard can do inside a menu hangs off that one focus: `RovingFocusGroup`
+ * seats a row only when the group element itself receives it, and the arrows,
+ * Home/End and typeahead all read the document's active element. In a browser
+ * that focus lands nowhere, so every one of those keys fired at the trigger
+ * outside the menu and no command was reachable (#462). Loom seats the first
+ * enabled command instead — the arrival the contract above promises, and where
+ * the ARIA menu pattern expects a reader who opened with the keyboard.
+ *
+ * A pointer-opened menu keeps the seat Reka gives it: the gate leaves that path
+ * exactly as it was. A menu of nothing but headings and disabled rows has no
+ * seat to take on either path, so that case falls through to Reka as well.
+ */
+function onOpenAutoFocus(event: Event): void {
+  const fromKeyboard = keyboardOpen;
+  keyboardOpen = false;
+  if (!fromKeyboard) return;
+  const menu = event.target as HTMLElement | null;
+  const first = menu?.querySelector<HTMLElement>('[role="menuitem"]:not([data-disabled])');
+  if (!first) return;
+  event.preventDefault();
+  first.focus();
+}
 </script>
 
 <template>
   <DropdownMenuRoot v-bind="optional({ open, dir })" @update:open="$emit('update:open', $event)">
     <!-- @slot The button that opens the menu. Rendered `as-child`, so the
          caller's own element *is* the trigger. -->
-    <DropdownMenuTrigger as-child>
+    <DropdownMenuTrigger as-child @keydown="onTriggerKeydown" @click="onTriggerClick">
       <slot name="trigger" />
     </DropdownMenuTrigger>
 
@@ -129,6 +179,7 @@ function choose(item: DropdownMenuEntry): void {
           )
         "
         style="transform-origin: var(--reka-popper-transform-origin)"
+        @open-auto-focus="onOpenAutoFocus"
       >
         <template v-for="(item, i) in items" :key="i">
           <DropdownMenuSeparator v-if="item.separator" class="my-1 h-px bg-border" />

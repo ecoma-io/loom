@@ -175,6 +175,56 @@ function choose(action: SpeedDialAction, index: number): void {
   emit("select", action, index);
 }
 
+/**
+ * Whether the open now arriving was asked for by the keyboard. Reka's trigger
+ * opens on a click and on Enter, Space and Arrow Down, and the two arrivals
+ * want different seats: a reader who opened by keyboard belongs on the first
+ * action, while a pointer that already sits where it aimed is not moved by the
+ * fan appearing — and Reka highlights whatever the roving group focuses, so an
+ * unconditional seat would paint the first pill for a click that never asked for
+ * it. Armed by exactly the keys Reka opens on, and disarmed by the click it
+ * opens on, so an arm that never became an open — a disabled trigger, or a host
+ * that refuses `open` — cannot seat a pill for the pointer arrival that
+ * follows.
+ *
+ * Reka cancels the keydown, which is what keeps a keyboard open from also
+ * firing the click that would disarm it; and the arm is read once, when the
+ * content mounts, so a click arriving after that is a no-op rather than a race.
+ */
+let keyboardOpen = false;
+
+function onTriggerKeydown(event: KeyboardEvent): void {
+  if (["Enter", " ", "ArrowDown"].includes(event.key)) keyboardOpen = true;
+}
+
+function onTriggerClick(): void {
+  keyboardOpen = false;
+}
+
+/**
+ * Reka spends the mount focus on the fan's own content element, and every key
+ * this component binds hangs off the focus that should have landed there:
+ * `RovingFocusGroup` seats a pill only when the group element itself receives
+ * it, and `mirrorArrows` below fires at whatever the document has focused. In a
+ * browser that focus lands nowhere, so an opened fan left focus on the trigger
+ * and none of its actions was reachable (#462). Loom seats the first enabled
+ * action instead — the arrival a menu button promises, and the one a keyboard
+ * reader opened it for.
+ *
+ * A pointer-opened fan keeps the seat Reka gives it: the gate leaves that path
+ * exactly as it was.
+ */
+function onOpenAutoFocus(event: Event): void {
+  const fromKeyboard = keyboardOpen;
+  keyboardOpen = false;
+  if (!fromKeyboard) return;
+  const fan = event.target as HTMLElement | null;
+  const first = fan?.querySelector<HTMLElement>('[role="menuitem"]:not([data-disabled])');
+  if (!first) return;
+  event.preventDefault();
+  first.focus();
+}
+
 /** See `MIRRORED_ARROWS`. Vertical fans are left alone — Reka already owns them. */
 function mirrorArrows(event: KeyboardEvent): void {
   if (fan.value.axis !== "horizontal") return;
@@ -209,6 +259,8 @@ function mirrorArrows(event: KeyboardEvent): void {
           attrs.class as string,
         )
       "
+      @keydown="onTriggerKeydown"
+      @click="onTriggerClick"
     >
       <!-- Both glyphs are hidden from assistive technology: the button's name
            is `label`, and a second reading of "plus" would only compete with
@@ -244,6 +296,7 @@ function mirrorArrows(event: KeyboardEvent): void {
         :side-offset="12"
         align="center"
         @keydown="mirrorArrows"
+        @open-auto-focus="onOpenAutoFocus"
       >
         <div
           :aria-orientation="fan.axis"

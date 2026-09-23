@@ -97,7 +97,9 @@ still responds at once.
 
 - **Closes on** Esc, a click outside, selecting a command, or the host setting
   `open` to `false`.
-- **Focus on open** moves into the menu and onto its first command.
+- **Focus on open** moves into the menu and onto its first command for a reader
+  who opened with Enter, Space or Arrow Down; a menu opened by a click keeps
+  Reka's own seat.
 - **Focus on close** returns to the trigger.
 - **The page behind does not scroll** while the menu is open, and the rest of
   the page is hidden from assistive technology. A command list is never scrolled
