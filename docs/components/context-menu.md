@@ -49,6 +49,15 @@ Additional flags: `danger` paints a destructive command in the destructive token
 `disabled` makes a row inert, and `shortcut` shows a keyboard hint at the trailing
 edge (display only — the primitive binds no keys).
 
+## Keyboard
+
+The panel is a tab stop of its own. Enter, Space, the ContextMenu key or
+Shift+F10 opens the menu anchored at the panel, the first enabled command takes
+focus and is highlighted, and from there the arrows and typeahead move the
+highlight and Enter runs the command it is on. `tabindex` and `aria-haspopup`
+are defaults put on the element you pass — an element that already holds a tab
+stop of its own keeps what it wrote.
+
 ## Escape contract
 
 Opening moves focus into the menu and onto the first command; Esc and an outside

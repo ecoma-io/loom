@@ -107,8 +107,11 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // switch, text-field, textarea and number-field each now carry
     // component-specific cases that witness their own focused control
     // clearing the fixed docs header (#432, the batch that also gave the
-    // suite its real-header measurement helper).
-    countOfRecord: 70,
+    // suite its real-header measurement helper); and 69 since context-menu's
+    // keyboard row retired with its own harness spec, which witnesses the
+    // whole contract at the role's tier — the trigger's keys, the seat, the
+    // arrow walk, typeahead, activation and the Escape return.
+    countOfRecord: 69,
   },
   {
     id: "interaction",
@@ -207,7 +210,15 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // triggers, then window buttons — and fires the menu's choose and the
     // maximize flip through the bar; and layouts' master-detail and
     // split-layout, whose specs prove the panes add no stop and trap nothing,
-    // wide and wrapped. Six rows stay, each on the defect named below.
+    // wide and wrapped; and context-menu, whose spec seats the panel on Tab,
+    // opens it with Shift+F10, Space and Enter, lands on the first enabled
+    // command, walks the rows past the separator with the arrows, reaches
+    // Paste with typeahead, runs the row focus is on with Enter, and hands
+    // focus back to the panel on Escape — a row retired by a fix, not by a
+    // spec alone, because its keyboard path did not exist to witness: the
+    // wrapper now owns both the trigger's keys and the mount focus Reka
+    // spends on an element a browser refuses to focus. Five rows stay, each on
+    // the defect named below.
     // Editable: the Enter commit fires the submit event and the value lands
     // in the model, but the editor stays open instead of returning to rest —
     // observed in the harness; the mechanism is not pinned, because the
@@ -225,17 +236,15 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // listbox is bound to the shared model, and reka's listbox re-highlights
     // on any change made outside itself by focusing the selected swatch, so
     // the walk ends on a swatch after one press; the spec witnesses the steps
-    // and the row holds the focus half. Context-menu: its wrapped Reka trigger opens on
-    // the pointer only — no
-    // keydown path to the menu exists anywhere in the chain. Dropdown-menu and
+    // and the row holds the focus half. Dropdown-menu and
     // speed-dial: opening never moves focus into the menu, so no row or pill
     // is reachable by keyboard — the pinned reka-ui focuses its own content
     // element on mount and in the engine that focus never lands, leaving every
     // arrow and Enter press on the still-focused trigger (their slimmed specs
     // witness the open/close half and the speed-dial's horizontal
     // aria-orientation correction; reka-ui issue 1873 names the symptom class
-    // upstream). #432 holds all six rows until those open defects land.
-    countOfRecord: 7,
+    // upstream). #432 holds all five rows until those open defects land.
+    countOfRecord: 6,
   },
   {
     id: "responsive",
