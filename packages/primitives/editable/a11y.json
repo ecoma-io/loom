@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "editable.e2e.ts presses the edit's real keyboard surface in browser — Enter opening, Escape abandoning with focus handed back, focus mode opening on arrival without re-opening on its own hand-back, the read-only value seating without opening — but the commit half is exactly what the interaction-level defect below leaves unproven, so the spec cites the open/abandon halves only; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,12 +23,18 @@
     "class": "interactive",
     "basis": "one edit target that swaps view and edit modes on its own state.",
     "evidence": {
-      "browserless": ["packages/primitives/editable/tests/Editable.test.ts"]
+      "browserless": ["packages/primitives/editable/tests/Editable.test.ts"],
+      "harness": [
+        {
+          "path": "packages/primitives/editable/e2e/editable.e2e.ts",
+          "because": "witnesses only the open/abandon half — Enter opening, Escape restoring with focus handed back once, focus mode arriving and leaving, read-only seating — while the commit gesture stays unproven"
+        }
+      ]
     },
     "exceptions": [
       {
         "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the Enter-to-commit, Escape-to-cancel contract is unproven in browser; tracked in ecoma-io/loom#432"
+        "because": "the Enter commit does not return to the preview: in the harness the keydown fires the submit event and the committed value lands in the model — the demo prints it — but the editor stays open holding the value with the Save and Cancel buttons beside it, so a keyboard commit leaves the surface in edit mode where a pointer commit would have returned to rest (observed in the harness; the mechanism is not pinned — the unit tier passes because jsdom's trigger(\"keydown\") runs the key handler without the focus swap the commit is supposed to perform); tracked in ecoma-io/loom#432"
       }
     ]
   }

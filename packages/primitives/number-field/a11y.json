@@ -12,19 +12,25 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "number-field.e2e.ts presses the field's real keyboard surface in browser — the arrows stepping the spinbutton, Shift multiplying one tick by ten, Home and End landing on the clamped poles, Enter committing once per gesture, the disabled field walked past — while the stepper buttons' deadness under the keyboard is the interaction-level defect below; the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     }
   ],
   "interaction": {
     "class": "composite",
     "basis": "an inner spinbutton <input> with increment and decrement steppers beside it — three targets managed as one field.",
     "evidence": {
-      "browserless": ["packages/primitives/number-field/tests/NumberField.test.ts"]
+      "browserless": ["packages/primitives/number-field/tests/NumberField.test.ts"],
+      "harness": [
+        {
+          "path": "packages/primitives/number-field/e2e/number-field.e2e.ts",
+          "because": "witnesses the input's full keyboard surface — arrows, Shift ticks, Home and End, Enter commits — while the stepper buttons answer the pointer only"
+        }
+      ]
     },
     "exceptions": [
       {
         "requirement": "keyboard-operate",
-        "because": "no harness spec yet — arrow stepping and typed entry is unproven in browser; tracked in ecoma-io/loom#432"
+        "because": "the steppers are unreachable and inert to the keyboard: reka renders them tabindex=\"-1\" — off the tab order — and its pressed-hold handler listens to pointerdown only, so Enter or Space on a directly focused stepper fires the browser's own click into a listener that is not there and the value does not move (observed in the harness; verified against the pinned reka-ui dist); the input itself carries the field's full keyboard surface, and the row holds until the steppers answer the keyboard too; tracked in ecoma-io/loom#432"
       }
     ]
   }

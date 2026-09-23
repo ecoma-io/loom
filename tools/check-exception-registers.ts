@@ -162,8 +162,48 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // returns to the trigger; and command, whose spec drives Loom's own
     // activedescendant handlers — the arrows and Home/End move the highlight
     // while focus stays in the searchbox, Enter runs the highlighted command,
-    // and Escape clears the query before it closes the list. Three rows stay.
-    // Context-menu: its wrapped Reka trigger opens on the pointer only — no
+    // and Escape clears the query before it closes the list — and since the
+    // picker-and-field batch followed, six rows more: primitives' calendar,
+    // whose spec seats Tab through the month buttons onto today's cell, walks
+    // day and week steps with the arrows, chooses and clears with Enter, and
+    // stops at the min/max fence; date-time-range-picker, whose spec walks
+    // one Tab stop across both halves' segments, types digits that fill and
+    // advance, and opens the calendar trigger onto the day grid where Enter
+    // lays the range down and Escape returns to the trigger; otp-input, whose
+    // spec seats the first empty cell on Tab, fills with auto-advance,
+    // completes the code once, backtracks with Backspace clearing the cell
+    // before it, and walks the row with the arrows; tags-input, whose spec
+    // commits on Enter and on the comma delimiter, lifts the last token with
+    // Backspace for re-edit, and fires the remove control on Enter back onto
+    // the input; time-picker, whose spec seats the hour on the field's single
+    // Tab stop, walks and steps the segments with the arrows and typed digits
+    // into the bound model, and flips the period with its key; and chip,
+    // whose spec operates the toggle's pressed state with Space and Enter,
+    // fires the remove button on Enter from the natural tab order, and proves
+    // the disabled chip drops out of the order. Two of those rows described
+    // keys their sources never had, and the retirement says so: chip's row
+    // named "remove-on-Backspace" and chip has no keydown handler at all —
+    // removal is the labelled button's own activation; tags-input's row named
+    // "chip-row navigation keys" and the component deliberately stops the
+    // wrapped primitive's virtual selection, replacing it with the Backspace
+    // lift the spec witnesses. Six rows stay.
+    // Editable: the Enter commit fires the submit event and the value lands
+    // in the model, but the editor stays open instead of returning to its
+    // preview — observed in the harness and invisible to the unit tier, whose
+    // trigger("keydown") runs the key handler without the focus swap the
+    // commit is meant to perform; its slimmed spec witnesses the open/abandon
+    // half and the row holds. Number-field: the steppers are unreachable and
+    // inert to the keyboard — reka renders them tabindex="-1" and its
+    // pressed-hold handler listens to pointerdown only, so the click a key
+    // synthesizes has nothing to land on and a focused stepper does nothing
+    // under Enter or Space; the spec pins the non-response beside the pointer
+    // contrast that proves the button is alive. Color-picker: an arrow step
+    // on either thumb moves the value but not only the value — the preset
+    // listbox is bound to the shared model, and reka's listbox re-highlights
+    // on any change made outside itself by focusing the selected swatch, so
+    // the walk ends on a swatch after one press; the spec witnesses the steps
+    // and the row holds the focus half. Context-menu: its wrapped Reka trigger opens on
+    // the pointer only — no
     // keydown path to the menu exists anywhere in the chain. Dropdown-menu and
     // speed-dial: opening never moves focus into the menu, so no row or pill
     // is reachable by keyboard — the pinned reka-ui focuses its own content
@@ -171,8 +211,8 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // arrow and Enter press on the still-focused trigger (their slimmed specs
     // witness the open/close half and the speed-dial's horizontal
     // aria-orientation correction; reka-ui issue 1873 names the symptom class
-    // upstream). #432 holds all three rows until those open defects land.
-    countOfRecord: 23,
+    // upstream). #432 holds all six rows until those open defects land.
+    countOfRecord: 17,
   },
   {
     id: "responsive",

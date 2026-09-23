@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the traversal contract is the wrapped Reka primitive's runtime behaviour; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "calendar.e2e.ts now presses the grid's real traversal in browser — Tab seating today's cell, the arrows walking day and week steps, Enter choosing and clearing, the min/max fence stopping the walk — but the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -23,13 +23,8 @@
     "class": "composite",
     "basis": "a grid of day targets managed as one — arrow traversal, selection, disabled dates.",
     "evidence": {
-      "browserless": ["packages/primitives/calendar/tests/Calendar.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the arrow traversal across the day grid is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/calendar/tests/Calendar.test.ts"],
+      "harness": ["packages/primitives/calendar/e2e/calendar.e2e.ts"]
+    }
   }
 }
