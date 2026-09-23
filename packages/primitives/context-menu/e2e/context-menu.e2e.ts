@@ -17,9 +17,14 @@ test.beforeEach(async ({ page }) => {
   await expect(trigger(page)).toBeVisible({ timeout: 20_000 });
 });
 
+/** The demo's panels, in document order. */
+function triggers(page: Page): Locator {
+  return page.locator("[data-state][aria-haspopup='menu']");
+}
+
 /** The demo's first panel — the first tab stop, and the menu this spec drives. */
 function trigger(page: Page): Locator {
-  return page.locator("[data-state][aria-haspopup='menu']").first();
+  return triggers(page).first();
 }
 
 /** The open menu; Reka portals it to the body, and it exists only while open. */
@@ -99,7 +104,7 @@ test("Escape closes the menu and returns focus to the trigger", async ({ page })
 test("Space opens the second panel too, and its disabled row is not a stop", async ({ page }) => {
   // The demo's second menu is the one carrying a disabled row and a danger
   // row, and the wrapper's defaults reach every instance rather than the first.
-  const second = trigger(page).nth(1);
+  const second = triggers(page).nth(1);
   await second.focus();
   await page.keyboard.press("Space");
   await expect(menu(page)).toBeVisible();
