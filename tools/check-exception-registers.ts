@@ -107,11 +107,14 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // switch, text-field, textarea and number-field each now carry
     // component-specific cases that witness their own focused control
     // clearing the fixed docs header (#432, the batch that also gave the
-    // suite its real-header measurement helper); and 69 since context-menu's
+    // suite its real-header measurement helper); 69 since context-menu's
     // keyboard row retired with its own harness spec, which witnesses the
     // whole contract at the role's tier — the trigger's keys, the seat, the
-    // arrow walk, typeahead, activation and the Escape return.
-    countOfRecord: 69,
+    // arrow walk, typeahead, activation and the Escape return; and 68 since
+    // editable's keyboard duty is answered at that same tier, its spec
+    // witnessing the commit half — the value landing in the host, the editor
+    // closing and focus returning to the preview.
+    countOfRecord: 68,
   },
   {
     id: "interaction",
@@ -217,16 +220,14 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // focus back to the panel on Escape — a row retired by a fix, not by a
     // spec alone, because its keyboard path did not exist to witness: the
     // wrapper now owns both the trigger's keys and the mount focus Reka
-    // spends on an element a browser refuses to focus. Five rows stay, each on
-    // the defect named below.
-    // Editable: the Enter commit fires the submit event and the value lands
-    // in the model, but the editor stays open instead of returning to rest —
-    // observed in the harness; the mechanism is not pinned, because the
-    // pinned dist's own submit() clears its editing flag, so what keeps the
-    // editor open lives above it, and the unit tier cannot see the defect
-    // because its Enter test asserts the emitted events and never asks
-    // whether the editor closed; its slimmed spec witnesses the open/abandon
-    // half and the row holds. Number-field: the steppers are unreachable and
+    // spends on an element a browser refuses to focus; and editable, whose
+    // spec witnesses its whole keyboard contract, the commit half included:
+    // Enter on the preview opens the editor, Escape abandons and hands focus
+    // back, the focus mode opens on arrival without re-opening on Escape's own
+    // hand-back, the read-only value seats without opening, and Enter commits
+    // — the value reaching the host, the editor closing and focus landing
+    // back on the preview. Four rows stay, each on the defect named below.
+    // Number-field: the steppers are unreachable and
     // inert to the keyboard — reka renders them tabindex="-1" and its
     // pressed-hold handler listens to pointerdown only, so the click a key
     // synthesizes has nothing to land on and a focused stepper does nothing
@@ -243,8 +244,8 @@ export const REGISTERS: readonly ExceptionRegister[] = [
     // arrow and Enter press on the still-focused trigger (their slimmed specs
     // witness the open/close half and the speed-dial's horizontal
     // aria-orientation correction; reka-ui issue 1873 names the symptom class
-    // upstream). #432 holds all five rows until those open defects land.
-    countOfRecord: 6,
+    // upstream). #432 holds all four rows until those open defects land.
+    countOfRecord: 5,
   },
   {
     id: "responsive",

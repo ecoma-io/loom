@@ -5,11 +5,15 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // renders the preview as a real `<button>` and rebuilds activation on top of
 // it. What a browser must witness: Enter opens the editor from the preview,
 // Escape abandons with focus handed back, the `focus` mode opens on arrival
-// without re-opening on Escape's own hand-back, and the read-only box seats
-// without ever opening. The commit half — Enter committing the typed value and
-// returning to rest — is witnessed broken in the browser: the submit
-// event fires and the value lands, but the editor never closes (see the
-// register row this component still carries).
+// without re-opening on Escape's own hand-back, the read-only box seats
+// without ever opening, and Enter commits — the value reaching the host, the
+// editor closing and focus landing back on the preview.
+//
+// The commit half belongs to the harness and not to the unit tier: a browser
+// runs the commit key's default action after the handlers have returned and
+// activates whatever holds focus when it does — which is why the focus
+// hand-back waits for the key to be spent. jsdom synthesises no such
+// activation, so a unit test would pass with the defect fully present.
 //
 // The demo mounts nine editables; two of them show the same owner, so
 // previews are matched by value AND taken in document order.
@@ -51,14 +55,57 @@ test("Enter opens the editor, and Escape abandons and hands focus back", async (
   await expect(page.getByText(/Q3 operations review \(moved\)/)).toHaveCount(0);
   await expect(page.getByText("cancel", { exact: true })).toBeVisible();
   await expect(title).toBeFocused();
+});
 
-  // The commit half is not witnessed here, and deliberately so: in the browser
-  // the Enter-commit fires the submit event and the value lands, but the
-  // editor stays open instead of returning to rest — the defect behind
-  // the keyboard-operate row this component still carries in the interaction
-  // register. The unit tier cannot see it, and not because the gesture is
-  // subtle: its Enter test asserts the emitted events and never asks whether
-  // the editor closed.
+/** What the first editable's box looks like right now, for a failure message. */
+async function commitState(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const root = document.querySelector("[data-dismissable-layer]");
+    const input = root?.querySelector("input");
+    const active = document.activeElement;
+    const name = (el: Element | null): string => {
+      if (!el || el === document.body) return "body";
+      const role = el.getAttribute("role");
+      return `${el.tagName.toLowerCase()}${role === null ? "" : `[role=${role}]`}: ${el.textContent.trim().slice(0, 40)}`;
+    };
+
+    return [
+      `focus is on ${name(active)}`,
+      `the root says data-editing=${root?.getAttribute("data-editing") ?? "(absent)"}`,
+      `the editor input is ${
+        input instanceof HTMLInputElement
+          ? `${input.hidden ? "hidden" : "shown"}, holding ${JSON.stringify(input.value)}`
+          : "absent"
+      }`,
+    ].join("; ");
+  });
+}
+
+test("Enter commits the edit: the value lands, the editor closes, focus returns to the preview", async ({
+  page,
+}) => {
+  const title = preview(page, /Q3 operations review/);
+  await title.focus();
+  await page.keyboard.press("Enter");
+  const box = editor(page, /a record title/);
+  await expect(box).toBeFocused();
+
+  await box.press("End");
+  await page.keyboard.type(" (committed)");
+  await page.keyboard.press("Enter");
+
+  // The half the host sees: the commit reached it, once, with the typed value.
+  await expect(page.getByText("submit: Q3 operations review (committed)")).toBeVisible();
+
+  // And the half the reader sees: the editor is gone (a hidden input carries no
+  // textbox role, so the query is what proves the swap) and the preview that
+  // replaced it holds the focus — the same resting place Escape returns to.
+  const state = await commitState(page);
+  await expect(editor(page, /a record title/), `after Enter, ${state}`).toHaveCount(0);
+  await expect(
+    preview(page, /Q3 operations review \(committed\)/),
+    `after Enter, ${state}`,
+  ).toBeFocused();
 });
 
 test("focus mode opens on arrival, and Escape's hand-back does not re-open it", async ({
