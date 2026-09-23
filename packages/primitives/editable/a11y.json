@@ -34,7 +34,7 @@
     "exceptions": [
       {
         "requirement": "keyboard-operate",
-        "because": "the Enter commit does not return to the preview: in the harness the keydown fires the submit event and the committed value lands in the model — the demo prints it — but the editor stays open holding the value with the Save and Cancel buttons beside it, so a keyboard commit leaves the surface in edit mode where a pointer commit would have returned to rest (observed in the harness; the mechanism is not pinned — the unit tier passes because jsdom's trigger(\"keydown\") runs the key handler without the focus swap the commit is supposed to perform); tracked in ecoma-io/loom#432"
+        "because": "the Enter commit does not return to rest: in the harness the keydown fires the submit event and the committed value lands in the model — the demo prints it — but the editor stays open holding the value with the Save and Cancel buttons beside it (observed in the harness; the mechanism is not pinned — the pinned dist's own submit() clears its editing flag, so what keeps the editor open lives above it, and the unit tier cannot see the defect because its Enter test asserts the emitted events and never asks whether the editor closed); tracked in ecoma-io/loom#432"
       }
     ]
   }

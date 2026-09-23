@@ -7,7 +7,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // Escape abandons with focus handed back, the `focus` mode opens on arrival
 // without re-opening on Escape's own hand-back, and the read-only box seats
 // without ever opening. The commit half — Enter committing the typed value and
-// returning to the preview — is witnessed broken in the browser: the submit
+// returning to rest — is witnessed broken in the browser: the submit
 // event fires and the value lands, but the editor never closes (see the
 // register row this component still carries).
 //
@@ -54,10 +54,11 @@ test("Enter opens the editor, and Escape abandons and hands focus back", async (
 
   // The commit half is not witnessed here, and deliberately so: in the browser
   // the Enter-commit fires the submit event and the value lands, but the
-  // editor stays open instead of returning to its preview — the defect behind
+  // editor stays open instead of returning to rest — the defect behind
   // the keyboard-operate row this component still carries in the interaction
-  // register. The unit tier cannot see it: jsdom's trigger("keydown") runs the
-  // key handler but never the focus swap the commit is supposed to perform.
+  // register. The unit tier cannot see it, and not because the gesture is
+  // subtle: its Enter test asserts the emitted events and never asks whether
+  // the editor closed.
 });
 
 test("focus mode opens on arrival, and Escape's hand-back does not re-open it", async ({

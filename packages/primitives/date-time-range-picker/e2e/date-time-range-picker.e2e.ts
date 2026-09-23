@@ -42,6 +42,15 @@ function panelDays(page: Page): Locator {
   return page.locator("[data-reka-calendar-cell-trigger]");
 }
 
+/** The local month/day segment values of the day `offset` days from today —
+ * the same day the calendar seats and the arrows reach, computed the way the
+ * calendar spec computes its fence. */
+function segmentValues(offsetFromToday: number): { month: string; day: string } {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetFromToday);
+  return { month: String(d.getMonth() + 1), day: String(d.getDate()) };
+}
+
 test("the field is one Tab stop and the arrows walk segment to segment across both halves", async ({
   page,
 }) => {
@@ -98,7 +107,7 @@ test("typing fills a segment and hands focus to the next one", async ({ page }) 
   await expect(year).toHaveAttribute("aria-valuenow", "2026");
 });
 
-test("the calendar button opens the panel onto the day grid, Enter lays the range down, and Escape closes back onto the button", async ({
+test("the calendar button opens the panel onto the day grid, and completing the range closes it back onto the button", async ({
   page,
 }) => {
   const trigger = queryField(page).getByRole("button", { name: "Open calendar" });
@@ -112,7 +121,10 @@ test("the calendar button opens the panel onto the day grid, Enter lays the rang
   await expect(seated).toBeFocused();
 
   // The two-click protocol, pressed not clicked: the first Enter begins the
-  // span, the arrows move a day at a time, the second closes it.
+  // span on the seated day, the arrows move a day at a time, and the second
+  // completes it — completion is itself the close. The source ends the panel
+  // the moment the range has both ends, so no dismissal key is involved and
+  // this spec deliberately presses none.
   await page.keyboard.press("Enter");
   const status = page.locator('[role="status"]', { hasText: /Choose the last day/ });
   await expect(status).toBeVisible();
@@ -120,10 +132,19 @@ test("the calendar button opens the panel onto the day grid, Enter lays the rang
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
-  await expect(page.locator('[role="status"]', { hasText: / to / })).toBeVisible();
 
-  // Escape is the exit, and it hands focus back to the button that opened it.
-  await page.keyboard.press("Escape");
+  // The completion closed the panel, and the close handed focus back to the
+  // button that opened it.
   await expect(panelDays(page)).toHaveCount(0);
   await expect(trigger).toBeFocused();
+
+  // The laid-down span is the field's own content now: start on the seated
+  // day (today), end three days right of it — read off the segments rather
+  // than off the panel that has just left.
+  const start = segmentValues(0);
+  const end = segmentValues(3);
+  await expect(startSegments(page).nth(0)).toHaveAttribute("aria-valuenow", start.month);
+  await expect(startSegments(page).nth(1)).toHaveAttribute("aria-valuenow", start.day);
+  await expect(endSegments(page).nth(0)).toHaveAttribute("aria-valuenow", end.month);
+  await expect(endSegments(page).nth(1)).toHaveAttribute("aria-valuenow", end.day);
 });
