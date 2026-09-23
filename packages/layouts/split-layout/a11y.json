@@ -19,11 +19,8 @@
   "interaction": {
     "class": "container",
     "basis": "a two-panel shell around slotted content that collapses intrinsically below the panels' combined minimum width — the layout boundary is its own; it operates nothing.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "the layout renders no resizer — that act is resizable-split's, and Split's own claim reserves it for a future composition — so its keyboard-operate duty is Tab passage across the two panes' slotted content, wide and wrapped; the exception stands because no component-owned harness spec witnesses that passage in a browser yet; that floor is ecoma-io/loom#432's tranche work"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/layouts/split-layout/e2e/split-layout.e2e.ts"]
+    }
   }
 }

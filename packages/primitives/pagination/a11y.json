@@ -19,13 +19,8 @@
     "class": "composite",
     "basis": "page targets managed as one — current state, traversal, boundaries.",
     "evidence": {
-      "browserless": ["packages/primitives/pagination/tests/Pagination.test.ts"]
-    },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — the page-step keys is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+      "browserless": ["packages/primitives/pagination/tests/Pagination.test.ts"],
+      "harness": ["packages/primitives/pagination/e2e/pagination.e2e.ts"]
+    }
   }
 }

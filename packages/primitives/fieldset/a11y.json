@@ -12,7 +12,7 @@
   "exceptions": [
     {
       "requirement": "keyboard",
-      "because": "the group's traversal belongs to the controls slotted into it; no component-owned harness spec exists yet — the interaction-spec floor the artifact matrix records as the primitives' gap"
+      "because": "fieldset.e2e.ts now presses the group's real keyboard surface in browser — the walk seating the grouped controls in document order, typing landing in a bound field, the read-only pair keeping its stops, and the disabled group's three controls dropping out of the tab order — while the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
     },
     {
       "requirement": "focus-not-obscured",
@@ -22,11 +22,8 @@
   "interaction": {
     "class": "container",
     "basis": "a named group around controls — disabled propagation is the group's own act, nothing operates here.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage through the grouped controls is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/primitives/fieldset/e2e/fieldset.e2e.ts"]
+    }
   }
 }

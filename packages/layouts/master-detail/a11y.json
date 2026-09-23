@@ -19,11 +19,8 @@
   "interaction": {
     "class": "container",
     "basis": "two panes around slotted lists and detail — operates none.",
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "no harness spec yet — keyboard passage between the panes is unproven in browser; tracked in ecoma-io/loom#432"
-      }
-    ]
+    "evidence": {
+      "harness": ["packages/layouts/master-detail/e2e/master-detail.e2e.ts"]
+    }
   }
 }
