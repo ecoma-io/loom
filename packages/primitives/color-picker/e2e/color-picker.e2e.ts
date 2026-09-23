@@ -6,6 +6,12 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // real focus between swatches with Enter choosing. jsdom runs none of it, which
 // is why the unit tier could only assert the markup and the emitted values.
 //
+// A step keeps the walk on the thumb it was taken from, and that half is the
+// harness's to witness: the preset row is bound to the same model the thumbs
+// write, and reka's listbox re-highlights on every change made outside itself —
+// by focusing the swatch it just selected. Nothing in jsdom focuses anything,
+// so the unit tier passes with the steal fully present.
+//
 // The demo mounts three pickers. The first ("colour-picker-demo-label") has no
 // presets and shows the value in a readout beside its label; the second
 // ("colour-picker-demo-series") carries the six-colour brand palette, which is
@@ -51,19 +57,21 @@ test("the slider thumbs step their announced values under the arrows", async ({ 
   await page.keyboard.press("ArrowRight");
   await expect(areaThumb).not.toHaveAttribute("aria-valuetext", before ?? "");
 
-  // The hue slider is its own slider with its own stop.
+  // The row re-highlights on that step — which is the thumb's own value
+  // arriving from outside the listbox — and the walk stays where it was.
+  await expect(areaThumb).toBeFocused();
+
+  // A second step is a second arrival, so the retention is not one lucky
+  // tick: the row fires again and the thumb keeps the focus again.
+  await page.keyboard.press("ArrowRight");
+  await expect(areaThumb).toBeFocused();
+
+  // The hue slider is its own slider with its own stop, and holds it too.
   await hueThumb.focus();
   const hueBefore = await hueThumb.getAttribute("aria-valuenow");
   await page.keyboard.press("ArrowUp");
   await expect(hueThumb).not.toHaveAttribute("aria-valuenow", hueBefore ?? "");
-
-  // What neither press keeps is focus. The preset listbox is bound to the
-  // picker's shared model, and reka's listbox re-highlights on any change
-  // made outside itself — by focusing the selected swatch — so one arrow
-  // step on a thumb ends with the walk on a swatch. That is the defect
-  // behind the keyboard-operate row this component still carries (see
-  // a11y.json); this spec witnesses the steps, and the row holds the focus
-  // half until the listbox stops re-highlighting over the walk.
+  await expect(hueThumb).toBeFocused();
 });
 
 test("the hex field commits on Enter and the readout moves once", async ({ page }) => {
@@ -105,4 +113,9 @@ test("the swatch arrows walk the presets and Enter chooses one", async ({ page }
   await page.keyboard.press("Enter");
   await expect(steppedTo).toHaveAttribute("aria-selected", "true");
   await expect(seeded).toHaveAttribute("aria-selected", "false");
+
+  // Choosing from inside the row leaves the walk inside the row. This is the
+  // other half of the retention: the row owns the focus a reader gave it, and
+  // only a step taken outside it is handed back.
+  await expect(steppedTo).toBeFocused();
 });

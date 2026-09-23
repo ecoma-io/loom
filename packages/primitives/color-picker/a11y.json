@@ -6,14 +6,10 @@
       "docs/demos/ColorPickerDemo.vue",
       "packages/primitives/color-picker/tests/ColorPicker.test.ts"
     ],
-    "harness": [],
+    "harness": ["packages/primitives/color-picker/e2e/color-picker.e2e.ts"],
     "sweep": ["docs/components/color-picker.md"]
   },
   "exceptions": [
-    {
-      "requirement": "keyboard",
-      "because": "color-picker.e2e.ts presses the picker's real keyboard surface in browser — the thumbs stepping their announced values under the arrows, the hex field committing on Enter, the preset listbox walking real focus between swatches and choosing on Enter — while keeping focus through a thumb step is exactly what the interaction-level defect below leaves unproven; the keyboard family's own rules (aria-hidden-focus and its siblings) are the harness axe gate's to answer; the role-axis evidence tranche owns un-qualifying this row"
-    },
     {
       "requirement": "focus-not-obscured",
       "because": "e2e/focus-not-obscured.e2e.ts (WCAG 2.4.11) covers three pages today — button, dialog, drawer; this page joins when that suite's population grows (tracked in ecoma-io/loom#432)"
@@ -24,18 +20,8 @@
     "basis": "swatches, sliders and field inputs managed as one selection state.",
     "evidence": {
       "browserless": ["packages/primitives/color-picker/tests/ColorPicker.test.ts"],
-      "harness": [
-        {
-          "path": "packages/primitives/color-picker/e2e/color-picker.e2e.ts",
-          "because": "witnesses the value halves — the thumbs stepping their announced values, the hex committing on Enter, the swatch walk choosing on Enter — while keeping focus through a step stays unproven"
-        }
-      ]
+      "harness": ["packages/primitives/color-picker/e2e/color-picker.e2e.ts"]
     },
-    "exceptions": [
-      {
-        "requirement": "keyboard-operate",
-        "because": "an arrow step on either thumb moves the value but not only the value: the preset listbox is bound to the picker's shared model, and reka's listbox re-highlights on any change made outside itself — by focusing the selected swatch — so one ArrowRight on the saturation or hue thumb ends with focus on a swatch and the walk hijacked (observed in the harness; the ListboxRoot model watcher verified against the pinned reka-ui dist); tracked in ecoma-io/loom#432"
-      }
-    ]
+    "exceptions": []
   }
 }
