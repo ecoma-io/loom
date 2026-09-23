@@ -52,17 +52,22 @@ test("Tab walks each cluster's three controls and crosses between the clusters",
 test("Enter fires each control's intent, and maximize flips to restore on the same key", async ({
   page,
 }) => {
+  // The English cluster: it is the instance wired to the demo's maximized
+  // state, and the component's testids render on both clusters alike, so the
+  // unscoped testid would be ambiguous rather than meaningful.
+  const english = clusters(page).nth(0);
+
   // The demo's readouts: the last intent, and the maximized state beside it.
   const intent = page.locator("code.tabular").nth(0);
   const maximized = page.locator("code.tabular").nth(1);
 
-  const minimize = page.getByTestId("win-minimize");
+  const minimize = english.getByTestId("win-minimize");
   await minimize.focus();
   await page.keyboard.press("Enter");
   await expect(intent).toHaveText("minimize");
 
   // Addressed by testid because this very activation flips its label.
-  const maximize = page.getByTestId("win-maximize");
+  const maximize = english.getByTestId("win-maximize");
   await maximize.focus();
   await page.keyboard.press("Enter");
   await expect(maximize).toHaveAccessibleName("Restore");
@@ -74,7 +79,7 @@ test("Enter fires each control's intent, and maximize flips to restore on the sa
   await expect(maximize).toHaveAccessibleName("Maximize");
   await expect(maximized).toHaveText("false");
 
-  await page.getByTestId("win-close").focus();
+  await english.getByTestId("win-close").focus();
   await page.keyboard.press("Enter");
   await expect(intent).toHaveText("close");
 });

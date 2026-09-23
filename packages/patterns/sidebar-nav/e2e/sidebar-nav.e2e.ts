@@ -23,7 +23,12 @@ function nav(page: Page): Locator {
   return page.getByRole("navigation", { name: "Primary navigation" });
 }
 
-/** One destination link, by its label — visible text expanded, `aria-label` collapsed. */
+/**
+ * One destination link, addressed by the name a screen reader announces. That
+ * name differs by mode: expanded it is the row's text content — label plus
+ * badge, so the demo's Notifications row is "Notifications 3" — and collapsed
+ * it is `aria-label`, the label alone with the badge folded into the tooltip.
+ */
 function link(page: Page, named: string): Locator {
   return nav(page).getByRole("link", { name: named, exact: true });
 }
@@ -32,13 +37,15 @@ test("Tab walks the nav's links in document order; the current page is marked, n
   page,
 }) => {
   // Six presses, each asserted by identity: a link the nav swallowed, or an
-  // order that drifts from the list, fails at the stop it happens.
+  // order that drifts from the list, fails at the stop it happens. The badge
+  // row is addressed by its full announced name — the count rides the link's
+  // announcement, which is exactly what a keyboard-screen-reader user hears.
   for (const named of [
     "Overview",
     "Workflows",
     "Connections",
     "Members",
-    "Notifications",
+    "Notifications 3",
     "Settings",
   ]) {
     await page.keyboard.press("Tab");
