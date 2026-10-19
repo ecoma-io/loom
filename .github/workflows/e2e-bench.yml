@@ -265,7 +265,7 @@ jobs:
       # interesting half of the answer.
       - name: Upload timings
         if: always() && (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: timings-${{ inputs.project }}-${{ inputs.group || 'flat' }}-s${{ matrix.shard }}-w${{ inputs.workers }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/timings.jsonl
@@ -278,7 +278,7 @@ jobs:
       # which is why this is an error where the timings upload above warns.
       - name: Upload B2 records
         if: always() && inputs.group == 'b2' && (inputs.only_shard == 'all' || format('{0}', matrix.shard) == inputs.only_shard) && matrix.shard <= fromJSON(env.GROUP_SHARDS)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: b2-results-${{ inputs.project }}-${{ inputs.b2_variant }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/b2-results.jsonl
