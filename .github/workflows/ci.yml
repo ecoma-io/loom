@@ -1007,7 +1007,7 @@ jobs:
     # "Executable doesn't exist". Bump the lockfile, bump this tag, in one
     # commit.
     container:
-      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      image: mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
       # Firefox's sandbox spawns through an unprivileged user namespace, and
       # Docker's default seccomp profile refuses that clone() inside a job
       # container — measured 2026-08-26: every Firefox leg died on
